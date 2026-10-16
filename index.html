@@ -1,0 +1,1582 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Révolution Agricole — Le SaaS Agricole du Burkina Faso</title>
+  <meta name="description" content="Plateforme tout-en-un pour les acteurs agricoles burkinabè : information vérifiée, météo locale, financements, marché et gestion d'exploitation.">
+  
+  <!-- Polices Google : Plus Jakarta Sans (géométrique, ultra-lisible, premium) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="styles/main.css?v=3.4">
+</head>
+<body class="theme-light">
+  <!-- BANDEAU DE CONTRÔLE PROTOTYPE (Permet de switcher de rôle, de vue et d'état en 1 clic) -->
+  <header class="prototype-control-bar" id="protoBar">
+    <div class="proto-brand">
+      <span class="pulse-dot"></span>
+      <strong>RÉVOLUTION AGRICOLE</strong>
+      <span class="badge-tag">Design System v1.0 • AgriVision Masterplan</span>
+    </div>
+
+    <div class="proto-actions">
+      <!-- Sélecteur de profil -->
+      <div class="control-group">
+        <label for="roleSelector">Profil simulé :</label>
+        <select id="roleSelector" class="proto-select">
+          <option value="producer">🌾 Productrice (Awa Ouédraogo - Koudougou)</option>
+          <option value="supplier">🚜 Fournisseur (Rasmané Sawadogo - Ouaga)</option>
+          <option value="buyer">💼 Acheteur / Grossiste (Salif Traoré - Bobo)</option>
+          <option value="admin">🛡️ Modérateur / Admin (Dossiers & Signalements)</option>
+        </select>
+      </div>
+
+      <!-- Bascule Desktop / Mobile Simulator -->
+      <div class="control-group view-toggle-group">
+        <button id="btnViewDesktop" class="proto-btn active" title="Vue Ordinateur (≥ 1280px)">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          <span>Écran Bureau</span>
+        </button>
+        <button id="btnViewMobile" class="proto-btn" title="Vue Mobile Android (390px)">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="3"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+          <span>Mobile Android</span>
+        </button>
+      </div>
+
+      <!-- Sélecteur d'état UI -->
+      <div class="control-group">
+        <label for="stateSelector">État UI :</label>
+        <select id="stateSelector" class="proto-select">
+          <option value="normal">Normal (Données réelles DÉMO)</option>
+          <option value="loading">Chargement (Squelettes / Skeletons)</option>
+          <option value="empty">États Vides (Nouveau compte)</option>
+          <option value="error">Erreur réseau (Mode résilience)</option>
+        </select>
+      </div>
+
+      <div class="demo-pill" title="Indicateur obligatoire du plan d'implémentation">
+        <span>DÉMO</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- BANDEAU DISCRET ADMIN (Visible uniquement en mode Admin) -->
+  <div id="adminNoticeBar" class="admin-notice-bar hidden">
+    <div class="admin-notice-inner">
+      <span class="admin-icon">🛡️</span>
+      <span><strong>ESPACE ADMINISTRATION & MODÉRATION</strong> — Connecté avec privilèges élevés (RLS active, journal des actions audité).</span>
+      <span class="admin-tag">SUPER-ADMIN</span>
+    </div>
+  </div>
+
+  <!-- CONTENEUR GLOBAL D'AFFICHAGE (Desktop OU Wrapper simulateur Mobile) -->
+  <div id="viewportContainer" class="viewport-wrapper mode-desktop">
+
+    <!-- FRAME MOBILE CONTAINER (Activé quand mode Mobile choisi) -->
+    <div id="mobileDeviceFrame" class="device-frame-shell hidden">
+      <div class="device-notch">
+        <span class="notch-speaker"></span>
+        <span class="notch-camera"></span>
+      </div>
+      <div class="device-screen-wrapper">
+        <!-- Contenu mobile dynamique injecté ici -->
+        <div id="mobileAppMount" class="mobile-app-root"></div>
+      </div>
+      <div class="device-home-bar"></div>
+    </div>
+
+    <!-- MAIN DESKTOP APP SHELL (Inspiré fidèlement d'AgriVision) -->
+    <div id="desktopAppShell" class="app-layout">
+      
+      <!-- ==================== 1. SIDEBAR NAVIGATION ==================== -->
+      <aside class="sidebar" id="mainSidebar">
+        <!-- Logo & Identité -->
+        <div class="sidebar-header">
+          <div class="brand-logo">
+            <div class="brand-icon-wrapper">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.7 10-10 10Z"/>
+                <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>
+              </svg>
+            </div>
+            <div class="brand-text">
+              <span class="brand-title">Révolution</span>
+              <span class="brand-sub">Agricole</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Menu groupé -->
+        <nav class="sidebar-nav" id="sidebarNav">
+          <!-- Groupe 1: ACCUEIL -->
+          <div class="nav-section">
+            <div class="nav-section-title">ACCUEIL</div>
+            <a href="#dashboard" class="nav-item active" data-page="dashboard">
+              <span class="nav-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+              </span>
+              <span class="nav-label">Tableau de bord</span>
+            </a>
+          </div>
+
+          <!-- Groupe 2: S'INFORMER -->
+          <div class="nav-section">
+            <div class="nav-section-title">S'INFORMER</div>
+            <a href="#conseils" class="nav-item" data-page="conseils">
+              <span class="nav-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10"/><path d="M6 10h10"/></svg>
+              </span>
+              <span class="nav-label">Conseils</span>
+              <span class="nav-pill-count">3 nvx</span>
+            </a>
+            <a href="#formations" class="nav-item" data-page="formations">
+              <span class="nav-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+              </span>
+              <span class="nav-label">Formations</span>
+            </a>
+            <a href="#meteo" class="nav-item" data-page="meteo">
+              <span class="nav-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="M20 12h2"/><path d="m19.07 4.93-1.41 1.41"/><path d="M15.947 12.65a4 4 0 0 0-5.925-4.128"/><path d="M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6Z"/></svg>
+              </span>
+              <span class="nav-label">Météo</span>
+              <span class="nav-status-dot blue"></span>
+            </a>
+          </div>
+
+          <!-- Groupe 3: OPPORTUNITÉS -->
+          <div class="nav-section">
+            <div class="nav-section-title">OPPORTUNITÉS</div>
+            <a href="#opportunites" class="nav-item" data-page="opportunites">
+              <span class="nav-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m12 6 4 6-4 6"/><path d="M8 12h8"/></svg>
+              </span>
+              <span class="nav-label">Financements</span>
+              <span class="nav-badge-amber">5</span>
+            </a>
+          </div>
+
+          <!-- Groupe 4: ÉCHANGER -->
+          <div class="nav-section">
+            <div class="nav-section-title">ÉCHANGER</div>
+            <a href="#marche" class="nav-item" data-page="marche">
+              <span class="nav-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
+              </span>
+              <span class="nav-label">Marché agricole</span>
+            </a>
+            <a href="#materiel-services" class="nav-item" data-page="materiel-services">
+              <span class="nav-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+              </span>
+              <span class="nav-label">Matériel & services</span>
+            </a>
+            <a href="#mes-annonces" class="nav-item" data-page="mes-annonces">
+              <span class="nav-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              </span>
+              <span class="nav-label">Mes annonces</span>
+            </a>
+          </div>
+
+          <!-- Groupe 5: MON EXPLOITATION (Conditionné selon le rôle) -->
+          <div class="nav-section" id="navGroupExploitation">
+            <div class="nav-section-title">MON EXPLOITATION</div>
+            <a href="#synthese" class="nav-item" data-page="synthese">
+              <span class="nav-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+              </span>
+              <span class="nav-label">Synthèse</span>
+            </a>
+            <a href="#parcelles" class="nav-item" data-page="parcelles">
+              <span class="nav-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+              </span>
+              <span class="nav-label">Parcelles</span>
+            </a>
+            <a href="#cycles" class="nav-item" data-page="cycles">
+              <span class="nav-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4"/><path d="m4.93 4.93 2.83 2.83"/><path d="M2 12h4"/><path d="m4.93 19.07 2.83-2.83"/><path d="M12 22v-4"/><path d="m19.07 19.07-2.83-2.83"/><path d="M22 12h-4"/><path d="m19.07 4.93-2.83 2.83"/></svg>
+              </span>
+              <span class="nav-label">Cycles culturaux</span>
+            </a>
+            <a href="#finances" class="nav-item" data-page="finances">
+              <span class="nav-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              </span>
+              <span class="nav-label">Finances & Marges</span>
+            </a>
+          </div>
+
+          <!-- Groupe 6: ADMIN (Affiché uniquement pour profil Admin) -->
+          <div class="nav-section hidden" id="navGroupAdmin">
+            <div class="nav-section-title">ADMINISTRATION</div>
+            <a href="#admin-queue" class="nav-item" data-page="admin-queue">
+              <span class="nav-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+              </span>
+              <span class="nav-label">Files de modération</span>
+              <span class="nav-badge-red">6</span>
+            </a>
+            <a href="#admin-verif" class="nav-item" data-page="admin-verif">
+              <span class="nav-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+              </span>
+              <span class="nav-label">Vérification (+90j)</span>
+              <span class="nav-badge-amber">9</span>
+            </a>
+            <a href="#admin-audit" class="nav-item" data-page="admin-audit">
+              <span class="nav-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+              </span>
+              <span class="nav-label">Journal d'audit</span>
+            </a>
+          </div>
+
+          <!-- Groupe 7: COMPTE -->
+          <!-- Groupe 7: COMPTE -->
+          <div class="nav-section">
+            <div class="nav-section-title">COMPTE</div>
+            <a href="#notifications" class="nav-item" data-page="notifications">
+              <span class="nav-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+              </span>
+              <span class="nav-label">Notifications</span>
+              <span class="nav-pill-count">2</span>
+            </a>
+            <a href="#abonnements" class="nav-item" id="navItemPricing" data-page="abonnements">
+              <span class="nav-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              </span>
+              <span class="nav-label">Abonnements & Tarifs</span>
+              <span class="nav-badge-amber">Pro</span>
+            </a>
+            <a href="#profil" class="nav-item" data-page="profil">
+              <span class="nav-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+              </span>
+              <span class="nav-label">Profil & Paramètres</span>
+            </a>
+          </nav>
+
+          <!-- Déconnexion (Isolé en rouge comme sur la capture AgriVision) -->
+          <div class="sidebar-logout">
+            <button class="btn-logout" id="btnLogout">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+              <span>Déconnexion</span>
+            </button>
+          </div>
+
+          <!-- Carte Promotionnelle & Forfaits Pro -->
+          <div class="sidebar-promo-card" id="sidebarPromoCard">
+            <div class="promo-badge-icon">🌾</div>
+            <div class="promo-text">
+              <strong class="promo-title" id="promoCardTitle">Passer au Forfait Pro</strong>
+              <p class="promo-desc" id="promoCardDesc">5 000 F CFA/mois • Marges illimitées, alertes SMS & rappels PReCA.</p>
+            </div>
+            <div class="promo-progress-bar">
+              <div class="promo-progress-fill" style="width: 85%"></div>
+            </div>
+            <button class="promo-btn" id="btnOpenPricing">Découvrir les forfaits</button>
+          </div>
+        </aside>
+
+        <!-- ==================== 2. MAIN CONTENT AREA ==================== -->
+        <main class="main-wrapper">
+        
+        <!-- EN-TÊTE PRINCIPAL (Exactement comme AgriVision : Identité à gauche, Actions & Profil à droite) -->
+        <header class="app-header">
+          <!-- Identité utilisateur contextuelle -->
+          <div class="header-user-info">
+            <h2 class="user-display-name" id="userHeaderName">Awa Ouédraogo</h2>
+            <p class="user-display-meta" id="userHeaderMeta">
+              <span class="badge-activity">Maraîchère</span>
+              <span class="bullet-sep">•</span>
+              <span class="user-location">📍 Koudougou (Boulkiemdé)</span>
+            </p>
+          </div>
+
+          <!-- Zone d'action droite : Profil utilisateur, Recherche globale, Notifications, Boutons contextuels -->
+          <div class="header-actions">
+            <!-- Recherche globale compacte -->
+            <div class="search-input-wrapper">
+              <svg class="search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" id="globalSearchInput" placeholder="Rechercher…" class="search-field" autocomplete="off">
+            </div>
+
+            <!-- Notifications cloche avec pastille rouge -->
+            <button class="icon-btn" id="btnNotifications" aria-label="Notifications (2 non lues)" title="2 nouvelles alertes">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+              <span class="notification-badge-dot"></span>
+            </button>
+
+            <!-- Profil Utilisateur & Compte (Avatar bonhomme + Nom + Chevron intégrés - PRIORITAIRE) -->
+            <button class="user-profile-pill-btn" id="btnOpenAuth" title="Gérer mon compte & Déconnexion">
+              <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&h=120&q=80" alt="Avatar Utilisateur" class="user-avatar" id="userHeaderAvatar">
+              <span class="user-pill-text" id="btnAuthText">Connexion</span>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="menu-chevron"><path d="m6 9 6 6 6-6"/></svg>
+            </button>
+
+            <span class="header-divider"></span>
+
+            <!-- Bouton Enregistrer une vente / recette -->
+            <button class="btn-revenue-action" id="btnHeaderRevenue" title="Enregistrer une vente de récolte ou encaissement">
+              <span class="action-icon">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v20"/><path d="m17 5-5-3-5 3"/><path d="m17 19-5 3-5-3"/><path d="M2 12h20"/></svg>
+              </span>
+              <span class="action-label action-label-full">+ Vente récolte</span>
+              <span class="action-label action-label-short">+ Vente</span>
+            </button>
+
+            <!-- Bouton d'action contextuel principal (Ajouter une dépense) -->
+            <button class="btn-primary-action" id="btnHeaderAction">
+              <span class="action-icon">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              </span>
+              <span class="action-label action-label-full" id="headerActionLabel">Ajouter une dépense</span>
+              <span class="action-label action-label-short" id="headerActionLabelShort">+ Dépense</span>
+            </button>
+          </div>
+        </header>
+
+        <!-- CONTENU DU DASHBOARD -->
+        <div class="dashboard-body" id="dashboardContent">
+          
+          <!-- BANDEAU DE BIENVENUE & DATE (Fidèle à AgriVision : Salutation à gauche, Date/Heure à droite) -->
+          <div class="dashboard-greeting-bar">
+            <div class="greeting-left">
+              <h1 class="greeting-title" id="greetingTitle">Bonjour, Awa <span class="greeting-emoji">🌱</span></h1>
+              <p class="greeting-subtitle" id="greetingSubtitle">Voici l'essentiel pour votre activité aujourd'hui sur votre exploitation.</p>
+            </div>
+            <div class="greeting-right">
+              <div class="local-date-time">
+                <div class="date-icon-box">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                </div>
+                <div class="date-time-content">
+                  <span class="date-text" id="liveDateDisplay">jeudi 16 octobre 2026</span>
+                  <span class="time-text" id="liveTimeDisplay">08:30 • Ouagadougou</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4 CARTES D'INDICATEURS STATISTIQUES (Pastels différenciés fidèles à AgriVision) -->
+          <section class="stat-cards-grid" id="statCardsGrid">
+            
+            <!-- Carte 1 : Dépenses du mois (Pastel Vert Doux) -->
+            <div class="stat-card stat-card-green" id="statCard1">
+              <div class="stat-header">
+                <div class="stat-icon-wrapper">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                </div>
+                <span class="stat-module-tag">Exploitation</span>
+              </div>
+              <div class="stat-label" id="statLabel1">Dépenses du mois</div>
+              <div class="stat-value-row">
+                <span class="stat-number tabular-numbers" id="statValue1">185 000 <small>F CFA</small></span>
+              </div>
+              <div class="stat-footer">
+                <!-- Règle stricte du plan : hausse des dépenses = DÉFAVORABLE (Rouge), quelle que soit la direction -->
+                <span class="trend-badge trend-unfavorable" id="statTrend1">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="18 15 12 9 6 15"/></svg>
+                  <span>12% défavorable</span>
+                </span>
+                <span class="comparison-text" id="statComp1">vs sept. (165 000 F)</span>
+              </div>
+            </div>
+
+            <!-- Carte 2 : Recettes du mois (Pastel Bleu Doux) -->
+            <div class="stat-card stat-card-blue" id="statCard2">
+              <div class="stat-header">
+                <div class="stat-icon-wrapper">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                </div>
+                <span class="stat-module-tag">Recettes</span>
+              </div>
+              <div class="stat-label" id="statLabel2">Recettes du mois</div>
+              <div class="stat-value-row">
+                <span class="stat-number tabular-numbers" id="statValue2">420 000 <small>F CFA</small></span>
+              </div>
+              <div class="stat-footer">
+                <!-- Hausse des recettes = FAVORABLE (Vert) -->
+                <span class="trend-badge trend-favorable" id="statTrend2">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="18 15 12 9 6 15"/></svg>
+                  <span>8% favorable</span>
+                </span>
+                <span class="comparison-text" id="statComp2">vs sept. (388 000 F)</span>
+              </div>
+            </div>
+
+            <!-- Carte 3 : Cycles en cours (Pastel Jaune / Ambre) -->
+            <div class="stat-card stat-card-yellow" id="statCard3">
+              <div class="stat-header">
+                <div class="stat-icon-wrapper">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m4.93 4.93 4.24 4.24"/><path d="m14.83 9.17 4.24-4.24"/><path d="m14.83 14.83 4.24 4.24"/><path d="m9.17 14.83-4.24 4.24"/></svg>
+                </div>
+                <span class="stat-module-tag">Production</span>
+              </div>
+              <div class="stat-label" id="statLabel3">Cycles en cours</div>
+              <div class="stat-value-row">
+                <span class="stat-number tabular-numbers" id="statValue3">3 <small>actifs</small></span>
+              </div>
+              <div class="stat-footer">
+                <span class="status-pill status-pill-active">
+                  <span class="dot-indicator"></span> 1 récolte cette sem.
+                </span>
+                <span class="comparison-text" id="statComp3">Parcelle P2 (Tomate)</span>
+              </div>
+            </div>
+
+            <!-- Carte 4 : Opportunités vérifiées (Pastel Violet / Lavande) -->
+            <div class="stat-card stat-card-purple" id="statCard4">
+              <div class="stat-header">
+                <div class="stat-icon-wrapper">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+                </div>
+                <span class="stat-module-tag">Financements</span>
+              </div>
+              <div class="stat-label" id="statLabel4">Opportunités ouvertes</div>
+              <div class="stat-value-row">
+                <span class="stat-number tabular-numbers" id="statValue4">5 <small>vérifiées</small></span>
+              </div>
+              <div class="stat-footer">
+                <span class="urgent-pill">
+                  <span class="clock-icon">⏳</span> 2 clôturent &lt; 7 j
+                </span>
+                <span class="comparison-text" id="statComp4">PReCA & Fonds Vert</span>
+              </div>
+            </div>
+          </section>
+
+          <!-- GRILLE PRINCIPALE (Ligne 1 : 2/3 Graphique Barres Dépenses/Recettes + 1/3 Échéances) -->
+          <div class="main-dashboard-grid">
+            
+            <!-- BLOC LARGE GAUCHE : Finances & Marge (Remplaçant Soil Moisture selon spec G.2) -->
+            <section class="content-card finance-chart-card">
+              <div class="card-header-row">
+                <div class="card-title-group">
+                  <h3 class="card-title" id="mainChartTitle">Dépenses et recettes</h3>
+                  <span class="card-subtitle">Évolution des flux de trésorerie sur l'exploitation</span>
+                </div>
+                <div class="card-header-actions">
+                  <div class="chart-legend">
+                    <span class="legend-item"><span class="legend-color-dot revenue-dot"></span> Recettes</span>
+                    <span class="legend-item"><span class="legend-color-dot expense-dot"></span> Dépenses</span>
+                  </div>
+                  <select class="period-select" id="chartPeriodSelect" aria-label="Période du graphique">
+                    <option value="6m" selected>6 derniers mois</option>
+                    <option value="3m">3 derniers mois</option>
+                    <option value="1y">Année 2026</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Bar Chart SVG interactif haute fidélité -->
+              <div class="chart-container" id="barChartWrapper">
+                <div class="chart-bars-group" id="barsGroup">
+                  <!-- Mois 1: Mai -->
+                  <div class="chart-col" data-month="Mai" data-rev="310 000" data-exp="140 000" data-margin="+170 000">
+                    <div class="bar-pair">
+                      <div class="bar bar-revenue" style="height: 65%;"></div>
+                      <div class="bar bar-expense" style="height: 35%;"></div>
+                    </div>
+                    <span class="col-label">mai</span>
+                  </div>
+                  <!-- Mois 2: Juin -->
+                  <div class="chart-col" data-month="Juin" data-rev="360 000" data-exp="150 000" data-margin="+210 000">
+                    <div class="bar-pair">
+                      <div class="bar bar-revenue" style="height: 75%;"></div>
+                      <div class="bar bar-expense" style="height: 38%;"></div>
+                    </div>
+                    <span class="col-label">juin</span>
+                  </div>
+                  <!-- Mois 3: Juillet -->
+                  <div class="chart-col" data-month="Juillet" data-rev="290 000" data-exp="240 000" data-margin="+50 000">
+                    <div class="bar-pair">
+                      <div class="bar bar-revenue" style="height: 60%;"></div>
+                      <div class="bar bar-expense" style="height: 52%;"></div>
+                    </div>
+                    <span class="col-label">juil</span>
+                  </div>
+                  <!-- Mois 4: Août -->
+                  <div class="chart-col" data-month="Août" data-rev="395 000" data-exp="160 000" data-margin="+235 000">
+                    <div class="bar-pair">
+                      <div class="bar bar-revenue" style="height: 82%;"></div>
+                      <div class="bar bar-expense" style="height: 40%;"></div>
+                    </div>
+                    <span class="col-label">août</span>
+                  </div>
+                  <!-- Mois 5: Septembre -->
+                  <div class="chart-col" data-month="Septembre" data-rev="388 000" data-exp="165 000" data-margin="+223 000">
+                    <div class="bar-pair">
+                      <div class="bar bar-revenue" style="height: 80%;"></div>
+                      <div class="bar bar-expense" style="height: 42%;"></div>
+                    </div>
+                    <span class="col-label">sept</span>
+                  </div>
+                  <!-- Mois 6: Octobre (Actuel) -->
+                  <div class="chart-col active-month" data-month="Octobre (en cours)" data-rev="420 000" data-exp="185 000" data-margin="+235 000">
+                    <div class="bar-pair">
+                      <div class="bar bar-revenue" style="height: 90%;"></div>
+                      <div class="bar bar-expense" style="height: 46%;"></div>
+                    </div>
+                    <span class="col-label">oct.</span>
+                  </div>
+                </div>
+
+                <!-- Info-bulle flottante réactive au survol/tap -->
+                <div class="chart-tooltip" id="chartTooltip">
+                  <div class="tooltip-header" id="tooltipMonth">Octobre (en cours)</div>
+                  <div class="tooltip-row green">
+                    <span>Recettes :</span>
+                    <strong id="tooltipRev">420 000 F CFA</strong>
+                  </div>
+                  <div class="tooltip-row red">
+                    <span>Dépenses :</span>
+                    <strong id="tooltipExp">185 000 F CFA</strong>
+                  </div>
+                  <div class="tooltip-footer">
+                    <span>Marge nette :</span>
+                    <strong id="tooltipMargin">+235 000 F CFA</strong>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Bandeau Marge & Formule de calcul (Spécification G.2 / Étape 2) -->
+              <div class="chart-summary-bar">
+                <div class="margin-stat">
+                  <span class="margin-label">Marge nette estimée (octobre 2026) :</span>
+                  <span class="margin-amount tabular-numbers" id="bannerMarginOct">+235 000 F CFA</span>
+                </div>
+                <button class="formula-btn" id="btnShowFormula" title="Voir les règles de calcul">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                  <span>Formule : Recettes − Dépenses</span>
+                </button>
+              </div>
+            </section>
+
+            <!-- BLOC ÉTROIT DROIT : Échéances (Remplaçant Upcoming Tasks selon G.2) -->
+            <section class="content-card deadlines-card">
+              <div class="card-header-row">
+                <h3 class="card-title">Échéances</h3>
+                <a href="#toutes-echeances" class="card-link-action" id="linkAllDeadlines">Voir tout</a>
+              </div>
+
+              <div class="deadlines-list" id="deadlinesList">
+                <!-- Échéance 1 : Subvention PReCA (Ambre) -->
+                <div class="deadline-item" data-id="opp-1">
+                  <div class="deadline-icon-pill icon-amber">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v12M17 10l-5-4-5 4"/></svg>
+                  </div>
+                  <div class="deadline-info">
+                    <div class="deadline-title">Appel à projets PReCA</div>
+                    <div class="deadline-meta">Subvention intrants • Ministère Agri.</div>
+                  </div>
+                  <div class="deadline-badge badge-warning">Dans 4 j</div>
+                </div>
+
+                <!-- Échéance 2 : Récolte tomate (Vert) -->
+                <div class="deadline-item" data-id="cycle-tomato">
+                  <div class="deadline-icon-pill icon-green">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.7 10-10 10Z"/></svg>
+                  </div>
+                  <div class="deadline-info">
+                    <div class="deadline-title">Récolte Tomate (0,5 ha)</div>
+                    <div class="deadline-meta">Parcelle P2 • Semis du 02/08</div>
+                  </div>
+                  <div class="deadline-badge badge-success">Lundi 20</div>
+                </div>
+
+                <!-- Échéance 3 : Traitement bio Oignon (Bleu) -->
+                <div class="deadline-item" data-id="treatment-onion">
+                  <div class="deadline-icon-pill icon-blue">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+                  </div>
+                  <div class="deadline-info">
+                    <div class="deadline-title">Irrigation & purin de neem</div>
+                    <div class="deadline-meta">Parcelle P1 (Oignon violet)</div>
+                  </div>
+                  <div class="deadline-badge badge-info">Mer. 22</div>
+                </div>
+
+                <!-- Échéance 4 : Clôture Fonds Vert Climat (Violet) -->
+                <div class="deadline-item" data-id="opp-2">
+                  <div class="deadline-icon-pill icon-purple">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/></svg>
+                  </div>
+                  <div class="deadline-info">
+                    <div class="deadline-title">Fonds Résilience Maraîchage</div>
+                    <div class="deadline-meta">Équipement goutte-à-goutte sol.</div>
+                  </div>
+                  <div class="deadline-badge badge-neutral">28 oct.</div>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <!-- GRILLE PRINCIPALE (Ligne 2 : 2/3 Tableau Cycles en cours + 1/3 Météo Koudougou) -->
+          <div class="secondary-dashboard-grid">
+            
+            <!-- BLOC LARGE : Tableau Cycles en cours (Remplaçant Field Status selon G.2) -->
+            <section class="content-card table-section-card">
+              <div class="card-header-row">
+                <div class="card-title-group">
+                  <h3 class="card-title" id="tableSectionTitle">Mes cycles en cours</h3>
+                  <span class="card-subtitle">3 cultures suivies sur 1,8 hectare</span>
+                </div>
+                <a href="#tous-les-cycles" class="card-link-action">Voir tous les cycles</a>
+              </div>
+
+              <!-- Tableau responsive haute visibilité -->
+              <div class="data-table-container">
+                <table class="data-table" id="cyclesDataTable">
+                  <thead>
+                    <tr>
+                      <th>CULTURE & VARIÉTÉ</th>
+                      <th>PARCELLE</th>
+                      <th>DATE SEMIS</th>
+                      <th>RÉCOLTE ESTIMÉE</th>
+                      <th>STATUT DU CYCLE</th>
+                      <th class="text-right">ACTIONS</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <!-- Ligne 1: Tomate -->
+                    <tr>
+                      <td>
+                        <div class="cell-entity">
+                          <span class="entity-avatar bg-avatar-green">TM</span>
+                          <div class="entity-details">
+                            <strong class="entity-name">Tomate Mongal F1</strong>
+                            <span class="entity-sub">Maraîchage de contre-saison</span>
+                          </div>
+                        </div>
+                      </td>
+                      <td><strong>P2</strong> (0,5 ha) • Irrigué</td>
+                      <td class="tabular-numbers">02/08/2026</td>
+                      <td class="tabular-numbers"><strong>20/10/2026</strong> (dans 4 j)</td>
+                      <td>
+                        <span class="badge-state state-harvest">
+                          <span class="badge-dot dot-orange"></span> Récolte imminente
+                        </span>
+                      </td>
+                      <td class="text-right">
+                        <button class="btn-table-action" title="Options du cycle">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+                        </button>
+                      </td>
+                    </tr>
+
+                    <!-- Ligne 2: Oignon -->
+                    <tr>
+                      <td>
+                        <div class="cell-entity">
+                          <span class="entity-avatar bg-avatar-yellow">ON</span>
+                          <div class="entity-details">
+                            <strong class="entity-name">Oignon Violet de Galmi</strong>
+                            <span class="entity-sub">Bulbilles certifiées</span>
+                          </div>
+                        </div>
+                      </td>
+                      <td><strong>P1</strong> (1,0 ha) • Bassin</td>
+                      <td class="tabular-numbers">15/09/2026</td>
+                      <td class="tabular-numbers">12/12/2026</td>
+                      <td>
+                        <span class="badge-state state-growing">
+                          <span class="badge-dot dot-green"></span> En végétation
+                        </span>
+                      </td>
+                      <td class="text-right">
+                        <button class="btn-table-action" title="Options du cycle">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+                        </button>
+                      </td>
+                    </tr>
+
+                    <!-- Ligne 3: Chou -->
+                    <tr>
+                      <td>
+                        <div class="cell-entity">
+                          <span class="entity-avatar bg-avatar-blue">CH</span>
+                          <div class="entity-details">
+                            <strong class="entity-name">Chou KK Cross</strong>
+                            <span class="entity-sub">Pépinière réussie</span>
+                          </div>
+                        </div>
+                      </td>
+                      <td><strong>P3</strong> (0,3 ha) • Goutte-à-goutte</td>
+                      <td class="tabular-numbers">01/10/2026</td>
+                      <td class="tabular-numbers">05/12/2026</td>
+                      <td>
+                        <span class="badge-state state-new">
+                          <span class="badge-dot dot-blue"></span> Repiquage récent
+                        </span>
+                      </td>
+                      <td class="text-right">
+                        <button class="btn-table-action" title="Options du cycle">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            <!-- BLOC ÉTROIT : Météo Agricole Réelle (Open-Meteo Burkina & MAJ obligatoire) -->
+            <section class="content-card weather-card">
+              <div class="card-header-row">
+                <div class="card-title-group">
+                  <h3 class="card-title">Météo agricole</h3>
+                  <span class="card-subtitle">Commune de Koudougou</span>
+                </div>
+                <a href="#meteo-details" class="card-link-action">Prévisions 7j</a>
+              </div>
+
+              <!-- Bloc Température Actuelle & Conditions -->
+              <div class="weather-current-row">
+                <div class="weather-visual">
+                  <div class="weather-sun-cloud-icon">
+                    <span class="sun-glow">☀️</span>
+                    <span class="cloud-front">⛅</span>
+                  </div>
+                  <div class="temp-display">
+                    <span class="temp-big tabular-numbers">31°C</span>
+                    <span class="weather-condition-desc">Partiellement voilé</span>
+                  </div>
+                </div>
+
+                <div class="weather-quick-metrics">
+                  <div class="metric-item">
+                    <span class="metric-icon">💧</span>
+                    <span class="metric-name">Pluie prob. :</span>
+                    <strong class="metric-val text-green">10 % (faible)</strong>
+                  </div>
+                  <div class="metric-item">
+                    <span class="metric-icon">💨</span>
+                    <span class="metric-name">Vent :</span>
+                    <strong class="metric-val">12 km/h NE</strong>
+                  </div>
+                  <div class="metric-item">
+                    <span class="metric-icon">🌡️</span>
+                    <span class="metric-name">Humidité :</span>
+                    <strong class="metric-val">42 %</strong>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Mini Prévision 4 Jours (Jeu, Ven, Sam, Dim) -->
+              <div class="forecast-mini-grid">
+                <div class="forecast-day-cell current-day">
+                  <span class="day-code">JEU</span>
+                  <span class="day-icon">⛅</span>
+                  <div class="day-temps">
+                    <span class="t-max">32°</span>
+                    <span class="t-min">21°</span>
+                  </div>
+                </div>
+                <div class="forecast-day-cell">
+                  <span class="day-code">VEN</span>
+                  <span class="day-icon">☀️</span>
+                  <div class="day-temps">
+                    <span class="t-max">34°</span>
+                    <span class="t-min">22°</span>
+                  </div>
+                </div>
+                <div class="forecast-day-cell">
+                  <span class="day-code">SAM</span>
+                  <span class="day-icon">🌤️</span>
+                  <div class="day-temps">
+                    <span class="t-max">33°</span>
+                    <span class="t-min">20°</span>
+                  </div>
+                </div>
+                <div class="forecast-day-cell">
+                  <span class="day-code">DIM</span>
+                  <span class="day-icon">⛅</span>
+                  <div class="day-temps">
+                    <span class="t-max">31°</span>
+                    <span class="t-min">19°</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Footer météo conforme à la règle stricte du plan : source & MAJ -->
+              <div class="weather-footer">
+                <span class="source-tag">Source : Open-Meteo • Région Centre-Ouest</span>
+                <span class="sync-time">MAJ 07:45</span>
+              </div>
+            </section>
+          </div>
+
+          <!-- LIGNE 3 : 3 CARTES TRANSVERSALES (Conseil de saison, Nouvelle formation, Raccourcis) -->
+          <div class="bottom-features-grid">
+            
+            <!-- Carte 1 : Conseil de saison -->
+            <article class="feature-card feature-advice">
+              <div class="feature-card-header">
+                <span class="feature-badge-tag tag-green">Conseil agronomique</span>
+                <span class="feature-read-time">Lecture 2 min</span>
+              </div>
+              <h4 class="feature-card-title">Préparation du sol & gestion de l'eau pour l'oignon de contre-saison</h4>
+              <p class="feature-card-summary">Comment pailler efficacement avec des tiges de mil pour réduire l'évaporation de 40% en période chaude.</p>
+              <div class="feature-card-footer">
+                <span class="author-label">Par Dr. Idrissa Traoré (INERA)</span>
+                <a href="#lire-conseil" class="feature-link">Lire le conseil →</a>
+              </div>
+            </article>
+
+            <!-- Carte 2 : Nouvelle formation -->
+            <article class="feature-card feature-training">
+              <div class="feature-card-header">
+                <span class="feature-badge-tag tag-purple">Nouvelle formation</span>
+                <span class="feature-format-tag">Vidéo + PDF</span>
+              </div>
+              <h4 class="feature-card-title">Fabriquer son bio-pesticide à base de feuilles de Neem</h4>
+              <p class="feature-card-summary">Protégez vos tomates et choux des chenilles sans dépenser un franc en produits chimiques importés.</p>
+              <div class="feature-card-footer">
+                <span class="progress-indicator">Gratuit • 4 leçons</span>
+                <a href="#commencer-formation" class="feature-link">Commencer →</a>
+              </div>
+            </article>
+
+            <!-- Carte 3 : Raccourcis rapides -->
+            <div class="feature-card feature-shortcuts">
+              <div class="feature-card-header">
+                <span class="feature-badge-tag tag-ochre">Raccourcis rapides</span>
+              </div>
+              <h4 class="feature-card-title">Actions fréquentes</h4>
+              <div class="shortcuts-buttons-stack">
+                <button class="shortcut-btn" id="btnShortcutExpense">
+                  <span class="shortcut-icon">💸</span>
+                  <span class="shortcut-text">Saisir une dépense (30s)</span>
+                </button>
+                <button class="shortcut-btn" id="btnShortcutListing">
+                  <span class="shortcut-icon">📢</span>
+                  <span class="shortcut-text">Publier une récolte sur le marché</span>
+                </button>
+                <button class="shortcut-btn" id="btnShortcutOpps">
+                  <span class="shortcut-icon">💼</span>
+                  <span class="shortcut-text">Consulter les subventions PReCA</span>
+                </button>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </main>
+
+    </div>
+  </div>
+
+  <!-- ==================== 3. MODALES & TIROIRS INTERACTIFS ==================== -->
+
+  <!-- MODAL AUTH : CONNEXION ET CRÉATION DE COMPTE (SUPABASE FULL STACK) -->
+  <div class="modal-backdrop hidden" id="modalAuth">
+    <div class="modal-dialog auth-modal-dialog">
+      <!-- En-tête Auth -->
+      <div class="auth-modal-header">
+        <div class="auth-brand-badge">
+          <div class="brand-icon-wrapper" style="width: 36px; height: 36px;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.7 10-10 10Z"/>
+              <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>
+            </svg>
+          </div>
+          <div>
+            <h3 class="auth-brand-title">RÉVOLUTION AGRICOLE</h3>
+            <p class="auth-brand-sub">Accédez à votre exploitation sécurisée</p>
+          </div>
+        </div>
+        <button class="modal-close-btn" id="btnCloseModalAuth" title="Fermer la fenêtre">&times;</button>
+      </div>
+
+      <!-- Onglets de bascule Connexion / Inscription -->
+      <div class="auth-tabs-bar">
+        <button type="button" class="auth-tab-btn active" id="tabAuthLogin">
+          <span>Se connecter</span>
+        </button>
+        <button type="button" class="auth-tab-btn" id="tabAuthRegister">
+          <span>Créer un compte</span>
+          <span class="auth-badge-free">0 F CFA</span>
+        </button>
+      </div>
+
+      <!-- 1. FORMULAIRE DE CONNEXION -->
+      <form id="formLogin" class="auth-form-content" autocomplete="off">
+        <div class="form-group">
+          <label for="loginIdentifier">Numéro de téléphone (+226) ou Email <span class="required">*</span></label>
+          <div class="phone-input-wrap">
+            <span class="country-prefix">🇧🇫 +226</span>
+            <input type="text" id="loginIdentifier" name="auth_phone_or_email" class="form-input" placeholder="70 12 34 56 ou email@..." autocomplete="off" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="loginPassword">Mot de passe secret <span class="required">*</span></label>
+          <input type="password" id="loginPassword" name="auth_user_pass" class="form-input" placeholder="Votre mot de passe" autocomplete="new-password" required>
+        </div>
+
+        <div class="auth-actions-row">
+          <button type="submit" class="btn-primary btn-auth-submit" id="btnSubmitLogin">
+            <span class="btn-text">Se connecter à mon exploitation</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+        </div>
+
+        <!-- Accès rapide démo -->
+        <div class="demo-quick-switch">
+          <div class="demo-divider"><span>OU TESTER EN 1 CLIC (PROFILS DÉMO)</span></div>
+          <div class="demo-quick-grid">
+            <button type="button" class="btn-demo-quick" data-role="producer">🌾 Awa</button>
+            <button type="button" class="btn-demo-quick" data-role="supplier">🚜 Rasmané</button>
+            <button type="button" class="btn-demo-quick" data-role="buyer">💼 Salif</button>
+            <button type="button" class="btn-demo-quick" data-role="admin">🛡️ Aminata</button>
+          </div>
+        </div>
+      </form>
+
+      <!-- 2. FORMULAIRE DE CRÉATION DE COMPTE (INSCRIPTION) -->
+      <form id="formRegister" class="auth-form-content hidden" autocomplete="off">
+        <div class="form-group">
+          <label for="regFullName">Nom et Prénom complet <span class="required">*</span></label>
+          <input type="text" id="regFullName" name="auth_new_fullname" class="form-input" placeholder="Ex: Moussa Sawadogo, Salimata Kaboré..." autocomplete="off" required>
+        </div>
+
+        <!-- Choix du rôle métier -->
+        <div class="form-group">
+          <label>Votre activité principale <span class="required">*</span></label>
+          <div class="role-cards-selector">
+            <label class="role-card-opt selected" id="optRoleProducer">
+              <input type="radio" name="regRole" value="producer" checked>
+              <div class="role-card-inner">
+                <span class="role-card-icon">🌾</span>
+                <strong>Producteur / Maraîcher</strong>
+                <small>Parcelles, cycles & récoltes</small>
+              </div>
+            </label>
+            <label class="role-card-opt" id="optRoleSupplier">
+              <input type="radio" name="regRole" value="supplier">
+              <div class="role-card-inner">
+                <span class="role-card-icon">🚜</span>
+                <strong>Fournisseur d'équipements</strong>
+                <small>Matériel & intrants</small>
+              </div>
+            </label>
+            <label class="role-card-opt" id="optRoleBuyer">
+              <input type="radio" name="regRole" value="buyer">
+              <div class="role-card-inner">
+                <span class="role-card-icon">💼</span>
+                <strong>Acheteur / Grossiste</strong>
+                <small>Achat récoltes & stocks</small>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label for="regPhone">Téléphone (+226) <span class="required">*</span></label>
+            <div class="phone-input-wrap">
+              <span class="country-prefix">🇧🇫 +226</span>
+              <input type="tel" id="regPhone" name="auth_new_phone" class="form-input" placeholder="70 12 34 56" autocomplete="off" required pattern="[0-9 ]{8,12}">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="regLocation">Commune / Région <span class="required">*</span></label>
+            <select id="regLocation" class="form-select" required>
+              <option value="Koudougou (Boulkiemdé)">Koudougou (Boulkiemdé)</option>
+              <option value="Ouagadougou (Kadiogo)">Ouagadougou (Kadiogo)</option>
+              <option value="Bobo-Dioulasso (Houet)">Bobo-Dioulasso (Houet)</option>
+              <option value="Ouahigouya (Yatenga)">Ouahigouya (Yatenga)</option>
+              <option value="Dédougou (Boucle du Mouhoun)">Dédougou (Boucle du Mouhoun)</option>
+              <option value="Banfora (Comoé)">Banfora (Comoé)</option>
+              <option value="Kaya (Sanmatenga)">Kaya (Sanmatenga)</option>
+              <option value="Fada N'Gourma (Gourma)">Fada N'Gourma (Gourma)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="regPassword">Créer un mot de passe <span class="required">*</span></label>
+          <input type="password" id="regPassword" class="form-input" placeholder="Minimum 6 caractères" required minlength="6">
+          <small class="form-hint">Votre mot de passe secret pour retrouver votre compte sur votre téléphone.</small>
+        </div>
+
+        <div class="auth-actions-row">
+          <button type="submit" class="btn-primary btn-auth-submit" id="btnSubmitRegister">
+            <span class="btn-text">Créer mon compte (Départ à 0 F CFA)</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          </button>
+        </div>
+      </form>
+
+      <!-- 3. ÉTAPE DE CONFIRMATION DU CODE SMS (OTP BURKINA +226) -->
+      <div id="stepAuthOtp" class="auth-form-content hidden">
+        <div class="sms-received-banner">
+          <div class="sms-banner-header">
+            <span class="sms-icon">📲</span>
+            <strong>Confirmation SMS • +226 <span id="smsTargetPhone">70 12 34 56</span></strong>
+            <span class="sms-time">À l'instant</span>
+          </div>
+          <p class="sms-body">« Révolution Agricole : Votre code secret de confirmation pour votre exploitation est : <strong class="sms-code-highlight" id="smsDisplayCode">4819</strong> »</p>
+        </div>
+
+        <div class="form-group" style="text-align: center;">
+          <label for="otpCodeInput">Entrez le code à 4 chiffres reçu par SMS <span class="required">*</span></label>
+          <div class="otp-input-wrap">
+            <input type="text" id="otpCodeInput" class="form-input otp-field" maxlength="4" placeholder="• • • •" autocomplete="one-time-code">
+          </div>
+          <small class="form-hint">Code à 4 chiffres envoyé gratuitement sur votre numéro burkinabè.</small>
+        </div>
+
+        <div class="auth-actions-row">
+          <button type="button" class="btn-primary btn-auth-submit" id="btnVerifyOtp">
+            <span class="btn-text">Confirmer & Accéder à mon exploitation</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          </button>
+        </div>
+
+        <div class="otp-resend-row">
+          <button type="button" class="btn-link-action" id="btnResendOtp">Renvoyer un nouveau code</button>
+          <button type="button" class="btn-link-action" id="btnBackFromOtp">Modifier le numéro</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 1 : SAISIE D'UNE DÉPENSE EN MOINS DE 30 SECONDES (Exigence clé du plan) -->
+  <div class="modal-backdrop hidden" id="modalExpense">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <span class="modal-icon bg-green">💸</span>
+          <h3 class="modal-title">Enregistrer une dépense</h3>
+        </div>
+        <button class="modal-close-btn" id="btnCloseModalExpense">&times;</button>
+      </div>
+
+      <form id="formAddExpense" class="modal-form">
+        <div class="form-group">
+          <label for="expenseAmount">Montant en Francs CFA (XOF) <span class="required">*</span></label>
+          <div class="money-input-wrap">
+            <input type="number" id="expenseAmount" class="form-input money-field" placeholder="Ex: 15 000" min="500" step="500" required autofocus>
+            <span class="money-currency-tag">F CFA</span>
+          </div>
+          <small class="form-hint">Saisie rapide sans décimales.</small>
+        </div>
+
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label for="expenseCategory">Catégorie de dépense <span class="required">*</span></label>
+            <select id="expenseCategory" class="form-select" required>
+              <option value="intrants">Semences & Intrants</option>
+              <option value="main-oeuvre">Main d'œuvre journalière</option>
+              <option value="carburant">Carburant moto-pompe</option>
+              <option value="transport">Transport / Charette</option>
+              <option value="eau">Redevance eau</option>
+              <option value="autre">Autre dépense</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="expenseCycle">Cycle rattaché</label>
+            <select id="expenseCycle" class="form-select">
+              <option value="tomato">Tomate P2 (Récolte le 20/10)</option>
+              <option value="onion">Oignon P1 (Parcelle 1)</option>
+              <option value="cabbage">Chou P3</option>
+              <option value="global">Frais généraux exploitation</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label for="expenseDate">Date de paiement</label>
+            <input type="date" id="expenseDate" class="form-input" value="2026-10-16">
+          </div>
+          <div class="form-group">
+            <label for="expenseNote">Note / Fournisseur</label>
+            <input type="text" id="expenseNote" class="form-input" placeholder="Ex: Boutique Ouédraogo Marché">
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" id="btnCancelExpense">Annuler</button>
+          <button type="submit" class="btn-primary" id="btnSubmitExpense">
+            <span class="btn-text">Enregistrer la dépense</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 1B : ENREGISTRER UNE VENTE / RECETTE DE RÉCOLTE (REDESIGN LUXE FINTECH) -->
+  <div class="modal-backdrop hidden" id="modalRevenue">
+    <div class="modal-dialog modal-dialog-luxury">
+      
+      <!-- En-tête Luxe -->
+      <div class="luxury-modal-header">
+        <div class="luxury-header-info">
+          <div class="luxury-modal-tag">
+            <span class="pulse-dot-green"></span>
+            <span>NOUVEAU FLUX ENTRANT • RÉCOLTE & VENTES</span>
+          </div>
+          <h3 class="luxury-modal-title">Enregistrer une Vente de Récolte</h3>
+          <p class="luxury-modal-subtitle">Enregistrez un encaissement cash ou Mobile Money pour recalculer instantanément votre marge nette d'exploitation.</p>
+        </div>
+        <button class="modal-close-btn" id="btnCloseModalRevenue" title="Fermer la fenêtre">&times;</button>
+      </div>
+
+      <form id="formAddRevenue" class="luxury-modal-body">
+        
+        <!-- CARTE HÉRO : MONTANT ENCAISSÉ & RACCOURCIS -->
+        <div class="hero-amount-card">
+          <div class="hero-amount-header">
+            <label for="revenueAmount">Montant total encaissé <span class="required">*</span></label>
+            <span class="form-hint">Crédité au mois d'octobre 2026</span>
+          </div>
+          <div class="hero-input-row">
+            <input type="number" id="revenueAmount" class="hero-money-input" placeholder="0" min="500" step="500" value="150000" required>
+            <span class="hero-currency-badge">F CFA</span>
+          </div>
+
+          <!-- Puces de montants rapides (1-clic) -->
+          <div class="quick-amount-chips">
+            <button type="button" class="quick-chip-btn" data-amt="25000">+ 25 000 F</button>
+            <button type="button" class="quick-chip-btn" data-amt="50000">+ 50 000 F</button>
+            <button type="button" class="quick-chip-btn active" data-amt="150000">150 000 F</button>
+            <button type="button" class="quick-chip-btn" data-amt="250000">+ 250 000 F</button>
+            <button type="button" class="quick-chip-btn" data-amt="500000">+ 500 000 F</button>
+          </div>
+
+          <!-- Impact direct en temps réel sur la marge -->
+          <div class="margin-live-indicator" id="revenueLiveImpactBanner">
+            <span class="indicator-icon">📈</span>
+            <div class="indicator-text">
+              Impact direct : Recettes du mois portées à <strong id="livePreviewNewRev">570 000 F CFA</strong> • Nouvelle marge nette : <strong id="livePreviewNewMargin" class="text-green">+385 000 F CFA</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- SÉLECTION DU CYCLE OU SAISIE MANUELLE (Besoin utilisateur) -->
+        <div class="form-group">
+          <label>Cycle de culture rattaché ou produit vendu <span class="required">*</span></label>
+          
+          <!-- Onglets de bascule rapide -->
+          <div class="cycle-toggle-bar">
+            <button type="button" class="cycle-tab-btn active" id="tabCycleRegistered">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm-1 15-5-5 1.4-1.4 3.6 3.6 7.6-7.6L20 8z"/></svg>
+              <span>Cycle de parcelle</span>
+            </button>
+            <button type="button" class="cycle-tab-btn" id="tabCycleCustom">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+              <span>Autre vente (Saisie libre)</span>
+            </button>
+          </div>
+
+          <!-- Sélecteur standard des cycles -->
+          <div id="cycleSelectWrapper">
+            <select id="revenueCycle" class="form-select">
+              <option value="tomato">Tomate Mongal P2 (Parcelle 2 - 0,5 ha • Récolte en cours)</option>
+              <option value="onion">Oignon Violet de Galmi P1 (Parcelle 1 - 1,0 ha)</option>
+              <option value="cabbage">Chou Marché P3 (Parcelle 3 - 0,3 ha)</option>
+              <option value="corn">Maïs Blanc Pluvial P4 (Parcelle 4 - 1,2 ha)</option>
+              <option value="custom">✏️ + Autre produit / Saisie libre personnalisée...</option>
+            </select>
+          </div>
+
+          <!-- Boîte de saisie manuelle libre (S'affiche si 'Autre vente' est sélectionné) -->
+          <div class="custom-crop-card hidden" id="customCropBox">
+            <div class="form-group" style="margin-bottom: 6px;">
+              <label for="revenueCustomCropInput">Nom du produit ou de la culture vendu(e) <span class="required">*</span></label>
+              <input type="text" id="revenueCustomCropInput" class="form-input" placeholder="Ex: Piment d'eau de Koudougou, Gombo frais, Maïs doux...">
+            </div>
+
+            <!-- Tags rapides de cultures burkinabè fréquentes -->
+            <div class="form-group" style="margin-bottom: 0;">
+              <span class="form-hint" style="margin-bottom: 4px; display: block;">Suggestions rapides :</span>
+              <div class="custom-crop-tags">
+                <button type="button" class="crop-tag-btn" data-name="🌶️ Piment vert frais">🌶️ Piment</button>
+                <button type="button" class="crop-tag-btn" data-name="🌽 Maïs doux">🌽 Maïs</button>
+                <button type="button" class="crop-tag-btn" data-name="🥭 Mangues Amélie">🥭 Mangues</button>
+                <button type="button" class="crop-tag-btn" data-name="🥬 Gombo frais">🥬 Gombo</button>
+                <button type="button" class="crop-tag-btn" data-name="🥜 Arachides de saison">🥜 Arachides</button>
+                <button type="button" class="crop-tag-btn" data-name="🍉 Pastèque sucrée">🍉 Pastèque</button>
+                <button type="button" class="crop-tag-btn" data-name="🍆 Aubergine locale">🍆 Aubergines</button>
+                <button type="button" class="crop-tag-btn" data-name="🌿 Moringa séché">🌿 Moringa</button>
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-top: 6px; margin-bottom: 0;">
+              <label for="revenueCustomOrigin">Origine / Contexte de la vente :</label>
+              <select id="revenueCustomOrigin" class="form-select">
+                <option value="garden">Jardin de case / Hors parcelle principale</option>
+                <option value="resale">Achat-revente grossiste / Commerce maraîcher</option>
+                <option value="byproduct">Sous-produits agricoles (fanes d'arachide, son de maïs)</option>
+                <option value="wild">Cueillette fruitière / Arbres du domaine</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- MODE DE PAIEMENT REÇU (CARTES VISUELLES FLUIDES) -->
+        <div class="form-group">
+          <label>Mode de paiement encaissé</label>
+          <input type="hidden" id="revenuePaymentVal" value="cash">
+          <div class="payment-methods-grid">
+            <div class="pay-card-option selected" data-method="cash">
+              <span class="pay-card-icon">💵</span>
+              <div class="pay-card-text">
+                <span class="pay-card-title">Espèces au marché</span>
+                <span class="pay-card-sub">Paiement cash direct</span>
+              </div>
+            </div>
+            <div class="pay-card-option" data-method="orange">
+              <span class="pay-card-icon">🟠</span>
+              <div class="pay-card-text">
+                <span class="pay-card-title">Orange Money</span>
+                <span class="pay-card-sub">Push / Dépôt (+226)</span>
+              </div>
+            </div>
+            <div class="pay-card-option" data-method="moov">
+              <span class="pay-card-icon">🔵</span>
+              <div class="pay-card-text">
+                <span class="pay-card-title">Moov Money</span>
+                <span class="pay-card-sub">Flooz Burkina</span>
+              </div>
+            </div>
+            <div class="pay-card-option" data-method="virement">
+              <span class="pay-card-icon">🏦</span>
+              <div class="pay-card-text">
+                <span class="pay-card-title">Virement / IMF</span>
+                <span class="pay-card-sub">Compte coopérative</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CALENDRIER MODERNE HAUT DE GAMME (REMPLACEMENT DU FORMAT CLASSIQUE) -->
+        <div class="form-group">
+          <label>Date de la transaction d'encaissement</label>
+          
+          <div class="custom-date-container">
+            <!-- Puces de raccourcis temporels -->
+            <div class="date-quick-chips">
+              <button type="button" class="date-chip-btn active" data-date="2026-10-16">🟢 Aujourd'hui (16 oct.)</button>
+              <button type="button" class="date-chip-btn" data-date="2026-10-15">Hier (15 oct.)</button>
+              <button type="button" class="date-chip-btn" data-date="2026-10-14">Avant-hier (14 oct.)</button>
+              <button type="button" class="date-chip-btn" id="btnToggleCalPopover">📅 Calendrier complet ▾</button>
+            </div>
+
+            <!-- Déclencheur visuel élégant (Remplace l'input date natif) -->
+            <div class="date-picker-trigger-card" id="datePickerCardTrigger">
+              <div class="date-trigger-left">
+                <div class="date-trigger-icon-wrap">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                </div>
+                <div class="date-trigger-label" id="dateFormattedText">Vendredi 16 Octobre 2026</div>
+              </div>
+              <div class="date-trigger-right">
+                <span class="badge-date-confirmed">Horodaté</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+              </div>
+            </div>
+
+            <!-- Champ caché portant la valeur ISO de date -->
+            <input type="hidden" id="revenueDate" value="2026-10-16">
+
+            <!-- POPOVER DU MINI-CALENDRIER PERSONNALISÉ (DESIGN SAHÉLIEN) -->
+            <div class="custom-calendar-popover hidden" id="customCalendarPopover">
+              <div class="cal-header">
+                <button type="button" class="cal-nav-btn" id="calPrevMonth" title="Mois précédent">&lt;</button>
+                <span class="cal-month-title" id="calMonthTitle">Octobre 2026</span>
+                <button type="button" class="cal-nav-btn" id="calNextMonth" title="Mois suivant">&gt;</button>
+              </div>
+              <div class="cal-weekdays">
+                <span>Lu</span><span>Ma</span><span>Me</span><span>Je</span><span>Ve</span><span>Sa</span><span>Di</span>
+              </div>
+              <div class="cal-days-grid" id="calDaysGrid">
+                <!-- Généré dynamiquement en JS avec jours actifs/cliquables -->
+              </div>
+              <div class="cal-footer">
+                <button type="button" class="cal-footer-btn" id="calBtnToday">Sélectionner Aujourd'hui</button>
+                <button type="button" class="cal-footer-btn" id="calBtnClose" style="color: var(--text-dim);">Fermer</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- DÉTAILS DE VENTE : QUANTITÉ & ACHETEUR -->
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label for="revenueQty">Quantité vendue</label>
+            <input type="text" id="revenueQty" class="form-input" placeholder="Ex: 15 cageots (375 kg)" value="15 cageots (375 kg)">
+          </div>
+          <div class="form-group">
+            <label for="revenueBuyer">Acheteur / Client</label>
+            <input type="text" id="revenueBuyer" class="form-input" placeholder="Ex: Grossiste Marché Central Koudougou" value="Grossiste Marché Central Koudougou">
+          </div>
+        </div>
+
+        <!-- PIED DE MODALE & BOUTON D'ENCAISSEMENT -->
+        <div class="modal-footer" style="padding: 16px 0 0; background: transparent; border-top: 1px solid #EDF3EB;">
+          <button type="button" class="btn-secondary" id="btnCancelRevenue">Annuler</button>
+          <button type="submit" class="btn-primary btn-submit-luxury" id="btnSubmitRevenue">
+            <span class="btn-text" id="btnSubmitRevenueText">Encaisser la recette (+150 000 F CFA)</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 2 : EXPLICATION DE LA FORMULE DE MARGE (Spec G.2) -->
+  <div class="modal-backdrop hidden" id="modalFormula">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <span class="modal-icon bg-blue">ℹ️</span>
+          <h3 class="modal-title">Formule & Calcul de la Marge</h3>
+        </div>
+        <button class="modal-close-btn" id="btnCloseModalFormula">&times;</button>
+      </div>
+      <div class="modal-body-content">
+        <div class="formula-box">
+          <div class="formula-equation">
+            <strong>Marge Nette du Cycle</strong> = <span class="text-green">Recettes encaissées</span> − <span class="text-red">Dépenses engagées</span>
+          </div>
+        </div>
+        <p class="formula-explanation">
+          À la différence d'autres outils fermés, <strong>Révolution Agricole</strong> garantit une transparence totale. Vos marges sont calculées en temps réel directement à partir de vos encaissements de récolte et de vos dépenses d'intrants, de carburant et de main d'œuvre.
+        </p>
+        <div class="formula-breakdown-table">
+          <div class="breakdown-row">
+            <span>Total Recettes Octobre :</span>
+            <strong class="text-green" id="formulaRecettes">+420 000 F CFA</strong>
+          </div>
+          <div class="breakdown-row">
+            <span>Total Dépenses Octobre :</span>
+            <strong class="text-red" id="formulaDepenses">−185 000 F CFA</strong>
+          </div>
+          <div class="breakdown-row breakdown-total">
+            <span>Marge Nette Actuelle :</span>
+            <strong class="text-primary" id="formulaMarge">+235 000 F CFA</strong>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-primary" id="btnCloseFormulaBtn">J'ai compris</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 3 : ABONNEMENTS & FORFAITS PRO (5 000 F & 10 000 F) -->
+  <div class="modal-backdrop hidden" id="modalPricing">
+    <div class="modal-dialog pricing-modal-dialog">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <span class="modal-icon bg-green">⭐</span>
+          <h3 class="modal-title">Plans d'abonnement & Services Pro</h3>
+        </div>
+        <button class="modal-close-btn" id="btnCloseModalPricing">&times;</button>
+      </div>
+      <div class="modal-body-content">
+        <div class="pricing-header-intro">
+          <h3>Investissez dans la rentabilité de votre exploitation</h3>
+          <p>Des tarifs clairs et accessibles pour tous les acteurs agricoles burkinabè, payables instantanément par Orange Money ou Moov Money.</p>
+        </div>
+
+        <!-- Bascule Mensuel / Campagne 6 mois (-15%) -->
+        <div class="pricing-billing-switch-wrap">
+          <button type="button" class="pricing-switch-btn active" id="btnBillingMonthly">Paiement Mensuel</button>
+          <button type="button" class="pricing-switch-btn" id="btnBillingCampaign">
+            Campagne Agricole (6 mois) <span class="discount-tag">-15%</span>
+          </button>
+        </div>
+
+        <!-- Les 3 Forfaits -->
+        <div class="pricing-cards-grid">
+          <!-- 1. Gratuit (0 F CFA) -->
+          <div class="pricing-card">
+            <div class="pricing-tier-top">
+              <span class="pricing-tier-title">Découverte</span>
+              <p class="pricing-tier-subtitle">Pour tester la plateforme et suivre un premier cycle.</p>
+            </div>
+            <div class="pricing-price-area">
+              <span class="price-val">0</span>
+              <span class="price-period">F CFA /mois</span>
+            </div>
+            <ul class="pricing-features">
+              <li><span class="feature-check">✓</span><span>Météo locale 3 jours (Koudougou, Bobo...)</span></li>
+              <li><span class="feature-check">✓</span><span>1 cycle cultural suivi</span></li>
+              <li><span class="feature-check">✓</span><span>3 consultations contacts/j</span></li>
+              <li><span class="feature-check">✓</span><span>Conseils agronomiques essentiels</span></li>
+              <li class="feature-disabled"><span class="feature-cross">✕</span><span>Alertes SMS météo & ravageurs</span></li>
+              <li class="feature-disabled"><span class="feature-cross">✕</span><span>Calcul de marge nette instantané</span></li>
+              <li class="feature-disabled"><span class="feature-cross">✕</span><span>Export compte d'exploitation banques/IMF</span></li>
+            </ul>
+            <button type="button" class="btn-plan-action btn-plan-outline" disabled>Plan actuel (Gratuit)</button>
+          </div>
+
+          <!-- 2. Pro Producteur (5 000 F CFA) -->
+          <div class="pricing-card card-featured">
+            <span class="pricing-ribbon">⭐ LE PLUS POPULAIRE</span>
+            <div class="pricing-tier-top">
+              <span class="pricing-tier-title">Pro Producteur</span>
+              <p class="pricing-tier-subtitle">Pour maraîchers, céréaliers et éleveurs gérant plusieurs parcelles.</p>
+            </div>
+            <div class="pricing-price-area">
+              <span class="price-val" id="displayPricePro">5 000</span>
+              <span class="price-period" id="displayPeriodPro">F CFA /mois</span>
+            </div>
+            <ul class="pricing-features">
+              <li><span class="feature-check">✓</span><span class="feature-bold">Parcelles et cycles illimités</span></li>
+              <li><span class="feature-check">✓</span><span class="feature-bold">Calcul de marge en direct (30s)</span></li>
+              <li><span class="feature-check">✓</span><span class="feature-bold">Alertes SMS météo & alertes ravageurs</span></li>
+              <li><span class="feature-check">✓</span><span>Rappels de clôture appels à projets (PReCA)</span></li>
+              <li><span class="feature-check">✓</span><span>Export PDF compte de résultat certifié</span></li>
+              <li><span class="feature-check">✓</span><span>Assistance agronomique WhatsApp 7j/7</span></li>
+            </ul>
+            <button type="button" class="btn-plan-action btn-plan-primary btn-select-plan" data-plan="pro" data-price="5000" data-name="Pro Producteur">
+              Choisir Pro Producteur (5 000 F)
+            </button>
+          </div>
+
+          <!-- 3. Business & Coopératives (10 000 F CFA) -->
+          <div class="pricing-card card-premium">
+            <span class="pricing-ribbon ribbon-gold">🌾 FOURNISSEURS & COOPÉRATIVES</span>
+            <div class="pricing-tier-top">
+              <span class="pricing-tier-title">Business & Coop</span>
+              <p class="pricing-tier-subtitle">Pour fournisseurs d'intrants, acheteurs et groupements agricoles.</p>
+            </div>
+            <div class="pricing-price-area">
+              <span class="price-val" id="displayPriceBiz">10 000</span>
+              <span class="price-period" id="displayPeriodBiz">F CFA /mois</span>
+            </div>
+            <ul class="pricing-features">
+              <li><span class="feature-check gold">✓</span><span class="feature-bold">Tout le forfait Pro Producteur inclus</span></li>
+              <li><span class="feature-check gold">✓</span><span class="feature-bold">Top annonces sur le Marché agricole</span></li>
+              <li><span class="feature-check gold">✓</span><span class="feature-bold">Badge officiel Fournisseur Certifié</span></li>
+              <li><span class="feature-check gold">✓</span><span>Bouton WhatsApp direct sur vos fiches</span></li>
+              <li><span class="feature-check gold">✓</span><span>Statistiques hebdomadaires (vues & contacts)</span></li>
+              <li><span class="feature-check gold">✓</span><span>Multi-accès (jusqu'à 5 membres d'équipe)</span></li>
+            </ul>
+            <button type="button" class="btn-plan-action btn-plan-gold btn-select-plan" data-plan="biz" data-price="10000" data-name="Business & Coopératives">
+              Choisir Business (10 000 F)
+            </button>
+          </div>
+        </div>
+
+        <div class="pricing-guarantee-note">
+          <span>🔒 Paiement sécurisé via Mobile Money (Orange Money & Moov Money Burkina Faso). Sans engagement, reconduction flexible.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 4 : CHECKOUT MOBILE MONEY BURKINA FASO -->
+  <div class="modal-backdrop hidden" id="modalCheckout">
+    <div class="modal-dialog checkout-modal-dialog">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <span class="modal-icon bg-green">📱</span>
+          <h3 class="modal-title">Règlement Mobile Money</h3>
+        </div>
+        <button class="modal-close-btn" id="btnCloseModalCheckout">&times;</button>
+      </div>
+      <form id="formCheckout">
+        <div class="modal-body-content">
+          <!-- Récapitulatif du forfait choisi -->
+          <div class="checkout-plan-recap">
+            <div>
+              <div class="recap-plan-name" id="checkoutPlanName">Pro Producteur</div>
+              <div class="recap-plan-desc" id="checkoutPlanDesc">Abonnement Mensuel • Sans engagement</div>
+            </div>
+            <div class="recap-price" id="checkoutPlanPrice">5 000 F CFA</div>
+          </div>
+
+          <!-- Choix de l'opérateur (Orange ou Moov) -->
+          <label style="font-size: 13px; font-weight: 700; color: #1E2822; margin-bottom: 8px; display: block;">
+            Moyen de paiement au Burkina Faso :
+          </label>
+          <div class="payment-methods-selector">
+            <div class="payment-option-card selected" data-operator="orange" id="payOptOrange">
+              <div class="payment-opt-left">
+                <div class="operator-badge operator-orange">OM</div>
+                <div>
+                  <span class="payment-opt-name">Orange Money Burkina</span>
+                  <span class="payment-opt-sub">Paiement direct USSD (*144*4*6#)</span>
+                </div>
+              </div>
+              <div class="payment-radio-circle"></div>
+            </div>
+
+            <div class="payment-option-card" data-operator="moov" id="payOptMoov">
+              <div class="payment-opt-left">
+                <div class="operator-badge operator-moov">MOOV</div>
+                <div>
+                  <span class="payment-opt-name">Moov Money Burkina</span>
+                  <span class="payment-opt-sub">Paiement sécurisé (*555*6#)</span>
+                </div>
+              </div>
+              <div class="payment-radio-circle"></div>
+            </div>
+          </div>
+
+          <!-- Champ Numéro de téléphone -->
+          <div class="form-group" style="margin-bottom: 14px;">
+            <label for="checkoutPhone" style="font-size: 12.5px; font-weight: 700; color: #1E2822;">
+              Numéro de téléphone Orange ou Moov <span class="required">*</span>
+            </label>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <span style="background: #F0F4EE; border: 1px solid #D5E5D1; border-radius: 8px; padding: 10px 12px; font-size: 13px; font-weight: 700; color: #1E5E2A;">
+                🇧🇫 +226
+              </span>
+              <input type="tel" id="checkoutPhone" class="form-input" placeholder="70 12 34 56" required pattern="[0-9]{8}" value="76 45 89 12" style="flex: 1;">
+            </div>
+            <span style="font-size: 11px; color: #7C8781; margin-top: 4px; display: block;">
+              Numéro à 8 chiffres sans l'indicatif.
+            </span>
+          </div>
+
+          <!-- Consignes USSD instantanées -->
+          <div class="ussd-instruction-box" id="ussdInstructionBox">
+            <span>ℹ️</span>
+            <span id="ussdInstructionText">Orange Money : Un push USSD va s'afficher sur votre écran. Validez avec votre code PIN secret.</span>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" id="btnCancelCheckout">Annuler</button>
+          <button type="submit" class="btn-primary" id="btnSubmitCheckout">
+            <span class="btn-text" id="btnCheckoutText">Valider le paiement (5 000 F CFA)</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- TOAST DE NOTIFICATION FLOTTANT -->
+  <div class="toast-notification hidden" id="toastNotification">
+    <div class="toast-icon" id="toastIcon">✅</div>
+    <div class="toast-content">
+      <strong class="toast-title" id="toastTitle">Succès</strong>
+      <p class="toast-message" id="toastMessage">La dépense a été enregistrée avec succès.</p>
+    </div>
+    <button class="toast-close-btn" id="btnToastClose">&times;</button>
+  </div>
+
+  <!-- CLIENT OFFICIEL SUPABASE JS (CDN V2) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- SCRIPT APPLICATION -->
+  <script src="scripts/app.js?v=3.4"></script>
+</body>
+</html>

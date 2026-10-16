@@ -1,0 +1,15 @@
+# Fichiers temporaires & système
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+
+# Environnement & secrets locaux
+.env
+.env.local
+
+# Dossiers d'outils et caches
+# Fichiers temporaires de tests
+test_*.png
+shot.png
+screenshot.png
