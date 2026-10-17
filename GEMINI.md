@@ -357,6 +357,41 @@ Depuis la version 2.9, l'application est entièrement Full Stack connectée au p
   - Suppression de tout texte de date statique dans le HTML initial.
   - Calcul direct en temps réel via `new Date()` pour les cartes, la salutation, l'en-tête et les badges d'urgence (`⏳ Clôture aujourd'hui`, `⏳ Clôture dans X jours`).
 
+### P. Météo Agricole Réelle Open-Meteo, 8 Communes & Alertes Automatiques (v4.6)
+- **Connexion API Réelle Open-Meteo (Sans clé)** :
+  - Fin complète des données météorologiques fixes de démonstration.
+  - Connexion directe à l'API gratuite Open-Meteo (`https://api.open-meteo.com/v1/forecast`) avec les paramètres agronomiques réels : `temperature_2m`, `relative_humidity_2m`, `weather_code`, `wind_speed_10m`, `wind_direction_10m`, `wind_gusts_10m`, `temperature_2m_max`, `temperature_2m_min`, `precipitation_sum`, `precipitation_probability_max`, `wind_speed_10m_max`, `wind_gusts_10m_max`.
+  - Fuseau horaire officiel : `timezone=Africa/Ouagadougou`.
+- **Prise en Charge des 8 Communes Agricoles Clés** :
+  - **Ouagadougou** : `12.37, -1.52` (Centre / Kadiogo)
+  - **Bobo-Dioulasso** : `11.18, -4.29` (Hauts-Bassins / Houet)
+  - **Koudougou** : `12.25, -2.36` (Centre-Ouest / Boulkiemdé)
+  - **Ouahigouya** : `13.58, -2.42` (Nord / Yatenga)
+  - **Dédougou** : `12.46, -3.46` (Boucle du Mouhoun / Mouhoun)
+  - **Banfora** : `10.63, -4.76` (Cascades / Comoé)
+  - **Kaya** : `13.09, -1.08` (Centre-Nord / Sanmatenga)
+  - **Fada N'Gourma** : `12.06, 0.36` (Est / Gourma)
+  - Détection automatique de la commune de rattachement depuis le profil de l'exploitant (`user.location`), avec repli robuste sur **Ouagadougou** si la localité est inconnue.
+  - Sélecteur interactif de commune (`#selectMeteoCommune` sur bureau, `#selectMobileMeteoCommune` sur mobile) permettant de consulter immédiatement la météo d'un autre bassin de production.
+- **Données Météorologiques Affichées en Direct** :
+  - **Maintenant** : Température réelle en °C, humidité relative (%), vent en km/h et direction cardinale (Nord, Nord-Est, etc.), icône météo WMO adaptée (ciel dégagé, éclaircies, brume sahélo-désertique, averses, orages).
+  - **7 Jours** : Nom du jour réel (Aujourd'hui, Dimanche, Lundi...), date réelle (`17 oct.`), températures maximale et minimale, probabilité de pluie (%) et cumul pluviométrique attendu en mm.
+  - **Heure réelle de dernière mise à jour** : Affichage transparent `MAJ HH:MM` dans la carte et sur la page.
+- **Système de Cache de 1 Heure & Résilience Hors-Ligne** :
+  - Mémorisation de la réponse dans `localStorage` par commune (`revolution_weather_cache_v4_[commune]`) avec horodatage `Date.now()`.
+  - Pas d'appels API superflus lors des réouvertures dans l'intervalle de 60 minutes.
+  - En cas d'indisponibilité du réseau ou de coupure Internet en zone rurale, restitution immédiate de la dernière météo connue avec mention `Hors-ligne`.
+  - Boutons d'actualisation manuelle en 1 clic pour forcer une synchronisation réseau fraîche à tout moment.
+- **Alertes Agricoles Automatiques (Bandeau contextuel Orange / Rouge)** :
+  - **Forte pluie (Rouge / Danger)** : Pluie prévue `> 20 mm` dans la journée OU probabilité `≥ 70%` → `« 🌧️ Pluie prévue : reportez les traitements et l'irrigation. »`
+  - **Forte chaleur (Orange / Avertissement)** : Température `≥ 40 °C` (actuelle ou maximale prévue) → `« ☀️ Forte chaleur : arrosez tôt le matin ou le soir, protégez les jeunes plants. »`
+  - **Vent fort (Orange / Avertissement)** : Rafales de vent `≥ 40 km/h` (`wind_gusts_10m_max`) → `« 💨 Vent fort : évitez les pulvérisations. »`
+  - Si aucune alerte météo n'est active, le bandeau reste strictement masqué.
+- **Expérience Unifiée Bureau & Mobile** :
+  - Tableau de bord : Carte « Météo agricole » synchronisée avec prévisions 7j en format compact et lien direct vers la page détaillée.
+  - Page Météo dédiée (`#meteo`) : Accessible via la barre latérale, le tiroir mobile ou le lien de la carte, proposant la carte héros, les métriques d'évapotranspiration, les 7 jours détaillés avec badges de recommandations agronomiques adaptées, et les conseils culturaux sahéliens.
+
 ---
 
-*Fin du document de spécification système — Version 4.5 • Révolution Agricole Burkina Faso.*
+*Fin du document de spécification système — Version 4.6 • Révolution Agricole Burkina Faso.*
+

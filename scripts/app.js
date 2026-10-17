@@ -449,14 +449,17 @@ document.addEventListener('DOMContentLoaded', () => {
   let selectedOperator = 'orange'; // 'orange' | 'moov'
 
   // Navigation & État du module Financements (Connecté Supabase)
-  let currentRoutePage = 'dashboard'; // 'dashboard' | 'opportunites' | 'admin-financements'
+  let currentRoutePage = 'dashboard'; // 'dashboard' | 'opportunites' | 'admin-financements' | 'meteo'
   let cachedFinancements = [];
   let userSelectedType = 'all';
   let userSelectedRegion = 'all';
   let adminActiveStatusTab = 'en_attente';
+  let cachedWeatherResult = null;
+  let userManualCommuneKey = null;
 
   const pageFinancements = document.getElementById('pageFinancements');
   const pageAdminFinancements = document.getElementById('pageAdminFinancements');
+  const pageMeteo = document.getElementById('pageMeteo');
   const dashboardContent = document.getElementById('dashboardContent');
   const modalManageFinancement = document.getElementById('modalManageFinancement');
   const modalFinancementDetails = document.getElementById('modalFinancementDetails');
@@ -934,8 +937,194 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ==========================================
-  // VUES MOBILES POUR FINANCEMENTS ET ADMINISTRATION
+  // VUES MOBILES POUR MÉTÉO, FINANCEMENTS ET ADMINISTRATION
   // ==========================================
+  function getMobileDashboardWeatherCardHtml() {
+    const w = cachedWeatherResult;
+    if (!w) {
+      return `
+        <div class="mobile-weather-card" id="btnMobileWeatherCardClick" style="cursor: pointer;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 24px;">⛅</span>
+              <strong style="font-size: 22px;">-- °C</strong>
+            </div>
+            <span style="font-size: 11px; font-weight: 700; color: #1E5E2A; background: #EAF4E6; padding: 2px 8px; border-radius: 99px;">Chargement…</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; font-size: 11.5px; color: #5B6660; border-top: 1px solid #E6EAE3; padding-top: 6px; margin-top: 6px;">
+            <span>Météo agricole en direct</span>
+            <span style="font-size: 10px; color: #1E5E2A; font-weight: 700;">Prévisions 7j →</span>
+          </div>
+        </div>
+      `;
+    }
+
+    const alerts = computeWeatherAlerts(w.current, w.daily[0]);
+    const topAlert = alerts.length > 0 ? alerts[0] : null;
+    const miniDays = (w.daily || []).slice(0, 4).map(d => `${d.shortDay} ${d.tempMax}°`).join(' • ');
+
+    return `
+      ${topAlert ? `
+        <div class="weather-alert-banner alert-${topAlert.type}" style="margin-bottom: 8px; padding: 8px 10px; font-size: 11.5px; border-radius: 10px;">
+          <span class="alert-icon" style="font-size: 16px;">${topAlert.icon}</span>
+          <span class="alert-text">${topAlert.message}</span>
+        </div>
+      ` : ''}
+      <div class="mobile-weather-card" id="btnMobileWeatherCardClick" style="cursor: pointer;" title="Voir les prévisions 7 jours">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 26px;">${w.current.meta.icon}</span>
+            <div>
+              <strong style="font-size: 22px; color: #0E3615;">${w.current.temperature} °C</strong>
+              <div style="font-size: 11px; color: #5B6660;">${w.communeName} • ${w.current.meta.label}</div>
+            </div>
+          </div>
+          <div style="text-align: right;">
+            <span style="font-size: 11px; font-weight: 700; color: #1E5E2A; background: #EAF4E6; padding: 2px 8px; border-radius: 99px; display: inline-block;">
+              Pluie ${w.daily[0]?.rainProb || 0} % (${w.daily[0]?.rainSum || 0} mm)
+            </span>
+            <div style="font-size: 10.5px; color: #7C8781; margin-top: 2px;">Vent ${w.current.windSpeed} km/h</div>
+          </div>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 11.5px; color: #5B6660; border-top: 1px solid #E6EAE3; padding-top: 6px; margin-top: 6px;">
+          <span>${miniDays}</span>
+          <span style="font-size: 10px; color: #1E5E2A; font-weight: 700;">Prévisions 7j →</span>
+        </div>
+      </div>
+    `;
+  }
+
+  function getMobileMeteoHtml() {
+    const w = cachedWeatherResult;
+    const currentCommune = userManualCommuneKey || findCommuneKey();
+    const alerts = w ? computeWeatherAlerts(w.current, w.daily[0]) : [];
+    const topAlert = alerts.length > 0 ? alerts[0] : null;
+
+    return `
+      <div>
+        <a href="#dashboard" class="breadcrumb-back-link mobile-back-to-dashboard" style="font-size: 12px; margin-bottom: 8px; display: inline-flex; align-items: center; gap: 4px; color: #1E5E2A; font-weight: 700; text-decoration: none;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+          <span>Tableau de bord</span>
+        </a>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <div>
+            <h2 style="font-size: 18px; font-weight: 800; color: #1E2822; margin: 0 0 2px;">🌦️ Météo Agricole</h2>
+            <p style="font-size: 11.5px; color: #5B6660; margin: 0;">${w ? `${w.communeName} • MAJ ${w.updateTime}` : 'Open-Meteo'}</p>
+          </div>
+          <button type="button" class="btn-refresh-meteo" id="btnRefreshMobileMeteo" style="padding: 6px 10px; font-size: 11.5px; border-radius: 8px;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+            <span>Actualiser</span>
+          </button>
+        </div>
+
+        <!-- Sélecteur de commune mobile -->
+        <div style="margin-bottom: 12px;">
+          <label for="selectMobileMeteoCommune" style="font-size: 11px; font-weight: 700; color: #5B6660; display: block; margin-bottom: 4px;">Changer de commune :</label>
+          <select id="selectMobileMeteoCommune" class="meteo-commune-select" style="width: 100%; padding: 8px 12px; font-size: 12.5px;">
+            <option value="ouagadougou" ${currentCommune === 'ouagadougou' ? 'selected' : ''}>Ouagadougou (Centre)</option>
+            <option value="bobo-dioulasso" ${currentCommune === 'bobo-dioulasso' ? 'selected' : ''}>Bobo-Dioulasso (Hauts-Bassins)</option>
+            <option value="koudougou" ${currentCommune === 'koudougou' ? 'selected' : ''}>Koudougou (Centre-Ouest)</option>
+            <option value="ouahigouya" ${currentCommune === 'ouahigouya' ? 'selected' : ''}>Ouahigouya (Nord)</option>
+            <option value="dedougou" ${currentCommune === 'dedougou' ? 'selected' : ''}>Dédougou (Boucle du Mouhoun)</option>
+            <option value="banfora" ${currentCommune === 'banfora' ? 'selected' : ''}>Banfora (Cascades)</option>
+            <option value="kaya" ${currentCommune === 'kaya' ? 'selected' : ''}>Kaya (Centre-Nord)</option>
+            <option value="fada-ngourma" ${currentCommune === 'fada-ngourma' ? 'selected' : ''}>Fada N'Gourma (Est)</option>
+          </select>
+        </div>
+
+        ${topAlert ? `
+          <div class="weather-alert-banner alert-${topAlert.type}" style="margin-bottom: 12px; padding: 10px 12px; font-size: 12px;">
+            <span class="alert-icon" style="font-size: 18px;">${topAlert.icon}</span>
+            <span class="alert-text">${topAlert.message}</span>
+          </div>
+        ` : ''}
+
+        ${w ? `
+          <!-- Hero Card Météo Mobile -->
+          <div style="background: linear-gradient(135deg, #FFF 0%, #F5F9F3 100%); border: 1px solid #D7E5D4; border-radius: 14px; padding: 14px; margin-bottom: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 36px;">${w.current.meta.icon}</span>
+                <div>
+                  <div style="font-size: 30px; font-weight: 800; color: #0E3615; line-height: 1;">${w.current.temperature} °C</div>
+                  <span style="font-size: 11.5px; font-weight: 700; color: #1E5E2A; background: #EAF4E6; padding: 2px 8px; border-radius: 99px; display: inline-block; margin-top: 4px;">${w.current.meta.label}</span>
+                </div>
+              </div>
+              <div style="text-align: right; font-size: 11px; color: #6C7A72;">
+                <div>${w.daily[0]?.tempMax}° / ${w.daily[0]?.tempMin}°</div>
+                <div style="color: #1E5E2A; font-weight: 700; margin-top: 2px;">Open-Meteo</div>
+              </div>
+            </div>
+
+            <!-- Grille 2x2 métriques -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; border-top: 1px solid #E6EAE3; padding-top: 10px;">
+              <div style="background: #FFF; border: 1px solid #E3ECE0; border-radius: 10px; padding: 8px 10px;">
+                <span style="font-size: 10.5px; color: #7C8781; display: block;">💧 HUMIDITÉ</span>
+                <strong style="font-size: 14px; color: #1E2822;">${w.current.humidity} %</strong>
+              </div>
+              <div style="background: #FFF; border: 1px solid #E3ECE0; border-radius: 10px; padding: 8px 10px;">
+                <span style="font-size: 10.5px; color: #7C8781; display: block;">💨 VENT & RAFALES</span>
+                <strong style="font-size: 14px; color: #1E2822;">${w.current.windSpeed} km/h</strong>
+                <span style="font-size: 10px; color: #7C8781; display: block;">${w.current.windDirection}</span>
+              </div>
+              <div style="background: #FFF; border: 1px solid #E3ECE0; border-radius: 10px; padding: 8px 10px;">
+                <span style="font-size: 10.5px; color: #7C8781; display: block;">🌧️ PLUIE ESTIMÉE</span>
+                <strong style="font-size: 14px; color: #1E2822;">${w.daily[0]?.rainSum || 0} mm</strong>
+              </div>
+              <div style="background: #FFF; border: 1px solid #E3ECE0; border-radius: 10px; padding: 8px 10px;">
+                <span style="font-size: 10.5px; color: #7C8781; display: block;">📊 PROBABILITÉ</span>
+                <strong style="font-size: 14px; color: ${w.daily[0]?.rainProb >= 40 ? '#0A66C2' : '#1E2822'};">${w.daily[0]?.rainProb || 0} %</strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- Prévisions 7 jours en liste mobile -->
+          <h4 style="font-size: 13.5px; font-weight: 800; color: #1E2822; margin: 0 0 8px;">📅 Prévisions sur 7 jours</h4>
+          <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px;">
+            ${(w.daily || []).map((d) => {
+              let recomClass = 'recom-ok';
+              let recomText = '✅ Travaux favorables';
+              if (d.rainSum > 20 || d.rainProb >= 70) {
+                recomClass = 'recom-rain';
+                recomText = '🚫 Suspendre irrigation';
+              } else if (d.tempMax >= 40) {
+                recomClass = 'recom-heat';
+                recomText = '🔥 Arrosage matinal / soir';
+              } else if (d.gustsMax >= 40 || d.windMax >= 35) {
+                recomClass = 'recom-wind';
+                recomText = '💨 Éviter pulvérisations';
+              }
+
+              return `
+                <div style="background: #FFF; border: 1px solid #E6EAE3; border-radius: 12px; padding: 10px 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                  <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 24px;">${d.meta.icon}</span>
+                    <div>
+                      <strong style="font-size: 13px; color: #1E2822; display: block;">${d.dayName}</strong>
+                      <span style="font-size: 11px; color: #7C8781;">${d.formattedDate} • ${d.meta.label}</span>
+                    </div>
+                  </div>
+                  <div style="text-align: right;">
+                    <div style="font-size: 13px; font-weight: 800; color: #1E2822;">${d.tempMax}° / <small style="color: #7C8781;">${d.tempMin}°</small></div>
+                    <span style="font-size: 10.5px; font-weight: 700; color: ${d.rainProb >= 40 ? '#0A66C2' : '#2E7D32'};">Pluie ${d.rainProb}% (${d.rainSum}mm)</span>
+                    <div style="margin-top: 2px;">
+                      <span class="badge-agri-recom ${recomClass}" style="display: inline-block; font-size: 9px; padding: 1px 5px;">${recomText}</span>
+                    </div>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        ` : `
+          <div style="text-align: center; padding: 24px; background: #FFF; border-radius: 12px; border: 1px dashed #DDD;">
+            <p style="font-size: 13px; color: #5B6660;">Chargement des données météo…</p>
+          </div>
+        `}
+      </div>
+    `;
+  }
+
   function getMobileFinancementsHtml() {
     const published = cachedFinancements.filter(f => f.statut === 'publie');
     let filtered = published;
@@ -1338,27 +1527,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
       <div class="mobile-body">
         ${currentRoutePage === 'opportunites' ? getMobileFinancementsHtml() :
-          (currentRoutePage === 'admin-financements' ? getMobileAdminFinancementsHtml() : `
+          (currentRoutePage === 'admin-financements' ? getMobileAdminFinancementsHtml() :
+          (currentRoutePage === 'meteo' ? getMobileMeteoHtml() : `
         <!-- Salutation -->
         <div>
           <h2 class="mobile-greeting">Bonjour, ${data.name.split(' ')[0]} ${isPro ? '<span class="user-badge-pro" style="font-size: 10px; vertical-align: middle;">⭐ PRO</span>' : '<span class="greeting-emoji">🌱</span>'}</h2>
           <p class="mobile-subdate">${(new Date()).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })} • ${data.location.split('(')[0]}</p>
         </div>
 
-        <!-- 1. MÉTÉO EN PREMIER (Selon spec : info consultée chaque matin) -->
-        <div class="mobile-weather-card">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <span style="font-size: 24px;">⛅</span>
-              <strong style="font-size: 22px;">31 °C</strong>
-            </div>
-            <span style="font-size: 11px; font-weight: 700; color: #1E5E2A; background: #EAF4E6; padding: 2px 8px; border-radius: 99px;">Pluie 10 %</span>
-          </div>
-          <div style="display: flex; justify-content: space-between; font-size: 11.5px; color: #5B6660; border-top: 1px solid #E6EAE3; padding-top: 6px; margin-top: 6px;">
-            <span>JEU 32° • VEN 34° • SAM 33°</span>
-            <span style="font-size: 10px;">Open-Meteo • 07:45</span>
-          </div>
-        </div>
+        <!-- 1. MÉTÉO EN PREMIER (Connectée Open-Meteo) -->
+        ${getMobileDashboardWeatherCardHtml()}
+        `))}
 
         <!-- 2. INDICATEURS EN GRILLE 2x2 (Pas de défilement horizontal) -->
         <div class="mobile-stat-grid">
@@ -1552,7 +1731,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const href = link.getAttribute('href');
         if (href && href.startsWith('#')) {
           const target = href.replace(/^#/, '');
-          if (target === 'opportunites' || target === 'admin-financements' || target === 'dashboard') {
+          if (target === 'opportunites' || target === 'admin-financements' || target === 'dashboard' || target === 'meteo') {
             e.preventDefault();
             closeMobileDrawer();
             window.location.hash = target;
@@ -1673,6 +1852,30 @@ document.addEventListener('DOMContentLoaded', () => {
       btnSheetAddRevenue.addEventListener('click', () => {
         closeActionSheet();
         openRevenueModal();
+      });
+    }
+
+    // Événements météo mobile
+    const btnMobWeatherCard = document.getElementById('btnMobileWeatherCardClick');
+    if (btnMobWeatherCard) {
+      btnMobWeatherCard.addEventListener('click', () => {
+        window.location.hash = 'meteo';
+        navigateToPage('meteo');
+      });
+    }
+
+    const selectMobCommune = document.getElementById('selectMobileMeteoCommune');
+    if (selectMobCommune) {
+      selectMobCommune.addEventListener('change', (e) => {
+        userManualCommuneKey = e.target.value;
+        loadAndRenderWeather(true);
+      });
+    }
+
+    const btnRefMobMeteo = document.getElementById('btnRefreshMobileMeteo');
+    if (btnRefMobMeteo) {
+      btnRefMobMeteo.addEventListener('click', () => {
+        loadAndRenderWeather(true);
       });
     }
     } catch (err) {
@@ -2504,11 +2707,13 @@ document.addEventListener('DOMContentLoaded', () => {
   // ==========================================
   roleSelector.addEventListener('change', (e) => {
     const newRole = e.target.value;
+    userManualCommuneKey = null;
     renderProfile(newRole);
     syncFinancialsFromSupabase(newRole);
     syncCropCyclesFromSupabase(newRole);
     syncSubscriptionStatusFromSupabase(newRole);
     fetchFinancements();
+    loadAndRenderWeather();
     showToast('Profil actualisé', `Bascule vers le profil : ${PROFILES_DATA[newRole].name}`);
   });
 
@@ -2530,6 +2735,447 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ==========================================
+  // MODULE MÉTÉO AGRICOLE RÉELLE (OPEN-METEO)
+  // ==========================================
+  const COMMUNE_COORDS = {
+    ouagadougou: { name: 'Ouagadougou', region: 'Centre (Kadiogo)', lat: 12.37, lon: -1.52 },
+    'bobo-dioulasso': { name: 'Bobo-Dioulasso', region: 'Hauts-Bassins (Houet)', lat: 11.18, lon: -4.29 },
+    koudougou: { name: 'Koudougou', region: 'Centre-Ouest (Boulkiemdé)', lat: 12.25, lon: -2.36 },
+    ouahigouya: { name: 'Ouahigouya', region: 'Nord (Yatenga)', lat: 13.58, lon: -2.42 },
+    dedougou: { name: 'Dédougou', region: 'Boucle du Mouhoun (Mouhoun)', lat: 12.46, lon: -3.46 },
+    banfora: { name: 'Banfora', region: 'Cascades (Comoé)', lat: 10.63, lon: -4.76 },
+    kaya: { name: 'Kaya', region: 'Centre-Nord (Sanmatenga)', lat: 13.09, lon: -1.08 },
+    'fada-ngourma': { name: "Fada N'Gourma", region: 'Est (Gourma)', lat: 12.06, lon: 0.36 }
+  };
+
+  function findCommuneKey(locationStr) {
+    if (userManualCommuneKey && COMMUNE_COORDS[userManualCommuneKey]) {
+      return userManualCommuneKey;
+    }
+    let loc = locationStr;
+    if (!loc) {
+      loc = PROFILES_DATA[currentProfileKey]?.location || '';
+    }
+    if (!loc) return 'ouagadougou';
+    const clean = loc.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    if (clean.includes('koudougou')) return 'koudougou';
+    if (clean.includes('bobo') || clean.includes('dioulasso')) return 'bobo-dioulasso';
+    if (clean.includes('ouahigouya')) return 'ouahigouya';
+    if (clean.includes('dedougou')) return 'dedougou';
+    if (clean.includes('banfora')) return 'banfora';
+    if (clean.includes('kaya')) return 'kaya';
+    if (clean.includes('fada') || clean.includes('ngourma')) return 'fada-ngourma';
+    if (clean.includes('ouaga')) return 'ouagadougou';
+    return 'ouagadougou';
+  }
+
+  function getWindCompass(deg) {
+    if (deg === undefined || deg === null) return 'Variable';
+    const directions = ['Nord', 'Nord-Est', 'Est', 'Sud-Est', 'Sud', 'Sud-Ouest', 'Ouest', 'Nord-Ouest'];
+    const index = Math.round(deg / 45) % 8;
+    return directions[index];
+  }
+
+  function getWeatherMeta(code) {
+    const c = Number(code);
+    if (c === 0) return { icon: '☀️', label: 'Ciel dégagé / Ensoleillé' };
+    if (c === 1 || c === 2) return { icon: '🌤️', label: 'Éclaircies' };
+    if (c === 3) return { icon: '☁️', label: 'Couvert' };
+    if (c === 45 || c === 48) return { icon: '🌫️', label: 'Brume / Poussière' };
+    if (c >= 51 && c <= 57) return { icon: '🌦️', label: 'Bruine légère' };
+    if (c >= 61 && c <= 67) return { icon: '🌧️', label: 'Pluie' };
+    if (c >= 71 && c <= 77) return { icon: '🌨️', label: 'Grêle / Neige' };
+    if (c >= 80 && c <= 82) return { icon: '🌧️', label: 'Averses' };
+    if (c >= 95 && c <= 99) return { icon: '⛈️', label: 'Orage violent' };
+    return { icon: '⛅', label: 'Partiellement nuageux' };
+  }
+
+  function computeWeatherAlerts(current, todayDaily) {
+    const alerts = [];
+    if (!current && !todayDaily) return alerts;
+
+    const rainSum = todayDaily ? (Number(todayDaily.rainSum) || 0) : 0;
+    const rainProb = todayDaily ? (Number(todayDaily.rainProb) || 0) : 0;
+    const tempCurrent = current ? (Number(current.temperature) || 0) : 0;
+    const tempMax = todayDaily ? (Number(todayDaily.tempMax) || tempCurrent) : tempCurrent;
+    const gusts = current ? (Number(current.gusts) || 0) : 0;
+    const gustsMax = todayDaily ? (Number(todayDaily.gustsMax) || gusts) : gusts;
+
+    // 1. Forte pluie : plus de 20 mm prévus dans la journée, ou probabilité de pluie de 70 % ou plus
+    if (rainSum > 20 || rainProb >= 70) {
+      alerts.push({
+        type: 'danger',
+        level: 'Forte pluie',
+        icon: '🌧️',
+        message: "Pluie prévue : reportez les traitements et l'irrigation."
+      });
+    }
+
+    // 2. Forte chaleur : 40 °C ou plus
+    if (tempCurrent >= 40 || tempMax >= 40) {
+      alerts.push({
+        type: 'warning',
+        level: 'Forte chaleur',
+        icon: '☀️',
+        message: "Forte chaleur : arrosez tôt le matin ou le soir, protégez les jeunes plants."
+      });
+    }
+
+    // 3. Vent fort : rafales de 40 km/h ou plus (wind_gusts_10m_max)
+    if (gusts >= 40 || gustsMax >= 40) {
+      alerts.push({
+        type: 'warning',
+        level: 'Vent fort',
+        icon: '💨',
+        message: "Vent fort : évitez les pulvérisations."
+      });
+    }
+
+    return alerts;
+  }
+
+  async function fetchOpenMeteoData(communeKey, forceRefresh = false) {
+    const cacheKey = `revolution_weather_cache_v4_${communeKey}`;
+    const cachedRaw = localStorage.getItem(cacheKey);
+
+    if (!forceRefresh && cachedRaw) {
+      try {
+        const parsed = JSON.parse(cachedRaw);
+        // Cache de 1 heure (3600000 ms)
+        if (Date.now() - parsed.timestamp < 3600000 && parsed.daily && parsed.daily.length > 0) {
+          parsed.isFromCache = true;
+          cachedWeatherResult = parsed;
+          return parsed;
+        }
+      } catch (e) {}
+    }
+
+    const coord = COMMUNE_COORDS[communeKey] || COMMUNE_COORDS.ouagadougou;
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${coord.lat}&longitude=${coord.lon}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,wind_gusts_10m_max&timezone=Africa%2FOuagadougou`;
+
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = await res.json();
+
+      const now = new Date();
+      const updateTimeStr = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+
+      const weatherRes = {
+        communeKey: communeKey,
+        communeName: coord.name,
+        regionName: coord.region,
+        updateTime: updateTimeStr,
+        timestamp: Date.now(),
+        isFromCache: false,
+        current: {
+          temperature: Math.round(json.current?.temperature_2m ?? 31),
+          humidity: Math.round(json.current?.relative_humidity_2m ?? 42),
+          windSpeed: Math.round(json.current?.wind_speed_10m ?? 14),
+          windDirection: getWindCompass(json.current?.wind_direction_10m),
+          windDegrees: json.current?.wind_direction_10m ?? 0,
+          gusts: Math.round(json.current?.wind_gusts_10m ?? 18),
+          weatherCode: json.current?.weather_code ?? 1,
+          meta: getWeatherMeta(json.current?.weather_code ?? 1)
+        },
+        daily: (json.daily?.time || []).map((dateStr, idx) => {
+          const [y, m, d] = dateStr.split('-').map(Number);
+          const dayDate = new Date(y, m - 1, d);
+          return {
+            dateStr: dateStr,
+            dayName: idx === 0 ? "Aujourd'hui" : DAY_NAMES_FR[dayDate.getDay()],
+            shortDay: idx === 0 ? "Auj." : DAY_NAMES_FR[dayDate.getDay()].slice(0, 4),
+            formattedDate: `${dayDate.getDate()} ${MONTH_NAMES_FR[dayDate.getMonth()].slice(0, 4)}`,
+            weatherCode: json.daily.weather_code[idx],
+            meta: getWeatherMeta(json.daily.weather_code[idx]),
+            tempMax: Math.round(json.daily.temperature_2m_max[idx]),
+            tempMin: Math.round(json.daily.temperature_2m_min[idx]),
+            rainSum: Number(json.daily.precipitation_sum[idx] || 0),
+            rainProb: Math.round(json.daily.precipitation_probability_max[idx] || 0),
+            windMax: Math.round(json.daily.wind_speed_10m_max[idx] || 0),
+            gustsMax: Math.round(json.daily.wind_gusts_10m_max[idx] || 0)
+          };
+        })
+      };
+
+      try {
+        localStorage.setItem(cacheKey, JSON.stringify(weatherRes));
+      } catch (e) {}
+
+      cachedWeatherResult = weatherRes;
+      return weatherRes;
+    } catch (err) {
+      console.warn('⚠️ Erreur Open-Meteo, chargement du cache hors-ligne :', err);
+      if (cachedRaw) {
+        try {
+          const parsed = JSON.parse(cachedRaw);
+          parsed.isFallback = true;
+          cachedWeatherResult = parsed;
+          return parsed;
+        } catch (e) {}
+      }
+
+      // Secours gracieux si aucune donnée en cache
+      const now = new Date();
+      const updateTimeStr = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+      const fallbackRes = {
+        communeKey: communeKey,
+        communeName: coord.name,
+        regionName: coord.region,
+        updateTime: updateTimeStr,
+        timestamp: Date.now(),
+        isFallback: true,
+        current: {
+          temperature: 32,
+          humidity: 40,
+          windSpeed: 14,
+          windDirection: 'Nord-Est',
+          gusts: 20,
+          weatherCode: 1,
+          meta: getWeatherMeta(1)
+        },
+        daily: [0, 1, 2, 3, 4, 5, 6].map(i => {
+          const d = new Date();
+          d.setDate(d.getDate() + i);
+          return {
+            dateStr: d.toISOString().split('T')[0],
+            dayName: i === 0 ? "Aujourd'hui" : DAY_NAMES_FR[d.getDay()],
+            shortDay: i === 0 ? "Auj." : DAY_NAMES_FR[d.getDay()].slice(0, 4),
+            formattedDate: `${d.getDate()} ${MONTH_NAMES_FR[d.getMonth()].slice(0, 4)}`,
+            weatherCode: 1,
+            meta: getWeatherMeta(1),
+            tempMax: 34,
+            tempMin: 23,
+            rainSum: 0,
+            rainProb: 10,
+            windMax: 16,
+            gustsMax: 22
+          };
+        })
+      };
+      cachedWeatherResult = fallbackRes;
+      return fallbackRes;
+    }
+  }
+
+  function renderDashboardWeatherCard(weatherRes) {
+    if (!weatherRes) return;
+
+    const subEl = document.getElementById('dashWeatherCommuneSub');
+    if (subEl) {
+      subEl.textContent = `Commune de ${weatherRes.communeName}${weatherRes.isFallback ? ' (Hors-ligne)' : ''}`;
+    }
+
+    const iconEl = document.getElementById('dashWeatherIcon');
+    if (iconEl) iconEl.textContent = weatherRes.current.meta.icon;
+
+    const tempEl = document.getElementById('dashWeatherTemp');
+    if (tempEl) tempEl.textContent = `${weatherRes.current.temperature} °C`;
+
+    const descEl = document.getElementById('dashWeatherDesc');
+    if (descEl) descEl.textContent = weatherRes.current.meta.label;
+
+    const rainMetric = document.getElementById('dashWeatherMetricRain');
+    if (rainMetric) {
+      const todayDaily = weatherRes.daily[0];
+      rainMetric.textContent = `${todayDaily?.rainProb ?? 0} % (${todayDaily?.rainSum ?? 0} mm)`;
+    }
+
+    const windMetric = document.getElementById('dashWeatherMetricWind');
+    if (windMetric) {
+      windMetric.textContent = `${weatherRes.current.windSpeed} km/h • ${weatherRes.current.windDirection}`;
+    }
+
+    const humidityMetric = document.getElementById('dashWeatherMetricHumidity');
+    if (humidityMetric) {
+      humidityMetric.textContent = `${weatherRes.current.humidity} %`;
+    }
+
+    const sourceTag = document.getElementById('dashWeatherSourceTag');
+    if (sourceTag) {
+      sourceTag.textContent = `Source : Open-Meteo • ${weatherRes.communeName} (${weatherRes.regionName})`;
+    }
+
+    const syncTime = document.getElementById('dashWeatherSyncTime');
+    if (syncTime) {
+      syncTime.textContent = `MAJ ${weatherRes.updateTime}`;
+    }
+
+    // Gestion du bandeau d'alerte automatique (forte pluie, chaleur, vent)
+    const alerts = computeWeatherAlerts(weatherRes.current, weatherRes.daily[0]);
+    const alertBanner = document.getElementById('dashWeatherAlertBanner');
+    const alertText = document.getElementById('dashWeatherAlertText');
+    if (alertBanner && alertText) {
+      if (alerts.length > 0) {
+        const topAlert = alerts[0];
+        alertBanner.className = `weather-alert-banner alert-${topAlert.type}`;
+        alertText.textContent = `${topAlert.icon} ${topAlert.message}`;
+        alertBanner.classList.remove('hidden');
+      } else {
+        alertBanner.classList.add('hidden');
+      }
+    }
+
+    // Grille prévisions 7 jours du tableau de bord
+    const grid = document.getElementById('dashWeatherForecastGrid');
+    if (grid && weatherRes.daily) {
+      grid.innerHTML = weatherRes.daily.slice(0, 7).map((d, i) => `
+        <div class="forecast-day-cell ${i === 0 ? 'today' : ''}" style="text-align: center; padding: 6px 4px; border-radius: 8px; background: ${i === 0 ? '#EAF4E6' : '#F6F8F4'}; min-width: 50px;">
+          <span class="day-name" style="font-size: 11px; font-weight: 800; color: #1E2822; display: block;">${d.shortDay}</span>
+          <span class="day-icon" style="font-size: 20px; display: block; margin: 2px 0;">${d.meta.icon}</span>
+          <span class="day-temp" style="font-size: 11.5px; display: block;"><strong>${d.tempMax}°</strong> <small style="color: #7C8781;">${d.tempMin}°</small></span>
+          <span class="day-rain" style="font-size: 10px; color: ${d.rainProb >= 40 ? '#0A66C2' : '#2E7D32'}; font-weight: 700; display: block;">${d.rainProb}%</span>
+          <span style="font-size: 9px; color: #8C998F; display: block;">${d.rainSum}mm</span>
+        </div>
+      `).join('');
+    }
+  }
+
+  function renderMeteoPage(weatherRes) {
+    if (!weatherRes) return;
+
+    const locSub = document.getElementById('meteoPageLocationSub');
+    if (locSub) {
+      locSub.textContent = `Commune de ${weatherRes.communeName} • Région ${weatherRes.regionName} • Fuseau Africa/Ouagadougou`;
+    }
+
+    const select = document.getElementById('selectMeteoCommune');
+    if (select) {
+      select.value = weatherRes.communeKey;
+    }
+
+    // Bandeau d'alerte sur la page météo
+    const alerts = computeWeatherAlerts(weatherRes.current, weatherRes.daily[0]);
+    const alertBanner = document.getElementById('meteoPageAlertBanner');
+    const alertText = document.getElementById('meteoPageAlertText');
+    if (alertBanner && alertText) {
+      if (alerts.length > 0) {
+        const topAlert = alerts[0];
+        alertBanner.className = `weather-alert-banner alert-${topAlert.type}`;
+        alertText.textContent = `${topAlert.icon} ${topAlert.message}`;
+        alertBanner.classList.remove('hidden');
+      } else {
+        alertBanner.classList.add('hidden');
+      }
+    }
+
+    // Hero Card
+    const heroIcon = document.getElementById('meteoHeroIcon');
+    if (heroIcon) heroIcon.textContent = weatherRes.current.meta.icon;
+
+    const heroTemp = document.getElementById('meteoHeroTemp');
+    if (heroTemp) heroTemp.textContent = `${weatherRes.current.temperature} °C`;
+
+    const heroDesc = document.getElementById('meteoHeroDesc');
+    if (heroDesc) heroDesc.textContent = weatherRes.current.meta.label;
+
+    const heroUpdate = document.getElementById('meteoHeroUpdateInfo');
+    if (heroUpdate) {
+      heroUpdate.textContent = `Dernière mise à jour réelle : ${weatherRes.updateTime}${weatherRes.isFallback ? ' (Hors-ligne)' : ''}`;
+    }
+
+    const today = weatherRes.daily[0] || {};
+    const tRange = document.getElementById('meteoMetricTempRange');
+    if (tRange) tRange.textContent = `${today.tempMax ?? weatherRes.current.temperature}° / ${today.tempMin ?? 22}°`;
+
+    const mHum = document.getElementById('meteoMetricHumidity');
+    if (mHum) mHum.textContent = `${weatherRes.current.humidity} %`;
+
+    const mWind = document.getElementById('meteoMetricWind');
+    if (mWind) mWind.textContent = `${weatherRes.current.windSpeed} km/h • ${weatherRes.current.windDirection}`;
+
+    const mGusts = document.getElementById('meteoMetricGusts');
+    if (mGusts) mGusts.textContent = `Rafales : ${today.gustsMax || weatherRes.current.gusts} km/h`;
+
+    const mRain = document.getElementById('meteoMetricRain');
+    if (mRain) mRain.textContent = `${today.rainSum ?? 0} mm`;
+
+    const mRainProb = document.getElementById('meteoMetricRainProb');
+    if (mRainProb) mRainProb.textContent = `Probabilité : ${today.rainProb ?? 0} %`;
+
+    // Grille 7 jours détaillée
+    const grid7 = document.getElementById('meteoPage7DaysGrid');
+    if (grid7 && weatherRes.daily) {
+      grid7.innerHTML = weatherRes.daily.map((d, idx) => {
+        let recomClass = 'recom-ok';
+        let recomText = '✅ Travaux favorables';
+        if (d.rainSum > 20 || d.rainProb >= 70) {
+          recomClass = 'recom-rain';
+          recomText = '🚫 Suspendre irrigation';
+        } else if (d.tempMax >= 40) {
+          recomClass = 'recom-heat';
+          recomText = '🔥 Arrosage matinal / soir';
+        } else if (d.gustsMax >= 40 || d.windMax >= 35) {
+          recomClass = 'recom-wind';
+          recomText = '💨 Éviter pulvérisations';
+        }
+
+        return `
+          <div class="meteo-day-card ${idx === 0 ? 'today' : ''}">
+            <div class="meteo-day-header">
+              <span class="meteo-day-title">${d.dayName}</span>
+              <span class="meteo-day-date">${d.formattedDate}</span>
+            </div>
+            <div class="meteo-day-icon">${d.meta.icon}</div>
+            <div class="meteo-day-temps">
+              <span class="meteo-t-max">${d.tempMax}°</span>
+              <span class="meteo-t-min">${d.tempMin}°</span>
+            </div>
+            <div class="meteo-day-rain ${d.rainProb >= 40 ? 'has-rain' : ''}">
+              💧 ${d.rainProb}% (${d.rainSum} mm)
+            </div>
+            <div class="meteo-day-wind">
+              💨 ${d.windMax} km/h
+            </div>
+            <div class="badge-agri-recom ${recomClass}">
+              ${recomText}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+  }
+
+  async function loadAndRenderWeather(forceRefresh = false) {
+    const communeKey = findCommuneKey();
+    const weatherRes = await fetchOpenMeteoData(communeKey, forceRefresh);
+    renderDashboardWeatherCard(weatherRes);
+    if (currentRoutePage === 'meteo') {
+      renderMeteoPage(weatherRes);
+    }
+    if (currentViewMode === 'mobile' || window.innerWidth < 1024) {
+      renderMobileView();
+    }
+    return weatherRes;
+  }
+
+  // Écouteurs Météo Bureau
+  const selectMeteoCommune = document.getElementById('selectMeteoCommune');
+  if (selectMeteoCommune) {
+    selectMeteoCommune.addEventListener('change', async (e) => {
+      userManualCommuneKey = e.target.value;
+      await loadAndRenderWeather(true);
+      showToast('Commune actualisée', `Météo chargée pour ${COMMUNE_COORDS[userManualCommuneKey]?.name}`);
+    });
+  }
+
+  const btnRefreshMeteoPage = document.getElementById('btnRefreshMeteoPage');
+  if (btnRefreshMeteoPage) {
+    btnRefreshMeteoPage.addEventListener('click', async () => {
+      await loadAndRenderWeather(true);
+      showToast('Météo actualisée', 'Données Open-Meteo synchronisées en direct.');
+    });
+  }
+
+  const btnQuickRefreshDashWeather = document.getElementById('btnQuickRefreshDashWeather');
+  if (btnQuickRefreshDashWeather) {
+    btnQuickRefreshDashWeather.addEventListener('click', async () => {
+      await loadAndRenderWeather(true);
+      showToast('Météo actualisée', 'Données Open-Meteo synchronisées en direct.');
+    });
+  }
+
+  // ==========================================
   // MODULE FINANCEMENTS & ADMINISTRATION (SUPABASE CONNECTÉ)
   // ==========================================
 
@@ -2539,6 +3185,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (pageFinancements) pageFinancements.classList.toggle('hidden', page !== 'opportunites');
     if (pageAdminFinancements) pageAdminFinancements.classList.toggle('hidden', page !== 'admin-financements');
+    if (pageMeteo) pageMeteo.classList.toggle('hidden', page !== 'meteo');
     if (dashboardContent) dashboardContent.classList.toggle('hidden', page !== 'dashboard');
 
     document.querySelectorAll('.sidebar-nav .nav-item').forEach(item => {
@@ -2558,6 +3205,12 @@ document.addEventListener('DOMContentLoaded', () => {
       renderUserFinancements();
     } else if (page === 'admin-financements') {
       renderAdminFinancements();
+    } else if (page === 'meteo') {
+      if (cachedWeatherResult) {
+        renderMeteoPage(cachedWeatherResult);
+      } else {
+        loadAndRenderWeather();
+      }
     }
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -2569,6 +3222,8 @@ document.addEventListener('DOMContentLoaded', () => {
       navigateToPage('opportunites');
     } else if (hash === 'admin-financements') {
       navigateToPage('admin-financements');
+    } else if (hash === 'meteo' || hash === 'meteo-details') {
+      navigateToPage('meteo');
     } else if (hash === 'dashboard' || hash === '') {
       navigateToPage('dashboard');
     }
@@ -2582,7 +3237,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const href = link.getAttribute('href');
       if (href && href.startsWith('#')) {
         const page = href.replace(/^#/, '');
-        if (page === 'opportunites' || page === 'admin-financements' || page === 'dashboard') {
+        if (page === 'opportunites' || page === 'admin-financements' || page === 'dashboard' || page === 'meteo') {
           e.preventDefault();
           window.location.hash = page;
           navigateToPage(page);
@@ -3888,6 +4543,7 @@ document.addEventListener('DOMContentLoaded', () => {
     await syncFinancialsFromSupabase(pKey);
     await syncCropCyclesFromSupabase(pKey);
     await syncSubscriptionStatusFromSupabase(pKey);
+    loadAndRenderWeather().catch(() => {});
     autoDetectResponsiveMode();
   }
 
@@ -4063,8 +4719,9 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    // Charger les financements en tâche de fond dès le démarrage
+    // Charger les financements et la météo en tâche de fond dès le démarrage
     fetchFinancements().catch(() => {});
+    loadAndRenderWeather().catch(() => {});
 
     if (sessionUser) {
       await checkUserProfileAndProceed(sessionUser);

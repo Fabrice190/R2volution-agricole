@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
   
-  <link rel="stylesheet" href="styles/main.css?v=4.5">
+  <link rel="stylesheet" href="styles/main.css?v=4.6">
 </head>
 <body class="theme-light">
   <!-- BANDEAU DE CONTRÔLE PROTOTYPE (Permet de switcher de rôle, de vue et d'état en 1 clic) -->
@@ -938,25 +938,35 @@
             </section>
 
             <!-- BLOC ÉTROIT : Météo Agricole Réelle (Open-Meteo Burkina & MAJ obligatoire) -->
-            <section class="content-card weather-card">
+            <section class="content-card weather-card" id="dashWeatherCard">
+              <!-- Bandeau d'alerte météo dynamique (forte pluie, chaleur, vent) -->
+              <div class="weather-alert-banner alert-warning hidden" id="dashWeatherAlertBanner">
+                <span class="alert-icon">⚠️</span>
+                <span class="alert-text" id="dashWeatherAlertText"></span>
+              </div>
+
               <div class="card-header-row">
                 <div class="card-title-group">
                   <h3 class="card-title">Météo agricole</h3>
-                  <span class="card-subtitle">Commune de Koudougou</span>
+                  <span class="card-subtitle" id="dashWeatherCommuneSub">Commune de Koudougou</span>
                 </div>
-                <a href="#meteo-details" class="card-link-action">Prévisions 7j</a>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <button type="button" class="btn-table-action" id="btnQuickRefreshDashWeather" title="Rafraîchir la météo" style="cursor: pointer;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                  </button>
+                  <a href="#meteo" class="card-link-action" id="linkToMeteoPage">Prévisions 7j →</a>
+                </div>
               </div>
 
               <!-- Bloc Température Actuelle & Conditions -->
               <div class="weather-current-row">
                 <div class="weather-visual">
-                  <div class="weather-sun-cloud-icon">
-                    <span class="sun-glow">☀️</span>
-                    <span class="cloud-front">⛅</span>
+                  <div class="weather-sun-cloud-icon" id="dashWeatherIconWrap">
+                    <span id="dashWeatherIcon">⛅</span>
                   </div>
                   <div class="temp-display">
-                    <span class="temp-big tabular-numbers">31°C</span>
-                    <span class="weather-condition-desc">Partiellement voilé</span>
+                    <span class="temp-big tabular-numbers" id="dashWeatherTemp">--°C</span>
+                    <span class="weather-condition-desc" id="dashWeatherDesc">Chargement…</span>
                   </div>
                 </div>
 
@@ -964,61 +974,30 @@
                   <div class="metric-item">
                     <span class="metric-icon">💧</span>
                     <span class="metric-name">Pluie prob. :</span>
-                    <strong class="metric-val text-green">10 % (faible)</strong>
+                    <strong class="metric-val text-green" id="dashWeatherMetricRain">-- %</strong>
                   </div>
                   <div class="metric-item">
                     <span class="metric-icon">💨</span>
                     <span class="metric-name">Vent :</span>
-                    <strong class="metric-val">12 km/h NE</strong>
+                    <strong class="metric-val" id="dashWeatherMetricWind">-- km/h</strong>
                   </div>
                   <div class="metric-item">
                     <span class="metric-icon">🌡️</span>
                     <span class="metric-name">Humidité :</span>
-                    <strong class="metric-val">42 %</strong>
+                    <strong class="metric-val" id="dashWeatherMetricHumidity">-- %</strong>
                   </div>
                 </div>
               </div>
 
-              <!-- Mini Prévision 4 Jours (Jeu, Ven, Sam, Dim) -->
-              <div class="forecast-mini-grid">
-                <div class="forecast-day-cell current-day">
-                  <span class="day-code">JEU</span>
-                  <span class="day-icon">⛅</span>
-                  <div class="day-temps">
-                    <span class="t-max">32°</span>
-                    <span class="t-min">21°</span>
-                  </div>
-                </div>
-                <div class="forecast-day-cell">
-                  <span class="day-code">VEN</span>
-                  <span class="day-icon">☀️</span>
-                  <div class="day-temps">
-                    <span class="t-max">34°</span>
-                    <span class="t-min">22°</span>
-                  </div>
-                </div>
-                <div class="forecast-day-cell">
-                  <span class="day-code">SAM</span>
-                  <span class="day-icon">🌤️</span>
-                  <div class="day-temps">
-                    <span class="t-max">33°</span>
-                    <span class="t-min">20°</span>
-                  </div>
-                </div>
-                <div class="forecast-day-cell">
-                  <span class="day-code">DIM</span>
-                  <span class="day-icon">⛅</span>
-                  <div class="day-temps">
-                    <span class="t-max">31°</span>
-                    <span class="t-min">19°</span>
-                  </div>
-                </div>
+              <!-- Mini Prévision 7 Jours (Calculé en direct avec vraies dates) -->
+              <div class="forecast-mini-grid" id="dashWeatherForecastGrid" style="grid-template-columns: repeat(7, 1fr); overflow-x: auto;">
+                <!-- Rempli dynamiquement par Open-Meteo -->
               </div>
 
               <!-- Footer météo conforme à la règle stricte du plan : source & MAJ -->
               <div class="weather-footer">
-                <span class="source-tag">Source : Open-Meteo • Région Centre-Ouest</span>
-                <span class="sync-time">MAJ 07:45</span>
+                <span class="source-tag" id="dashWeatherSourceTag">Source : Open-Meteo • Région Centre-Ouest</span>
+                <span class="sync-time" id="dashWeatherSyncTime">MAJ en cours…</span>
               </div>
             </section>
           </div>
@@ -1212,6 +1191,119 @@
             <div class="empty-state-icon">📂</div>
             <h3 id="adminEmptyTitle">Aucune fiche dans cette catégorie</h3>
             <p id="adminEmptySub">Cliquez sur « + Ajouter un financement » pour créer une nouvelle offre.</p>
+          </div>
+        </div>
+
+        <!-- ==========================================
+             PAGE MÉTÉO AGRICOLE RÉELLE (OPEN-METEO)
+             ========================================== -->
+        <div class="dashboard-body hidden" id="pageMeteo">
+          <!-- Lien retour au tableau de bord -->
+          <a href="#dashboard" class="breadcrumb-back-link">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+            <span>Tableau de bord</span>
+          </a>
+
+          <!-- En-tête de la page météo -->
+          <div class="fin-page-header">
+            <div class="fin-page-title-group">
+              <div class="fin-pill-tag">Open-Meteo • Données Agronomiques Gratuites & Réelles</div>
+              <h2 class="fin-main-title">🌦️ Météo Agricole & Prévisions 7 Jours</h2>
+              <p class="fin-subtitle" id="meteoPageLocationSub">Commune de Koudougou • Région Centre-Ouest • Fuseau Ouagadougou</p>
+            </div>
+            <div class="meteo-controls-bar">
+              <label for="selectMeteoCommune" style="font-size: 12px; font-weight: 700; color: var(--text-dim);">Changer de commune :</label>
+              <select id="selectMeteoCommune" class="meteo-commune-select">
+                <option value="ouagadougou">Ouagadougou (Centre)</option>
+                <option value="bobo-dioulasso">Bobo-Dioulasso (Hauts-Bassins)</option>
+                <option value="koudougou" selected>Koudougou (Centre-Ouest)</option>
+                <option value="ouahigouya">Ouahigouya (Nord)</option>
+                <option value="dedougou">Dédougou (Boucle du Mouhoun)</option>
+                <option value="banfora">Banfora (Cascades)</option>
+                <option value="kaya">Kaya (Centre-Nord)</option>
+                <option value="fada-ngourma">Fada N'Gourma (Est)</option>
+              </select>
+              <button type="button" class="btn-refresh-meteo" id="btnRefreshMeteoPage" title="Actualiser les données Open-Meteo">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                <span>Actualiser</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Bandeau d'alerte météo dynamique de la page météo -->
+          <div class="weather-alert-banner alert-warning hidden" id="meteoPageAlertBanner">
+            <span class="alert-icon">⚠️</span>
+            <span class="alert-text" id="meteoPageAlertText"></span>
+          </div>
+
+          <!-- Hero Météo actuelle -->
+          <div class="meteo-hero-card">
+            <div class="meteo-hero-top">
+              <div class="meteo-hero-main">
+                <div class="meteo-big-icon" id="meteoHeroIcon">☀️</div>
+                <div>
+                  <div class="meteo-big-temp" id="meteoHeroTemp">--°C</div>
+                  <span class="meteo-condition-badge" id="meteoHeroDesc">Chargement…</span>
+                </div>
+              </div>
+              <div style="font-size: 12px; color: var(--text-dim); text-align: right;">
+                <span id="meteoHeroUpdateInfo">Dernière mise à jour réelle : --:--</span>
+                <div style="font-size: 11px; color: var(--primary-700); font-weight: 700; margin-top: 4px;">Données officielles Open-Meteo (Ouagadougou GMT+0)</div>
+              </div>
+            </div>
+
+            <!-- Grille de 4 métriques clés -->
+            <div class="meteo-hero-metrics-grid">
+              <div class="meteo-metric-box">
+                <span class="meteo-metric-label">🌡️ Température max / min</span>
+                <span class="meteo-metric-val" id="meteoMetricTempRange">--° / --°</span>
+                <span class="meteo-metric-sub">Variation aujourd'hui</span>
+              </div>
+              <div class="meteo-metric-box">
+                <span class="meteo-metric-label">💧 Humidité relative</span>
+                <span class="meteo-metric-val" id="meteoMetricHumidity">-- %</span>
+                <span class="meteo-metric-sub">Taux d'évapotranspiration</span>
+              </div>
+              <div class="meteo-metric-box">
+                <span class="meteo-metric-label">💨 Vent & Rafales</span>
+                <span class="meteo-metric-val" id="meteoMetricWind">-- km/h</span>
+                <span class="meteo-metric-sub" id="meteoMetricGusts">Rafales : -- km/h</span>
+              </div>
+              <div class="meteo-metric-box">
+                <span class="meteo-metric-label">🌧️ Précipitations</span>
+                <span class="meteo-metric-val" id="meteoMetricRain">-- mm</span>
+                <span class="meteo-metric-sub" id="meteoMetricRainProb">Probabilité : -- %</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Prévisions détaillées 7 Jours -->
+          <div style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+            <h3 style="font-size: 16px; font-weight: 800; color: var(--primary-900); margin: 0;">📅 Prévisions Agronomiques sur 7 Jours</h3>
+            <span style="font-size: 12px; color: var(--text-dim);">Heure locale Ouagadougou</span>
+          </div>
+
+          <div class="meteo-7days-grid" id="meteoPage7DaysGrid">
+            <!-- Rempli dynamiquement -->
+          </div>
+
+          <!-- Section Recommandations Agronomiques Sahéliennes -->
+          <div style="background: #FFFFFF; border: 1px solid var(--border-light); border-radius: 14px; padding: 18px 20px; margin-top: 10px;">
+            <h4 style="font-size: 14px; font-weight: 800; color: var(--primary-900); margin: 0 0 10px;">💡 Conseils agronomiques selon les conditions réelles</h4>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; font-size: 12.5px; color: var(--text-muted); line-height: 1.5;">
+              <div style="background: #F9FAF8; border-radius: 10px; padding: 12px; border-left: 4px solid #1E5E2A;">
+                <strong style="color: var(--text-main); display: block; margin-bottom: 4px;">🍅 Cultures maraîchères (Tomate, Chou, Oignon)</strong>
+                Arrosez de préférence avant 8h ou après 17h pour limiter la perte d'eau par évapotranspiration lorsque les températures dépassent 35°C.
+              </div>
+              <div style="background: #F9FAF8; border-radius: 10px; padding: 12px; border-left: 4px solid #C8862A;">
+                <strong style="color: var(--text-main); display: block; margin-bottom: 4px;">💨 Traitements & Pulvérisations</strong>
+                Ne procédez à aucune pulvérisation foliaire lorsque les rafales de vent excèdent 20 km/h pour éviter la dérive des produits.
+              </div>
+              <div style="background: #F9FAF8; border-radius: 10px; padding: 12px; border-left: 4px solid #0A66C2;">
+                <strong style="color: var(--text-main); display: block; margin-bottom: 4px;">🌧️ Gestion des pluies et de l'irrigation</strong>
+                En cas de pluie annoncée (> 15 mm), suspendez les tours d'irrigation pour économiser le carburant des motopompes et éviter l'asphyxie racinaire.
+              </div>
+            </div>
           </div>
         </div>
       </main>
@@ -1985,6 +2077,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <!-- SCRIPT APPLICATION -->
-  <script src="scripts/app.js?v=4.5"></script>
+  <script src="scripts/app.js?v=4.6"></script>
 </body>
 </html>

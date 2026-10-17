@@ -5606,5 +5606,306 @@ body.drawer-open {
   }
 }
 
+/* ============================================================
+   SECTION 16 : MÉTÉO AGRICOLE RÉELLE (OPEN-METEO) & ALERTES
+   ============================================================ */
+
+.weather-alert-banner {
+  border-radius: 12px;
+  padding: 10px 14px;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12.5px;
+  font-weight: 700;
+  line-height: 1.4;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.weather-alert-banner .alert-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.weather-alert-banner .alert-text {
+  flex: 1;
+}
+
+.weather-alert-banner.alert-warning {
+  background: linear-gradient(135deg, #FFF9E6 0%, #FFF3CC 100%);
+  border: 1.5px solid #F5D380;
+  color: #8A4F00;
+}
+
+.weather-alert-banner.alert-danger {
+  background: linear-gradient(135deg, #FFF1F0 0%, #FFE6E5 100%);
+  border: 1.5px solid #FFA39E;
+  color: #CF1322;
+}
+
+.weather-alert-banner.hidden {
+  display: none !important;
+}
+
+/* Page Météo Header & Controls */
+.meteo-controls-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.meteo-commune-select {
+  padding: 9px 14px;
+  border-radius: 10px;
+  border: 1.5px solid var(--border-color);
+  background: #FFFFFF;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--primary-900);
+  cursor: pointer;
+  outline: none;
+  transition: all var(--transition-fast);
+}
+
+.meteo-commune-select:focus,
+.meteo-commune-select:hover {
+  border-color: var(--primary-500);
+}
+
+.btn-refresh-meteo {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 14px;
+  border-radius: 10px;
+  border: 1.5px solid var(--border-color);
+  background: #FFFFFF;
+  color: var(--primary-800);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-refresh-meteo:hover {
+  background: var(--primary-50);
+  border-color: var(--primary-300);
+}
+
+/* Météo Hero Card (Current weather) */
+.meteo-hero-card {
+  background: linear-gradient(135deg, #FFFFFF 0%, #F5F9F3 100%);
+  border: 1px solid #D7E5D4;
+  border-radius: 16px;
+  padding: 22px 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 16px rgba(30, 94, 42, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.meteo-hero-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.meteo-hero-main {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.meteo-big-icon {
+  font-size: 48px;
+  line-height: 1;
+}
+
+.meteo-big-temp {
+  font-size: 42px;
+  font-weight: 800;
+  color: var(--primary-900);
+  letter-spacing: -1px;
+  line-height: 1;
+}
+
+.meteo-condition-badge {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--primary-700);
+  background: #EAF4E6;
+  padding: 4px 12px;
+  border-radius: 99px;
+  margin-top: 4px;
+  display: inline-block;
+}
+
+.meteo-hero-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.meteo-metric-box {
+  background: #FFFFFF;
+  border: 1px solid #E3ECE0;
+  border-radius: 12px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.meteo-metric-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.meteo-metric-val {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.meteo-metric-sub {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* 7-Days Forecast Grid */
+.meteo-7days-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.meteo-day-card {
+  background: #FFFFFF;
+  border: 1px solid var(--border-light);
+  border-radius: 14px;
+  padding: 14px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+  transition: all var(--transition-fast);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+}
+
+.meteo-day-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--primary-400);
+  box-shadow: 0 6px 14px rgba(30, 94, 42, 0.08);
+}
+
+.meteo-day-card.today {
+  border: 2px solid var(--primary-600);
+  background: #FAFDF9;
+}
+
+.meteo-day-header {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.meteo-day-title {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--primary-900);
+  text-transform: uppercase;
+}
+
+.meteo-day-date {
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.meteo-day-icon {
+  font-size: 28px;
+  margin: 2px 0;
+}
+
+.meteo-day-temps {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.meteo-t-max {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.meteo-t-min {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-dim);
+}
+
+.meteo-day-rain {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--primary-700);
+  background: #EAF4E6;
+  padding: 2px 6px;
+  border-radius: 6px;
+  width: 100%;
+}
+
+.meteo-day-rain.has-rain {
+  background: #E1F0FF;
+  color: #0A66C2;
+}
+
+.meteo-day-wind {
+  font-size: 10.5px;
+  color: var(--text-muted);
+}
+
+.badge-agri-recom {
+  font-size: 9.5px;
+  font-weight: 700;
+  padding: 3px 6px;
+  border-radius: 6px;
+  width: 100%;
+  line-height: 1.2;
+}
+
+.badge-agri-recom.recom-ok { background: #EAF4E6; color: #1E5E2A; }
+.badge-agri-recom.recom-heat { background: #FFF3D6; color: #8A4F00; }
+.badge-agri-recom.recom-rain { background: #FFF1F0; color: #CF1322; }
+.badge-agri-recom.recom-wind { background: #F0F4EE; color: #4A5750; }
+
+/* Responsive adjustments */
+@media screen and (max-width: 1023px) {
+  .meteo-7days-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .meteo-hero-metrics-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media screen and (max-width: 640px) {
+  .meteo-7days-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
 
 
