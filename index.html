@@ -11,58 +11,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
   
-  <link rel="stylesheet" href="styles/main.css?v=5.1">
+  <link rel="stylesheet" href="styles/main.css?v=5.2">
 </head>
 <body class="theme-light">
-  <!-- BANDEAU DE CONTRÔLE PROTOTYPE (Permet de switcher de rôle, de vue et d'état en 1 clic) -->
-  <header class="prototype-control-bar" id="protoBar">
-    <div class="proto-brand">
-      <span class="pulse-dot"></span>
-      <strong>RÉVOLUTION AGRICOLE</strong>
-      <span class="badge-tag">Design System v1.0 • AgriVision Masterplan</span>
-    </div>
-
-    <div class="proto-actions">
-      <!-- Sélecteur de profil -->
-      <div class="control-group">
-        <label for="roleSelector">Profil simulé :</label>
-        <select id="roleSelector" class="proto-select">
-          <option value="producer">🌾 Productrice (Awa Ouédraogo - Koudougou)</option>
-          <option value="supplier">🚜 Fournisseur (Rasmané Sawadogo - Ouaga)</option>
-          <option value="buyer">💼 Acheteur / Grossiste (Salif Traoré - Bobo)</option>
-          <option value="admin">🛡️ Modérateur / Admin (Dossiers & Signalements)</option>
-        </select>
-      </div>
-
-      <!-- Bascule Desktop / Mobile Simulator -->
-      <div class="control-group view-toggle-group">
-        <button id="btnViewDesktop" class="proto-btn active" title="Vue Ordinateur (≥ 1280px)">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-          <span>Écran Bureau</span>
-        </button>
-        <button id="btnViewMobile" class="proto-btn" title="Vue Mobile Android (390px)">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="3"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
-          <span>Mobile Android</span>
-        </button>
-      </div>
-
-      <!-- Sélecteur d'état UI -->
-      <div class="control-group">
-        <label for="stateSelector">État UI :</label>
-        <select id="stateSelector" class="proto-select">
-          <option value="normal">Normal (Données réelles DÉMO)</option>
-          <option value="loading">Chargement (Squelettes / Skeletons)</option>
-          <option value="empty">États Vides (Nouveau compte)</option>
-          <option value="error">Erreur réseau (Mode résilience)</option>
-        </select>
-      </div>
-
-      <div class="demo-pill" title="Indicateur obligatoire du plan d'implémentation">
-        <span>DÉMO</span>
-      </div>
-    </div>
-  </header>
-
   <!-- BANDEAU DISCRET ADMIN (Visible uniquement en mode Admin) -->
   <div id="adminNoticeBar" class="admin-notice-bar hidden">
     <div class="admin-notice-inner">
@@ -179,13 +130,6 @@
           <button type="button" class="portal-switch-link" id="linkToLogin">Se connecter</button>
         </div>
       </form>
-
-      <!-- Aperçu rapide démo facultatif pour évaluateurs -->
-      <div class="portal-demo-shortcut" style="margin-top: 18px; padding-top: 14px; border-top: 1px dashed #E2E8DE; text-align: center;">
-        <button type="button" id="btnPortalQuickDemo" style="background: none; border: none; color: #5D6C63; font-size: 12px; cursor: pointer; text-decoration: underline; font-weight: 500;">
-          🌾 Aperçu rapide en mode démo (Awa / Rasmané / Salif)
-        </button>
-      </div>
     </div>
   </div>
 
@@ -587,15 +531,14 @@
               </div>
               <div class="stat-label" id="statLabel1">Dépenses du mois</div>
               <div class="stat-value-row">
-                <span class="stat-number tabular-numbers" id="statValue1">185 000 <small>F CFA</small></span>
+                <span class="stat-number tabular-numbers" id="statValue1">0 <small>F CFA</small></span>
               </div>
               <div class="stat-footer">
-                <!-- Règle stricte du plan : hausse des dépenses = DÉFAVORABLE (Rouge), quelle que soit la direction -->
-                <span class="trend-badge trend-unfavorable" id="statTrend1">
+                <span class="trend-badge trend-favorable hidden" id="statTrend1">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="18 15 12 9 6 15"/></svg>
-                  <span>12% défavorable</span>
+                  <span>0 dépense</span>
                 </span>
-                <span class="comparison-text" id="statComp1">vs sept. (165 000 F)</span>
+                <span class="comparison-text" id="statComp1">Données réelles</span>
               </div>
             </div>
 
@@ -609,15 +552,14 @@
               </div>
               <div class="stat-label" id="statLabel2">Recettes du mois</div>
               <div class="stat-value-row">
-                <span class="stat-number tabular-numbers" id="statValue2">420 000 <small>F CFA</small></span>
+                <span class="stat-number tabular-numbers" id="statValue2">0 <small>F CFA</small></span>
               </div>
               <div class="stat-footer">
-                <!-- Hausse des recettes = FAVORABLE (Vert) -->
-                <span class="trend-badge trend-favorable" id="statTrend2">
+                <span class="trend-badge trend-favorable hidden" id="statTrend2">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="18 15 12 9 6 15"/></svg>
-                  <span>8% favorable</span>
+                  <span>0 encaissement</span>
                 </span>
-                <span class="comparison-text" id="statComp2">vs sept. (388 000 F)</span>
+                <span class="comparison-text" id="statComp2">Données réelles</span>
               </div>
             </div>
 
@@ -631,13 +573,13 @@
               </div>
               <div class="stat-label" id="statLabel3">Cycles en cours</div>
               <div class="stat-value-row">
-                <span class="stat-number tabular-numbers" id="statValue3">3 <small>actifs</small></span>
+                <span class="stat-number tabular-numbers" id="statValue3">0 <small>actifs</small></span>
               </div>
               <div class="stat-footer">
-                <span class="status-pill status-pill-active">
-                  <span class="dot-indicator"></span> 1 récolte cette sem.
+                <span class="status-pill status-pill-active hidden" id="statTrend3">
+                  <span class="dot-indicator"></span> En direct
                 </span>
-                <span class="comparison-text" id="statComp3">Parcelle P2 (Tomate)</span>
+                <span class="comparison-text" id="statComp3">Parcelles connectées</span>
               </div>
             </div>
 
@@ -651,13 +593,13 @@
               </div>
               <div class="stat-label" id="statLabel4">Opportunités ouvertes</div>
               <div class="stat-value-row">
-                <span class="stat-number tabular-numbers" id="statValue4">7 <small>vérifiées</small></span>
+                <span class="stat-number tabular-numbers" id="statValue4">-- <small>vérifiées</small></span>
               </div>
               <div class="stat-footer">
-                <span class="urgent-pill">
-                  <span class="clock-icon">⏳</span> 2 clôturent &lt; 7 j
+                <span class="urgent-pill hidden" id="statTrend4">
+                  <span class="clock-icon">⏳</span> 0 clôture urgente
                 </span>
-                <span class="comparison-text" id="statComp4">PReCA & Fonds Vert</span>
+                <span class="comparison-text" id="statComp4">Financements actifs</span>
               </div>
             </div>
           </section>
@@ -689,50 +631,50 @@
               <div class="chart-container" id="barChartWrapper">
                 <div class="chart-bars-group" id="barsGroup">
                   <!-- Mois 1: Mai -->
-                  <div class="chart-col" data-month="Mai" data-rev="310 000" data-exp="140 000" data-margin="+170 000">
+                  <div class="chart-col" data-month="Mai" data-rev="0" data-exp="0" data-margin="0 F CFA">
                     <div class="bar-pair">
-                      <div class="bar bar-revenue" style="height: 65%;"></div>
-                      <div class="bar bar-expense" style="height: 35%;"></div>
+                      <div class="bar bar-revenue" style="height: 4px;"></div>
+                      <div class="bar bar-expense" style="height: 4px;"></div>
                     </div>
                     <span class="col-label">mai</span>
                   </div>
                   <!-- Mois 2: Juin -->
-                  <div class="chart-col" data-month="Juin" data-rev="360 000" data-exp="150 000" data-margin="+210 000">
+                  <div class="chart-col" data-month="Juin" data-rev="0" data-exp="0" data-margin="0 F CFA">
                     <div class="bar-pair">
-                      <div class="bar bar-revenue" style="height: 75%;"></div>
-                      <div class="bar bar-expense" style="height: 38%;"></div>
+                      <div class="bar bar-revenue" style="height: 4px;"></div>
+                      <div class="bar bar-expense" style="height: 4px;"></div>
                     </div>
                     <span class="col-label">juin</span>
                   </div>
                   <!-- Mois 3: Juillet -->
-                  <div class="chart-col" data-month="Juillet" data-rev="290 000" data-exp="240 000" data-margin="+50 000">
+                  <div class="chart-col" data-month="Juillet" data-rev="0" data-exp="0" data-margin="0 F CFA">
                     <div class="bar-pair">
-                      <div class="bar bar-revenue" style="height: 60%;"></div>
-                      <div class="bar bar-expense" style="height: 52%;"></div>
+                      <div class="bar bar-revenue" style="height: 4px;"></div>
+                      <div class="bar bar-expense" style="height: 4px;"></div>
                     </div>
                     <span class="col-label">juil</span>
                   </div>
                   <!-- Mois 4: Août -->
-                  <div class="chart-col" data-month="Août" data-rev="395 000" data-exp="160 000" data-margin="+235 000">
+                  <div class="chart-col" data-month="Août" data-rev="0" data-exp="0" data-margin="0 F CFA">
                     <div class="bar-pair">
-                      <div class="bar bar-revenue" style="height: 82%;"></div>
-                      <div class="bar bar-expense" style="height: 40%;"></div>
+                      <div class="bar bar-revenue" style="height: 4px;"></div>
+                      <div class="bar bar-expense" style="height: 4px;"></div>
                     </div>
                     <span class="col-label">août</span>
                   </div>
                   <!-- Mois 5: Septembre -->
-                  <div class="chart-col" data-month="Septembre" data-rev="388 000" data-exp="165 000" data-margin="+223 000">
+                  <div class="chart-col" data-month="Septembre" data-rev="0" data-exp="0" data-margin="0 F CFA">
                     <div class="bar-pair">
-                      <div class="bar bar-revenue" style="height: 80%;"></div>
-                      <div class="bar bar-expense" style="height: 42%;"></div>
+                      <div class="bar bar-revenue" style="height: 4px;"></div>
+                      <div class="bar bar-expense" style="height: 4px;"></div>
                     </div>
                     <span class="col-label">sept</span>
                   </div>
                   <!-- Mois 6: Octobre (Actuel) -->
-                  <div class="chart-col active-month" data-month="Octobre (en cours)" data-rev="420 000" data-exp="185 000" data-margin="+235 000">
+                  <div class="chart-col active-month" data-month="Octobre (en cours)" data-rev="0" data-exp="0" data-margin="0 F CFA">
                     <div class="bar-pair">
-                      <div class="bar bar-revenue" style="height: 90%;"></div>
-                      <div class="bar bar-expense" style="height: 46%;"></div>
+                      <div class="bar bar-revenue" style="height: 4px;"></div>
+                      <div class="bar bar-expense" style="height: 4px;"></div>
                     </div>
                     <span class="col-label">oct.</span>
                   </div>
@@ -743,15 +685,15 @@
                   <div class="tooltip-header" id="tooltipMonth">Octobre (en cours)</div>
                   <div class="tooltip-row green">
                     <span>Recettes :</span>
-                    <strong id="tooltipRev">420 000 F CFA</strong>
+                    <strong id="tooltipRev">0 F CFA</strong>
                   </div>
                   <div class="tooltip-row red">
                     <span>Dépenses :</span>
-                    <strong id="tooltipExp">185 000 F CFA</strong>
+                    <strong id="tooltipExp">0 F CFA</strong>
                   </div>
                   <div class="tooltip-footer">
                     <span>Marge nette :</span>
-                    <strong id="tooltipMargin">+235 000 F CFA</strong>
+                    <strong id="tooltipMargin">0 F CFA</strong>
                   </div>
                 </div>
               </div>
@@ -760,7 +702,7 @@
               <div class="chart-summary-bar">
                 <div class="margin-stat">
                   <span class="margin-label">Marge nette estimée (octobre 2026) :</span>
-                  <span class="margin-amount tabular-numbers" id="bannerMarginOct">+235 000 F CFA</span>
+                  <span class="margin-amount tabular-numbers" id="bannerMarginOct">0 F CFA</span>
                 </div>
                 <button class="formula-btn" id="btnShowFormula" title="Voir les règles de calcul">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
@@ -777,52 +719,9 @@
               </div>
 
               <div class="deadlines-list" id="deadlinesList">
-                <!-- Échéance 1 : Subvention PReCA (Ambre) -->
-                <div class="deadline-item" data-id="opp-1">
-                  <div class="deadline-icon-pill icon-amber">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v12M17 10l-5-4-5 4"/></svg>
-                  </div>
-                  <div class="deadline-info">
-                    <div class="deadline-title">Appel à projets PReCA</div>
-                    <div class="deadline-meta">Subvention intrants • Ministère Agri.</div>
-                  </div>
-                  <div class="deadline-badge badge-warning">Dans 4 j</div>
-                </div>
-
-                <!-- Échéance 2 : Récolte tomate (Vert) -->
-                <div class="deadline-item" data-id="cycle-tomato">
-                  <div class="deadline-icon-pill icon-green">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.7 10-10 10Z"/></svg>
-                  </div>
-                  <div class="deadline-info">
-                    <div class="deadline-title">Récolte Tomate (0,5 ha)</div>
-                    <div class="deadline-meta">Parcelle P2 • Semis du 02/08</div>
-                  </div>
-                  <div class="deadline-badge badge-success">Lundi 20</div>
-                </div>
-
-                <!-- Échéance 3 : Traitement bio Oignon (Bleu) -->
-                <div class="deadline-item" data-id="treatment-onion">
-                  <div class="deadline-icon-pill icon-blue">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
-                  </div>
-                  <div class="deadline-info">
-                    <div class="deadline-title">Irrigation & purin de neem</div>
-                    <div class="deadline-meta">Parcelle P1 (Oignon violet)</div>
-                  </div>
-                  <div class="deadline-badge badge-info">Mer. 22</div>
-                </div>
-
-                <!-- Échéance 4 : Clôture Fonds Vert Climat (Violet) -->
-                <div class="deadline-item" data-id="opp-2">
-                  <div class="deadline-icon-pill icon-purple">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/></svg>
-                  </div>
-                  <div class="deadline-info">
-                    <div class="deadline-title">Fonds Résilience Maraîchage</div>
-                    <div class="deadline-meta">Équipement goutte-à-goutte sol.</div>
-                  </div>
-                  <div class="deadline-badge badge-neutral">28 oct.</div>
+                <div class="widget-empty-state" style="padding: 16px; text-align: center;">
+                  <span style="font-size: 20px;">✓</span>
+                  <p style="font-size: 12px; color: #6C7A72; margin: 4px 0 0;">Chargement des opportunités…</p>
                 </div>
               </div>
             </section>
@@ -855,80 +754,16 @@
                     </tr>
                   </thead>
                   <tbody>
-                    <!-- Ligne 1: Tomate -->
                     <tr>
-                      <td>
-                        <div class="cell-entity">
-                          <span class="entity-avatar bg-avatar-green">TM</span>
-                          <div class="entity-details">
-                            <strong class="entity-name">Tomate Mongal F1</strong>
-                            <span class="entity-sub">Maraîchage de contre-saison</span>
-                          </div>
-                        </div>
-                      </td>
-                      <td><strong>P2</strong> (0,5 ha) • Irrigué</td>
-                      <td class="tabular-numbers">02/08/2026</td>
-                      <td class="tabular-numbers"><strong>20/10/2026</strong> (dans 4 j)</td>
-                      <td>
-                        <span class="badge-state state-harvest">
-                          <span class="badge-dot dot-orange"></span> Récolte imminente
-                        </span>
-                      </td>
-                      <td class="text-right">
-                        <button class="btn-table-action" title="Options du cycle">
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
-                        </button>
-                      </td>
-                    </tr>
-
-                    <!-- Ligne 2: Oignon -->
-                    <tr>
-                      <td>
-                        <div class="cell-entity">
-                          <span class="entity-avatar bg-avatar-yellow">ON</span>
-                          <div class="entity-details">
-                            <strong class="entity-name">Oignon Violet de Galmi</strong>
-                            <span class="entity-sub">Bulbilles certifiées</span>
-                          </div>
-                        </div>
-                      </td>
-                      <td><strong>P1</strong> (1,0 ha) • Bassin</td>
-                      <td class="tabular-numbers">15/09/2026</td>
-                      <td class="tabular-numbers">12/12/2026</td>
-                      <td>
-                        <span class="badge-state state-growing">
-                          <span class="badge-dot dot-green"></span> En végétation
-                        </span>
-                      </td>
-                      <td class="text-right">
-                        <button class="btn-table-action" title="Options du cycle">
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
-                        </button>
-                      </td>
-                    </tr>
-
-                    <!-- Ligne 3: Chou -->
-                    <tr>
-                      <td>
-                        <div class="cell-entity">
-                          <span class="entity-avatar bg-avatar-blue">CH</span>
-                          <div class="entity-details">
-                            <strong class="entity-name">Chou KK Cross</strong>
-                            <span class="entity-sub">Pépinière réussie</span>
-                          </div>
-                        </div>
-                      </td>
-                      <td><strong>P3</strong> (0,3 ha) • Goutte-à-goutte</td>
-                      <td class="tabular-numbers">01/10/2026</td>
-                      <td class="tabular-numbers">05/12/2026</td>
-                      <td>
-                        <span class="badge-state state-new">
-                          <span class="badge-dot dot-blue"></span> Repiquage récent
-                        </span>
-                      </td>
-                      <td class="text-right">
-                        <button class="btn-table-action" title="Options du cycle">
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+                      <td colspan="6" style="text-align: center; padding: 36px 16px; color: var(--text-muted);">
+                        <div style="font-size: 30px; margin-bottom: 6px;">🌱</div>
+                        <strong style="font-size: 14.5px; color: var(--text-dark); display: block; margin-bottom: 4px;">Aucun cycle ou culture en cours</strong>
+                        <p style="font-size: 12.5px; margin: 0 0 14px; color: #5D6C63; max-width: 400px; margin-left: auto; margin-right: auto;">
+                          Votre tableau de bord démarre à blanc. Enregistrez votre première dépense pour lancer le suivi agronomique.
+                        </p>
+                        <button type="button" class="btn-primary-action" id="btnEmptyStateAddExpense" style="margin: 0 auto; display: inline-flex; font-size: 12.5px; padding: 7px 16px;">
+                          <span class="action-icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
+                          <span>+ Enregistrer une première dépense</span>
                         </button>
                       </td>
                     </tr>
@@ -1374,17 +1209,6 @@
             <span>Se déconnecter</span>
           </button>
         </div>
-
-        <!-- Accès rapide démo -->
-        <div class="demo-quick-switch" style="margin-top: 20px;">
-          <div class="demo-divider"><span>OU TESTER EN 1 CLIC (PROFILS DÉMO)</span></div>
-          <div class="demo-quick-grid">
-            <button type="button" class="btn-demo-quick" data-role="producer">🌾 Awa</button>
-            <button type="button" class="btn-demo-quick" data-role="supplier">🚜 Rasmané</button>
-            <button type="button" class="btn-demo-quick" data-role="buyer">💼 Salif</button>
-            <button type="button" class="btn-demo-quick" data-role="admin">🛡️ Aminata</button>
-          </div>
-        </div>
       </div>
     </div>
   </div>
@@ -1426,9 +1250,6 @@
           <div class="form-group">
             <label for="expenseCycle">Cycle rattaché</label>
             <select id="expenseCycle" class="form-select">
-              <option value="tomato">Tomate P2 (Récolte le 20/10)</option>
-              <option value="onion">Oignon P1 (Parcelle 1)</option>
-              <option value="cabbage">Chou P3</option>
               <option value="global">Frais généraux exploitation</option>
             </select>
           </div>
@@ -1522,11 +1343,7 @@
           <!-- Sélecteur standard des cycles -->
           <div id="cycleSelectWrapper">
             <select id="revenueCycle" class="form-select">
-              <option value="tomato">Tomate Mongal P2 (Parcelle 2 - 0,5 ha • Récolte en cours)</option>
-              <option value="onion">Oignon Violet de Galmi P1 (Parcelle 1 - 1,0 ha)</option>
-              <option value="cabbage">Chou Marché P3 (Parcelle 3 - 0,3 ha)</option>
-              <option value="corn">Maïs Blanc Pluvial P4 (Parcelle 4 - 1,2 ha)</option>
-              <option value="custom">✏️ + Autre produit / Saisie libre personnalisée...</option>
+              <option value="custom">✏️ + Vente libre / Saisie personnalisée...</option>
             </select>
           </div>
 
@@ -2097,6 +1914,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <!-- SCRIPT APPLICATION -->
-  <script src="scripts/app.js?v=5.1"></script>
+  <script src="scripts/app.js?v=5.2"></script>
 </body>
 </html>

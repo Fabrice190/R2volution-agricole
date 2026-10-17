@@ -19,440 +19,18 @@ document.addEventListener('DOMContentLoaded', () => {
     console.warn('⚠️ [Révolution Agricole] Client Supabase CDN indisponible, bascule en mode local.');
   }
 
-  // Identifiants réels Supabase Auth pour les profils de démonstration
-  const demoRoleCredentials = {
-    producer: { email: 'tel22676458912@revolution-agricole.app', pass: 'demopassword', name: 'Awa Ouédraogo' },
-    supplier: { email: 'tel22670123456@revolution-agricole.app', pass: 'demopassword', name: 'Rasmané Sawadogo' },
-    buyer: { email: 'tel22678901234@revolution-agricole.app', pass: 'demopassword', name: 'Salif Traoré' },
-    admin: { email: 'tel22625304050@revolution-agricole.app', pass: 'demopassword', name: 'Dr. Aminata Kaboré' }
-  };
-
   // ==========================================
-  // DONNÉES DES 4 PROFILS CONFORMES AU CAHIER DES CHARGES
+  // PROFILS UTILISATEURS AUTHENTIFIÉS (RÉEL SUPABASE AUTH)
   // ==========================================
-  const PROFILES_DATA = {
-    producer: {
-      id: 'producer',
-      name: 'Awa Ouédraogo',
-      metaRole: 'Maraîchère & Semencière',
-      location: '📍 Koudougou (Boulkiemdé)',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&h=120&q=80',
-      actionLabel: 'Ajouter une dépense',
-      greeting: 'Bonjour, Awa <span class="greeting-emoji">🌱</span>',
-      subtitle: 'Voici l\'essentiel pour votre activité aujourd\'hui sur votre exploitation.',
-      isAdmin: false,
-      hasExploitation: true,
-      stats: [
-        {
-          module: 'Exploitation',
-          label: 'Dépenses du mois',
-          value: '185 000',
-          unit: 'F CFA',
-          trendText: '12% défavorable',
-          trendType: 'unfavorable',
-          comp: 'vs sept. (165 000 F)',
-          color: 'green'
-        },
-        {
-          module: 'Recettes',
-          label: 'Recettes du mois',
-          value: '420 000',
-          unit: 'F CFA',
-          trendText: '8% favorable',
-          trendType: 'favorable',
-          comp: 'vs sept. (388 000 F)',
-          color: 'blue'
-        },
-        {
-          module: 'Production',
-          label: 'Cycles en cours',
-          value: '3',
-          unit: 'actifs',
-          badge: '1 récolte cette sem.',
-          comp: 'Parcelle P2 (Tomate)',
-          color: 'yellow'
-        },
-        {
-          module: 'Financements',
-          label: 'Opportunités ouvertes',
-          value: '7',
-          unit: 'vérifiées',
-          badge: '2 clôturent < 7 j',
-          comp: 'PReCA & Fonds Vert',
-          color: 'purple'
-        }
-      ],
-      chartTitle: 'Dépenses et recettes',
-      chartSubtitle: 'Évolution des flux de trésorerie sur l\'exploitation',
-      marginOct: '+235 000 F CFA',
-      deadlines: [
-        { title: 'Appel à projets PReCA', meta: 'Subvention intrants • Min. Agriculture', badge: 'Dans 4 j', icon: 'amber' },
-        { title: 'Récolte Tomate (0,5 ha)', meta: 'Parcelle P2 • Semis du 02/08', badge: 'Lundi 20', icon: 'green' },
-        { title: 'Irrigation & purin de neem', meta: 'Parcelle P1 (Oignon violet)', badge: 'Mer. 22', icon: 'blue' },
-        { title: 'Fonds Résilience Maraîchage', meta: 'Équipement goutte-à-goutte sol.', badge: '28 oct.', icon: 'purple' }
-      ],
-      tableTitle: 'Mes cycles en cours',
-      tableSubtitle: '3 cultures suivies sur 1,8 hectare',
-      tableHeaders: ['CULTURE & VARIÉTÉ', 'PARCELLE', 'DATE SEMIS', 'RÉCOLTE ESTIMÉE', 'STATUT DU CYCLE', 'ACTIONS'],
-      tableRows: [
-        {
-          avatarText: 'TM',
-          avatarClass: 'bg-avatar-green',
-          name: 'Tomate Mongal F1',
-          sub: 'Maraîchage de contre-saison',
-          col2: 'P2 (0,5 ha) • Irrigué',
-          col3: '02/08/2026',
-          col4: '20/10/2026 (dans 4 j)',
-          statusText: 'Récolte imminente',
-          statusClass: 'state-harvest',
-          dotClass: 'dot-orange'
-        },
-        {
-          avatarText: 'ON',
-          avatarClass: 'bg-avatar-yellow',
-          name: 'Oignon Violet de Galmi',
-          sub: 'Bulbilles certifiées',
-          col2: 'P1 (1,0 ha) • Bassin',
-          col3: '15/09/2026',
-          col4: '12/12/2026',
-          statusText: 'En végétation',
-          statusClass: 'state-growing',
-          dotClass: 'dot-green'
-        },
-        {
-          avatarText: 'CH',
-          avatarClass: 'bg-avatar-blue',
-          name: 'Chou KK Cross',
-          sub: 'Pépinière réussie',
-          col2: 'P3 (0,3 ha) • Goutte-à-goutte',
-          col3: '01/10/2026',
-          col4: '05/12/2026',
-          statusText: 'Repiquage récent',
-          statusClass: 'state-new',
-          dotClass: 'dot-blue'
-        }
-      ]
-    },
-
-    supplier: {
-      id: 'supplier',
-      name: 'Rasmané Sawadogo',
-      metaRole: 'Fournisseur d\'Équipements & Intrants',
-      location: '📍 Ouagadougou (Zone Industrielle Kossodo)',
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&h=120&q=80',
-      actionLabel: 'Publier une annonce',
-      greeting: 'Bonjour, Rasmané <span class="greeting-emoji">🚜</span>',
-      subtitle: 'Gérez vos offres de matériel, stocks d\'intrants et contacts qualifiés.',
-      isAdmin: false,
-      hasExploitation: false,
-      stats: [
-        {
-          module: 'Marché',
-          label: 'Annonces actives',
-          value: '8',
-          unit: 'en ligne',
-          trendText: '+2 ce mois',
-          trendType: 'favorable',
-          comp: '98% taux de réponse',
-          color: 'green'
-        },
-        {
-          module: 'Contacts',
-          label: 'Contacts reçus (7 j)',
-          value: '14',
-          unit: 'appels/wa',
-          trendText: '▲ 27% vs sem. passée',
-          trendType: 'favorable',
-          comp: '10 appels • 4 WhatsApp',
-          color: 'blue'
-        },
-        {
-          module: 'Expiration',
-          label: 'Expirent sous 10 j',
-          value: '2',
-          unit: 'à renouveler',
-          badge: 'Motopompe & Charrue',
-          comp: 'Durée max : 60 jours',
-          color: 'yellow'
-        },
-        {
-          module: 'Opportunités',
-          label: 'Appels d\'offres matériel',
-          value: '3',
-          unit: 'ouverts',
-          badge: 'Projets PReCA & FAO',
-          comp: 'Fourniture semences',
-          color: 'purple'
-        }
-      ],
-      chartTitle: 'Vues et contacts reçus',
-      chartSubtitle: 'Intérêt généré par vos annonces sur le marché national',
-      marginOct: '14 contacts qualifiés',
-      deadlines: [
-        { title: 'Renouveler annonce Motoculteur 15CV', meta: 'Expire dans 48 heures', badge: 'Urgent', icon: 'amber' },
-        { title: 'Livraison motopompe solaire', meta: 'Client Coopérative Koudougou', badge: 'Vendredi', icon: 'green' },
-        { title: 'Dépôt dossier Fourniture Engrais', meta: 'Appel d\'offres PReCA Ouaga', badge: '25 oct.', icon: 'purple' }
-      ],
-      tableTitle: 'Mes annonces en vitrine',
-      tableSubtitle: 'Gérez la visibilité et les contacts de vos équipements',
-      tableHeaders: ['PRODUIT / MATÉRIEL', 'INTENTION & PRIX', 'VUES (30J)', 'CONTACTS', 'STATUT', 'ACTIONS'],
-      tableRows: [
-        {
-          avatarText: 'MC',
-          avatarClass: 'bg-avatar-green',
-          name: 'Motoculteur Diesel 15 CV + Fraises',
-          sub: 'Matériel neuf sous garantie 1 an',
-          col2: 'Vente • 1 450 000 F CFA',
-          col3: '428 vues',
-          col4: '9 contacts',
-          statusText: 'Actif (en ligne)',
-          statusClass: 'state-growing',
-          dotClass: 'dot-green'
-        },
-        {
-          avatarText: 'MP',
-          avatarClass: 'bg-avatar-blue',
-          name: 'Motopompe Honda 3 pouces 6.5 HP',
-          sub: 'Débit 1 000 L/min',
-          col2: 'Vente • 280 000 F CFA',
-          col3: '315 vues',
-          col4: '4 contacts',
-          statusText: 'Expire dans 3j',
-          statusClass: 'state-harvest',
-          dotClass: 'dot-orange'
-        },
-        {
-          avatarText: 'TR',
-          avatarClass: 'bg-avatar-yellow',
-          name: 'Prestation Labour Tracteur 65 CV',
-          sub: 'Zone Bobo et Banfora (rayon 30 km)',
-          col2: 'Service • 25 000 F / ha',
-          col3: '189 vues',
-          col4: '6 réservations',
-          statusText: 'Actif (en ligne)',
-          statusClass: 'state-growing',
-          dotClass: 'dot-green'
-        }
-      ]
-    },
-
-    buyer: {
-      id: 'buyer',
-      name: 'Salif Traoré',
-      metaRole: 'Acheteur & Transformateur Céréalier',
-      location: '📍 Bobo-Dioulasso (Houet)',
-      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=120&h=120&q=80',
-      actionLabel: 'Publier une demande d\'achat',
-      greeting: 'Bonjour, Salif <span class="greeting-emoji">💼</span>',
-      subtitle: 'Comparez les récoltes disponibles, sécurisez vos volumes et suivez vos achats.',
-      isAdmin: false,
-      hasExploitation: false,
-      stats: [
-        {
-          module: 'Marché',
-          label: 'Offres correspondantes',
-          value: '12',
-          unit: 'lots récents',
-          trendText: '+5 nouveaux lots',
-          trendType: 'favorable',
-          comp: 'Maïs blanc & Sésame',
-          color: 'green'
-        },
-        {
-          module: 'Demandes',
-          label: 'Demandes actives',
-          value: '2',
-          unit: 'en recherche',
-          badge: '50t maïs + 20t sésame',
-          comp: '4 propositions reçues',
-          color: 'blue'
-        },
-        {
-          module: 'Favoris',
-          label: 'Producteurs suivis',
-          value: '6',
-          unit: 'coopératives',
-          badge: 'Hauts-Bassins & Boucle',
-          comp: 'Alertes récolte actives',
-          color: 'yellow'
-        },
-        {
-          module: 'Prix Référence',
-          label: 'Maïs blanc (kg indicatif)',
-          value: '195',
-          unit: 'F / kg',
-          trendText: 'Stable vs SONAGESS',
-          trendType: 'favorable',
-          comp: 'Marché de Bobo (Source certifiée)',
-          color: 'purple'
-        }
-      ],
-      chartTitle: 'Volumes achetés & prix moyens',
-      chartSubtitle: 'Suivi de vos approvisionnements céréaliers',
-      marginOct: 'Total : 35 tonnes sécurisées',
-      deadlines: [
-        { title: 'Réception lot 15t Maïs Blanc', meta: 'Coopérative Dédougou • Camion affrété', badge: 'Samedi 18', icon: 'green' },
-        { title: 'Validation prix contrat Sésame', meta: 'Producteurs Nouna • 20 tonnes', badge: '22 oct.', icon: 'amber' },
-        { title: 'Point d\'étape financement Wari', meta: 'Ligne de crédit campagne', badge: '30 oct.', icon: 'purple' }
-      ],
-      tableTitle: 'Dernières offres de récolte vérifiées',
-      tableSubtitle: 'Récoltes disponibles avec contact direct par appel ou WhatsApp',
-      tableHeaders: ['PRODUIT & LOCALITÉ', 'QUANTITÉ', 'PRIX DEMANDÉ', 'DATE DE DISPONIBILITÉ', 'PRODUCTEUR', 'ACTIONS'],
-      tableRows: [
-        {
-          avatarText: 'MB',
-          avatarClass: 'bg-avatar-yellow',
-          name: 'Maïs Blanc Fara grains secs',
-          sub: '📍 Dédougou (Boucle du Mouhoun)',
-          col2: '25 Tonnes (Sacs 100kg)',
-          col3: '185 F / kg (Négociable)',
-          col4: 'Disponible immédiatement',
-          statusText: 'Vérifié',
-          statusClass: 'state-growing',
-          dotClass: 'dot-green'
-        },
-        {
-          avatarText: 'SE',
-          avatarClass: 'bg-avatar-green',
-          name: 'Sésame Blanc biologique',
-          sub: '📍 Léo (Sissili)',
-          col2: '10 Tonnes triées',
-          col3: '700 F / kg',
-          col4: 'Récolte le 25/10',
-          statusText: 'Récolte imminente',
-          statusClass: 'state-harvest',
-          dotClass: 'dot-orange'
-        },
-        {
-          avatarText: 'SB',
-          avatarClass: 'bg-avatar-blue',
-          name: 'Soja non OGM pour tourteaux',
-          sub: '📍 Banfora (Comoé)',
-          col2: '8 Tonnes',
-          col3: '310 F / kg',
-          col4: 'Disponible',
-          statusText: 'Vérifié',
-          statusClass: 'state-new',
-          dotClass: 'dot-blue'
-        }
-      ]
-    },
-
-    admin: {
-      id: 'admin',
-      name: 'Dr. Aminata Kaboré',
-      metaRole: 'Administratrice & Modératrice Générale',
-      location: '📍 Ouagadougou (Centre de Contrôle)',
-      avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=120&h=120&q=80',
-      actionLabel: 'Vérifier une opportunité',
-      greeting: 'Tableau de bord de Contrôle <span class="greeting-emoji">🛡️</span>',
-      subtitle: 'Supervision de l\'authenticité des contenus, modération des annonces et signalements.',
-      isAdmin: true,
-      hasExploitation: false,
-      stats: [
-        {
-          module: 'Modération',
-          label: 'Annonces à modérer',
-          value: '6',
-          unit: 'en attente',
-          trendText: 'Délai moyen : 18 min',
-          trendType: 'favorable',
-          comp: '4 ventes • 2 services',
-          color: 'green'
-        },
-        {
-          module: 'Signalements',
-          label: 'Signalements ouverts',
-          value: '3',
-          unit: 'à traiter',
-          badge: '1 suspicion arnaque',
-          comp: 'Coordonnées protégées',
-          color: 'blue'
-        },
-        {
-          module: 'Vérification',
-          label: 'Opportunités > 90 jours',
-          value: '9',
-          unit: 'à revérifier',
-          badge: 'Alerte péremption',
-          comp: 'Règle stricte : réactualiser',
-          color: 'yellow'
-        },
-        {
-          module: 'Communauté',
-          label: 'Nouveaux inscrits (7 j)',
-          value: '41',
-          unit: 'acteurs',
-          trendText: '+18% vs sem. passée',
-          trendType: 'favorable',
-          comp: '62% producteurs • 38% offreurs',
-          color: 'purple'
-        }
-      ],
-      chartTitle: 'Activité de la plateforme (7 jours)',
-      chartSubtitle: 'Flux d\'inscriptions, publications et consultations de contacts',
-      marginOct: '184 consultations contacts journalières',
-      deadlines: [
-        { title: 'Revue subvention PReCA', meta: 'Vérifier si le lien officiel est toujours actif', badge: 'Priorité 1', icon: 'amber' },
-        { title: 'Signalement annonce semences non certifiées', meta: 'Motif : fausse variété déclarée', badge: 'À traiter', icon: 'purple' },
-        { title: 'Rapport mensuel CIL & sécurité', meta: 'Journal des accès et anonymisation', badge: 'Fin de mois', icon: 'blue' }
-      ],
-      tableTitle: 'File des annonces et contenus à valider',
-      tableSubtitle: 'Validez ou rejetez avant publication publique sur le réseau',
-      tableHeaders: ['TYPE & CONTENU', 'AUTEUR DÉCLARÉ', 'LOCALITÉ', 'DATE SOUMISSION', 'DÉCISION', 'ACTIONS'],
-      tableRows: [
-        {
-          avatarText: 'AN',
-          avatarClass: 'bg-avatar-yellow',
-          name: 'Vente 5t Pomme de terre Ouahigouya',
-          sub: 'Vérification photos & prix réaliste',
-          col2: 'Idrissa Belem (Nouveau)',
-          col3: 'Ouahigouya (Yatenga)',
-          col4: 'Aujourd\'hui 07:15',
-          statusText: 'À modérer',
-          statusClass: 'state-harvest',
-          dotClass: 'dot-orange'
-        },
-        {
-          avatarText: 'OP',
-          avatarClass: 'bg-avatar-green',
-          name: 'Subvention Fonds Énergie Solaire CEDEAO',
-          sub: 'Source ministérielle vérifiée le 14/10',
-          col2: 'Équipe Éditoriale',
-          col3: 'National',
-          col4: 'Hier 18:30',
-          statusText: 'Prêt à publier',
-          statusClass: 'state-growing',
-          dotClass: 'dot-green'
-        },
-        {
-          avatarText: 'SG',
-          avatarClass: 'bg-avatar-blue',
-          name: 'Signalement numéro indisponible',
-          sub: 'Annonce matériel tracteur #1042',
-          col2: 'Signalé par 2 utilisateurs',
-          col3: 'Koudougou',
-          col4: 'Hier 14:10',
-          statusText: 'En enquête',
-          statusClass: 'state-new',
-          dotClass: 'dot-blue'
-        }
-      ]
-    }
-  };
+  const PROFILES_DATA = {};
 
   // État applicatif courant
-  let currentProfileKey = 'producer';
+  let currentProfileKey = null;
   let currentUIState = 'normal';
   let currentViewMode = 'desktop';
 
   // État des abonnements par profil (5 000 F / 10 000 F CFA)
-  const userSubscriptionStatus = {
-    producer: false,
-    supplier: false,
-    buyer: false,
-    admin: true
-  };
+  const userSubscriptionStatus = {};
   let currentBillingCycle = 'monthly'; // 'monthly' | 'campaign'
   let currentCheckoutPlan = { id: 'pro', name: 'Pro Producteur', price: 5000 };
   let selectedOperator = 'orange'; // 'orange' | 'moov'
@@ -555,7 +133,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const modalAccountRole = document.getElementById('modalAccountRole');
   const modalAccountEmail = document.getElementById('modalAccountEmail');
   const modalAccountAvatar = document.getElementById('modalAccountAvatar');
-  const demoQuickBtns = document.querySelectorAll('.btn-demo-quick');
 
   const modalOnboarding = document.getElementById('modalOnboarding');
   const formOnboarding = document.getElementById('formOnboarding');
@@ -675,25 +252,26 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-    // 2. Tâches agronomiques / Cycles culturaux avec compte à rebours réel
-    deadlines.push({
-      type: 'agri',
-      title: 'Récolte Tomate Mongal (0,5 ha)',
-      meta: 'Parcelle P2 • Récolte estimée',
-      badge: 'Dans 3 j',
-      badgeClass: 'badge-success',
-      icon: 'green',
-      diffDays: 3
-    });
-    deadlines.push({
-      type: 'agri',
-      title: 'Irrigation & purin de neem',
-      meta: 'Parcelle P1 (Oignon violet)',
-      badge: 'Dans 5 j',
-      badgeClass: 'badge-info',
-      icon: 'blue',
-      diffDays: 5
-    });
+    // 2. Tâches agronomiques réelles de l'exploitant (si cycles enregistrés)
+    if (currentProfileKey && PROFILES_DATA[currentProfileKey]?.realCycles) {
+      PROFILES_DATA[currentProfileKey].realCycles.forEach(c => {
+        if (c.estimated_harvest_date) {
+          const diffDays = getDiffDaysFromToday(c.estimated_harvest_date);
+          if (diffDays !== null && diffDays >= 0) {
+            deadlines.push({
+              id: c.id,
+              type: 'agri',
+              title: `Récolte ${c.crop_name}`,
+              meta: `${c.parcels?.name || 'Parcelle'} • Récolte estimée`,
+              badge: diffDays === 0 ? "Aujourd'hui" : (diffDays === 1 ? 'Demain' : `Dans ${diffDays} j`),
+              badgeClass: diffDays <= 3 ? 'badge-success' : 'badge-neutral',
+              icon: 'green',
+              diffDays: diffDays
+            });
+          }
+        }
+      });
+    }
 
     // Trier par échéance la plus proche
     deadlines.sort((a, b) => a.diffDays - b.diffDays);
@@ -2010,8 +1588,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  btnViewDesktop.addEventListener('click', () => switchViewMode('desktop'));
-  btnViewMobile.addEventListener('click', () => switchViewMode('mobile'));
+  if (btnViewDesktop) btnViewDesktop.addEventListener('click', () => switchViewMode('desktop'));
+  if (btnViewMobile) btnViewMobile.addEventListener('click', () => switchViewMode('mobile'));
 
   // ==========================================
   // GESTION DES ÉTATS UI (NORMAL, SKELETON, EMPTY, ERROR)
@@ -2090,7 +1668,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!expError && expData) {
         if (expData.length > 0) {
           currentExpenseTotal = expData.reduce((acc, row) => acc + (parseFloat(row.amount) || 0), 0);
-        } else if (profileId !== 'producer' && profileId !== 'supplier' && profileId !== 'buyer' && profileId !== 'admin') {
+        } else {
           currentExpenseTotal = 0;
         }
       }
@@ -2104,7 +1682,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!revError && revData) {
         if (revData.length > 0) {
           currentRevenueTotal = revData.reduce((acc, row) => acc + (parseFloat(row.amount) || 0), 0);
-        } else if (profileId !== 'producer' && profileId !== 'supplier' && profileId !== 'buyer' && profileId !== 'admin') {
+        } else {
           currentRevenueTotal = 0;
         }
       }
@@ -2128,6 +1706,7 @@ document.addEventListener('DOMContentLoaded', () => {
         .order('planting_date', { ascending: true });
 
       if (!error && PROFILES_DATA[profileId]) {
+        PROFILES_DATA[profileId].realCycles = data || [];
         if (data && data.length > 0) {
           PROFILES_DATA[profileId].tableRows = data.map(item => {
             let dotClass = 'dot-green';
@@ -2160,12 +1739,25 @@ document.addEventListener('DOMContentLoaded', () => {
           if (PROFILES_DATA[profileId].stats && PROFILES_DATA[profileId].stats[2]) {
             PROFILES_DATA[profileId].stats[2].value = String(data.length);
           }
-        } else if (profileId !== 'producer' && profileId !== 'supplier' && profileId !== 'buyer' && profileId !== 'admin') {
+        } else {
           PROFILES_DATA[profileId].tableRows = [];
           if (PROFILES_DATA[profileId].stats && PROFILES_DATA[profileId].stats[2]) {
             PROFILES_DATA[profileId].stats[2].value = '0';
           }
         }
+
+        // Mettre à jour les sélecteurs de cycles dans les modales
+        const expCycleSel = document.getElementById('expenseCycle');
+        if (expCycleSel) {
+          expCycleSel.innerHTML = '<option value="global">Frais généraux exploitation</option>' +
+            (data || []).map(c => `<option value="${c.id}">${c.crop_name} (${c.parcels?.name || 'Parcelle'})</option>`).join('');
+        }
+        const revCycleSel = document.getElementById('revenueCycle');
+        if (revCycleSel) {
+          revCycleSel.innerHTML = (data || []).map(c => `<option value="${c.id}">${c.crop_name} (${c.parcels?.name || 'Parcelle'})</option>`).join('') +
+            '<option value="custom">✏️ + Vente libre / Saisie personnalisée...</option>';
+        }
+
         renderProfile(currentProfileKey);
       }
     } catch (err) {
@@ -2244,8 +1836,15 @@ document.addEventListener('DOMContentLoaded', () => {
       const expBar = octCol.querySelector('.bar-expense');
       if (revBar && expBar) {
         if (currentRevenueTotal === 0 && currentExpenseTotal === 0) {
-          revBar.style.height = '4px';
-          expBar.style.height = '4px';
+          document.querySelectorAll('.chart-col').forEach(col => {
+            col.setAttribute('data-rev', '0');
+            col.setAttribute('data-exp', '0');
+            col.setAttribute('data-margin', '0 F CFA');
+            const rB = col.querySelector('.bar-revenue');
+            const eB = col.querySelector('.bar-expense');
+            if (rB) rB.style.height = '4px';
+            if (eB) eB.style.height = '4px';
+          });
         } else {
           const maxVal = Math.max(currentRevenueTotal, currentExpenseTotal, 100000);
           revBar.style.height = `${Math.min(95, Math.max(6, Math.round((currentRevenueTotal / maxVal) * 90)))}%`;
@@ -2796,33 +2395,25 @@ document.addEventListener('DOMContentLoaded', () => {
     toastNotification.classList.add('hidden');
   });
 
-  // ==========================================
-  // ÉVÉNEMENTS SUR LE SÉLECTEUR DE PROFIL ET D'ÉTAT
-  // ==========================================
-  roleSelector.addEventListener('change', async (e) => {
-    const newRole = e.target.value;
-    userManualCommuneKey = null;
-    const cred = demoRoleCredentials[newRole];
-    if (cred && supabaseClient) {
-      try {
-        await supabaseClient.auth.signInWithPassword({
-          email: cred.email,
-          password: cred.pass
-        });
-      } catch (err) {}
-    }
-    renderProfile(newRole);
-    syncFinancialsFromSupabase(newRole);
-    syncCropCyclesFromSupabase(newRole);
-    syncSubscriptionStatusFromSupabase(newRole);
-    fetchFinancements();
-    loadAndRenderWeather();
-    showToast('Profil actualisé', `Bascule vers le profil : ${PROFILES_DATA[newRole]?.name || newRole}`);
-  });
+  if (roleSelector) {
+    roleSelector.addEventListener('change', async (e) => {
+      const newRole = e.target.value;
+      userManualCommuneKey = null;
+      renderProfile(newRole);
+      syncFinancialsFromSupabase(newRole);
+      syncCropCyclesFromSupabase(newRole);
+      syncSubscriptionStatusFromSupabase(newRole);
+      fetchFinancements();
+      loadAndRenderWeather();
+      showToast('Profil actualisé', `Bascule vers le profil : ${PROFILES_DATA[newRole]?.name || newRole}`);
+    });
+  }
 
-  stateSelector.addEventListener('change', (e) => {
-    applyUIState(e.target.value);
-  });
+  if (stateSelector) {
+    stateSelector.addEventListener('change', (e) => {
+      applyUIState(e.target.value);
+    });
+  }
 
   // Raccourcis rapides
   const btnShortcutExpense = document.getElementById('btnShortcutExpense');
@@ -4638,7 +4229,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     currentExpenseTotal = 0;
     currentRevenueTotal = 0;
-    userSubscriptionStatus['guest'] = false;
+    currentProfileKey = null;
 
     // Masquer le tableau de bord et afficher le portail d'authentification
     const authPortalScreen = document.getElementById('authPortalScreen');
@@ -4672,31 +4263,6 @@ document.addEventListener('DOMContentLoaded', () => {
   if (btnLogout) {
     btnLogout.addEventListener('click', performLogout);
   }
-
-  // Raccourcis profils démo
-  demoQuickBtns.forEach(btn => {
-    btn.addEventListener('click', async () => {
-      const targetRole = btn.getAttribute('data-role');
-      const cred = demoRoleCredentials[targetRole];
-      if (cred && supabaseClient) {
-        closeAuthModal();
-        try {
-          const { data, error } = await supabaseClient.auth.signInWithPassword({
-            email: cred.email,
-            password: cred.pass
-          });
-          if (data?.user) {
-            await checkUserProfileAndProceed(data.user);
-            await fetchFinancements();
-            handleRoute();
-            showToast('Connexion démo', `Connecté en tant que ${cred.name}`);
-          }
-        } catch (e) {
-          console.warn('Demo switch error', e);
-        }
-      }
-    });
-  });
 
   // ==========================================
   // MODALE ABONNEMENTS & TARIFS (5 000 F / 10 000 F)
@@ -4881,9 +4447,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 1. Détection des paramètres d'URL pour le mode démo ou force mobile
   const urlParams = new URLSearchParams(window.location.search);
-  if (urlParams.get('demo') === '1' || urlParams.get('proto') === '1') {
-    document.body.classList.add('show-proto-bar');
-  }
 
   // 2. Éléments du Portail d'Authentification obligatoire
   const authPortalScreen = document.getElementById('authPortalScreen');
@@ -4898,7 +4461,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const linkToRegister = document.getElementById('linkToRegister');
   const linkToLogin = document.getElementById('linkToLogin');
   const btnGoogleAuth = document.getElementById('btnGoogleAuth');
-  const btnPortalQuickDemo = document.getElementById('btnPortalQuickDemo');
 
   // Bascule entre Se connecter et Créer un compte
   function switchPortalTab(tab) {
@@ -5004,15 +4566,12 @@ document.addEventListener('DOMContentLoaded', () => {
         { module: 'Exploitation', label: 'Dépenses du mois', value: '0', unit: 'F CFA', trendText: '0 dépense', trendType: 'favorable', comp: 'Données réelles', color: 'green' },
         { module: 'Recettes', label: 'Recettes du mois', value: '0', unit: 'F CFA', trendText: '0 encaissement', trendType: 'favorable', comp: 'Données réelles', color: 'blue' },
         { module: 'Production', label: 'Cycles en cours', value: '0', unit: 'actifs', badge: 'En direct', comp: 'Parcelles connectées', color: 'yellow' },
-        { module: 'Financements', label: 'Opportunités ouvertes', value: '5', unit: 'vérifiées', badge: '2 clôturent < 7 j', comp: 'PReCA & Fonds Vert', color: 'purple' }
+        { module: 'Financements', label: 'Opportunités ouvertes', value: String(filterOpenFinancementsForUsers(cachedFinancements).length || 0), unit: 'vérifiées', badge: '', comp: 'Financements actifs', color: 'purple' }
       ],
       chartTitle: 'Dépenses et recettes',
       chartSubtitle: 'Vos flux de trésorerie réels enregistrés sur Supabase',
       marginOct: '0 F CFA',
-      deadlines: [
-        { title: 'Enregistrer vos semences ou carburant', meta: 'Saisie rapide en 30 secondes', badge: 'À faire', icon: 'amber' },
-        { title: 'Consulter les subventions PReCA', meta: 'Financements Ministère de l\'Agriculture', badge: 'Vérifié', icon: 'purple' }
-      ],
+      deadlines: [],
       tableTitle: 'Mes cycles en cours',
       tableSubtitle: 'Suivi de vos parcelles',
       tableHeaders: ['CULTURE & VARIÉTÉ', 'PARCELLE', 'DATE SEMIS', 'RÉCOLTE ESTIMÉE', 'STATUT', 'ACTIONS'],
@@ -5236,28 +4795,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 7. Raccourci Démo rapide (Compte réel Awa Ouédraogo via Supabase Auth)
-  if (btnPortalQuickDemo) {
-    btnPortalQuickDemo.addEventListener('click', async () => {
-      if (supabaseClient) {
-        try {
-          const { data, error } = await supabaseClient.auth.signInWithPassword({
-            email: 'tel22676458912@revolution-agricole.app',
-            password: 'demopassword'
-          });
-          if (!error && data?.user) {
-            await checkUserProfileAndProceed(data.user);
-            await fetchFinancements();
-            handleRoute();
-            showToast('Aperçu Démo', 'Connecté en tant que Awa Ouédraogo (Koudougou).');
-            return;
-          }
-        } catch (e) {
-          console.warn('Demo login error', e);
-        }
-      }
-    });
-  }
+
 
   // 7. Écouteur des changements d'état d'authentification Supabase (OAuth redirect etc.)
   if (supabaseClient) {

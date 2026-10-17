@@ -413,7 +413,31 @@ Depuis la version 2.9, l'application est entièrement Full Stack connectée au p
   - Connexion officielle Google OAuth redirigeant vers `https://r2volution-agricole.vercel.app`.
   - Modale d'onboarding `#modalOnboarding` pour recueillir numéro (+226), commune et activité à la première connexion sans écraser les privilèges d'administration.
 
+### P. Verrouillage Plein Écran Déconnecté, Zéro Démo & Hardening Supabase (v5.2)
+- **Écran de Connexion / Inscription Exclusif et Plein Écran Hors Session** :
+  - Lorsqu'aucun utilisateur n'est connecté (`currentSession === null`), seul l'écran d'accueil (`#authPortalScreen`) est visible.
+  - Fixé en plein écran absolu (`position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 99999;`).
+  - Le tableau de bord, la barre latérale, le menu mobile, la météo et toutes les pages applicatives sont strictement masqués (`#viewportContainer.hidden, .viewport-wrapper.hidden { display: none !important; }`), empêchant tout affichage ou accès tant que la session n'est pas confirmée.
+  - Durant la vérification asynchrone initiale de session (`supabase.auth.getSession()`), seul l'écran de chargement (`#appLoadingScreen`) avec logo animé est affiché.
+- **Suppression Définitive de Tout Mode et Contenu de Démonstration** :
+  - Retrait du bandeau prototype `#protoBar`.
+  - Retrait du lien « Aperçu rapide en mode démo » et de la section « Tester en 1 clic ».
+  - Suppression totale des données fictives codées en dur (Awa, Rasmané, Salif, Aminata, parcelles P1-P4, faux cycles, fausses dépenses et recettes).
+  - Un nouvel utilisateur dispose d'un espace 100% vierge avec compteurs à 0 F CFA et messages d'accueil / incitation à créer sa première parcelle.
+- **Suppression des Comptes de Démonstration dans Supabase** :
+  - Suppression intégrale dans `auth.users`, `auth.identities` et `public.profiles` des 4 comptes de test (Awa Ouédraogo, Rasmané Sawadogo, Salif Traoré, Dr. Aminata Kaboré) et de leurs données associées.
+  - Seuls les deux comptes réels de Fabrice ZOMAHOUN (Google OAuth et téléphone) subsistent et conservent le statut super-administrateur (`is_admin = true`).
+- **Suppression des Faux Éléments SMS** :
+  - Éradication complète des formulaires, avertissements et codes OTP simulés (code 4819 et numéro +226 70 12 34 56).
+- **Visibilité Continue de Google OAuth** :
+  - Le bouton « Continuer avec Google » est placé au-dessus des onglets et reste visible en permanence sur les vues Connexion et Inscription.
+- **Sécurisation des Fonctions Supabase (search_path & Privilèges)** :
+  - Droits `EXECUTE` révoqués pour `anon` et `authenticated` sur les fonctions internes `handle_new_user()` et `rls_auto_enable()`.
+  - Ajout explicite de `SET search_path = public` sur les fonctions `handle_new_user()` et `clean_security_columns()` pour prévenir toute injection de schéma.
+- **Préservation Intacte de la Table Financements** :
+  - La table `public.financements` (8 fiches : 7 publiées, 1 expirée) ainsi que la tâche d'expiration planifiée `expirer-financements-quotidien` demeurent 100% intactes.
+
 ---
 
-*Fin du document de spécification système — Version 5.1 • Révolution Agricole Burkina Faso.*
+*Fin du document de spécification système — Version 5.2 • Révolution Agricole Burkina Faso.*
 
