@@ -66,7 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
         {
           module: 'Financements',
           label: 'Opportunités ouvertes',
-          value: '5',
+          value: '7',
           unit: 'vérifiées',
           badge: '2 clôturent < 7 j',
           comp: 'PReCA & Fonds Vert',
@@ -628,7 +628,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function getDashboardDeadlines() {
     const deadlines = [];
-    const published = cachedFinancements.filter(f => f.statut === 'publie');
+    const published = filterOpenFinancementsForUsers(cachedFinancements);
 
     // 1. Ajouter les opportunités vérifiées de Supabase
     published.forEach(f => {
@@ -933,7 +933,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if (b) b.addEventListener('click', openPricingModal);
     }
 
-    // Rafraîchir systématiquement l'écran du simulateur mobile et la météo de la commune
+    // Rafraîchir systématiquement l'écran du simulateur mobile, la météo et les financements
+    updateFinancementsCounters();
     renderMobileView();
     loadAndRenderWeather().catch(() => {});
   }
@@ -1186,13 +1187,18 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function getMobileFinancementsHtml() {
-    const published = cachedFinancements.filter(f => f.statut === 'publie');
-    let filtered = published;
-    if (userSelectedType !== 'all') {
+    const openList = filterOpenFinancementsForUsers(cachedFinancements);
+    let filtered = openList;
+    if (userSelectedType && userSelectedType !== 'all') {
       filtered = filtered.filter(f => f.type && f.type.toLowerCase().trim() === userSelectedType.toLowerCase().trim());
     }
-    if (userSelectedRegion !== 'all') {
-      filtered = filtered.filter(f => f.region && (f.region.toLowerCase().includes(userSelectedRegion.toLowerCase()) || f.region.toLowerCase().includes('tout le burkina')));
+    if (userSelectedRegion && userSelectedRegion !== 'all') {
+      const reg = userSelectedRegion.toLowerCase();
+      filtered = filtered.filter(f => {
+        if (!f.region) return true;
+        const fReg = f.region.toLowerCase();
+        return fReg.includes(reg) || fReg.includes('tout le burkina') || fReg.includes('national');
+      });
     }
     filtered.sort((a, b) => {
       const aHas = Boolean(a.date_limite && String(a.date_limite).trim() !== '');
@@ -1210,7 +1216,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <span>Tableau de bord</span>
         </a>
         <h2 style="font-size: 20px; font-weight: 800; color: #1E2822; margin: 0 0 2px;">🌾 Financements</h2>
-        <p style="font-size: 12px; color: #5B6660; margin: 0;">${published.length} opportunité${published.length > 1 ? 's' : ''} vérifiée${published.length > 1 ? 's' : ''}</p>
+        <p style="font-size: 12px; color: #5B6660; margin: 0;">${openList.length} opportunité${openList.length > 1 ? 's' : ''} vérifiée${openList.length > 1 ? 's' : ''}</p>
       </div>
 
       <!-- Filtres types en puces horizontales -->
@@ -1453,7 +1459,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m12 6 4 6-4 6"/><path d="M8 12h8"/></svg>
               </span>
               <span class="nav-label">Financements</span>
-              <span class="nav-badge-amber" id="mobileDrawerFinancementsBadge">${cachedFinancements.filter(f => f.statut === 'publie').length}</span>
+              <span class="nav-badge-amber" id="mobileDrawerFinancementsBadge">${filterOpenFinancementsForUsers(cachedFinancements).length}</span>
             </a>
           </div>
 
@@ -3707,7 +3713,32 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 2. Synchronisation et Auto-expiration Supabase
+  // 2. Synchronisation Supabase et Filtre officiel des opportunités ouvertes
+  function filterOpenFinancementsForUsers(items) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    return (items || []).filter(item => {
+      if (!item) return false;
+
+      // 1. statut === 'publie' (valeur exacte, sans accent)
+      if (String(item.statut || '').trim() !== 'publie') return false;
+
+      // 2. date_limite est vide OU supérieure ou égale à aujourd'hui
+      if (!item.date_limite || String(item.date_limite).trim() === '') {
+        return true; // Guichet permanent
+      }
+
+      const deadline = parseLocalDate(item.date_limite);
+      if (!deadline || isNaN(deadline.getTime())) {
+        return true;
+      }
+      deadline.setHours(0, 0, 0, 0);
+
+      return deadline >= today;
+    });
+  }
+
   async function fetchFinancements() {
     if (!supabaseClient) return;
 
@@ -3725,7 +3756,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const now = new Date();
       now.setHours(0, 0, 0, 0);
 
-      // Auto-expiration : si date limite passée sur fiche publiée
+      // Auto-expiration : si date limite passée sur fiche publiée (admin uniquement)
       const toExpire = [];
       (data || []).forEach(item => {
         if (item.statut === 'publie' && item.date_limite && String(item.date_limite).trim() !== '') {
@@ -3740,7 +3771,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       });
 
-      if (toExpire.length > 0) {
+      if (toExpire.length > 0 && PROFILES_DATA[currentProfileKey]?.isAdmin) {
         try {
           await supabaseClient
             .from('financements')
@@ -3755,9 +3786,9 @@ document.addEventListener('DOMContentLoaded', () => {
       cachedFinancements = data || [];
       updateFinancementsCounters();
 
-      if (currentRoutePage === 'opportunites') {
-        renderUserFinancements();
-      } else if (currentRoutePage === 'admin-financements') {
+      // Toujours mettre à jour le rendu utilisateur dès réception des fiches
+      renderUserFinancements();
+      if (currentRoutePage === 'admin-financements') {
         renderAdminFinancements();
       }
 
@@ -3771,9 +3802,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 3. Mise à jour des compteurs et badges
   function updateFinancementsCounters() {
-    const published = cachedFinancements.filter(f => f.statut === 'publie');
+    const openForUsers = filterOpenFinancementsForUsers(cachedFinancements);
     const pending = cachedFinancements.filter(f => f.statut === 'en_attente');
     const expired = cachedFinancements.filter(f => f.statut === 'expire');
+    const published = cachedFinancements.filter(f => f.statut === 'publie');
 
     // Badge Administration
     const navAdminBadge = document.getElementById('navAdminPendingBadge');
@@ -3804,56 +3836,65 @@ document.addEventListener('DOMContentLoaded', () => {
     if (bExpire) bExpire.textContent = expired.length;
     if (bAll) bAll.textContent = cachedFinancements.length;
 
-    // Badges Utilisateur
+    // Badges Utilisateur (Menu Desktop & Mobile Drawer) - Strictement la liste ouverte
     const navUserBadge = document.getElementById('navUserFinancementsBadge');
-    if (navUserBadge) navUserBadge.textContent = published.length;
+    if (navUserBadge) navUserBadge.textContent = openForUsers.length;
+
+    const drawerUserBadge = document.getElementById('mobileDrawerFinancementsBadge');
+    if (drawerUserBadge) drawerUserBadge.textContent = openForUsers.length;
 
     const countText = document.getElementById('userFinancementsCountText');
     if (countText) {
-      countText.textContent = `${published.length} opportunité${published.length > 1 ? 's' : ''} ouverte${published.length > 1 ? 's' : ''}`;
+      countText.textContent = `${openForUsers.length} opportunité${openForUsers.length > 1 ? 's' : ''} ouverte${openForUsers.length > 1 ? 's' : ''}`;
     }
 
-    // Carte 4 Dashboard
-    const statVal4 = document.getElementById('statValue4');
-    if (statVal4) {
-      statVal4.innerHTML = `${published.length} <small>vérifiées</small>`;
-    }
+    // Carte 4 Dashboard (Opportunités ouvertes pour profil non-admin)
+    const isCurrentAdmin = Boolean(PROFILES_DATA[currentProfileKey]?.isAdmin);
+    if (!isCurrentAdmin) {
+      const statLabel4 = document.getElementById('statLabel4');
+      if (statLabel4) statLabel4.textContent = 'Opportunités ouvertes';
 
-    const statCard4Footer = document.querySelector('#statCard4 .stat-footer');
-    if (statCard4Footer) {
-      let closingSoon = 0;
-      let minDiffDays = Infinity;
-      published.forEach(p => {
-        if (p.date_limite) {
-          const diffDays = getDiffDaysFromToday(p.date_limite);
-          if (diffDays !== null && diffDays >= 0) {
-            if (diffDays <= 7) closingSoon++;
-            if (diffDays < minDiffDays) minDiffDays = diffDays;
+      const statVal4 = document.getElementById('statValue4');
+      if (statVal4) {
+        statVal4.innerHTML = `${openForUsers.length} <small>vérifiées</small>`;
+      }
+
+      const statCard4Footer = document.querySelector('#statCard4 .stat-footer');
+      if (statCard4Footer) {
+        let closingSoon = 0;
+        let minDiffDays = Infinity;
+        openForUsers.forEach(p => {
+          if (p.date_limite && String(p.date_limite).trim() !== '') {
+            const diffDays = getDiffDaysFromToday(p.date_limite);
+            if (diffDays !== null && diffDays >= 0) {
+              if (diffDays <= 7) closingSoon++;
+              if (diffDays < minDiffDays) minDiffDays = diffDays;
+            }
           }
-        }
-      });
+        });
 
-      if (closingSoon > 0) {
-        statCard4Footer.innerHTML = `
-          <span class="urgent-pill">
-            <span class="clock-icon">⏳</span> ${closingSoon} clôture${closingSoon > 1 ? 'nt' : ''} &lt; 7 j
-          </span>
-          <span class="comparison-text">Ministère & PReCA</span>
-        `;
-      } else if (minDiffDays < Infinity) {
-        statCard4Footer.innerHTML = `
-          <span class="urgent-pill" style="background: #EAF4E6; color: #1E5E2A; border-color: #D2E7CC;">
-            <span class="clock-icon">⏳</span> Prochaine dans ${minDiffDays} j
-          </span>
-          <span class="comparison-text">Offres vérifiées</span>
-        `;
-      } else {
-        statCard4Footer.innerHTML = `
-          <span class="urgent-pill" style="background: #F4F6F2; color: #5B6660; border-color: #E6EAE3;">
-            <span>✓</span> Aucune urgence
-          </span>
-          <span class="comparison-text">À jour</span>
-        `;
+        if (closingSoon > 0) {
+          statCard4Footer.innerHTML = `
+            <span class="urgent-pill">
+              <span class="clock-icon">⏳</span> ${closingSoon} clôture${closingSoon > 1 ? 'nt' : ''} &lt; 7 j
+            </span>
+            <span class="comparison-text">Ministère & PReCA</span>
+          `;
+        } else if (minDiffDays < Infinity) {
+          statCard4Footer.innerHTML = `
+            <span class="urgent-pill" style="background: #EAF4E6; color: #1E5E2A; border-color: #D2E7CC;">
+              <span class="clock-icon">⏳</span> Prochaine dans ${minDiffDays} j
+            </span>
+            <span class="comparison-text">Offres vérifiées</span>
+          `;
+        } else {
+          statCard4Footer.innerHTML = `
+            <span class="urgent-pill" style="background: #F4F6F2; color: #5B6660; border-color: #E6EAE3;">
+              <span>✓</span> Aucune urgence
+            </span>
+            <span class="comparison-text">À jour</span>
+          `;
+        }
       }
     }
 
@@ -3867,15 +3908,29 @@ document.addEventListener('DOMContentLoaded', () => {
     const emptyState = document.getElementById('financementsEmptyState');
     if (!grid) return;
 
-    const published = cachedFinancements.filter(f => f.statut === 'publie');
-    let filtered = published;
+    // Filtre officiel utilisateur : statut === 'publie' et date_limite vide ou >= aujourd'hui
+    const openForUsers = filterOpenFinancementsForUsers(cachedFinancements);
+    let filtered = openForUsers;
 
-    if (userSelectedType !== 'all') {
+    // Filtre par catégorie/type si l'utilisateur en clique un spécifiquement
+    if (userSelectedType && userSelectedType !== 'all') {
       filtered = filtered.filter(f => f.type && f.type.toLowerCase().trim() === userSelectedType.toLowerCase().trim());
     }
 
-    if (userSelectedRegion !== 'all') {
-      filtered = filtered.filter(f => f.region && (f.region.toLowerCase().includes(userSelectedRegion.toLowerCase()) || f.region.toLowerCase().includes('tout le burkina')));
+    // Filtre par région : ne jamais exclure « Tout le Burkina Faso »
+    if (userSelectedRegion && userSelectedRegion !== 'all') {
+      const reg = userSelectedRegion.toLowerCase().trim();
+      filtered = filtered.filter(f => {
+        if (!f.region || String(f.region).trim() === '') return true;
+        const r = f.region.toLowerCase().trim();
+        return r.includes(reg) || r.includes('tout le burkina') || r.includes('national');
+      });
+    }
+
+    // Mettre à jour le texte du compteur d'en-tête de la page
+    const countText = document.getElementById('userFinancementsCountText');
+    if (countText) {
+      countText.textContent = `${openForUsers.length} opportunité${openForUsers.length > 1 ? 's' : ''} ouverte${openForUsers.length > 1 ? 's' : ''}`;
     }
 
     filtered.sort((a, b) => {
