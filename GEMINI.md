@@ -342,6 +342,21 @@ Depuis la version 2.9, l'application est entièrement Full Stack connectée au p
   - Initialisation automatique sur la date réelle d'aujourd'hui (`new Date()`).
   - Puces rapides (« Aujourd'hui », « Hier », « Avant-hier ») calculées dynamiquement avec les vraies dates relatives.
 
+### O. Cartes Financements, Guichet Permanent & Montants Longs (v4.5)
+- **Bloc « MONTANT » Optimisé Mobile & Bureau** :
+  - L'étiquette `MONTANT` est désormais positionnée en haut du bloc, sur sa propre ligne dédiée, en petite typographie majuscule (`font-size: 10px`, `font-weight: 800`).
+  - Le montant s'affiche en dessous sur toute la largeur, aligné à gauche en vert forêt gras (`color: var(--primary-700)`, `font-size: 13.5px`, `font-weight: 800`).
+  - Sur les cartes (bureau et mobile), limitation à 2 lignes maximum via `-webkit-line-clamp: 2` avec points de suspension (`...`) pour les montants à texte long (ex: « Opération spéciale : 750 forages à prix subventionné »).
+  - Dans la page de détails (`#modalFinancementDetails`), le montant s'affiche dans son intégralité sans aucune troncature (`white-space: normal`, `word-break: break-word`).
+- **Fiches sans Date Limite (« Guichet permanent »)** :
+  - Lorsque `date_limite` est vide ou null (ex: « FBDES Tõogo »), remplacement de l'ancien « Clôture : » par un badge vert discret `Guichet permanent` (`.badge-guichet-permanent`).
+  - Dans la modale de détails, le libellé bascule automatiquement de « Date limite » à « Disponibilité » avec le badge `Guichet permanent`.
+  - Immunité totale contre l'auto-expiration : ces fiches restent en permanence visibles dans le catalogue public et ne passent jamais en `statut = 'expire'`.
+  - Tri intelligent : les opportunités permanentes s'affichent proprement après les appels à échéance fixe sans jamais être masquées.
+- **Compte à Rebours Dynamique & Date du Jour** :
+  - Suppression de tout texte de date statique dans le HTML initial.
+  - Calcul direct en temps réel via `new Date()` pour les cartes, la salutation, l'en-tête et les badges d'urgence (`⏳ Clôture aujourd'hui`, `⏳ Clôture dans X jours`).
+
 ---
 
-*Fin du document de spécification système — Version 4.4 • Révolution Agricole Burkina Faso.*
+*Fin du document de spécification système — Version 4.5 • Révolution Agricole Burkina Faso.*

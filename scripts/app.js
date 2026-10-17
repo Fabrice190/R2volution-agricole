@@ -591,7 +591,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function formatDaysLeftBadge(diffDays) {
     if (diffDays === 0) return "aujourd'hui";
     if (diffDays === 1) return "1 jour";
-    return `${diffDays} j`;
+    return `${diffDays} jours`;
   }
 
   function updateDashboardDateTime() {
@@ -945,10 +945,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (userSelectedRegion !== 'all') {
       filtered = filtered.filter(f => f.region && (f.region.toLowerCase().includes(userSelectedRegion.toLowerCase()) || f.region.toLowerCase().includes('tout le burkina')));
     }
-    filtered.sort((a, b) => new Date(a.date_limite) - new Date(b.date_limite));
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    filtered.sort((a, b) => {
+      const aHas = Boolean(a.date_limite && String(a.date_limite).trim() !== '');
+      const bHas = Boolean(b.date_limite && String(b.date_limite).trim() !== '');
+      if (aHas && bHas) return new Date(a.date_limite) - new Date(b.date_limite);
+      if (aHas && !bHas) return -1;
+      if (!aHas && bHas) return 1;
+      return 0;
+    });
 
     return `
       <div style="margin-bottom: 14px;">
@@ -978,9 +982,10 @@ document.addEventListener('DOMContentLoaded', () => {
             <p style="font-size: 12px; color: #7C8781; margin: 0;">Essayez de sélectionner « Tous »</p>
           </div>
         ` : filtered.map(item => {
-          const diffDays = getDiffDaysFromToday(item.date_limite);
-          const dl = parseLocalDate(item.date_limite);
-          const formattedDate = dl ? dl.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : (item.date_limite || '');
+          const hasDeadline = Boolean(item.date_limite && String(item.date_limite).trim() !== '');
+          const diffDays = hasDeadline ? getDiffDaysFromToday(item.date_limite) : null;
+          const dl = hasDeadline ? parseLocalDate(item.date_limite) : null;
+          const formattedDate = dl ? dl.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
           const isUrgent = diffDays !== null && diffDays >= 0 && diffDays <= 7;
           const typeClass = (item.type || 'subvention').toLowerCase().replace(/[\s']/g, '-');
 
@@ -992,13 +997,17 @@ document.addEventListener('DOMContentLoaded', () => {
               </div>
               <span style="font-size: 10.5px; color: #8A978E; font-weight: 700; text-transform: uppercase;">${item.organisme}</span>
               <h4 style="font-size: 14.5px; font-weight: 700; color: #1E2822; margin: 4px 0 8px; line-height: 1.35;">${item.titre}</h4>
-              <div style="background: #F4F9F2; border: 1px solid #DDF0DA; border-radius: 8px; padding: 6px 10px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
-                <span style="font-size: 10.5px; color: #5B6660; font-weight: 700;">MONTANT</span>
-                <strong style="font-size: 12.5px; color: #1E5E2A;">${item.montant || 'Non spécifié'}</strong>
+              <div class="fin-card-amount-box" style="margin-bottom: 8px;">
+                <span class="fin-amount-label">MONTANT</span>
+                <div class="fin-amount-val">${item.montant || 'Non spécifié'}</div>
               </div>
               <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #F0F2EE; padding-top: 8px; font-size: 11.5px;">
-                <span style="color: #6C7A72;">Clôture : ${formattedDate}</span>
-                ${isUrgent ? `<span class="badge-urgent-closing" style="font-size: 10px; padding: 1px 6px;">⏳ Clôture dans ${formatDaysLeftBadge(diffDays)}</span>` : ''}
+                ${hasDeadline ? `
+                  <span style="color: #6C7A72;">Clôture : ${formattedDate}</span>
+                  ${isUrgent ? `<span class="badge-urgent-closing" style="font-size: 10px; padding: 1px 6px;">⏳ ${diffDays === 0 ? "Clôture aujourd'hui" : `Clôture dans ${formatDaysLeftBadge(diffDays)}`}</span>` : ''}
+                ` : `
+                  <span class="badge-guichet-permanent">Guichet permanent</span>
+                `}
               </div>
               <div style="margin-top: 8px; text-align: right;">
                 <span style="font-size: 11.5px; font-weight: 700; color: #1E5E2A;">Voir les détails & Postuler →</span>
@@ -2630,12 +2639,14 @@ document.addEventListener('DOMContentLoaded', () => {
       // Auto-expiration : si date limite passée sur fiche publiée
       const toExpire = [];
       (data || []).forEach(item => {
-        if (item.statut === 'publie' && item.date_limite) {
-          const itemDeadline = new Date(item.date_limite);
-          itemDeadline.setHours(23, 59, 59, 999);
-          if (itemDeadline < now) {
-            item.statut = 'expire';
-            toExpire.push(item.id);
+        if (item.statut === 'publie' && item.date_limite && String(item.date_limite).trim() !== '') {
+          const itemDeadline = parseLocalDate(item.date_limite);
+          if (itemDeadline) {
+            itemDeadline.setHours(23, 59, 59, 999);
+            if (itemDeadline < now) {
+              item.statut = 'expire';
+              toExpire.push(item.id);
+            }
           }
         }
       });
@@ -2778,7 +2789,14 @@ document.addEventListener('DOMContentLoaded', () => {
       filtered = filtered.filter(f => f.region && (f.region.toLowerCase().includes(userSelectedRegion.toLowerCase()) || f.region.toLowerCase().includes('tout le burkina')));
     }
 
-    filtered.sort((a, b) => new Date(a.date_limite) - new Date(b.date_limite));
+    filtered.sort((a, b) => {
+      const aHas = Boolean(a.date_limite && String(a.date_limite).trim() !== '');
+      const bHas = Boolean(b.date_limite && String(b.date_limite).trim() !== '');
+      if (aHas && bHas) return new Date(a.date_limite) - new Date(b.date_limite);
+      if (aHas && !bHas) return -1;
+      if (!aHas && bHas) return 1;
+      return 0;
+    });
 
     if (filtered.length === 0) {
       grid.innerHTML = '';
@@ -2789,9 +2807,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (emptyState) emptyState.classList.add('hidden');
 
     grid.innerHTML = filtered.map(item => {
-      const diffDays = getDiffDaysFromToday(item.date_limite);
-      const dl = parseLocalDate(item.date_limite);
-      const formattedDate = dl ? dl.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : (item.date_limite || '');
+      const hasDeadline = Boolean(item.date_limite && String(item.date_limite).trim() !== '');
+      const diffDays = hasDeadline ? getDiffDaysFromToday(item.date_limite) : null;
+      const dl = hasDeadline ? parseLocalDate(item.date_limite) : null;
+      const formattedDate = dl ? dl.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
       const isUrgent = diffDays !== null && diffDays >= 0 && diffDays <= 7;
       const typeClass = (item.type || 'subvention').toLowerCase().replace(/[\s']/g, '-');
 
@@ -2806,16 +2825,20 @@ document.addEventListener('DOMContentLoaded', () => {
           <h3 class="fin-card-title">${item.titre}</h3>
 
           <div class="fin-card-amount-box">
-            <span class="fin-amount-label">Dotation / Financement</span>
-            <span class="fin-amount-val">${item.montant || 'Non spécifié'}</span>
+            <span class="fin-amount-label">MONTANT</span>
+            <div class="fin-amount-val">${item.montant || 'Non spécifié'}</div>
           </div>
 
           <p class="fin-card-desc">${item.description_courte || ''}</p>
 
           <div class="fin-card-footer">
             <div class="fin-card-deadline">
-              <span>Date limite : ${formattedDate}</span>
-              ${isUrgent ? `<span class="badge-urgent-closing">⏳ Clôture dans ${formatDaysLeftBadge(diffDays)}</span>` : ''}
+              ${hasDeadline ? `
+                <span>Date limite : ${formattedDate}</span>
+                ${isUrgent ? `<span class="badge-urgent-closing">⏳ ${diffDays === 0 ? "Clôture aujourd'hui" : `Clôture dans ${formatDaysLeftBadge(diffDays)}`}</span>` : ''}
+              ` : `
+                <span class="badge-guichet-permanent">Guichet permanent</span>
+              `}
             </div>
             <button type="button" class="fin-card-link-btn">Voir les détails →</button>
           </div>
@@ -2981,16 +3004,26 @@ document.addEventListener('DOMContentLoaded', () => {
     if (dTitre) dTitre.textContent = item.titre;
     if (dMontant) dMontant.textContent = item.montant || 'Non spécifié';
 
-    const diffDays = getDiffDaysFromToday(item.date_limite);
-    const dl = parseLocalDate(item.date_limite);
+    const hasDeadline = Boolean(item.date_limite && String(item.date_limite).trim() !== '');
+    const diffDays = hasDeadline ? getDiffDaysFromToday(item.date_limite) : null;
+    const dl = hasDeadline ? parseLocalDate(item.date_limite) : null;
+
+    const dDateLimiteLabel = document.getElementById('finDetailDateLimiteLabel');
+    if (dDateLimiteLabel) {
+      dDateLimiteLabel.textContent = hasDeadline ? 'Date limite' : 'Disponibilité';
+    }
 
     if (dDateLimite) {
-      dDateLimite.textContent = dl ? dl.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : (item.date_limite || '');
+      if (hasDeadline && dl) {
+        dDateLimite.textContent = dl.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+      } else {
+        dDateLimite.innerHTML = '<span class="badge-guichet-permanent">Guichet permanent</span>';
+      }
     }
 
     if (dUrgent) {
-      if (diffDays !== null && diffDays >= 0 && diffDays <= 7) {
-        dUrgent.textContent = `⏳ Clôture dans ${formatDaysLeftBadge(diffDays)}`;
+      if (hasDeadline && diffDays !== null && diffDays >= 0 && diffDays <= 7) {
+        dUrgent.textContent = `⏳ ${diffDays === 0 ? "Clôture aujourd'hui" : `Clôture dans ${formatDaysLeftBadge(diffDays)}`}`;
         dUrgent.style.display = 'inline-block';
       } else {
         dUrgent.style.display = 'none';
