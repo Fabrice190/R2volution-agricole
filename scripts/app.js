@@ -2753,6 +2753,13 @@ document.addEventListener('DOMContentLoaded', () => {
   renderProfile(activeProfileKey);
   syncFinancialsFromSupabase(activeProfileKey);
   syncCropCyclesFromSupabase(activeProfileKey);
-  syncSubscriptionStatusFromSupabase(activeProfileKey);
   autoDetectResponsiveMode();
+
+  // 5. Test/Vérification tiroir ouvert si demandé
+  if (urlParams.get('open_drawer') === '1') {
+    const drawer = document.getElementById('mobileDrawer');
+    const overlay = document.getElementById('mobileDrawerOverlay');
+    if (drawer) drawer.classList.add('open');
+    if (overlay) overlay.classList.add('open');
+  }
 });

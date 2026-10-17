@@ -2281,11 +2281,11 @@ body.show-proto-bar .sidebar {
 
 /* TIROIR LATÉRAL GAUCHE MOBILE (DRAWER) */
 .mobile-drawer-overlay {
-  position: absolute;
+  position: fixed;
   inset: 0;
   background-color: rgba(24, 32, 26, 0.6);
   backdrop-filter: blur(3px);
-  z-index: 200;
+  z-index: 2500;
   opacity: 0;
   pointer-events: none;
   transition: opacity 240ms ease;
@@ -2297,14 +2297,15 @@ body.show-proto-bar .sidebar {
 }
 
 .mobile-drawer {
-  position: absolute;
+  position: fixed;
   top: 0;
   bottom: 0;
   left: 0;
+  height: 100vh;
   width: 82%;
   max-width: 320px;
   background-color: var(--surface);
-  z-index: 201;
+  z-index: 2501;
   transform: translateX(-100%);
   transition: transform 280ms cubic-bezier(0.16, 1, 0.3, 1);
   display: flex;
@@ -2561,18 +2562,23 @@ body.show-proto-bar .sidebar {
   }
 }
 
-@media (max-width: 900px) {
+@media (min-width: 1024px) and (max-width: 1200px) {
   .app-layout {
     grid-template-columns: 80px 1fr;
   }
-  .brand-text, .nav-label, .nav-section-title, .nav-pill-count, .sidebar-promo-card, .btn-logout span {
+  .app-layout > .sidebar .brand-text, 
+  .app-layout > .sidebar .nav-label, 
+  .app-layout > .sidebar .nav-section-title, 
+  .app-layout > .sidebar .nav-pill-count, 
+  .app-layout > .sidebar .sidebar-promo-card, 
+  .app-layout > .sidebar .btn-logout span {
     display: none;
   }
-  .nav-item {
+  .app-layout > .sidebar .nav-item {
     justify-content: center;
     padding: 12px;
   }
-  .sidebar {
+  .app-layout > .sidebar {
     padding: 16px 8px;
   }
   .app-header {
@@ -2584,6 +2590,54 @@ body.show-proto-bar .sidebar {
   .search-input-wrapper {
     width: 180px;
   }
+}
+
+/* ==================== ASSURANCE VISIBILITÉ DU TIROIR MOBILE (DRAWER) ==================== */
+.mobile-drawer-header .brand-text {
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.mobile-drawer-nav .nav-section-title {
+  display: block !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  color: var(--text-dim) !important;
+  letter-spacing: 0.6px !important;
+  padding: 6px 12px 2px !important;
+}
+
+.mobile-drawer-nav .nav-item {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 12px !important;
+  padding: 10px 14px !important;
+  text-align: left !important;
+}
+
+.mobile-drawer-nav .nav-label {
+  display: inline-block !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  color: var(--text-main) !important;
+  flex: 1 !important;
+}
+
+.mobile-drawer-nav .nav-item.active .nav-label {
+  color: var(--primary-700) !important;
+  font-weight: 700 !important;
+}
+
+.mobile-drawer-nav .nav-pill-count,
+.mobile-drawer-nav .nav-badge-amber,
+.mobile-drawer-nav .nav-badge-red {
+  display: inline-flex !important;
+}
+
+.mobile-drawer-nav .btn-logout span {
+  display: inline-block !important;
 }
 
 /* ==================== 12. GRILLE TARIFAIRE & ABONNEMENTS (5 000 F & 10 000 F) ==================== */
@@ -4194,6 +4248,32 @@ body.show-proto-bar .sidebar {
   /* 3. Tiroir latéral (Drawer) mobile plein écran ou fluide */
   .mobile-drawer {
     width: min(320px, 85vw) !important;
+    display: flex !important;
+  }
+
+  .mobile-drawer-header .brand-text {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  .mobile-drawer-nav .nav-section-title {
+    display: block !important;
+  }
+
+  .mobile-drawer-nav .nav-label {
+    display: inline-block !important;
+    color: var(--text-main) !important;
+  }
+
+  .mobile-drawer-nav .nav-item {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 12px !important;
+  }
+
+  .mobile-drawer-nav .btn-logout span {
+    display: inline-block !important;
   }
 
   /* 4. Modales responsives sur mobile */
