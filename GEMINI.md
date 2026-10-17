@@ -224,6 +224,21 @@ Depuis la version 2.9, l'application est entièrement Full Stack connectée au p
 - **Suppression du pré-remplissage intempestif** :
   - Remplacement de l'autofill navigateur par `autocomplete="off"` et réinitialisation programmatique systématique des champs (`loginIdentifier.value = ''`) à chaque déconnexion et ouverture de modale.
 
+### H. Mode SaaS Professionnel, Plein Écran Mobile Natif & Persistance de Session (v3.5)
+- **Suppression du bandeau Prototype en Production** :
+  - Le bandeau sombre d'expérimentation (`#protoBar` affichant « DÉMO », « Profil simulé », « État UI ») est désormais **masqué par défaut**.
+  - Accessible uniquement sur demande via le paramètre URL explicite `?demo=1`.
+  - La plateforme présente immédiatement une allure de SaaS fintech/agritech haut de gamme et commerciale.
+- **Plein Écran Mobile Natif (Zero Mockup Bezel)** :
+  - Sur smartphone et tablette (`< 1024px`), suppression complète des faux contours de téléphone (`.device-notch`, `.device-home-bar`, cadre noir 390px).
+  - L'application remplit **100% de la largeur et de la hauteur de l'écran du visiteur**, s'adaptant avec fluidité à tous les modèles (iPhone, Samsung Galaxy, Xiaomi, Tecno, Infinix).
+  - En-tête mobile épuré avec hamburger (`☰`), logo de marque, avatar utilisateur et double bouton d'action rapide `+ Dépense` et `+ Vente`.
+- **Persistance Réelle de la Session (`localStorage`)** :
+  - La session de l'exploitant connecté (ex : Fabrice ZOMAHOUN, producteur à Koudougou) est mémorisée dans le navigateur via `revolution_session_user`.
+  - Au rechargement de la page sur Vercel ou sur téléphone, l'utilisateur retrouve instantanément son vrai compte et ses données réelles synchronisées avec Supabase, sans jamais être réinitialisé vers un profil démo.
+- **Auto-Détection d'Écran Responsive** :
+  - Bascule automatique et réactive entre l'affichage mobile et l'affichage bureau sans aucune intervention manuelle.
+
 ---
 
-*Fin du document de spécification système — Version 3.4 • Révolution Agricole Burkina Faso.*
+*Fin du document de spécification système — Version 3.5 • Révolution Agricole Burkina Faso.*

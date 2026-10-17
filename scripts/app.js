@@ -454,6 +454,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnViewDesktop = document.getElementById('btnViewDesktop');
   const btnViewMobile = document.getElementById('btnViewMobile');
   const viewportContainer = document.getElementById('viewportContainer');
+  const desktopAppShell = document.getElementById('desktopAppShell');
   const mobileDeviceFrame = document.getElementById('mobileDeviceFrame');
   const mobileAppMount = document.getElementById('mobileAppMount');
   const adminNoticeBar = document.getElementById('adminNoticeBar');
@@ -1195,18 +1196,24 @@ document.addEventListener('DOMContentLoaded', () => {
   function switchViewMode(mode) {
     currentViewMode = mode;
     if (mode === 'mobile') {
-      btnViewMobile.classList.add('active');
-      btnViewDesktop.classList.remove('active');
-      viewportContainer.classList.remove('mode-desktop');
-      viewportContainer.classList.add('mode-mobile');
-      mobileDeviceFrame.classList.remove('hidden');
+      if (btnViewMobile) btnViewMobile.classList.add('active');
+      if (btnViewDesktop) btnViewDesktop.classList.remove('active');
+      if (viewportContainer) {
+        viewportContainer.classList.remove('mode-desktop');
+        viewportContainer.classList.add('mode-mobile');
+      }
+      if (mobileDeviceFrame) mobileDeviceFrame.classList.remove('hidden');
+      if (desktopAppShell) desktopAppShell.classList.add('hidden');
       renderMobileView();
     } else {
-      btnViewDesktop.classList.add('active');
-      btnViewMobile.classList.remove('active');
-      viewportContainer.classList.remove('mode-mobile');
-      viewportContainer.classList.add('mode-desktop');
-      mobileDeviceFrame.classList.add('hidden');
+      if (btnViewDesktop) btnViewDesktop.classList.add('active');
+      if (btnViewMobile) btnViewMobile.classList.remove('active');
+      if (viewportContainer) {
+        viewportContainer.classList.remove('mode-mobile');
+        viewportContainer.classList.add('mode-desktop');
+      }
+      if (mobileDeviceFrame) mobileDeviceFrame.classList.add('hidden');
+      if (desktopAppShell) desktopAppShell.classList.remove('hidden');
     }
   }
 
@@ -1310,7 +1317,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Synchronisation des cycles culturaux depuis Supabase
   async function syncCropCyclesFromSupabase(profileId = currentProfileKey) {
-    if (!supabaseClient || profileId !== 'producer') return;
+    if (!supabaseClient) return;
 
     try {
       const { data, error } = await supabaseClient
@@ -1319,8 +1326,8 @@ document.addEventListener('DOMContentLoaded', () => {
         .eq('profile_id', profileId)
         .order('planting_date', { ascending: true });
 
-      if (!error && data && data.length > 0) {
-        PROFILES_DATA.producer.tableRows = data.map(item => {
+      if (!error && data && data.length > 0 && PROFILES_DATA[profileId]) {
+        PROFILES_DATA[profileId].tableRows = data.map(item => {
           let dotClass = 'dot-green';
           let statusClass = 'state-growing';
           if (item.status && item.status.includes('Récolte')) {
@@ -1349,8 +1356,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         // Mettre à jour le nombre de cycles actifs dans la carte stat3
-        if (PROFILES_DATA.producer.stats && PROFILES_DATA.producer.stats[2]) {
-          PROFILES_DATA.producer.stats[2].value = String(data.length);
+        if (PROFILES_DATA[profileId].stats && PROFILES_DATA[profileId].stats[2]) {
+          PROFILES_DATA[profileId].stats[2].value = String(data.length);
         }
         renderProfile(currentProfileKey);
       }
@@ -1386,14 +1393,24 @@ document.addEventListener('DOMContentLoaded', () => {
     const marginSign = netMargin >= 0 ? '+' : '';
     const formattedMargin = `${marginSign}${new Intl.NumberFormat('fr-FR').format(netMargin)} F CFA`;
 
-    // 1. Mettre à jour les stats des cartes
+    // 1. Mettre à jour les stats des cartes bureau
     const stat1 = document.getElementById('statValue1'); // Dépenses
     const stat2 = document.getElementById('statValue2'); // Recettes
-    if (stat1 && currentProfileKey === 'producer') {
+    if (stat1) {
       stat1.innerHTML = `${formattedExp} <small>F CFA</small>`;
     }
-    if (stat2 && currentProfileKey === 'producer') {
+    if (stat2) {
       stat2.innerHTML = `${formattedRev} <small>F CFA</small>`;
+    }
+
+    // Mettre à jour l'objet de profil en mémoire
+    if (PROFILES_DATA[currentProfileKey] && PROFILES_DATA[currentProfileKey].stats) {
+      if (PROFILES_DATA[currentProfileKey].stats[0]) {
+        PROFILES_DATA[currentProfileKey].stats[0].value = formattedExp;
+      }
+      if (PROFILES_DATA[currentProfileKey].stats[1]) {
+        PROFILES_DATA[currentProfileKey].stats[1].value = formattedRev;
+      }
     }
 
     // 2. Mettre à jour le bandeau de marge estimée
@@ -1423,6 +1440,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (tooltipRev) tooltipRev.textContent = `${formattedRev} F CFA`;
     if (tooltipExp) tooltipExp.textContent = `${formattedExp} F CFA`;
     if (tooltipMargin) tooltipMargin.textContent = formattedMargin;
+
+    // 5. Synchroniser immédiatement la vue mobile si active ou sur écran mobile
+    if (currentViewMode === 'mobile' || window.innerWidth < 1024) {
+      renderMobileView();
+    }
 
     return { netMargin, formattedMargin, formattedRev, formattedExp };
   }
@@ -2032,6 +2054,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // ==========================================
   function performLogout() {
     currentProfileKey = 'guest';
+    try {
+      localStorage.removeItem('revolution_session_user');
+    } catch (e) {}
 
     // Profil déconnecté : compteurs vierges à 0 F CFA
     PROFILES_DATA['guest'] = {
@@ -2246,6 +2271,20 @@ document.addEventListener('DOMContentLoaded', () => {
       currentRevenueTotal = 0;
       userSubscriptionStatus[reg.newUserId] = false;
 
+      try {
+        localStorage.setItem('revolution_session_user', JSON.stringify({
+          id: reg.newUserId,
+          name: reg.fullName,
+          metaRole: reg.metaRole,
+          location: `📍 ${reg.location}`,
+          avatar: reg.avatar,
+          actionLabel: reg.actionLabel,
+          isAdmin: false,
+          hasExploitation: reg.hasExploitation,
+          role: reg.role
+        }));
+      } catch (e) {}
+
       renderProfile(reg.newUserId);
       updateFinancialMetrics();
       closeAuthModal();
@@ -2301,6 +2340,21 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       if (roleSelector) roleSelector.value = pKey;
+
+      try {
+        localStorage.setItem('revolution_session_user', JSON.stringify({
+          id: pKey,
+          name: user.full_name,
+          metaRole: user.meta_role || 'Acteur Agricole',
+          location: user.location ? `📍 ${user.location}` : '📍 Burkina Faso',
+          avatar: user.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&h=120&q=80',
+          actionLabel: user.role === 'producer' ? 'Ajouter une dépense' : 'Publier une annonce',
+          isAdmin: !!user.is_admin,
+          hasExploitation: user.role === 'producer',
+          role: user.role || 'producer'
+        }));
+      } catch (e) {}
+
       renderProfile(pKey);
       await syncFinancialsFromSupabase(pKey);
       await syncCropCyclesFromSupabase(pKey);
@@ -2622,11 +2676,83 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ==========================================
-  // INITIALISATION
+  // INITIALISATION DU SYSTÈME & SESSION
   // ==========================================
-  renderProfile('producer');
-  syncFinancialsFromSupabase('producer');
-  syncCropCyclesFromSupabase('producer');
-  syncSubscriptionStatusFromSupabase('producer');
-  renderMobileView();
+
+  // 1. Détection des paramètres d'URL pour le mode démo ou force mobile
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('demo') === '1' || urlParams.get('proto') === '1') {
+    document.body.classList.add('show-proto-bar');
+  }
+
+  // 2. Restauration de la session utilisateur réelle depuis localStorage
+  let activeProfileKey = 'producer';
+  const savedSessionRaw = localStorage.getItem('revolution_session_user');
+
+  if (savedSessionRaw) {
+    try {
+      const savedUser = JSON.parse(savedSessionRaw);
+      if (savedUser && savedUser.id) {
+        activeProfileKey = savedUser.id;
+        if (!PROFILES_DATA[activeProfileKey]) {
+          PROFILES_DATA[activeProfileKey] = {
+            id: savedUser.id,
+            name: savedUser.name,
+            metaRole: savedUser.metaRole || 'Maraîcher & Céréalier',
+            location: savedUser.location || '📍 Koudougou (Boulkiemdé)',
+            avatar: savedUser.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&h=120&q=80',
+            actionLabel: savedUser.actionLabel || 'Ajouter une dépense',
+            greeting: `Bonjour, ${savedUser.name.split(' ')[0]} <span class="greeting-emoji">🌱</span>`,
+            subtitle: 'Voici l\'essentiel pour votre exploitation aujourd\'hui.',
+            isAdmin: !!savedUser.isAdmin,
+            hasExploitation: savedUser.hasExploitation !== false,
+            stats: [
+              { module: 'Exploitation', label: 'Dépenses du mois', value: '0', unit: 'F CFA', trendText: '0 dépense', trendType: 'favorable', comp: 'Données réelles', color: 'green' },
+              { module: 'Recettes', label: 'Recettes du mois', value: '0', unit: 'F CFA', trendText: '0 encaissement', trendType: 'favorable', comp: 'Données réelles', color: 'blue' },
+              { module: 'Production', label: 'Cycles en cours', value: '0', unit: 'actifs', badge: 'En direct', comp: 'Parcelles connectées', color: 'yellow' },
+              { module: 'Financements', label: 'Opportunités ouvertes', value: '5', unit: 'vérifiées', badge: '2 clôturent < 7 j', comp: 'PReCA & Fonds Vert', color: 'purple' }
+            ],
+            chartTitle: 'Dépenses et recettes',
+            chartSubtitle: 'Vos flux de trésorerie réels enregistrés sur Supabase',
+            marginOct: '0 F CFA',
+            deadlines: [
+              { title: 'Enregistrer vos semences ou carburant', meta: 'Saisie rapide en 30 secondes', badge: 'À faire', icon: 'amber' },
+              { title: 'Consulter les subventions PReCA', meta: 'Financements Ministère de l\'Agriculture', badge: 'Vérifié', icon: 'purple' }
+            ],
+            tableTitle: 'Mes cycles en cours',
+            tableSubtitle: 'Suivi de vos parcelles',
+            tableHeaders: ['CULTURE & VARIÉTÉ', 'PARCELLE', 'DATE SEMIS', 'RÉCOLTE ESTIMÉE', 'STATUT', 'ACTIONS'],
+            tableRows: []
+          };
+        }
+
+        if (roleSelector) {
+          if (!roleSelector.querySelector(`option[value="${activeProfileKey}"]`)) {
+            const opt = document.createElement('option');
+            opt.value = activeProfileKey;
+            opt.textContent = `👤 ${savedUser.name}`;
+            roleSelector.appendChild(opt);
+          }
+          roleSelector.value = activeProfileKey;
+        }
+      }
+    } catch (e) {
+      console.warn('⚠️ Erreur lecture session localStorage :', e);
+    }
+  }
+
+  // 3. Détection automatique plein écran mobile vs bureau
+  function autoDetectResponsiveMode() {
+    const isMobileDevice = window.innerWidth < 1024;
+    switchViewMode(isMobileDevice ? 'mobile' : 'desktop');
+  }
+
+  window.addEventListener('resize', autoDetectResponsiveMode);
+
+  // 4. Initialisation du profil et chargement immédiat des données
+  renderProfile(activeProfileKey);
+  syncFinancialsFromSupabase(activeProfileKey);
+  syncCropCyclesFromSupabase(activeProfileKey);
+  syncSubscriptionStatusFromSupabase(activeProfileKey);
+  autoDetectResponsiveMode();
 });

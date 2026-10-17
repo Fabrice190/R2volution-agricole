@@ -99,17 +99,21 @@ a {
 
 /* ==================== BANDEAU DE CONTRÔLE PROTOTYPE ==================== */
 .prototype-control-bar {
+  display: none; /* Masqué en production pour garantir une interface 100% professionnelle */
   position: sticky;
   top: 0;
   z-index: 1000;
   background: #18201A;
   color: #FFFFFF;
   padding: 10px 24px;
-  display: flex;
   align-items: center;
   justify-content: space-between;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   font-size: 13px;
+}
+
+body.show-proto-bar .prototype-control-bar {
+  display: flex;
 }
 
 .proto-brand {
@@ -242,13 +246,21 @@ a {
 /* ==================== LAYOUT DESKTOP PRINCIPAL ==================== */
 .viewport-wrapper {
   width: 100%;
-  min-height: calc(100vh - 50px);
+  min-height: 100vh;
   position: relative;
+}
+
+body.show-proto-bar .viewport-wrapper {
+  min-height: calc(100vh - 50px);
 }
 
 .app-layout {
   display: grid;
   grid-template-columns: 240px 1fr;
+  min-height: 100vh;
+}
+
+body.show-proto-bar .app-layout {
   min-height: calc(100vh - 50px);
 }
 
@@ -261,9 +273,14 @@ a {
   padding: 24px 16px 20px;
   height: 100%;
   position: sticky;
+  top: 0;
+  max-height: 100vh;
+  overflow-y: auto;
+}
+
+body.show-proto-bar .sidebar {
   top: 50px;
   max-height: calc(100vh - 50px);
-  overflow-y: auto;
 }
 
 .sidebar-header {
@@ -4109,6 +4126,94 @@ a {
 
 .btn-link-action:hover {
   color: var(--primary-900);
+}
+
+/* ==========================================================================
+   15. SYSTÈME RESPONSIVE FLUIDE (MOBILE & BUREAU NATIFS)
+   ========================================================================== */
+
+/* ÉCRANS MOBILES ET TABLETTES (< 1024px) */
+@media screen and (max-width: 1023px) {
+  /* 1. Masquage strict du bandeau et des artifices de simulation */
+  .prototype-control-bar {
+    display: none !important;
+  }
+  
+  .device-notch,
+  .device-home-bar {
+    display: none !important;
+  }
+
+  /* 2. Affichage natif plein écran du contenu mobile sans cadre */
+  .viewport-wrapper {
+    min-height: 100vh !important;
+    width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background-color: var(--background) !important;
+    display: block !important;
+  }
+
+  .viewport-wrapper.mode-mobile {
+    padding: 0 !important;
+    background-color: var(--background) !important;
+  }
+
+  #desktopAppShell {
+    display: none !important;
+  }
+
+  #mobileDeviceFrame,
+  .device-frame-shell {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    min-height: 100vh !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background-color: var(--background) !important;
+  }
+
+  .device-screen-wrapper {
+    border-radius: 0 !important;
+    height: auto !important;
+    min-height: 100vh !important;
+    background-color: var(--background) !important;
+    overflow-y: visible !important;
+  }
+
+  .mobile-app-root {
+    width: 100% !important;
+    min-height: 100vh !important;
+    padding-bottom: 40px !important;
+  }
+
+  /* 3. Tiroir latéral (Drawer) mobile plein écran ou fluide */
+  .mobile-drawer {
+    width: min(320px, 85vw) !important;
+  }
+
+  /* 4. Modales responsives sur mobile */
+  .modal-dialog,
+  .auth-modal-dialog {
+    width: 95% !important;
+    max-width: 95% !important;
+    margin: 16px auto !important;
+    border-radius: 16px !important;
+  }
+}
+
+/* ÉCRANS BUREAU (>= 1024px) */
+@media screen and (min-width: 1024px) {
+  .viewport-wrapper.mode-desktop #desktopAppShell {
+    display: grid !important;
+  }
+  .viewport-wrapper.mode-desktop #mobileDeviceFrame {
+    display: none !important;
+  }
 }
 
 
