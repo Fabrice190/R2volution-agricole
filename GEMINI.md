@@ -259,6 +259,29 @@ Depuis la version 2.9, l'application est entièrement Full Stack connectée au p
 - **Déconnexion complète** :
   - Le clic sur « Déconnexion » vide la session `localStorage` et renvoie immédiatement l'utilisateur sur le portail d'authentification.
 
+### J. Vrais Comptes Utilisateurs & Google OAuth (v4.0)
+- **Connexion Google (« Continuer avec Google »)** :
+  - Intégration de `supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin } })`.
+  - Bouton officiel Google avec icône multichrome stylisé aux normes Sahélo-Tech.
+- **Secours Email + Mot de passe** :
+  - Formulaires dédiés avec bascule par onglets (« Se connecter » / « Créer un compte ») via `supabase.auth.signInWithPassword` et `supabase.auth.signUp`.
+- **Suppression définitive de la connexion par téléphone & du faux SMS** :
+  - Fin des faux codes SMS et formulaires OTP simulés.
+- **Onboarding / Complétion de Profil Obligatoire (`#modalOnboarding`)** :
+  - À la première connexion (Google ou Email), si le profil n'est pas encore complété (`is_onboarded: false`), une modale demande impérativement :
+    1. *Nom complet* (pré-rempli via les métadonnées Google ou email).
+    2. *Téléphone burkinabè* (`+226`).
+    3. *Commune / Région* (Koudougou, Ouagadougou, Bobo-Dioulasso, etc.).
+    4. *Activité principale* (Producteur / Maraîcher, Fournisseur d'équipements, Acheteur / Grossiste).
+  - Enregistrement immédiat dans `public.profiles` avec `is_onboarded: true`.
+- **Isolation Stricte Row Level Security (RLS)** :
+  - `public.profiles` : chaque utilisateur ne peut insérer, lire et mettre à jour que son propre profil (`id = auth.uid()::text`).
+  - `public.parcels`, `public.crop_cycles`, `public.expenses`, `public.revenues`, `public.subscriptions` : isolation stricte par `is_profile_owner_or_admin(profile_id)`.
+- **États Vides Élégants (Empty States)** :
+  - Tout nouvel utilisateur démarre avec des compteurs à `0 F CFA`, un graphique calé à 0 F, et un tableau des cycles affichant une carte explicative avec bouton d'action `+ Enregistrer ma première dépense`.
+- **Préservation Intacte du Mode Démo & Tarifs** :
+  - Le lien d'aperçu démo rapide reste disponible pour les démonstrations (Awa Ouédraogo).
+
 ---
 
-*Fin du document de spécification système — Version 3.8 • Révolution Agricole Burkina Faso.*
+*Fin du document de spécification système — Version 4.0 • Révolution Agricole Burkina Faso.*

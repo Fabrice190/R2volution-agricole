@@ -515,23 +515,25 @@ document.addEventListener('DOMContentLoaded', () => {
   const ussdInstructionText = document.getElementById('ussdInstructionText');
   const btnCheckoutText = document.getElementById('btnCheckoutText');
 
-  // Modale Authentification (Connexion & Inscription)
+  // Modale Compte & Modale Complétion Profil (Onboarding)
   const modalAuth = document.getElementById('modalAuth');
   const btnCloseModalAuth = document.getElementById('btnCloseModalAuth');
   const btnOpenAuth = document.getElementById('btnOpenAuth');
   const btnAuthText = document.getElementById('btnAuthText');
-  const tabAuthLogin = document.getElementById('tabAuthLogin');
-  const tabAuthRegister = document.getElementById('tabAuthRegister');
-  const formLogin = document.getElementById('formLogin');
-  const formRegister = document.getElementById('formRegister');
-  const loginIdentifier = document.getElementById('loginIdentifier');
-  const loginPassword = document.getElementById('loginPassword');
-  const regFullName = document.getElementById('regFullName');
-  const regPhone = document.getElementById('regPhone');
-  const regLocation = document.getElementById('regLocation');
-  const regPassword = document.getElementById('regPassword');
   const btnLogout = document.getElementById('btnLogout');
+  const btnModalLogout = document.getElementById('btnModalLogout');
+  const btnEditProfileFromModal = document.getElementById('btnEditProfileFromModal');
+  const modalAccountName = document.getElementById('modalAccountName');
+  const modalAccountRole = document.getElementById('modalAccountRole');
+  const modalAccountEmail = document.getElementById('modalAccountEmail');
+  const modalAccountAvatar = document.getElementById('modalAccountAvatar');
   const demoQuickBtns = document.querySelectorAll('.btn-demo-quick');
+
+  const modalOnboarding = document.getElementById('modalOnboarding');
+  const formOnboarding = document.getElementById('formOnboarding');
+  const onboardingFullName = document.getElementById('onboardingFullName');
+  const onboardingPhone = document.getElementById('onboardingPhone');
+  const onboardingLocation = document.getElementById('onboardingLocation');
 
   // Toast
   const toastNotification = document.getElementById('toastNotification');
@@ -667,34 +669,56 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       if (tbody) {
-        tbody.innerHTML = data.tableRows.map(row => `
-          <tr>
-            <td>
-              <div class="cell-entity">
-                <span class="entity-avatar ${row.avatarClass}">${row.avatarText}</span>
-                <div class="entity-details">
-                  <strong class="entity-name">${row.name}</strong>
-                  <span class="entity-sub">${row.sub}</span>
+        if (!data.tableRows || data.tableRows.length === 0) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="${(data.tableHeaders && data.tableHeaders.length) || 6}" style="text-align: center; padding: 36px 16px; color: var(--text-muted);">
+                <div style="font-size: 30px; margin-bottom: 6px;">🌱</div>
+                <strong style="font-size: 14.5px; color: var(--text-dark); display: block; margin-bottom: 4px;">Aucun cycle ou culture en cours</strong>
+                <p style="font-size: 12.5px; margin: 0 0 14px; color: #5D6C63; max-width: 400px; margin-left: auto; margin-right: auto;">
+                  Votre tableau de bord démarre à blanc. Enregistrez votre première dépense pour lancer le suivi agronomique.
+                </p>
+                <button type="button" class="btn-primary-action" id="btnEmptyStateAddExpense" style="margin: 0 auto; display: inline-flex; font-size: 12.5px; padding: 7px 16px;">
+                  <span class="action-icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
+                  <span>+ Enregistrer une première dépense</span>
+                </button>
+              </td>
+            </tr>
+          `;
+          const btnEmpty = document.getElementById('btnEmptyStateAddExpense');
+          if (btnEmpty) {
+            btnEmpty.addEventListener('click', openExpenseModal);
+          }
+        } else {
+          tbody.innerHTML = data.tableRows.map(row => `
+            <tr>
+              <td>
+                <div class="cell-entity">
+                  <span class="entity-avatar ${row.avatarClass}">${row.avatarText}</span>
+                  <div class="entity-details">
+                    <strong class="entity-name">${row.name}</strong>
+                    <span class="entity-sub">${row.sub}</span>
+                  </div>
                 </div>
-              </div>
-            </td>
-            <td>${row.col2}</td>
-            <td class="tabular-numbers">${row.col3}</td>
-            <td class="tabular-numbers">${row.col4}</td>
-            <td>
-              <span class="badge-state ${row.statusClass}">
-                <span class="badge-dot ${row.dotClass}"></span> ${row.statusText}
-              </span>
-            </td>
-            <td class="text-right">
-              <button class="btn-table-action" title="Options">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/>
-                </svg>
-              </button>
-            </td>
-          </tr>
-        `).join('');
+              </td>
+              <td>${row.col2}</td>
+              <td class="tabular-numbers">${row.col3}</td>
+              <td class="tabular-numbers">${row.col4}</td>
+              <td>
+                <span class="badge-state ${row.statusClass}">
+                  <span class="badge-dot ${row.dotClass}"></span> ${row.statusText}
+                </span>
+              </td>
+              <td class="text-right">
+                <button class="btn-table-action" title="Options">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/>
+                  </svg>
+                </button>
+              </td>
+            </tr>
+          `).join('');
+        }
       }
     }
 
@@ -1295,8 +1319,12 @@ document.addEventListener('DOMContentLoaded', () => {
         .select('amount')
         .eq('profile_id', profileId);
 
-      if (!expError && expData && expData.length > 0) {
-        currentExpenseTotal = expData.reduce((acc, row) => acc + (parseFloat(row.amount) || 0), 0);
+      if (!expError && expData) {
+        if (expData.length > 0) {
+          currentExpenseTotal = expData.reduce((acc, row) => acc + (parseFloat(row.amount) || 0), 0);
+        } else if (profileId !== 'producer' && profileId !== 'supplier' && profileId !== 'buyer' && profileId !== 'admin') {
+          currentExpenseTotal = 0;
+        }
       }
 
       // 2. Charger les recettes réelles depuis Supabase
@@ -1305,8 +1333,12 @@ document.addEventListener('DOMContentLoaded', () => {
         .select('amount')
         .eq('profile_id', profileId);
 
-      if (!revError && revData && revData.length > 0) {
-        currentRevenueTotal = revData.reduce((acc, row) => acc + (parseFloat(row.amount) || 0), 0);
+      if (!revError && revData) {
+        if (revData.length > 0) {
+          currentRevenueTotal = revData.reduce((acc, row) => acc + (parseFloat(row.amount) || 0), 0);
+        } else if (profileId !== 'producer' && profileId !== 'supplier' && profileId !== 'buyer' && profileId !== 'admin') {
+          currentRevenueTotal = 0;
+        }
       }
 
       updateFinancialMetrics();
@@ -1327,38 +1359,44 @@ document.addEventListener('DOMContentLoaded', () => {
         .eq('profile_id', profileId)
         .order('planting_date', { ascending: true });
 
-      if (!error && data && data.length > 0 && PROFILES_DATA[profileId]) {
-        PROFILES_DATA[profileId].tableRows = data.map(item => {
-          let dotClass = 'dot-green';
-          let statusClass = 'state-growing';
-          if (item.status && item.status.includes('Récolte')) {
-            dotClass = 'dot-orange';
-            statusClass = 'state-harvest';
-          } else if (item.status && (item.status.includes('Repiquage') || item.status.includes('nouveau'))) {
-            dotClass = 'dot-blue';
-            statusClass = 'state-new';
+      if (!error && PROFILES_DATA[profileId]) {
+        if (data && data.length > 0) {
+          PROFILES_DATA[profileId].tableRows = data.map(item => {
+            let dotClass = 'dot-green';
+            let statusClass = 'state-growing';
+            if (item.status && item.status.includes('Récolte')) {
+              dotClass = 'dot-orange';
+              statusClass = 'state-harvest';
+            } else if (item.status && (item.status.includes('Repiquage') || item.status.includes('nouveau'))) {
+              dotClass = 'dot-blue';
+              statusClass = 'state-new';
+            }
+
+            const initials = (item.crop_name.substring(0, 2)).toUpperCase();
+            const pName = item.parcels ? `${item.parcels.name} (${item.parcels.area_ha} ha) • ${item.parcels.irrigation_type}` : 'Parcelle';
+
+            return {
+              avatarText: initials,
+              avatarClass: 'bg-avatar-green',
+              name: item.crop_name,
+              sub: item.category || 'Culture maraîchère',
+              col2: pName,
+              col3: item.planting_date ? new Date(item.planting_date).toLocaleDateString('fr-FR') : '-',
+              col4: item.estimated_harvest_date ? new Date(item.estimated_harvest_date).toLocaleDateString('fr-FR') : '-',
+              statusText: item.status,
+              statusClass: statusClass,
+              dotClass: dotClass
+            };
+          });
+
+          if (PROFILES_DATA[profileId].stats && PROFILES_DATA[profileId].stats[2]) {
+            PROFILES_DATA[profileId].stats[2].value = String(data.length);
           }
-
-          const initials = (item.crop_name.substring(0, 2)).toUpperCase();
-          const pName = item.parcels ? `${item.parcels.name} (${item.parcels.area_ha} ha) • ${item.parcels.irrigation_type}` : 'Parcelle';
-
-          return {
-            avatarText: initials,
-            avatarClass: 'bg-avatar-green',
-            name: item.crop_name,
-            sub: item.category || 'Culture maraîchère',
-            col2: pName,
-            col3: item.planting_date ? new Date(item.planting_date).toLocaleDateString('fr-FR') : '-',
-            col4: item.estimated_harvest_date ? new Date(item.estimated_harvest_date).toLocaleDateString('fr-FR') : '-',
-            statusText: item.status,
-            statusClass: statusClass,
-            dotClass: dotClass
-          };
-        });
-
-        // Mettre à jour le nombre de cycles actifs dans la carte stat3
-        if (PROFILES_DATA[profileId].stats && PROFILES_DATA[profileId].stats[2]) {
-          PROFILES_DATA[profileId].stats[2].value = String(data.length);
+        } else if (profileId !== 'producer' && profileId !== 'supplier' && profileId !== 'buyer' && profileId !== 'admin') {
+          PROFILES_DATA[profileId].tableRows = [];
+          if (PROFILES_DATA[profileId].stats && PROFILES_DATA[profileId].stats[2]) {
+            PROFILES_DATA[profileId].stats[2].value = '0';
+          }
         }
         renderProfile(currentProfileKey);
       }
@@ -1434,6 +1472,18 @@ document.addEventListener('DOMContentLoaded', () => {
       octCol.setAttribute('data-rev', formattedRev);
       octCol.setAttribute('data-exp', formattedExp);
       octCol.setAttribute('data-margin', formattedMargin);
+      const revBar = octCol.querySelector('.bar-revenue');
+      const expBar = octCol.querySelector('.bar-expense');
+      if (revBar && expBar) {
+        if (currentRevenueTotal === 0 && currentExpenseTotal === 0) {
+          revBar.style.height = '4px';
+          expBar.style.height = '4px';
+        } else {
+          const maxVal = Math.max(currentRevenueTotal, currentExpenseTotal, 100000);
+          revBar.style.height = `${Math.min(95, Math.max(6, Math.round((currentRevenueTotal / maxVal) * 90)))}%`;
+          expBar.style.height = `${Math.min(95, Math.max(6, Math.round((currentExpenseTotal / maxVal) * 90)))}%`;
+        }
+      }
     }
     const tooltipRev = document.getElementById('tooltipRev');
     const tooltipExp = document.getElementById('tooltipExp');
@@ -1996,53 +2046,31 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // ==========================================
-  // MODALE AUTHENTIFICATION (CONNEXION & INSCRIPTION)
+  // MODALE COMPTE UTILISATEUR & GESTION DU PROFIL
   // ==========================================
-  function openAuthModal(defaultTab = 'login') {
+  function openAuthModal() {
     if (!modalAuth) return;
+    const currentData = PROFILES_DATA[currentProfileKey] || {
+      name: 'Exploitant',
+      metaRole: 'Maraîcher & Céréalier',
+      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&h=120&q=80'
+    };
+
+    if (modalAccountName) modalAccountName.textContent = currentData.name;
+    if (modalAccountRole) modalAccountRole.textContent = currentData.metaRole;
+    if (modalAccountAvatar) modalAccountAvatar.src = currentData.avatar;
+    if (modalAccountEmail) {
+      modalAccountEmail.textContent = currentData.phone || (currentAuthUser ? currentAuthUser.email : 'Compte connecté');
+    }
+
     modalAuth.classList.remove('hidden');
-
-    // Vider systématiquement les champs pour éviter le pré-remplissage intempestif par le navigateur
-    if (loginIdentifier) loginIdentifier.value = '';
-    if (loginPassword) loginPassword.value = '';
-    if (regFullName) regFullName.value = '';
-    if (regPhone) regPhone.value = '';
-    if (regPassword) regPassword.value = '';
-    if (otpCodeInput) otpCodeInput.value = '';
-
-    // Remettre le défilement en haut
-    if (formLogin) formLogin.scrollTop = 0;
-    if (formRegister) formRegister.scrollTop = 0;
-
-    switchAuthTab(defaultTab);
   }
 
   function closeAuthModal() {
     if (modalAuth) modalAuth.classList.add('hidden');
-    if (loginIdentifier) loginIdentifier.value = '';
-    if (loginPassword) loginPassword.value = '';
-    if (otpCodeInput) otpCodeInput.value = '';
   }
 
-  function switchAuthTab(tab) {
-    if (tab === 'login') {
-      if (tabAuthLogin) tabAuthLogin.classList.add('active');
-      if (tabAuthRegister) tabAuthRegister.classList.remove('active');
-      if (formLogin) formLogin.classList.remove('hidden');
-      if (formRegister) formRegister.classList.add('hidden');
-      if (loginIdentifier) loginIdentifier.focus();
-    } else {
-      if (tabAuthRegister) tabAuthRegister.classList.add('active');
-      if (tabAuthLogin) tabAuthLogin.classList.remove('active');
-      if (formRegister) formRegister.classList.remove('hidden');
-      if (formLogin) formLogin.classList.add('hidden');
-      if (regFullName) regFullName.focus();
-    }
-  }
-
-  if (tabAuthLogin) tabAuthLogin.addEventListener('click', () => switchAuthTab('login'));
-  if (tabAuthRegister) tabAuthRegister.addEventListener('click', () => switchAuthTab('register'));
-  if (btnOpenAuth) btnOpenAuth.addEventListener('click', () => openAuthModal('login'));
+  if (btnOpenAuth) btnOpenAuth.addEventListener('click', openAuthModal);
   if (btnCloseModalAuth) btnCloseModalAuth.addEventListener('click', closeAuthModal);
   if (modalAuth) {
     modalAuth.addEventListener('click', (e) => {
@@ -2050,11 +2078,160 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  if (btnEditProfileFromModal) {
+    btnEditProfileFromModal.addEventListener('click', () => {
+      closeAuthModal();
+      openOnboardingModal();
+    });
+  }
+
+  if (btnModalLogout) {
+    btnModalLogout.addEventListener('click', () => {
+      closeAuthModal();
+      performLogout();
+    });
+  }
+
   // ==========================================
-  // FONCTION : DÉCONNEXION RÉELLE (ETAT VIERGE 0 F CFA)
+  // MODALE ONBOARDING / COMPLÉTION DU PROFIL
   // ==========================================
-  function performLogout() {
+  let currentAuthUser = null;
+
+  function openOnboardingModal(userData = null) {
+    if (!modalOnboarding) return;
+    const currentData = userData || PROFILES_DATA[currentProfileKey] || {};
+
+    if (onboardingFullName) {
+      onboardingFullName.value = currentData.name || (currentAuthUser ? (currentAuthUser.user_metadata?.full_name || currentAuthUser.user_metadata?.name || currentAuthUser.email?.split('@')[0]) : '');
+    }
+    if (onboardingPhone) {
+      const cleanPhone = (currentData.phone || '').replace(/^\+226\s*/, '');
+      onboardingPhone.value = cleanPhone;
+    }
+    if (onboardingLocation) {
+      if (currentData.location) {
+        const pureLoc = currentData.location.replace(/^📍\s*/, '');
+        for (let opt of onboardingLocation.options) {
+          if (opt.value.includes(pureLoc) || pureLoc.includes(opt.value)) {
+            onboardingLocation.value = opt.value;
+            break;
+          }
+        }
+      }
+    }
+
+    modalOnboarding.classList.remove('hidden');
+  }
+
+  function closeOnboardingModal() {
+    if (modalOnboarding) modalOnboarding.classList.add('hidden');
+  }
+
+  // Cartes radio d'activité
+  const onboardingRoleCards = document.querySelectorAll('.onboarding-modal-dialog .role-card-opt');
+  onboardingRoleCards.forEach(card => {
+    card.addEventListener('click', () => {
+      onboardingRoleCards.forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      const radio = card.querySelector('input[type="radio"]');
+      if (radio) radio.checked = true;
+    });
+  });
+
+  // Soumission Onboarding
+  if (formOnboarding) {
+    formOnboarding.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const rawFullName = onboardingFullName ? onboardingFullName.value.trim() : 'Exploitant';
+      const rawPhone = onboardingPhone ? onboardingPhone.value.trim() : '';
+      const rawLocation = onboardingLocation ? onboardingLocation.value : 'Koudougou (Boulkiemdé)';
+      const selectedRadio = document.querySelector('input[name="onboardingRole"]:checked');
+      const selectedRole = selectedRadio ? selectedRadio.value : 'producer';
+
+      let metaRole = 'Maraîcher & Céréalier';
+      let actionLabel = 'Ajouter une dépense';
+      let hasExploitation = true;
+      let avatar = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&h=120&q=80';
+
+      if (selectedRole === 'supplier') {
+        metaRole = 'Fournisseur d\'Équipements & Intrants';
+        actionLabel = 'Publier une annonce';
+        hasExploitation = false;
+        avatar = 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=120&h=120&q=80';
+      } else if (selectedRole === 'buyer') {
+        metaRole = 'Acheteur & Grossiste Céréalier';
+        actionLabel = 'Publier une demande d\'achat';
+        hasExploitation = false;
+        avatar = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&h=120&q=80';
+      }
+
+      const submitBtn = document.getElementById('btnSubmitOnboarding');
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span>Enregistrement du profil…</span>';
+      }
+
+      const userId = currentAuthUser ? currentAuthUser.id : ('user_' + Date.now());
+      const formattedPhone = rawPhone.startsWith('+226') ? rawPhone : ('+226 ' + rawPhone.replace(/^\+226\s*/, ''));
+
+      // Sauvegarde dans Supabase
+      if (supabaseClient) {
+        try {
+          await supabaseClient.from('profiles').upsert([{
+            id: userId,
+            full_name: rawFullName,
+            phone: formattedPhone,
+            location: rawLocation,
+            role: selectedRole,
+            meta_role: metaRole,
+            avatar_url: (currentAuthUser?.user_metadata?.avatar_url || currentAuthUser?.user_metadata?.picture) || avatar,
+            is_onboarded: true,
+            is_admin: false,
+            is_pro: false,
+            updated_at: new Date().toISOString()
+          }]);
+          console.log('✅ Profil complété avec succès dans Supabase !');
+        } catch (err) {
+          console.warn('⚠️ Erreur mise à jour profil Supabase :', err);
+        }
+      }
+
+      closeOnboardingModal();
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<span>Valider mon profil & Accéder</span>';
+      }
+
+      await activateUserSession({
+        id: userId,
+        name: rawFullName,
+        phone: formattedPhone,
+        location: `📍 ${rawLocation}`,
+        role: selectedRole,
+        metaRole: metaRole,
+        actionLabel: actionLabel,
+        hasExploitation: hasExploitation,
+        avatar: (currentAuthUser?.user_metadata?.avatar_url || currentAuthUser?.user_metadata?.picture) || avatar
+      });
+
+      const firstName = rawFullName.split(' ')[0] || rawFullName;
+      showToast('🎉 Profil configuré avec succès !', `Bienvenue ${firstName} ! Votre tableau de bord est prêt.`);
+    });
+  }
+
+  // ==========================================
+  // FONCTION : DÉCONNEXION RÉELLE
+  // ==========================================
+  async function performLogout() {
     currentProfileKey = 'guest';
+    currentAuthUser = null;
+
+    if (supabaseClient) {
+      try {
+        await supabaseClient.auth.signOut();
+      } catch (e) {}
+    }
+
     try {
       localStorage.removeItem('revolution_session_user');
     } catch (e) {}
@@ -2063,7 +2240,7 @@ document.addEventListener('DOMContentLoaded', () => {
     currentRevenueTotal = 0;
     userSubscriptionStatus['guest'] = false;
 
-    // Masquer le tableau de bord et afficher obligatoirement le portail de connexion
+    // Masquer le tableau de bord et afficher le portail d'authentification
     const authPortalScreen = document.getElementById('authPortalScreen');
     if (viewportContainer) viewportContainer.classList.add('hidden');
     if (authPortalScreen) {
@@ -2085,7 +2262,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (btnAuthText) btnAuthText.textContent = 'Connexion';
-    showToast('Session fermée', 'Déconnexion effectuée. Connectez-vous avec votre compte pour accéder à votre exploitation.');
+    showToast('Session fermée', 'Déconnexion effectuée.');
   }
 
   // Déconnexion Bureau
@@ -2093,7 +2270,7 @@ document.addEventListener('DOMContentLoaded', () => {
     btnLogout.addEventListener('click', performLogout);
   }
 
-  // Raccourcis profils démo dans la modale
+  // Raccourcis profils démo
   demoQuickBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       const targetRole = btn.getAttribute('data-role');
@@ -2104,377 +2281,10 @@ document.addEventListener('DOMContentLoaded', () => {
         syncCropCyclesFromSupabase(targetRole);
         syncSubscriptionStatusFromSupabase(targetRole);
         closeAuthModal();
-        showToast('Connexion réussie', `Connecté en tant que ${PROFILES_DATA[targetRole].name}`);
+        showToast('Connexion démo', `Connecté en tant que ${PROFILES_DATA[targetRole].name}`);
       }
     });
   });
-
-  // Sélection visuelle rôle inscription
-  const regRoleCards = document.querySelectorAll('.role-card-opt');
-  regRoleCards.forEach(card => {
-    card.addEventListener('click', () => {
-      regRoleCards.forEach(c => c.classList.remove('selected'));
-      card.classList.add('selected');
-      const radio = card.querySelector('input[type="radio"]');
-      if (radio) radio.checked = true;
-    });
-  });
-
-  // ==========================================
-  // SYSTÈME DE CONFIRMATION SMS / CODE OTP (+226)
-  // ==========================================
-  const stepAuthOtp = document.getElementById('stepAuthOtp');
-  const smsTargetPhone = document.getElementById('smsTargetPhone');
-  const smsDisplayCode = document.getElementById('smsDisplayCode');
-  const otpCodeInput = document.getElementById('otpCodeInput');
-  const btnVerifyOtp = document.getElementById('btnVerifyOtp');
-  const btnResendOtp = document.getElementById('btnResendOtp');
-  const btnBackFromOtp = document.getElementById('btnBackFromOtp');
-
-  let pendingAuthData = null;
-  let currentOtpExpected = null;
-
-  function showOtpStep(phoneFormatted, code) {
-    currentOtpExpected = code;
-    if (formLogin) formLogin.classList.add('hidden');
-    if (formRegister) formRegister.classList.add('hidden');
-    if (stepAuthOtp) stepAuthOtp.classList.remove('hidden');
-
-    if (smsTargetPhone) smsTargetPhone.textContent = phoneFormatted;
-    if (smsDisplayCode) smsDisplayCode.textContent = code;
-    if (otpCodeInput) {
-      otpCodeInput.value = '';
-      setTimeout(() => otpCodeInput.focus(), 150);
-    }
-
-    showToast(
-      '📲 Message SMS Reçu (+226)',
-      `Votre code de confirmation Révolution Agricole est : [ ${code} ]`
-    );
-  }
-
-  function hideOtpStep() {
-    if (stepAuthOtp) stepAuthOtp.classList.add('hidden');
-    switchAuthTab('login');
-  }
-
-  if (btnBackFromOtp) btnBackFromOtp.addEventListener('click', hideOtpStep);
-
-  if (btnResendOtp) {
-    btnResendOtp.addEventListener('click', () => {
-      const newCode = Math.floor(1000 + Math.random() * 9000).toString();
-      currentOtpExpected = newCode;
-      if (smsDisplayCode) smsDisplayCode.textContent = newCode;
-      showToast('📲 Nouveau code SMS envoyé', `Votre code de confirmation : [ ${newCode} ]`);
-    });
-  }
-
-  async function completeOtpVerification() {
-    const entered = otpCodeInput ? otpCodeInput.value.trim() : '';
-    if (!entered || entered !== currentOtpExpected) {
-      showToast('⚠️ Code incorrect', 'Veuillez saisir le code à 4 chiffres reçu par SMS.');
-      if (otpCodeInput) otpCodeInput.focus();
-      return;
-    }
-
-    if (!pendingAuthData) {
-      closeAuthModal();
-      return;
-    }
-
-    if (pendingAuthData.isRegistration) {
-      const reg = pendingAuthData;
-      if (supabaseClient) {
-        try {
-          await supabaseClient.from('profiles').insert([{
-            id: reg.newUserId,
-            role: reg.role,
-            full_name: reg.fullName,
-            meta_role: reg.metaRole,
-            location: reg.location,
-            phone: '+226 ' + reg.phone,
-            avatar_url: reg.avatar,
-            is_admin: false,
-            is_pro: false,
-            password: reg.password,
-            verification_code: currentOtpExpected,
-            is_verified: true
-          }]);
-        } catch (err) {
-          console.warn('Erreur Supabase insertion profil :', err);
-        }
-      }
-
-      PROFILES_DATA[reg.newUserId] = {
-        id: reg.newUserId,
-        name: reg.fullName,
-        metaRole: reg.metaRole,
-        location: `📍 ${reg.location}`,
-        avatar: reg.avatar,
-        actionLabel: reg.actionLabel,
-        greeting: `Bonjour, ${reg.fullName.split(' ')[0]} <span class="greeting-emoji">🌱</span>`,
-        subtitle: 'Bienvenue sur votre exploitation. Vos compteurs démarrent bien à 0 F CFA.',
-        isAdmin: false,
-        hasExploitation: reg.hasExploitation,
-        stats: [
-          { module: 'Exploitation', label: 'Dépenses du mois', value: '0', unit: 'F CFA', trendText: '0 dépense', trendType: 'favorable', comp: 'Nouvelle exploitation', color: 'green' },
-          { module: 'Recettes', label: 'Recettes du mois', value: '0', unit: 'F CFA', trendText: '0 encaissement', trendType: 'favorable', comp: 'Prêt pour récolte', color: 'blue' },
-          { module: 'Production', label: 'Cycles en cours', value: '0', unit: 'actifs', badge: 'Aucun cycle', comp: 'Parcelles à enregistrer', color: 'yellow' },
-          { module: 'Financements', label: 'Opportunités ouvertes', value: '5', unit: 'vérifiées', badge: '2 clôturent < 7 j', comp: 'PReCA & Fonds Vert', color: 'purple' }
-        ],
-        chartTitle: 'Dépenses et recettes',
-        chartSubtitle: 'Vos flux de trésorerie réels enregistrés sur Supabase',
-        marginOct: '0 F CFA',
-        deadlines: [
-          { title: 'Ajouter votre première parcelle', meta: 'Définissez vos superficies en hectares', badge: 'Étape 1', icon: 'green' },
-          { title: 'Enregistrer vos semences ou carburant', meta: 'Saisie rapide en 30 secondes', badge: 'Étape 2', icon: 'amber' },
-          { title: 'Consulter les subventions PReCA', meta: 'Financements Ministère de l\'Agriculture', badge: 'Disponible', icon: 'purple' }
-        ],
-        tableTitle: 'Mes parcelles & cultures',
-        tableSubtitle: 'Suivez vos cultures de la pépinière à la récolte',
-        tableHeaders: ['CULTURE & VARIÉTÉ', 'PARCELLE', 'DATE SEMIS', 'RÉCOLTE ESTIMÉE', 'STATUT', 'ACTIONS'],
-        tableRows: []
-      };
-
-      if (roleSelector) {
-        const opt = document.createElement('option');
-        opt.value = reg.newUserId;
-        opt.textContent = `⭐ ${reg.fullName} (${reg.location.split(' ')[0]})`;
-        roleSelector.appendChild(opt);
-        roleSelector.value = reg.newUserId;
-      }
-
-      currentProfileKey = reg.newUserId;
-      currentExpenseTotal = 0;
-      currentRevenueTotal = 0;
-      userSubscriptionStatus[reg.newUserId] = false;
-
-      try {
-        localStorage.setItem('revolution_session_user', JSON.stringify({
-          id: reg.newUserId,
-          name: reg.fullName,
-          metaRole: reg.metaRole,
-          location: `📍 ${reg.location}`,
-          avatar: reg.avatar,
-          actionLabel: reg.actionLabel,
-          isAdmin: false,
-          hasExploitation: reg.hasExploitation,
-          role: reg.role
-        }));
-      } catch (e) {}
-
-      renderProfile(reg.newUserId);
-      updateFinancialMetrics();
-      closeAuthModal();
-
-      showToast(
-        '🎉 Numéro validé & Compte créé !',
-        `Bienvenue ${reg.fullName} ! Votre numéro burkinabè est confirmé et vos compteurs démarrent bien à 0 F CFA.`
-      );
-    } else {
-      const user = pendingAuthData.user;
-      const pKey = user.id;
-
-      if (supabaseClient) {
-        try {
-          await supabaseClient.from('profiles').update({ is_verified: true, verification_code: currentOtpExpected }).eq('id', pKey);
-        } catch (e) {}
-      }
-
-      if (!PROFILES_DATA[pKey]) {
-        PROFILES_DATA[pKey] = {
-          id: pKey,
-          name: user.full_name,
-          metaRole: user.meta_role || 'Acteur Agricole',
-          location: user.location ? `📍 ${user.location}` : '📍 Burkina Faso',
-          avatar: user.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&h=120&q=80',
-          actionLabel: user.role === 'producer' ? 'Ajouter une dépense' : 'Publier une annonce',
-          greeting: `Bonjour, ${user.full_name.split(' ')[0]} <span class="greeting-emoji">🌱</span>`,
-          subtitle: 'Voici l\'essentiel pour votre activité aujourd\'hui.',
-          isAdmin: !!user.is_admin,
-          hasExploitation: user.role === 'producer',
-          stats: [
-            { module: 'Exploitation', label: 'Dépenses du mois', value: '0', unit: 'F CFA', color: 'green' },
-            { module: 'Recettes', label: 'Recettes du mois', value: '0', unit: 'F CFA', color: 'blue' },
-            { module: 'Production', label: 'Cycles en cours', value: '0', unit: 'actifs', color: 'yellow' },
-            { module: 'Financements', label: 'Opportunités ouvertes', value: '5', unit: 'vérifiées', color: 'purple' }
-          ],
-          chartTitle: 'Dépenses et recettes',
-          chartSubtitle: 'Vos flux de trésorerie réels',
-          marginOct: '0 F CFA',
-          deadlines: [],
-          tableTitle: 'Mes cycles en cours',
-          tableSubtitle: 'Données issues de Supabase',
-          tableHeaders: ['CULTURE & VARIÉTÉ', 'PARCELLE', 'DATE SEMIS', 'RÉCOLTE ESTIMÉE', 'STATUT', 'ACTIONS'],
-          tableRows: []
-        };
-
-        if (roleSelector) {
-          const opt = document.createElement('option');
-          opt.value = pKey;
-          opt.textContent = `👤 ${user.full_name}`;
-          roleSelector.appendChild(opt);
-        }
-      }
-
-      if (roleSelector) roleSelector.value = pKey;
-
-      try {
-        localStorage.setItem('revolution_session_user', JSON.stringify({
-          id: pKey,
-          name: user.full_name,
-          metaRole: user.meta_role || 'Acteur Agricole',
-          location: user.location ? `📍 ${user.location}` : '📍 Burkina Faso',
-          avatar: user.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&h=120&q=80',
-          actionLabel: user.role === 'producer' ? 'Ajouter une dépense' : 'Publier une annonce',
-          isAdmin: !!user.is_admin,
-          hasExploitation: user.role === 'producer',
-          role: user.role || 'producer'
-        }));
-      } catch (e) {}
-
-      renderProfile(pKey);
-      await syncFinancialsFromSupabase(pKey);
-      await syncCropCyclesFromSupabase(pKey);
-      await syncSubscriptionStatusFromSupabase(pKey);
-      closeAuthModal();
-
-      showToast(
-        'Connexion confirmée',
-        `Bienvenue, ${user.full_name} ! Vos données ont été rechargées depuis Supabase.`
-      );
-    }
-    pendingAuthData = null;
-  }
-
-  if (btnVerifyOtp) btnVerifyOtp.addEventListener('click', completeOtpVerification);
-  if (otpCodeInput) {
-    otpCodeInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        completeOtpVerification();
-      }
-    });
-  }
-
-  // 1. Soumission Création de compte (Inscription)
-  if (formRegister) {
-    formRegister.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const fullName = regFullName ? regFullName.value.trim() : 'Nouvel Exploitant';
-      const phone = regPhone ? regPhone.value.trim() : '70 12 34 56';
-      const location = regLocation ? regLocation.value : 'Koudougou (Boulkiemdé)';
-      const selectedRadio = document.querySelector('input[name="regRole"]:checked');
-      const role = selectedRadio ? selectedRadio.value : 'producer';
-      const password = regPassword ? regPassword.value : '';
-      const newUserId = 'user_' + Date.now();
-
-      let metaRole = 'Maraîcher & Céréalier';
-      let actionLabel = 'Ajouter une dépense';
-      let hasExploitation = true;
-      let avatar = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&h=120&q=80';
-
-      if (role === 'supplier') {
-        metaRole = 'Fournisseur d\'Équipements & Intrants';
-        actionLabel = 'Publier une annonce';
-        hasExploitation = false;
-        avatar = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&h=120&q=80';
-      } else if (role === 'buyer') {
-        metaRole = 'Acheteur & Transformateur Céréalier';
-        actionLabel = 'Publier une demande d\'achat';
-        hasExploitation = false;
-        avatar = 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=120&h=120&q=80';
-      }
-
-      // Génération code SMS
-      const code = Math.floor(1000 + Math.random() * 9000).toString();
-      pendingAuthData = {
-        isRegistration: true,
-        newUserId,
-        fullName,
-        phone,
-        location,
-        role,
-        metaRole,
-        actionLabel,
-        hasExploitation,
-        avatar,
-        password
-      };
-
-      showOtpStep('+226 ' + phone, code);
-    });
-  }
-
-  // 2. Soumission Connexion
-  if (formLogin) {
-    formLogin.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const identifier = loginIdentifier ? loginIdentifier.value.trim() : '';
-
-      let foundUser = null;
-      if (supabaseClient && identifier) {
-        try {
-          const { data } = await supabaseClient
-            .from('profiles')
-            .select('*')
-            .or(`phone.ilike.%${identifier}%,id.eq.${identifier},full_name.ilike.%${identifier}%`)
-            .limit(1);
-
-          if (data && data.length > 0) {
-            foundUser = data[0];
-          }
-        } catch (err) {
-          console.warn('Erreur recherche profil Supabase :', err);
-        }
-      }
-
-      if (!foundUser) {
-        const demoKey = Object.keys(PROFILES_DATA).find(k => 
-          k.toLowerCase() === identifier.toLowerCase() || 
-          PROFILES_DATA[k].name.toLowerCase().includes(identifier.toLowerCase())
-        );
-        if (demoKey) {
-          const p = PROFILES_DATA[demoKey];
-          foundUser = {
-            id: p.id,
-            full_name: p.name,
-            meta_role: p.metaRole,
-            location: p.location,
-            phone: '+226 70 12 34 56',
-            avatar_url: p.avatar,
-            role: p.id,
-            is_admin: p.isAdmin,
-            is_pro: userSubscriptionStatus[p.id] || false
-          };
-        }
-      }
-
-      if (!foundUser) {
-        foundUser = {
-          id: 'user_' + Date.now(),
-          full_name: identifier.includes('@') ? identifier.split('@')[0] : identifier,
-          meta_role: 'Producteur Maraîcher',
-          location: 'Koudougou (Boulkiemdé)',
-          phone: identifier.startsWith('+') ? identifier : '+226 ' + identifier,
-          avatar_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&h=120&q=80',
-          role: 'producer',
-          is_admin: false,
-          is_pro: false
-        };
-      }
-
-      // Génération code de confirmation SMS à 4 chiffres
-      const code = Math.floor(1000 + Math.random() * 9000).toString();
-      pendingAuthData = {
-        isRegistration: false,
-        user: foundUser
-      };
-
-      const phoneToDisplay = foundUser.phone || ('+226 ' + identifier);
-      showOtpStep(phoneToDisplay, code);
-    });
-  }
 
   // ==========================================
   // MODALE ABONNEMENTS & TARIFS (5 000 F / 10 000 F)
@@ -2669,13 +2479,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnPortalTabRegister = document.getElementById('btnPortalTabRegister');
   const portalLoginForm = document.getElementById('portalLoginForm');
   const portalRegisterForm = document.getElementById('portalRegisterForm');
-  const portalLoginUser = document.getElementById('portalLoginUser');
+  const portalLoginEmail = document.getElementById('portalLoginEmail');
   const portalLoginPass = document.getElementById('portalLoginPass');
+  const portalRegEmail = document.getElementById('portalRegEmail');
+  const portalRegPassword = document.getElementById('portalRegPassword');
   const linkToRegister = document.getElementById('linkToRegister');
   const linkToLogin = document.getElementById('linkToLogin');
-  const portalRegUsername = document.getElementById('portalRegUsername');
-  const portalRegContact = document.getElementById('portalRegContact');
-  const portalRegPassword = document.getElementById('portalRegPassword');
+  const btnGoogleAuth = document.getElementById('btnGoogleAuth');
   const btnPortalQuickDemo = document.getElementById('btnPortalQuickDemo');
 
   // Bascule entre Se connecter et Créer un compte
@@ -2685,13 +2495,13 @@ document.addEventListener('DOMContentLoaded', () => {
       if (btnPortalTabRegister) btnPortalTabRegister.classList.remove('active');
       if (portalLoginForm) portalLoginForm.classList.remove('hidden');
       if (portalRegisterForm) portalRegisterForm.classList.add('hidden');
-      if (portalLoginUser) portalLoginUser.focus();
+      if (portalLoginEmail) portalLoginEmail.focus();
     } else {
       if (btnPortalTabRegister) btnPortalTabRegister.classList.add('active');
       if (btnPortalTabLogin) btnPortalTabLogin.classList.remove('active');
       if (portalRegisterForm) portalRegisterForm.classList.remove('hidden');
       if (portalLoginForm) portalLoginForm.classList.add('hidden');
-      if (portalRegUsername) portalRegUsername.focus();
+      if (portalRegEmail) portalRegEmail.focus();
     }
   }
 
@@ -2706,6 +2516,54 @@ document.addEventListener('DOMContentLoaded', () => {
     switchViewMode(isMobileDevice ? 'mobile' : 'desktop');
   }
   window.addEventListener('resize', autoDetectResponsiveMode);
+
+  // Fonction centrale de vérification du profil utilisateur & redirection
+  async function checkUserProfileAndProceed(user) {
+    currentAuthUser = user;
+    let profile = null;
+
+    if (supabaseClient) {
+      try {
+        const { data, error } = await supabaseClient
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .maybeSingle();
+
+        if (data) {
+          profile = data;
+        }
+      } catch (err) {
+        console.warn('⚠️ Erreur recherche profil Supabase :', err);
+      }
+    }
+
+    // Si le profil n'existe pas ou n'est pas encore complété (is_onboarded false ou sans téléphone)
+    if (!profile || !profile.is_onboarded || !profile.phone) {
+      if (authPortalScreen) authPortalScreen.classList.add('hidden');
+      const googleName = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || '';
+      openOnboardingModal({
+        id: user.id,
+        name: profile?.full_name || googleName,
+        phone: profile?.phone || '',
+        location: profile?.location || 'Koudougou (Boulkiemdé)',
+        role: profile?.role || 'producer'
+      });
+    } else {
+      // Déjà complété -> Entrée directe dans le tableau de bord
+      await activateUserSession({
+        id: profile.id,
+        name: profile.full_name,
+        phone: profile.phone,
+        location: profile.location,
+        role: profile.role,
+        metaRole: profile.meta_role,
+        avatar: profile.avatar_url || user.user_metadata?.avatar_url || user.user_metadata?.picture,
+        isAdmin: !!profile.is_admin,
+        isPro: !!profile.is_pro
+      });
+    }
+  }
 
   // Fonction centrale d'activation de session utilisateur
   async function activateUserSession(userData) {
@@ -2775,6 +2633,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (authPortalScreen) authPortalScreen.classList.add('hidden');
     if (viewportContainer) viewportContainer.classList.remove('hidden');
 
+    currentProfileKey = pKey;
+    currentExpenseTotal = 0;
+    currentRevenueTotal = 0;
+
     // Rendu complet avec salutation personnalisée ("Bonjour, Fabrice 🌱")
     renderProfile(pKey);
     await syncFinancialsFromSupabase(pKey);
@@ -2783,16 +2645,38 @@ document.addEventListener('DOMContentLoaded', () => {
     autoDetectResponsiveMode();
   }
 
-  // 3. Soumission Création de compte (Les 3 cases exactes demandées par l'utilisateur)
+  // 3. Bouton Continuer avec Google (Supabase Auth)
+  if (btnGoogleAuth) {
+    btnGoogleAuth.addEventListener('click', async () => {
+      if (!supabaseClient) {
+        showToast('⚠️ Service indisponible', 'Connexion Supabase non initialisée.');
+        return;
+      }
+      try {
+        const { error } = await supabaseClient.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: window.location.origin
+          }
+        });
+        if (error) {
+          showToast('Erreur Google Sign-In', error.message);
+        }
+      } catch (err) {
+        showToast('Erreur', 'Impossible de lancer la connexion Google.');
+      }
+    });
+  }
+
+  // 4. Formulaire Inscription Email + Mot de passe (Secours)
   if (portalRegisterForm) {
     portalRegisterForm.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const rawName = portalRegUsername ? portalRegUsername.value.trim() : '';
-      const rawContact = portalRegContact ? portalRegContact.value.trim() : '';
-      const rawPassword = portalRegPassword ? portalRegPassword.value : '';
+      const email = portalRegEmail ? portalRegEmail.value.trim() : '';
+      const password = portalRegPassword ? portalRegPassword.value : '';
 
-      if (!rawName || !rawContact || !rawPassword) {
-        showToast('⚠️ Champs requis', 'Veuillez remplir les 3 cases : Nom d\'utilisateur, Numéro ou Gmail, et Mot de passe.');
+      if (!email || !password) {
+        showToast('⚠️ Champs requis', 'Veuillez saisir votre adresse email et un mot de passe.');
         return;
       }
 
@@ -2802,57 +2686,48 @@ document.addEventListener('DOMContentLoaded', () => {
         submitBtn.innerHTML = '<span>Création du compte en cours…</span>';
       }
 
-      const newUserId = 'user_' + Date.now();
-      const phoneClean = rawContact.includes('@') ? rawContact : ('+226 ' + rawContact.replace(/^\+226\s*/, ''));
-
-      // Sauvegarde dans la base Supabase
       if (supabaseClient) {
         try {
-          await supabaseClient.from('profiles').insert([{
-            id: newUserId,
-            full_name: rawName,
-            phone: phoneClean,
-            role: 'producer',
-            meta_role: 'Maraîcher & Céréalier',
-            location: 'Koudougou (Boulkiemdé)',
-            avatar_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&h=120&q=80',
-            is_admin: false,
-            is_pro: false,
-            password: rawPassword,
-            is_verified: true
-          }]);
-          console.log('✅ Nouvel utilisateur enregistré dans Supabase :', newUserId);
+          const { data, error } = await supabaseClient.auth.signUp({
+            email: email,
+            password: password
+          });
+
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<span>Créer mon compte</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>';
+          }
+
+          if (error) {
+            showToast('⚠️ Erreur création', error.message || 'Impossible de créer ce compte.');
+            return;
+          }
+
+          if (data?.session && data?.user) {
+            await checkUserProfileAndProceed(data.user);
+          } else if (data?.user) {
+            showToast('📧 Vérification email', 'Un email de confirmation vous a été envoyé. Veuillez cliquer sur le lien pour valider votre compte.');
+          }
         } catch (err) {
-          console.warn('⚠️ Erreur enregistrement Supabase :', err);
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<span>Créer mon compte</span>';
+          }
+          showToast('Erreur', err.message || 'Une erreur est survenue.');
         }
       }
-
-      const cleanFirstName = rawName.split(' ')[0] || rawName;
-      await activateUserSession({
-        id: newUserId,
-        name: rawName,
-        phone: phoneClean,
-        location: '📍 Koudougou (Boulkiemdé)'
-      });
-
-      if (submitBtn) {
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = '<span>Créer mon compte & Accéder</span>';
-      }
-
-      showToast(`🎉 Bienvenue ${cleanFirstName} !`, 'Votre compte a été créé avec succès. Vos compteurs démarrent bien à 0 F CFA.');
     });
   }
 
-  // 4. Soumission Connexion (Numéro/Gmail + Mot de passe)
+  // 5. Formulaire Connexion Email + Mot de passe (Secours)
   if (portalLoginForm) {
     portalLoginForm.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const rawIdentifier = portalLoginUser ? portalLoginUser.value.trim() : '';
-      const rawPassword = portalLoginPass ? portalLoginPass.value : '';
+      const email = portalLoginEmail ? portalLoginEmail.value.trim() : '';
+      const password = portalLoginPass ? portalLoginPass.value : '';
 
-      if (!rawIdentifier || !rawPassword) {
-        showToast('⚠️ Champs requis', 'Veuillez renseigner votre identifiant et mot de passe.');
+      if (!email || !password) {
+        showToast('⚠️ Champs requis', 'Veuillez renseigner votre email et votre mot de passe.');
         return;
       }
 
@@ -2862,85 +2737,39 @@ document.addEventListener('DOMContentLoaded', () => {
         submitBtn.innerHTML = '<span>Connexion en cours…</span>';
       }
 
-      let foundUser = null;
-
-      // 1. Recherche dans Supabase
       if (supabaseClient) {
         try {
-          const { data } = await supabaseClient
-            .from('profiles')
-            .select('*')
-            .or(`phone.ilike.%${rawIdentifier}%,id.eq.${rawIdentifier},full_name.ilike.%${rawIdentifier}%`)
-            .limit(1);
+          const { data, error } = await supabaseClient.auth.signInWithPassword({
+            email: email,
+            password: password
+          });
 
-          if (data && data.length > 0) {
-            foundUser = data[0];
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<span>Se connecter</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>';
+          }
+
+          if (error) {
+            showToast('⚠️ Erreur connexion', error.message || 'Email ou mot de passe incorrect.');
+            return;
+          }
+
+          if (data?.user) {
+            await checkUserProfileAndProceed(data.user);
+            showToast('Connexion réussie', 'Bienvenue sur votre exploitation !');
           }
         } catch (err) {
-          console.warn('⚠️ Erreur recherche Supabase :', err);
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<span>Se connecter</span>';
+          }
+          showToast('Erreur', err.message || 'Une erreur est survenue.');
         }
       }
-
-      // 2. Recherche dans les profils locaux/démo
-      if (!foundUser) {
-        const demoKey = Object.keys(PROFILES_DATA).find(k =>
-          k.toLowerCase() === rawIdentifier.toLowerCase() ||
-          PROFILES_DATA[k].name.toLowerCase().includes(rawIdentifier.toLowerCase())
-        );
-        if (demoKey) {
-          const p = PROFILES_DATA[demoKey];
-          foundUser = {
-            id: p.id,
-            full_name: p.name,
-            meta_role: p.metaRole,
-            location: p.location,
-            phone: '+226 70 12 34 56',
-            avatar_url: p.avatar,
-            role: p.id,
-            is_admin: p.isAdmin,
-            is_pro: userSubscriptionStatus[p.id] || false
-          };
-        }
-      }
-
-      // 3. Mode de secours immédiat : génération de session avec le nom saisi
-      if (!foundUser) {
-        const extractedName = rawIdentifier.includes('@') ? rawIdentifier.split('@')[0] : rawIdentifier;
-        foundUser = {
-          id: 'user_' + Date.now(),
-          full_name: extractedName,
-          meta_role: 'Maraîcher & Céréalier',
-          location: '📍 Koudougou (Boulkiemdé)',
-          phone: rawIdentifier.includes('@') ? rawIdentifier : '+226 ' + rawIdentifier,
-          avatar_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&h=120&q=80',
-          role: 'producer',
-          is_admin: false,
-          is_pro: false
-        };
-      }
-
-      const cleanFirstName = (foundUser.full_name || foundUser.name || 'Exploitant').trim().split(' ')[0];
-      await activateUserSession({
-        id: foundUser.id,
-        name: foundUser.full_name || foundUser.name,
-        metaRole: foundUser.meta_role || foundUser.metaRole,
-        location: foundUser.location,
-        avatar: foundUser.avatar_url || foundUser.avatar,
-        phone: foundUser.phone,
-        isAdmin: !!foundUser.is_admin,
-        isPro: !!foundUser.is_pro
-      });
-
-      if (submitBtn) {
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = '<span>Se connecter à mon exploitation</span>';
-      }
-
-      showToast('Connexion réussie', `Bienvenue, ${cleanFirstName} ! Vos données ont été chargées.`);
     });
   }
 
-  // 5. Raccourci Démo rapide facultatif
+  // 6. Raccourci Démo rapide facultatif
   if (btnPortalQuickDemo) {
     btnPortalQuickDemo.addEventListener('click', async () => {
       await activateUserSession({
@@ -2955,28 +2784,49 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 6. INITIALISATION AU CHARGEMENT DE LA PAGE
-  // Si une session existe dans localStorage -> entrée directe
-  // Si aucune session -> affichage obligatoire du portail d'authentification
-  const savedSessionRaw = localStorage.getItem('revolution_session_user');
-  if (savedSessionRaw) {
-    try {
-      const savedUser = JSON.parse(savedSessionRaw);
-      if (savedUser && savedUser.id) {
-        activateUserSession(savedUser);
-      } else {
-        if (viewportContainer) viewportContainer.classList.add('hidden');
-        if (authPortalScreen) authPortalScreen.classList.remove('hidden');
+  // 7. Écouteur des changements d'état d'authentification Supabase (OAuth redirect etc.)
+  if (supabaseClient) {
+    supabaseClient.auth.onAuthStateChange(async (event, session) => {
+      console.log('🌾 [Supabase Auth Event]', event, session?.user?.email);
+      if ((event === 'SIGNED_IN' || event === 'USER_UPDATED') && session?.user) {
+        await checkUserProfileAndProceed(session.user);
       }
-    } catch (e) {
+    });
+  }
+
+  // 8. INITIALISATION AU CHARGEMENT DE LA PAGE
+  async function initAppAuth() {
+    let sessionUser = null;
+    if (supabaseClient) {
+      try {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (session?.user) {
+          sessionUser = session.user;
+        }
+      } catch (e) {
+        console.warn('Session Supabase getSession :', e);
+      }
+    }
+
+    if (sessionUser) {
+      await checkUserProfileAndProceed(sessionUser);
+    } else {
+      const savedSessionRaw = localStorage.getItem('revolution_session_user');
+      if (savedSessionRaw) {
+        try {
+          const savedUser = JSON.parse(savedSessionRaw);
+          if (savedUser && savedUser.id) {
+            activateUserSession(savedUser);
+            return;
+          }
+        } catch (e) {}
+      }
       if (viewportContainer) viewportContainer.classList.add('hidden');
       if (authPortalScreen) authPortalScreen.classList.remove('hidden');
     }
-  } else {
-    // AUCUNE SESSION : Le visiteur DOIT créer un compte ou se connecter
-    if (viewportContainer) viewportContainer.classList.add('hidden');
-    if (authPortalScreen) authPortalScreen.classList.remove('hidden');
   }
+
+  initAppAuth();
 
   // 7. Test/Vérification tiroir ouvert si demandé via paramètre URL
   if (urlParams.get('open_drawer') === '1') {
