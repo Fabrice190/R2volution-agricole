@@ -294,6 +294,15 @@ Depuis la version 2.9, l'application est entièrement Full Stack connectée au p
 - **Verrouillage du défilement arrière-plan** :
   - La classe `body.drawer-open` applique `overflow: hidden !important;` pour empêcher la page sous-jacente de défiler quand le menu est ouvert.
 
+### L. Suppression du Clignotement au Chargement & Écran Splash (v4.2)
+- **Zéro Clignotement (Anti-FOUC)** :
+  - Le portail de connexion (`#authPortalScreen`) et le tableau de bord (`#viewportContainer`) sont masqués par défaut (`class="hidden"`).
+  - Un écran de chargement élégant (`#appLoadingScreen`) arborant le logo officiel Révolution Agricole et une barre animée s'affiche instantanément dès le premier octet HTML.
+- **Résolution Asynchrone de Session** :
+  - L'application attend l'évaluation de `supabase.auth.getSession()` :
+    - Si une session utilisateur valide existe : transition directe vers le tableau de bord sans jamais afficher le portail d'authentification.
+    - S'il n'y a pas de session : bascule immédiate vers le portail de connexion et masquage de l'écran de chargement.
+
 ---
 
-*Fin du document de spécification système — Version 4.1 • Révolution Agricole Burkina Faso.*
+*Fin du document de spécification système — Version 4.2 • Révolution Agricole Burkina Faso.*

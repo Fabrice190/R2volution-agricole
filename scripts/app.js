@@ -2254,6 +2254,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Masquer le tableau de bord et afficher le portail d'authentification
     const authPortalScreen = document.getElementById('authPortalScreen');
+    const loadingScreen = document.getElementById('appLoadingScreen');
+    if (loadingScreen) loadingScreen.classList.add('hidden');
     if (viewportContainer) viewportContainer.classList.add('hidden');
     if (authPortalScreen) {
       authPortalScreen.classList.remove('hidden');
@@ -2553,6 +2555,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Si le profil n'existe pas ou n'est pas encore complété (is_onboarded false ou sans téléphone)
     if (!profile || !profile.is_onboarded || !profile.phone) {
       if (authPortalScreen) authPortalScreen.classList.add('hidden');
+      const loadingScreen = document.getElementById('appLoadingScreen');
+      if (loadingScreen) loadingScreen.classList.add('hidden');
       const googleName = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || '';
       openOnboardingModal({
         id: user.id,
@@ -2644,6 +2648,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Masquage du portail et affichage du tableau de bord
     if (authPortalScreen) authPortalScreen.classList.add('hidden');
     if (viewportContainer) viewportContainer.classList.remove('hidden');
+    const loadingScreen = document.getElementById('appLoadingScreen');
+    if (loadingScreen) loadingScreen.classList.add('hidden');
 
     currentProfileKey = pKey;
     currentExpenseTotal = 0;
@@ -2808,6 +2814,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 8. INITIALISATION AU CHARGEMENT DE LA PAGE
   async function initAppAuth() {
+    const loadingScreen = document.getElementById('appLoadingScreen');
+    function hideLoadingScreen() {
+      if (loadingScreen) {
+        loadingScreen.classList.add('hidden');
+      }
+    }
+
     let sessionUser = null;
     if (supabaseClient) {
       try {
@@ -2822,19 +2835,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (sessionUser) {
       await checkUserProfileAndProceed(sessionUser);
+      hideLoadingScreen();
     } else {
       const savedSessionRaw = localStorage.getItem('revolution_session_user');
       if (savedSessionRaw) {
         try {
           const savedUser = JSON.parse(savedSessionRaw);
           if (savedUser && savedUser.id) {
-            activateUserSession(savedUser);
+            await activateUserSession(savedUser);
+            hideLoadingScreen();
             return;
           }
         } catch (e) {}
       }
       if (viewportContainer) viewportContainer.classList.add('hidden');
       if (authPortalScreen) authPortalScreen.classList.remove('hidden');
+      hideLoadingScreen();
     }
   }
 
