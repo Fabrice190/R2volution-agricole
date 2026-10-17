@@ -1104,8 +1104,8 @@ document.addEventListener('DOMContentLoaded', () => {
               </div>
               <div style="background: #FFF; border: 1px solid #E3ECE0; border-radius: 10px; padding: 8px 10px;">
                 <span style="font-size: 10.5px; color: #7C8781; display: block;">💨 VENT & RAFALES</span>
-                <strong style="font-size: 14px; color: #1E2822;">${w.current.windSpeed} km/h</strong>
-                <span style="font-size: 10px; color: #7C8781; display: block;">${w.current.windDirection}</span>
+                <strong style="font-size: 12px; color: #1E2822; display: block; line-height: 1.35;">Vent ${w.current.windSpeed} km/h • Rafales ${w.daily[0]?.gustsMax || w.current.gusts} km/h</strong>
+                <span style="font-size: 10px; color: #7C8781; display: block; margin-top: 2px;">Direction : ${w.current.windDirection}</span>
               </div>
               <div style="background: #FFF; border: 1px solid #E3ECE0; border-radius: 10px; padding: 8px 10px;">
                 <span style="font-size: 10.5px; color: #7C8781; display: block;">🌧️ PLUIE ESTIMÉE</span>
@@ -1153,19 +1153,8 @@ document.addEventListener('DOMContentLoaded', () => {
           <!-- Prévisions 7 jours en liste mobile -->
           <h4 style="font-size: 13.5px; font-weight: 800; color: #1E2822; margin: 0 0 8px;">📅 Prévisions sur 7 jours</h4>
           <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px;">
-            ${(w.daily || []).map((d) => {
-              let recomClass = 'recom-ok';
-              let recomText = '✅ Travaux favorables';
-              if (d.rainSum > 20 || d.rainProb >= 70) {
-                recomClass = 'recom-rain';
-                recomText = '🚫 Suspendre irrigation';
-              } else if (d.tempMax >= 40) {
-                recomClass = 'recom-heat';
-                recomText = '🔥 Arrosage matinal / soir';
-              } else if (d.gustsMax >= 40 || d.windMax >= 35) {
-                recomClass = 'recom-wind';
-                recomText = '💨 Éviter pulvérisations';
-              }
+            ${(w.daily || []).map((d, idx) => {
+              const badge = computeForecastDayBadge(d, idx, interp);
 
               return `
                 <div style="background: #FFF; border: 1px solid #E6EAE3; border-radius: 12px; padding: 10px 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
@@ -1179,8 +1168,8 @@ document.addEventListener('DOMContentLoaded', () => {
                   <div style="text-align: right;">
                     <div style="font-size: 13px; font-weight: 800; color: #1E2822;">${d.tempMax}° / <small style="color: #7C8781;">${d.tempMin}°</small></div>
                     <span style="font-size: 10.5px; font-weight: 700; color: ${d.rainProb >= 40 ? '#0A66C2' : '#2E7D32'};">Pluie ${d.rainProb}% (${d.rainSum}mm)</span>
-                    <div style="margin-top: 2px;">
-                      <span class="badge-agri-recom ${recomClass}" style="display: inline-block; font-size: 9px; padding: 1px 5px;">${recomText}</span>
+                    <div style="margin-top: 3px;">
+                      <span class="badge-agri-recom ${badge.badgeClass}" style="display: inline-block; font-size: 9.5px; padding: 2px 7px;">${badge.text}</span>
                     </div>
                   </div>
                 </div>
@@ -2988,14 +2977,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // CHALEUR
     if (tempMax >= 40) {
-      redReasons.push('très forte chaleur');
+      redReasons.push(`forte chaleur (${tempMax} °C)`);
       adviceList.push({
         icon: '🔥',
         category: 'Chaleur',
         text: 'Très forte chaleur : arrosez matin et soir, paillez le sol, protégez les jeunes plants.'
       });
     } else if (tempMax >= 35 && tempMax <= 39) {
-      orangeReasons.push(`forte chaleur (${tempMax} °C)`);
+      orangeReasons.push(`chaleur (${tempMax} °C)`);
       adviceList.push({
         icon: '🌡️',
         category: 'Chaleur',
@@ -3101,7 +3090,53 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // 3. SYNTHÈSE VOCALE (speechSynthesis)
+  // 3. BADGES DES PRÉVISIONS (Harmonisés avec « Ce que ça veut dire pour vous »)
+  function computeForecastDayBadge(day, idx, todayInterp) {
+    // Règle 1 : Aujourd'hui (idx === 0) doit avoir la même couleur et statut que l'encadré
+    if (idx === 0 && todayInterp) {
+      const lvl = todayInterp.level; // 'green', 'orange', 'red'
+      let text = 'Travaux favorables';
+      if (lvl === 'red') text = 'Journée difficile';
+      else if (lvl === 'orange') text = 'À surveiller';
+      return {
+        level: lvl,
+        text: text,
+        badgeClass: `recom-${lvl}`
+      };
+    }
+
+    const rainSum = Number(day?.rainSum ?? 0);
+    const rainProb = Number(day?.rainProb ?? 0);
+    const tempMax = Number(day?.tempMax ?? 30);
+    const gusts = Number(day?.gustsMax ?? day?.windMax ?? 0);
+
+    // ROUGE : très forte pluie (≥ 30 mm), forte chaleur (≥ 40 °C), vent fort (≥ 40 km/h)
+    if (rainSum >= 30 || tempMax >= 40 || gusts >= 40) {
+      return {
+        level: 'red',
+        text: 'Journée difficile',
+        badgeClass: 'recom-red'
+      };
+    }
+
+    // ORANGE : bonne pluie (≥ 60 % ou ≥ 10 mm), chaleur (35–39 °C), vent gênant (25–39 km/h)
+    if (rainProb >= 60 || rainSum >= 10 || (tempMax >= 35 && tempMax <= 39) || (gusts >= 25 && gusts <= 39)) {
+      return {
+        level: 'orange',
+        text: 'À surveiller',
+        badgeClass: 'recom-orange'
+      };
+    }
+
+    // VERT : Travaux favorables
+    return {
+      level: 'green',
+      text: 'Travaux favorables',
+      badgeClass: 'recom-green'
+    };
+  }
+
+  // 4. SYNTHÈSE VOCALE (speechSynthesis)
   let activeWeatherSpeechBtn = null;
 
   function stopWeatherSpeech() {
@@ -3452,11 +3487,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const mHum = document.getElementById('meteoMetricHumidity');
     if (mHum) mHum.textContent = `${weatherRes.current.humidity} %`;
 
+    const gusts = today.gustsMax || weatherRes.current.gusts || 0;
     const mWind = document.getElementById('meteoMetricWind');
-    if (mWind) mWind.textContent = `${weatherRes.current.windSpeed} km/h • ${weatherRes.current.windDirection}`;
+    if (mWind) mWind.textContent = `Vent ${weatherRes.current.windSpeed} km/h • Rafales ${gusts} km/h`;
 
     const mGusts = document.getElementById('meteoMetricGusts');
-    if (mGusts) mGusts.textContent = `Rafales : ${today.gustsMax || weatherRes.current.gusts} km/h`;
+    if (mGusts) mGusts.textContent = `Direction : ${weatherRes.current.windDirection}`;
 
     const mRain = document.getElementById('meteoMetricRain');
     if (mRain) mRain.textContent = `${today.rainSum ?? 0} mm`;
@@ -3493,18 +3529,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const grid7 = document.getElementById('meteoPage7DaysGrid');
     if (grid7 && weatherRes.daily) {
       grid7.innerHTML = weatherRes.daily.map((d, idx) => {
-        let recomClass = 'recom-ok';
-        let recomText = '✅ Travaux favorables';
-        if (d.rainSum > 20 || d.rainProb >= 70) {
-          recomClass = 'recom-rain';
-          recomText = '🚫 Suspendre irrigation';
-        } else if (d.tempMax >= 40) {
-          recomClass = 'recom-heat';
-          recomText = '🔥 Arrosage matinal / soir';
-        } else if (d.gustsMax >= 40 || d.windMax >= 35) {
-          recomClass = 'recom-wind';
-          recomText = '💨 Éviter pulvérisations';
-        }
+        const badge = computeForecastDayBadge(d, idx, interp);
 
         return `
           <div class="meteo-day-card ${idx === 0 ? 'today' : ''}">
@@ -3523,8 +3548,8 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="meteo-day-wind">
               💨 ${d.windMax} km/h
             </div>
-            <div class="badge-agri-recom ${recomClass}">
-              ${recomText}
+            <div class="badge-agri-recom ${badge.badgeClass}">
+              ${badge.text}
             </div>
           </div>
         `;
