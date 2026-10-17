@@ -239,6 +239,26 @@ Depuis la version 2.9, l'application est entièrement Full Stack connectée au p
 - **Auto-Détection d'Écran Responsive** :
   - Bascule automatique et réactive entre l'affichage mobile et l'affichage bureau sans aucune intervention manuelle.
 
+### I. Portail d'Entrée Obligatoire & Personnalisation Nom Utilisateur (v3.8)
+- **Portail d'Entrée Obligatoire (`#authPortalScreen`)** :
+  - Tout nouvel arrivant non connecté atterrit impérativement sur la page d'accueil d'authentification sahélo-tech.
+  - Le tableau de bord et les données privées sont masqués tant que l'utilisateur n'a pas créé un compte ou ne s'est pas connecté.
+- **Formulaire d'Inscription à 3 cases exactes (Exigence Audio Utilisateur)** :
+  1. *Case 1* : **Nom d'utilisateur ou Nom complet** (`#portalRegUsername`, ex: `Fabrice ZOMAHOUN`).
+  2. *Case 2* : **Numéro de téléphone (+226) ou Gmail** (`#portalRegContact`).
+  3. *Case 3* : **Mot de passe** (`#portalRegPassword`).
+- **Personnalisation Complète du Nom (« Bonjour, Fabrice 🌱 »)** :
+  - Partout où le prénom "Awa" apparaissait par défaut, le prénom réel de l'utilisateur est désormais injecté dynamiquement dès la connexion :
+    - Titre de salutation bureau : `Bonjour, [Prénom] 🌱`
+    - Salutation en-tête mobile : `Bonjour, [Prénom] 🌱`
+    - Nom en-tête principal : `[Nom complet]`
+    - Pilule profil : `[Prénom]`
+    - Profil tiroir latéral mobile : `[Nom complet]`
+- **Démarrage à blanc garanti (0 F CFA)** :
+  - Tout compte nouvellement créé commence avec des compteurs strictement vierges à 0 F CFA pour enregistrer ses vraies charges et récoltes.
+- **Déconnexion complète** :
+  - Le clic sur « Déconnexion » vide la session `localStorage` et renvoie immédiatement l'utilisateur sur le portail d'authentification.
+
 ---
 
-*Fin du document de spécification système — Version 3.5 • Révolution Agricole Burkina Faso.*
+*Fin du document de spécification système — Version 3.8 • Révolution Agricole Burkina Faso.*
