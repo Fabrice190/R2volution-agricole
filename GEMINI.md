@@ -328,6 +328,20 @@ Depuis la version 2.9, l'application est entièrement Full Stack connectée au p
   - Détection automatique d'expiration : les fiches dont la date limite est passée basculent automatiquement en `expire` et n'apparaissent plus dans la liste publique.
   - Modale détaillée (`#modalFinancementDetails`) avec récapitulatif complet, éligibilité et bouton « Postuler » ouvrant le lien officiel.
 
+### N. Vraie Date du Jour & Compte à Rebours Dynamique (v4.4)
+- **Horloge et Date Réelle en Direct (`updateDashboardDateTime`)** :
+  - Fin des dates statiques (« jeudi 16 octobre 2026 », « 08:30 »).
+  - Bureau : `#liveDateDisplay` calcule la date du jour en français complet (ex: « Samedi 17 octobre 2026 ») et `#liveTimeDisplay` affiche l'heure locale actualisée en temps réel (toutes les 10 secondes) avec le fuseau Ouagadougou.
+  - Mobile : sous la salutation, `.mobile-subdate` est dynamiquement formatée en abrégé selon le jour réel (ex: « sam. 17 oct. • Koudougou »).
+- **Comptes à Rebours Réels & Échéances Dynamiques** :
+  - Centralisation via `getDiffDaysFromToday(targetDateStr)` gérant rigoureusement le décalage horaire local et UTC minuit.
+  - Carte 4 Dashboard (« Opportunités ouvertes ») : le badge calcule le nombre réel d'opportunités clôturant dans `≤ 7 jours`, ou affiche le compte à rebours vers la prochaine clôture (`⏳ Prochaine dans X j`).
+  - Section « Échéances » du tableau de bord (Bureau et Mobile) : les fiches réelles de Supabase s'affichent avec leur compte à rebours dynamique (`Aujourd'hui`, `Demain`, `Dans X j`), avec pulsation visuelle d'alerte et ouverture directe des détails au clic.
+  - Pages Financements (Desktop & Mobile) : les badges clignotants `⏳ Clôture dans X jours` et l'auto-expiration s'appuient sur la vraie date du jour.
+- **Modales d'Enregistrement de Transactions** :
+  - Initialisation automatique sur la date réelle d'aujourd'hui (`new Date()`).
+  - Puces rapides (« Aujourd'hui », « Hier », « Avant-hier ») calculées dynamiquement avec les vraies dates relatives.
+
 ---
 
-*Fin du document de spécification système — Version 4.3 • Révolution Agricole Burkina Faso.*
+*Fin du document de spécification système — Version 4.4 • Révolution Agricole Burkina Faso.*

@@ -1392,6 +1392,12 @@ body.show-proto-bar .sidebar {
 .badge-success { background-color: #EAF4E6; color: var(--primary-700); }
 .badge-info    { background-color: #EEF5FD; color: #1E6FD9; }
 .badge-neutral { background-color: #F0F3EF; color: var(--text-muted); }
+.deadline-badge.badge-urgent-pulse {
+  background-color: #FFF1F0;
+  color: #CF1322;
+  border: 1px solid #FFA39E;
+  animation: pulseUrgent 2s infinite ease-in-out;
+}
 
 /* ==================== 7. GRILLE 2 : TABLEAU CYCLES & MÉTÉO ==================== */
 .secondary-dashboard-grid {

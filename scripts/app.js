@@ -483,6 +483,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const navItemPricing = document.getElementById('navItemPricing');
   const greetingTitle = document.getElementById('greetingTitle');
   const greetingSubtitle = document.getElementById('greetingSubtitle');
+  const liveDateDisplay = document.getElementById('liveDateDisplay');
+  const liveTimeDisplay = document.getElementById('liveTimeDisplay');
   const navGroupExploitation = document.getElementById('navGroupExploitation');
   const navGroupAdmin = document.getElementById('navGroupAdmin');
   const mainChartTitle = document.getElementById('mainChartTitle');
@@ -556,6 +558,180 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnToastClose = document.getElementById('btnToastClose');
 
   // ==========================================
+  // GESTION TEMPS RÉEL : VRAIE DATE & COMPTE À REBOURS
+  // ==========================================
+  const MONTH_SHORT_FR = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
+
+  function parseLocalDate(dateStr) {
+    if (!dateStr) return null;
+    if (dateStr instanceof Date) return dateStr;
+    const cleanStr = String(dateStr).split('T')[0].trim();
+    const parts = cleanStr.split('-');
+    if (parts.length === 3) {
+      const year = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10) - 1;
+      const day = parseInt(parts[2], 10);
+      return new Date(year, month, day);
+    }
+    return new Date(dateStr);
+  }
+
+  function getDiffDaysFromToday(targetDateStr) {
+    const target = parseLocalDate(targetDateStr);
+    if (!target || isNaN(target.getTime())) return null;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    target.setHours(0, 0, 0, 0);
+
+    const diffMs = target.getTime() - today.getTime();
+    return Math.round(diffMs / (1000 * 60 * 60 * 24));
+  }
+
+  function formatDaysLeftBadge(diffDays) {
+    if (diffDays === 0) return "aujourd'hui";
+    if (diffDays === 1) return "1 jour";
+    return `${diffDays} j`;
+  }
+
+  function updateDashboardDateTime() {
+    const now = new Date();
+
+    // 1. Date Bureau en français (ex: "Samedi 17 octobre 2026")
+    if (liveDateDisplay) {
+      const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+      const fullDate = now.toLocaleDateString('fr-FR', options);
+      liveDateDisplay.textContent = fullDate.charAt(0).toUpperCase() + fullDate.slice(1);
+    }
+
+    // 2. Heure Bureau en direct (ex: "13:10 • Ouagadougou")
+    if (liveTimeDisplay) {
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      liveTimeDisplay.textContent = `${hours}:${minutes} • Ouagadougou`;
+    }
+
+    // 3. Date Mobile sous la salutation
+    const mobileSubdateElements = document.querySelectorAll('.mobile-subdate');
+    if (mobileSubdateElements.length > 0) {
+      const optionsShort = { weekday: 'short', day: 'numeric', month: 'short' };
+      const shortDate = now.toLocaleDateString('fr-FR', optionsShort);
+      const loc = (PROFILES_DATA[currentProfileKey]?.location || 'Koudougou').split('(')[0].trim();
+      mobileSubdateElements.forEach(el => {
+        el.textContent = `${shortDate} • ${loc}`;
+      });
+    }
+  }
+
+  function getDashboardDeadlines() {
+    const deadlines = [];
+    const published = cachedFinancements.filter(f => f.statut === 'publie');
+
+    // 1. Ajouter les opportunités vérifiées de Supabase
+    published.forEach(f => {
+      if (f.date_limite) {
+        const diffDays = getDiffDaysFromToday(f.date_limite);
+        if (diffDays !== null && diffDays >= 0) {
+          const target = parseLocalDate(f.date_limite);
+          let badgeText = '';
+          let badgeClass = 'badge-neutral';
+          if (diffDays === 0) {
+            badgeText = "Aujourd'hui";
+            badgeClass = 'badge-urgent-pulse';
+          } else if (diffDays === 1) {
+            badgeText = 'Demain';
+            badgeClass = 'badge-warning';
+          } else if (diffDays <= 7) {
+            badgeText = `Dans ${diffDays} j`;
+            badgeClass = 'badge-warning';
+          } else {
+            badgeText = `${target.getDate()} ${MONTH_SHORT_FR[target.getMonth()]}`;
+            badgeClass = 'badge-neutral';
+          }
+
+          deadlines.push({
+            id: f.id,
+            type: 'financement',
+            title: f.titre,
+            meta: `${f.type ? f.type.charAt(0).toUpperCase() + f.type.slice(1) : 'Subvention'} • ${f.organisme}`,
+            badge: badgeText,
+            badgeClass: badgeClass,
+            icon: 'amber',
+            diffDays: diffDays
+          });
+        }
+      }
+    });
+
+    // 2. Tâches agronomiques / Cycles culturaux avec compte à rebours réel
+    deadlines.push({
+      type: 'agri',
+      title: 'Récolte Tomate Mongal (0,5 ha)',
+      meta: 'Parcelle P2 • Récolte estimée',
+      badge: 'Dans 3 j',
+      badgeClass: 'badge-success',
+      icon: 'green',
+      diffDays: 3
+    });
+    deadlines.push({
+      type: 'agri',
+      title: 'Irrigation & purin de neem',
+      meta: 'Parcelle P1 (Oignon violet)',
+      badge: 'Dans 5 j',
+      badgeClass: 'badge-info',
+      icon: 'blue',
+      diffDays: 5
+    });
+
+    // Trier par échéance la plus proche
+    deadlines.sort((a, b) => a.diffDays - b.diffDays);
+    return deadlines.slice(0, 4);
+  }
+
+  function renderDashboardDeadlines() {
+    if (!deadlinesList) return;
+    const items = getDashboardDeadlines();
+
+    if (items.length === 0) {
+      deadlinesList.innerHTML = `
+        <div class="widget-empty-state" style="padding: 16px; text-align: center;">
+          <span style="font-size: 20px;">✓</span>
+          <p style="font-size: 12px; color: #6C7A72; margin: 4px 0 0;">Aucune échéance urgente pour le moment.</p>
+        </div>
+      `;
+      return;
+    }
+
+    deadlinesList.innerHTML = items.map(item => `
+      <div class="deadline-item" data-id="${item.id || ''}" data-type="${item.type}" style="cursor: ${item.type === 'financement' ? 'pointer' : 'default'};">
+        <div class="deadline-icon-pill icon-${item.icon}">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+          </svg>
+        </div>
+        <div class="deadline-info">
+          <div class="deadline-title">${item.title}</div>
+          <div class="deadline-meta">${item.meta}</div>
+        </div>
+        <div class="deadline-badge ${item.badgeClass}">${item.badge}</div>
+      </div>
+    `).join('');
+
+    // Permettre l'accès direct aux détails de l'opportunité depuis la liste des échéances
+    deadlinesList.querySelectorAll('.deadline-item[data-type="financement"]').forEach(el => {
+      el.addEventListener('click', () => {
+        const id = el.getAttribute('data-id');
+        const found = cachedFinancements.find(f => String(f.id) === String(id));
+        if (found) {
+          openFinancementDetailsModal(found);
+        } else {
+          window.location.hash = '#opportunites';
+        }
+      });
+    });
+  }
+
+  // ==========================================
   // FONCTION : RENDU DU PROFIL SÉLECTIONNÉ
   // ==========================================
   function renderProfile(key) {
@@ -594,10 +770,11 @@ document.addEventListener('DOMContentLoaded', () => {
       else headerActionLabelShort.textContent = '+ Action';
     }
 
-    // 3. Salutation personnalisée garantie (ex: Bonjour, Fabrice)
+    // 3. Salutation personnalisée garantie (ex: Bonjour, Fabrice) & Horloge temps réel
     const userFirstName = data.name ? data.name.trim().split(' ')[0] : 'Exploitant';
     greetingTitle.innerHTML = `Bonjour, ${userFirstName} <span class="greeting-emoji">🌱</span>`;
     greetingSubtitle.textContent = data.subtitle || 'Voici l\'essentiel pour votre exploitation aujourd\'hui.';
+    updateDashboardDateTime();
 
     // 4. Gestion de la visibilité des menus selon rôles
     if (data.isAdmin) {
@@ -653,23 +830,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (mainChartTitle) mainChartTitle.textContent = data.chartTitle;
     if (tableSectionTitle) tableSectionTitle.textContent = data.tableTitle;
 
-    // 7. Échéances
-    if (deadlinesList) {
-      deadlinesList.innerHTML = data.deadlines.map(item => `
-        <div class="deadline-item">
-          <div class="deadline-icon-pill icon-${item.icon}">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-            </svg>
-          </div>
-          <div class="deadline-info">
-            <div class="deadline-title">${item.title}</div>
-            <div class="deadline-meta">${item.meta}</div>
-          </div>
-          <div class="deadline-badge ${item.badge.includes('Urgent') || item.badge.includes('Dans 4 j') ? 'badge-warning' : 'badge-success'}">${item.badge}</div>
-        </div>
-      `).join('');
-    }
+    // 7. Échéances dynamiques et comptes à rebours réels
+    renderDashboardDeadlines();
 
     // 8. Tableau de données contextuel
     if (cyclesDataTable) {
@@ -816,10 +978,10 @@ document.addEventListener('DOMContentLoaded', () => {
             <p style="font-size: 12px; color: #7C8781; margin: 0;">Essayez de sélectionner « Tous »</p>
           </div>
         ` : filtered.map(item => {
-          const dl = new Date(item.date_limite);
-          const diffDays = Math.ceil((dl - today) / (1000 * 60 * 60 * 24));
-          const formattedDate = dl.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
-          const isUrgent = diffDays >= 0 && diffDays <= 7;
+          const diffDays = getDiffDaysFromToday(item.date_limite);
+          const dl = parseLocalDate(item.date_limite);
+          const formattedDate = dl ? dl.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : (item.date_limite || '');
+          const isUrgent = diffDays !== null && diffDays >= 0 && diffDays <= 7;
           const typeClass = (item.type || 'subvention').toLowerCase().replace(/[\s']/g, '-');
 
           return `
@@ -836,7 +998,7 @@ document.addEventListener('DOMContentLoaded', () => {
               </div>
               <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #F0F2EE; padding-top: 8px; font-size: 11.5px;">
                 <span style="color: #6C7A72;">Clôture : ${formattedDate}</span>
-                ${isUrgent ? `<span class="badge-urgent-closing" style="font-size: 10px; padding: 1px 6px;">⏳ Clôture dans ${diffDays === 0 ? "aujourd'hui" : diffDays + " j"}</span>` : ''}
+                ${isUrgent ? `<span class="badge-urgent-closing" style="font-size: 10px; padding: 1px 6px;">⏳ Clôture dans ${formatDaysLeftBadge(diffDays)}</span>` : ''}
               </div>
               <div style="margin-top: 8px; text-align: right;">
                 <span style="font-size: 11.5px; font-weight: 700; color: #1E5E2A;">Voir les détails & Postuler →</span>
@@ -1171,7 +1333,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <!-- Salutation -->
         <div>
           <h2 class="mobile-greeting">Bonjour, ${data.name.split(' ')[0]} ${isPro ? '<span class="user-badge-pro" style="font-size: 10px; vertical-align: middle;">⭐ PRO</span>' : '<span class="greeting-emoji">🌱</span>'}</h2>
-          <p class="mobile-subdate">jeu. 16 oct. • ${data.location.split('(')[0]}</p>
+          <p class="mobile-subdate">${(new Date()).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })} • ${data.location.split('(')[0]}</p>
         </div>
 
         <!-- 1. MÉTÉO EN PREMIER (Selon spec : info consultée chaque matin) -->
@@ -1206,11 +1368,11 @@ document.addEventListener('DOMContentLoaded', () => {
         <div>
           <div class="mobile-section-header">
             <h4>Échéances urgentes</h4>
-            <a href="#">Voir tout</a>
+            <a href="#toutes-echeances" class="card-link-action" id="linkMobileAllDeadlines">Voir tout</a>
           </div>
           <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;">
-            ${data.deadlines.slice(0, 2).map(d => `
-              <div class="deadline-item" style="padding: 10px;">
+            ${getDashboardDeadlines().slice(0, 3).map(d => `
+              <div class="deadline-item mobile-deadline-card" data-id="${d.id || ''}" data-type="${d.type}" style="padding: 10px; cursor: ${d.type === 'financement' ? 'pointer' : 'default'};">
                 <div class="deadline-icon-pill icon-${d.icon}" style="width: 32px; height: 32px;">
                   <span style="font-size: 14px;">⏱</span>
                 </div>
@@ -1218,7 +1380,7 @@ document.addEventListener('DOMContentLoaded', () => {
                   <div class="deadline-title" style="font-size: 12.5px;">${d.title}</div>
                   <div class="deadline-meta" style="font-size: 11px;">${d.meta}</div>
                 </div>
-                <div class="deadline-badge badge-warning" style="font-size: 10px;">${d.badge}</div>
+                <div class="deadline-badge ${d.badgeClass}" style="font-size: 10px;">${d.badge}</div>
               </div>
             `).join('')}
           </div>
@@ -1414,6 +1576,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const id = card.getAttribute('data-id');
         const item = cachedFinancements.find(f => String(f.id) === String(id));
         if (item) openFinancementDetailsModal(item);
+      });
+    });
+
+    // Événements clic sur échéances opportunités mobiles
+    document.querySelectorAll('.mobile-deadline-card[data-type="financement"]').forEach(card => {
+      card.addEventListener('click', () => {
+        const id = card.getAttribute('data-id');
+        const item = cachedFinancements.find(f => String(f.id) === String(id));
+        if (item) openFinancementDetailsModal(item);
+        else window.location.hash = '#opportunites';
       });
     });
 
@@ -1899,10 +2071,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const calBtnClose = document.getElementById('calBtnClose');
   const dateChipBtns = document.querySelectorAll('.date-chip-btn');
 
-  // État du calendrier
-  let calYear = 2026;
-  let calMonth = 9; // 0-indexed : 9 = Octobre
-  let selectedDateObj = new Date(2026, 9, 16);
+  // État du calendrier initialisé sur la vraie date du jour
+  const initDateNow = new Date();
+  let calYear = initDateNow.getFullYear();
+  let calMonth = initDateNow.getMonth(); // 0-indexed
+  let selectedDateObj = new Date(initDateNow.getFullYear(), initDateNow.getMonth(), initDateNow.getDate());
 
   // Noms des mois en français
   const MONTH_NAMES_FR = [
@@ -1954,7 +2127,8 @@ document.addEventListener('DOMContentLoaded', () => {
       cell.className = 'cal-day-cell';
       cell.textContent = day;
 
-      const isToday = (calYear === 2026 && calMonth === 9 && day === 16);
+      const realToday = new Date();
+      const isToday = (calYear === realToday.getFullYear() && calMonth === realToday.getMonth() && day === realToday.getDate());
       if (isToday) cell.classList.add('today');
 
       const isSelected = (
@@ -2037,9 +2211,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (calBtnToday) {
     calBtnToday.addEventListener('click', () => {
-      selectedDateObj = new Date(2026, 9, 16);
-      calYear = 2026;
-      calMonth = 9;
+      const today = new Date();
+      selectedDateObj = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      calYear = today.getFullYear();
+      calMonth = today.getMonth();
       applySelectedDate(selectedDateObj);
       closeCalendarPopover();
     });
@@ -2059,6 +2234,42 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   });
+
+  // Initialisation dynamique des puces de date (Aujourd'hui, Hier, Avant-hier)
+  function initDynamicDateChips() {
+    const now = new Date();
+    const todayIso = formatIsoDate(now);
+
+    const yest = new Date(now);
+    yest.setDate(yest.getDate() - 1);
+    const yestIso = formatIsoDate(yest);
+
+    const bYest = new Date(now);
+    bYest.setDate(bYest.getDate() - 2);
+    const bYestIso = formatIsoDate(bYest);
+
+    const chips = document.querySelectorAll('.date-quick-chips .date-chip-btn[data-date]');
+    if (chips.length >= 3) {
+      chips[0].setAttribute('data-date', todayIso);
+      chips[0].textContent = `🟢 Aujourd'hui (${now.getDate()} ${MONTH_SHORT_FR[now.getMonth()]})`;
+      chips[0].classList.add('active');
+
+      chips[1].setAttribute('data-date', yestIso);
+      chips[1].textContent = `Hier (${yest.getDate()} ${MONTH_SHORT_FR[yest.getMonth()]})`;
+      chips[1].classList.remove('active');
+
+      chips[2].setAttribute('data-date', bYestIso);
+      chips[2].textContent = `Avant-hier (${bYest.getDate()} ${MONTH_SHORT_FR[bYest.getMonth()]})`;
+      chips[2].classList.remove('active');
+    }
+
+    if (revenueDateInput) revenueDateInput.value = todayIso;
+    if (dateFormattedText) dateFormattedText.textContent = formatFrenchDate(now);
+
+    const expDate = document.getElementById('expenseDate');
+    if (expDate) expDate.value = todayIso;
+  }
+  initDynamicDateChips();
 
   // Bascule Onglets Cycle de parcelle / Saisie libre (Besoin utilisateur)
   function setCropMode(isCustom) {
@@ -2510,24 +2721,44 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const statCard4Footer = document.querySelector('#statCard4 .stat-footer');
     if (statCard4Footer) {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
       let closingSoon = 0;
+      let minDiffDays = Infinity;
       published.forEach(p => {
         if (p.date_limite) {
-          const dl = new Date(p.date_limite);
-          const diffDays = Math.ceil((dl - today) / (1000 * 60 * 60 * 24));
-          if (diffDays >= 0 && diffDays <= 7) closingSoon++;
+          const diffDays = getDiffDaysFromToday(p.date_limite);
+          if (diffDays !== null && diffDays >= 0) {
+            if (diffDays <= 7) closingSoon++;
+            if (diffDays < minDiffDays) minDiffDays = diffDays;
+          }
         }
       });
 
-      statCard4Footer.innerHTML = `
-        <span class="urgent-pill">
-          <span class="clock-icon">⏳</span> ${closingSoon} clôture${closingSoon > 1 ? 'nt' : ''} &lt; 7 j
-        </span>
-        <span class="comparison-text">Ministère & PReCA</span>
-      `;
+      if (closingSoon > 0) {
+        statCard4Footer.innerHTML = `
+          <span class="urgent-pill">
+            <span class="clock-icon">⏳</span> ${closingSoon} clôture${closingSoon > 1 ? 'nt' : ''} &lt; 7 j
+          </span>
+          <span class="comparison-text">Ministère & PReCA</span>
+        `;
+      } else if (minDiffDays < Infinity) {
+        statCard4Footer.innerHTML = `
+          <span class="urgent-pill" style="background: #EAF4E6; color: #1E5E2A; border-color: #D2E7CC;">
+            <span class="clock-icon">⏳</span> Prochaine dans ${minDiffDays} j
+          </span>
+          <span class="comparison-text">Offres vérifiées</span>
+        `;
+      } else {
+        statCard4Footer.innerHTML = `
+          <span class="urgent-pill" style="background: #F4F6F2; color: #5B6660; border-color: #E6EAE3;">
+            <span>✓</span> Aucune urgence
+          </span>
+          <span class="comparison-text">À jour</span>
+        `;
+      }
     }
+
+    // Synchroniser les échéances dynamiques du tableau de bord
+    renderDashboardDeadlines();
   }
 
   // 4. Rendu de la grille Utilisateur (Desktop)
@@ -2557,14 +2788,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (emptyState) emptyState.classList.add('hidden');
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
     grid.innerHTML = filtered.map(item => {
-      const dl = new Date(item.date_limite);
-      const diffDays = Math.ceil((dl - today) / (1000 * 60 * 60 * 24));
-      const formattedDate = dl.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
-      const isUrgent = diffDays >= 0 && diffDays <= 7;
+      const diffDays = getDiffDaysFromToday(item.date_limite);
+      const dl = parseLocalDate(item.date_limite);
+      const formattedDate = dl ? dl.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : (item.date_limite || '');
+      const isUrgent = diffDays !== null && diffDays >= 0 && diffDays <= 7;
       const typeClass = (item.type || 'subvention').toLowerCase().replace(/[\s']/g, '-');
 
       return `
@@ -2587,7 +2815,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="fin-card-footer">
             <div class="fin-card-deadline">
               <span>Date limite : ${formattedDate}</span>
-              ${isUrgent ? `<span class="badge-urgent-closing">⏳ Clôture dans ${diffDays === 0 ? "aujourd'hui" : diffDays + " j"}</span>` : ''}
+              ${isUrgent ? `<span class="badge-urgent-closing">⏳ Clôture dans ${formatDaysLeftBadge(diffDays)}</span>` : ''}
             </div>
             <button type="button" class="fin-card-link-btn">Voir les détails →</button>
           </div>
@@ -2753,18 +2981,16 @@ document.addEventListener('DOMContentLoaded', () => {
     if (dTitre) dTitre.textContent = item.titre;
     if (dMontant) dMontant.textContent = item.montant || 'Non spécifié';
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const dl = new Date(item.date_limite);
-    const diffDays = Math.ceil((dl - today) / (1000 * 60 * 60 * 24));
+    const diffDays = getDiffDaysFromToday(item.date_limite);
+    const dl = parseLocalDate(item.date_limite);
 
     if (dDateLimite) {
-      dDateLimite.textContent = dl.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+      dDateLimite.textContent = dl ? dl.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : (item.date_limite || '');
     }
 
     if (dUrgent) {
-      if (diffDays >= 0 && diffDays <= 7) {
-        dUrgent.textContent = `⏳ Clôture dans ${diffDays === 0 ? "aujourd'hui" : diffDays + " j"}`;
+      if (diffDays !== null && diffDays >= 0 && diffDays <= 7) {
+        dUrgent.textContent = `⏳ Clôture dans ${formatDaysLeftBadge(diffDays)}`;
         dUrgent.style.display = 'inline-block';
       } else {
         dUrgent.style.display = 'none';
@@ -3831,6 +4057,9 @@ document.addEventListener('DOMContentLoaded', () => {
       hideLoadingScreen();
     }
   }
+
+  updateDashboardDateTime();
+  setInterval(updateDashboardDateTime, 10000);
 
   initAppAuth();
 
