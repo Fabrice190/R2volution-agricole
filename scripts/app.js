@@ -1108,6 +1108,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if (drawer && overlay) {
         drawer.classList.add('open');
         overlay.classList.add('open');
+        document.body.classList.add('drawer-open');
+        document.body.style.overflow = 'hidden';
       }
     }
 
@@ -1115,19 +1117,27 @@ document.addEventListener('DOMContentLoaded', () => {
       if (drawer && overlay) {
         drawer.classList.remove('open');
         overlay.classList.remove('open');
+        document.body.classList.remove('drawer-open');
+        document.body.style.overflow = '';
       }
     }
 
     if (btnOpen) btnOpen.addEventListener('click', openMobileDrawer);
     if (avatarOpen) avatarOpen.addEventListener('click', openMobileDrawer);
     if (btnClose) btnClose.addEventListener('click', closeMobileDrawer);
-    if (overlay) overlay.addEventListener('click', closeMobileDrawer);
+    if (overlay) {
+      overlay.addEventListener('click', closeMobileDrawer);
+      overlay.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+      }, { passive: false });
+    }
 
-    // Fermer le tiroir au clic sur un élément de navigation
-    const drawerLinks = document.querySelectorAll('.mobile-drawer-link');
-    drawerLinks.forEach(link => {
-      link.addEventListener('click', closeMobileDrawer);
-    });
+    // Empêcher toute fermeture accidentelle lors du défilement ou clic à l'intérieur du menu
+    if (drawer) {
+      drawer.addEventListener('click', (e) => {
+        e.stopPropagation();
+      });
+    }
 
     const btnMobileLogout = document.getElementById('btnMobileLogout');
     if (btnMobileLogout) {
@@ -2225,6 +2235,8 @@ document.addEventListener('DOMContentLoaded', () => {
   async function performLogout() {
     currentProfileKey = 'guest';
     currentAuthUser = null;
+    document.body.classList.remove('drawer-open');
+    document.body.style.overflow = '';
 
     if (supabaseClient) {
       try {

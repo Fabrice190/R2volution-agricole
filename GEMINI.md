@@ -282,6 +282,18 @@ Depuis la version 2.9, l'application est entièrement Full Stack connectée au p
 - **Préservation Intacte du Mode Démo & Tarifs** :
   - Le lien d'aperçu démo rapide reste disponible pour les démonstrations (Awa Ouédraogo).
 
+### K. Ergonomie Tiroir Mobile Safari & Défilement Interne (v4.1)
+- **Hauteur dynamique 100dvh & Défilement fluide** :
+  - Le tiroir latéral `.mobile-drawer` est calibré en `100dvh` (`height: 100vh; height: 100dvh;`) avec `overscroll-behavior: contain`.
+  - Le conteneur interne `.mobile-drawer-nav` est défilable sans friction (`overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain;`).
+- **Visibilité garantie du bouton Déconnexion** :
+  - Marge basse de sécurité `padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 80px)` assurant que le bouton « Déconnexion » ne soit jamais masqué par la barre d'outils flottante de Safari sur iPhone ou Chrome sur Android.
+- **Suppression des fermetures accidentelles au toucher** :
+  - Suppression de la fermeture automatique lors du glissement ou toucher sur les liens de navigation.
+  - Le menu se ferme uniquement en appuyant sur la croix (`×`) ou en touchant l'overlay sombre à droite (`#mobileDrawerOverlay`).
+- **Verrouillage du défilement arrière-plan** :
+  - La classe `body.drawer-open` applique `overflow: hidden !important;` pour empêcher la page sous-jacente de défiler quand le menu est ouvert.
+
 ---
 
-*Fin du document de spécification système — Version 4.0 • Révolution Agricole Burkina Faso.*
+*Fin du document de spécification système — Version 4.1 • Révolution Agricole Burkina Faso.*

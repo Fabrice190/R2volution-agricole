@@ -2302,6 +2302,7 @@ body.show-proto-bar .sidebar {
   bottom: 0;
   left: 0;
   height: 100vh;
+  height: 100dvh;
   width: 82%;
   max-width: 320px;
   background-color: var(--surface);
@@ -2312,6 +2313,7 @@ body.show-proto-bar .sidebar {
   flex-direction: column;
   box-shadow: 10px 0 30px rgba(0, 0, 0, 0.35);
   overflow: hidden;
+  overscroll-behavior: contain;
 }
 
 .mobile-drawer.open {
@@ -2387,11 +2389,19 @@ body.show-proto-bar .sidebar {
 /* Navigation interne du drawer */
 .mobile-drawer-nav {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
-  padding: 16px 12px 24px;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  padding: 16px 12px calc(env(safe-area-inset-bottom, 0px) + 80px);
   display: flex;
   flex-direction: column;
   gap: 18px;
+}
+
+body.drawer-open {
+  overflow: hidden !important;
+  overscroll-behavior: none;
 }
 
 .mobile-drawer-nav .nav-section {
@@ -4526,7 +4536,10 @@ body.show-proto-bar .sidebar {
   /* 3. Tiroir latéral (Drawer) mobile plein écran ou fluide */
   .mobile-drawer {
     width: min(320px, 85vw) !important;
+    height: 100vh !important;
+    height: 100dvh !important;
     display: flex !important;
+    overscroll-behavior: contain;
   }
 
   .mobile-drawer-header .brand-text {
