@@ -742,6 +742,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!data) return;
 
     currentProfileKey = key;
+    userManualCommuneKey = null;
 
     // 1. Identité utilisateur
     const isPro = userSubscriptionStatus[key] || false;
@@ -932,8 +933,9 @@ document.addEventListener('DOMContentLoaded', () => {
       if (b) b.addEventListener('click', openPricingModal);
     }
 
-    // Rafraîchir systématiquement l'écran du simulateur mobile
+    // Rafraîchir systématiquement l'écran du simulateur mobile et la météo de la commune
     renderMobileView();
+    loadAndRenderWeather().catch(() => {});
   }
 
   // ==========================================
@@ -962,6 +964,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const alerts = computeWeatherAlerts(w.current, w.daily[0]);
     const topAlert = alerts.length > 0 ? alerts[0] : null;
     const miniDays = (w.daily || []).slice(0, 4).map(d => `${d.shortDay} ${d.tempMax}°`).join(' • ');
+    const interp = computeFarmerInterpretation(w.current, w.daily);
+    const weeklyAdvice = computeWeeklyAdvice(w.daily);
+    const speechSupported = ('speechSynthesis' in window);
 
     return `
       ${topAlert ? `
@@ -986,6 +991,37 @@ document.addEventListener('DOMContentLoaded', () => {
             <div style="font-size: 10.5px; color: #7C8781; margin-top: 2px;">Vent ${w.current.windSpeed} km/h</div>
           </div>
         </div>
+
+        <!-- Encadré Ce que ça veut dire pour vous (Mobile Dashboard) -->
+        <div class="weather-interpretation-box level-${interp.level}" style="margin: 8px 0; padding: 10px 12px;">
+          <div class="wi-header-row" style="margin-bottom: 6px;">
+            <div class="wi-title-wrap">
+              <span class="wi-status-light light-${interp.level}"></span>
+              <span class="wi-title" style="font-size: 11px;">Ce que ça veut dire pour vous</span>
+            </div>
+            ${speechSupported ? `
+              <button type="button" class="wi-listen-btn" id="btnListenMobileDashWeather" style="padding: 3px 8px; font-size: 10.5px;">
+                🔊 <span>Écouter</span>
+              </button>
+            ` : ''}
+          </div>
+          <div class="wi-headline" style="font-size: 12.5px; margin-bottom: 6px;">${interp.headline}</div>
+          <ul class="wi-advice-list" style="gap: 4px;">
+            ${interp.adviceList.map(a => `
+              <li class="wi-advice-item" style="font-size: 11.5px;">
+                <span class="wi-advice-icon">${a.icon}</span>
+                <span>${a.text}</span>
+              </li>
+            `).join('')}
+          </ul>
+        </div>
+
+        <!-- Conseil de la semaine (Mobile Dashboard) -->
+        <div class="weekly-advice-banner" style="margin: 6px 0 8px; padding: 6px 10px; font-size: 11px;">
+          <span class="wab-icon" style="font-size: 14px;">💡</span>
+          <div><strong>Conseil de la semaine :</strong> <span>${weeklyAdvice}</span></div>
+        </div>
+
         <div style="display: flex; justify-content: space-between; font-size: 11.5px; color: #5B6660; border-top: 1px solid #E6EAE3; padding-top: 6px; margin-top: 6px;">
           <span>${miniDays}</span>
           <span style="font-size: 10px; color: #1E5E2A; font-weight: 700;">Prévisions 7j →</span>
@@ -999,6 +1035,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const currentCommune = userManualCommuneKey || findCommuneKey();
     const alerts = w ? computeWeatherAlerts(w.current, w.daily[0]) : [];
     const topAlert = alerts.length > 0 ? alerts[0] : null;
+    const interp = w ? computeFarmerInterpretation(w.current, w.daily) : null;
+    const weeklyAdvice = w ? computeWeeklyAdvice(w.daily) : '';
+    const speechSupported = ('speechSynthesis' in window);
 
     return `
       <div>
@@ -1078,6 +1117,38 @@ document.addEventListener('DOMContentLoaded', () => {
               </div>
             </div>
           </div>
+
+          ${interp ? `
+            <!-- Encadré Ce que ça veut dire pour vous (Mobile Page) -->
+            <div class="weather-interpretation-box level-${interp.level}" style="margin: 10px 0 14px; padding: 12px 14px;">
+              <div class="wi-header-row">
+                <div class="wi-title-wrap">
+                  <span class="wi-status-light light-${interp.level}"></span>
+                  <span class="wi-title">Ce que ça veut dire pour vous</span>
+                </div>
+                ${speechSupported ? `
+                  <button type="button" class="wi-listen-btn" id="btnListenMobileMeteo">
+                    🔊 <span>Écouter</span>
+                  </button>
+                ` : ''}
+              </div>
+              <div class="wi-headline">${interp.headline}</div>
+              <ul class="wi-advice-list">
+                ${interp.adviceList.map(a => `
+                  <li class="wi-advice-item">
+                    <span class="wi-advice-icon">${a.icon}</span>
+                    <span>${a.text}</span>
+                  </li>
+                `).join('')}
+              </ul>
+            </div>
+
+            <!-- Conseil de la semaine (Mobile Page) -->
+            <div class="weekly-advice-banner" style="margin-bottom: 12px;">
+              <span class="wab-icon">💡</span>
+              <div><strong>Conseil de la semaine :</strong> <span>${weeklyAdvice}</span></div>
+            </div>
+          ` : ''}
 
           <!-- Prévisions 7 jours en liste mobile -->
           <h4 style="font-size: 13.5px; font-weight: 800; color: #1E2822; margin: 0 0 8px;">📅 Prévisions sur 7 jours</h4>
@@ -1877,6 +1948,24 @@ document.addEventListener('DOMContentLoaded', () => {
         loadAndRenderWeather(true);
       });
     }
+
+    const btnListenMobDash = document.getElementById('btnListenMobileDashWeather');
+    if (btnListenMobDash && cachedWeatherResult) {
+      const interp = computeFarmerInterpretation(cachedWeatherResult.current, cachedWeatherResult.daily);
+      btnListenMobDash.addEventListener('click', (e) => {
+        e.stopPropagation();
+        speakWeatherInterpretation(interp, btnListenMobDash);
+      });
+    }
+
+    const btnListenMobMeteo = document.getElementById('btnListenMobileMeteo');
+    if (btnListenMobMeteo && cachedWeatherResult) {
+      const interp = computeFarmerInterpretation(cachedWeatherResult.current, cachedWeatherResult.daily);
+      btnListenMobMeteo.addEventListener('click', (e) => {
+        e.stopPropagation();
+        speakWeatherInterpretation(interp, btnListenMobMeteo);
+      });
+    }
     } catch (err) {
       console.error('Erreur renderMobileView:', err);
       if (mobileAppMount) {
@@ -2294,6 +2383,8 @@ document.addEventListener('DOMContentLoaded', () => {
     'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
   ];
   const DAY_NAMES_FR = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
+  const SHORT_DAYS_FR = ['Dim.', 'Lun.', 'Mar.', 'Mer.', 'Jeu.', 'Ven.', 'Sam.'];
+  const SHORT_MONTHS_FR = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
 
   function formatFrenchDate(d) {
     const dayName = DAY_NAMES_FR[d.getDay()];
@@ -2747,16 +2838,16 @@ document.addEventListener('DOMContentLoaded', () => {
     'fada-ngourma': { name: "Fada N'Gourma", region: 'Est (Gourma)', lat: 12.06, lon: 0.36 }
   };
 
-  function findCommuneKey(locationStr) {
-    if (userManualCommuneKey && COMMUNE_COORDS[userManualCommuneKey]) {
-      return userManualCommuneKey;
-    }
-    let loc = locationStr;
+  function getProfileCommuneKey(pKey) {
+    const key = pKey || currentProfileKey;
+    let loc = PROFILES_DATA[key]?.location || '';
     if (!loc) {
-      loc = PROFILES_DATA[currentProfileKey]?.location || '';
+      try {
+        const saved = JSON.parse(localStorage.getItem('revolution_session_user') || '{}');
+        loc = saved.location || '';
+      } catch (e) {}
     }
-    if (!loc) return 'ouagadougou';
-    const clean = loc.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const clean = (loc || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
     if (clean.includes('koudougou')) return 'koudougou';
     if (clean.includes('bobo') || clean.includes('dioulasso')) return 'bobo-dioulasso';
     if (clean.includes('ouahigouya')) return 'ouahigouya';
@@ -2766,6 +2857,24 @@ document.addEventListener('DOMContentLoaded', () => {
     if (clean.includes('fada') || clean.includes('ngourma')) return 'fada-ngourma';
     if (clean.includes('ouaga')) return 'ouagadougou';
     return 'ouagadougou';
+  }
+
+  function findCommuneKey(locationStr) {
+    if (userManualCommuneKey && COMMUNE_COORDS[userManualCommuneKey]) {
+      return userManualCommuneKey;
+    }
+    if (locationStr) {
+      const clean = locationStr.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      if (clean.includes('koudougou')) return 'koudougou';
+      if (clean.includes('bobo') || clean.includes('dioulasso')) return 'bobo-dioulasso';
+      if (clean.includes('ouahigouya')) return 'ouahigouya';
+      if (clean.includes('dedougou')) return 'dedougou';
+      if (clean.includes('banfora')) return 'banfora';
+      if (clean.includes('kaya')) return 'kaya';
+      if (clean.includes('fada') || clean.includes('ngourma')) return 'fada-ngourma';
+      if (clean.includes('ouaga')) return 'ouagadougou';
+    }
+    return getProfileCommuneKey();
   }
 
   function getWindCompass(deg) {
@@ -2833,6 +2942,244 @@ document.addEventListener('DOMContentLoaded', () => {
     return alerts;
   }
 
+  // 1. « CE QUE ÇA VEUT DIRE POUR VOUS » — Interprétation agronomique simple
+  function computeFarmerInterpretation(current, daily) {
+    const today = (daily && daily[0]) || {};
+
+    const rainProb = Number(today.rainProb ?? 0);
+    const rainSum = Number(today.rainSum ?? 0);
+    const tempMax = Number(today.tempMax ?? (current?.temperature ?? 30));
+    const gustsMax = Number(today.gustsMax ?? (current?.gusts ?? 0));
+    const currentGusts = Number(current?.gusts ?? 0);
+    const humidity = Number(current?.humidity ?? 40);
+
+    const redReasons = [];
+    const orangeReasons = [];
+    const adviceList = [];
+
+    // PLUIE
+    if (rainSum >= 30) {
+      redReasons.push('très forte pluie');
+      adviceList.push({
+        icon: '🌧️',
+        category: 'Pluie',
+        text: 'Très forte pluie : protégez les semis et vérifiez que l\'eau s\'écoule bien.'
+      });
+    } else if (rainProb >= 60 || rainSum >= 10) {
+      orangeReasons.push('bonne pluie attendue');
+      adviceList.push({
+        icon: '🌧️',
+        category: 'Pluie',
+        text: 'Bonne pluie attendue : pas besoin d\'arroser. Ne traitez pas et n\'épandez pas d\'engrais juste avant la pluie.'
+      });
+    } else if ((rainProb >= 20 && rainProb <= 59) || (rainSum >= 1 && rainSum <= 9)) {
+      adviceList.push({
+        icon: '🌦️',
+        category: 'Pluie',
+        text: 'Petite pluie possible, pas assez pour remplacer l\'arrosage.'
+      });
+    } else {
+      adviceList.push({
+        icon: '☀️',
+        category: 'Pluie',
+        text: 'Pas de pluie attendue : prévoyez d\'arroser.'
+      });
+    }
+
+    // CHALEUR
+    if (tempMax >= 40) {
+      redReasons.push('très forte chaleur');
+      adviceList.push({
+        icon: '🔥',
+        category: 'Chaleur',
+        text: 'Très forte chaleur : arrosez matin et soir, paillez le sol, protégez les jeunes plants.'
+      });
+    } else if (tempMax >= 35 && tempMax <= 39) {
+      orangeReasons.push(`forte chaleur (${tempMax} °C)`);
+      adviceList.push({
+        icon: '🌡️',
+        category: 'Chaleur',
+        text: 'Il fera chaud : arrosez tôt le matin (avant 9 h) ou après 17 h.'
+      });
+    }
+
+    // VENT
+    const maxGust = Math.max(gustsMax, currentGusts);
+    if (maxGust >= 40) {
+      redReasons.push(`vent fort (rafales ${maxGust} km/h)`);
+      adviceList.push({
+        icon: '💨',
+        category: 'Vent',
+        text: 'Vent fort : ne pulvérisez pas, attachez les tuteurs et les bâches.'
+      });
+    } else if (maxGust >= 25 && maxGust <= 39) {
+      orangeReasons.push('vent gênant pour pulvériser');
+      adviceList.push({
+        icon: '💨',
+        category: 'Vent',
+        text: 'Vent : évitez de pulvériser les produits.'
+      });
+    }
+
+    // HUMIDITÉ
+    const isHumid2Days = humidity >= 80 || (daily && daily.length > 1 && (daily[0].rainProb >= 50 || humidity >= 75) && (daily[1].rainProb >= 50 || daily[1].rainSum >= 5));
+    if (humidity >= 80 || isHumid2Days) {
+      orangeReasons.push('temps humide');
+      adviceList.push({
+        icon: '💧',
+        category: 'Humidité',
+        text: 'Temps humide : surveillez les taches et moisissures sur les feuilles.'
+      });
+    }
+
+    // S'assurer d'avoir au moins 2 conseils
+    if (adviceList.length < 2) {
+      if (maxGust < 25) {
+        adviceList.push({
+          icon: '🌱',
+          category: 'Travaux',
+          text: 'Temps calme : conditions idéales pour le sarclage et l\'entretien.'
+        });
+      } else {
+        adviceList.push({
+          icon: '🚜',
+          category: 'Travaux',
+          text: 'Conditions favorables pour les travaux du sol.'
+        });
+      }
+    }
+
+    // Résolution du voyant et de la phrase
+    let level = 'green';
+    let headline = 'Bonne journée pour travailler au champ.';
+
+    if (redReasons.length > 0) {
+      level = 'red';
+      headline = `Journée difficile : ${redReasons.join(', ')}.`;
+    } else if (orangeReasons.length > 0) {
+      level = 'orange';
+      headline = `Journée à surveiller : ${orangeReasons.join(', ')}.`;
+    }
+
+    return {
+      level,
+      headline,
+      adviceList
+    };
+  }
+
+  // 2. CONSEIL DE LA SEMAINE
+  function computeWeeklyAdvice(daily) {
+    if (!daily || daily.length === 0) return 'Organisez vos travaux en fonction des prévisions quotidiennes.';
+
+    // Le meilleur jour pour traiter = pluie < 20 % et rafales < 25 km/h
+    const treatDays = [];
+    daily.slice(0, 7).forEach((d) => {
+      const pRain = Number(d.rainProb ?? 0);
+      const sRain = Number(d.rainSum ?? 0);
+      const gWind = Number(d.gustsMax ?? d.windMax ?? 0);
+      if (pRain < 20 && sRain < 1 && gWind < 25) {
+        treatDays.push(d.dayName.toLowerCase());
+      }
+    });
+
+    const totalRain = daily.reduce((sum, d) => sum + Number(d.rainSum || 0), 0);
+    const maxRainProb = Math.max(...daily.map(d => Number(d.rainProb || 0)));
+
+    if (treatDays.length >= 1 && treatDays.length <= 3) {
+      return `Meilleurs jours pour traiter : ${treatDays.join(' et ')} (pas de pluie, peu de vent).`;
+    } else if (treatDays.length > 3) {
+      if (totalRain < 1 && maxRainProb < 20) {
+        return 'Pas de pluie prévue cette semaine : organisez votre arrosage.';
+      }
+      return `Meilleurs jours pour traiter : ${treatDays.slice(0, 2).join(', ')} et ${treatDays[2]} (temps calme et sec).`;
+    } else {
+      if (totalRain >= 10 || maxRainProb >= 60) {
+        return 'Semaine pluvieuse attendue : évitez les traitements et surveillez l\'écoulement de l\'eau.';
+      }
+      return 'Vent fréquent cette semaine : surveillez les créneaux très calmes à l\'aube pour traiter.';
+    }
+  }
+
+  // 3. SYNTHÈSE VOCALE (speechSynthesis)
+  let activeWeatherSpeechBtn = null;
+
+  function stopWeatherSpeech() {
+    if ('speechSynthesis' in window) {
+      try { window.speechSynthesis.cancel(); } catch (e) {}
+    }
+    if (activeWeatherSpeechBtn) {
+      activeWeatherSpeechBtn.innerHTML = '🔊 <span>Écouter</span>';
+      activeWeatherSpeechBtn.classList.remove('speaking');
+      activeWeatherSpeechBtn = null;
+    }
+  }
+
+  function speakWeatherInterpretation(interp, btnElement) {
+    if (!('speechSynthesis' in window)) return;
+
+    if (window.speechSynthesis.speaking && activeWeatherSpeechBtn === btnElement) {
+      stopWeatherSpeech();
+      return;
+    }
+
+    stopWeatherSpeech();
+
+    const adviceTexts = (interp.adviceList || []).map(a => a.text).join('. ');
+    const speechText = `Météo agricole. ${interp.headline}. ${adviceTexts}.`;
+
+    try {
+      const utterance = new SpeechSynthesisUtterance(speechText);
+      utterance.lang = 'fr-FR';
+      utterance.rate = 0.9; // Vitesse lente 0.9
+
+      utterance.onstart = () => {
+        activeWeatherSpeechBtn = btnElement;
+        btnElement.innerHTML = '⏹️ <span>Arrêter</span>';
+        btnElement.classList.add('speaking');
+      };
+
+      utterance.onend = () => {
+        stopWeatherSpeech();
+      };
+
+      utterance.onerror = () => {
+        stopWeatherSpeech();
+      };
+
+      window.speechSynthesis.speak(utterance);
+    } catch (err) {
+      console.warn('Erreur synthèse vocale :', err);
+      stopWeatherSpeech();
+    }
+  }
+
+  function getWeatherInterpretationBoxHtml(interp, btnId) {
+    const speechSupported = ('speechSynthesis' in window);
+    return `
+      <div class="wi-header-row">
+        <div class="wi-title-wrap">
+          <span class="wi-status-light light-${interp.level}"></span>
+          <span class="wi-title">Ce que ça veut dire pour vous</span>
+        </div>
+        ${speechSupported ? `
+          <button type="button" class="wi-listen-btn" id="${btnId}" aria-label="Écouter les conseils météo" title="Écouter à voix haute">
+            🔊 <span>Écouter</span>
+          </button>
+        ` : ''}
+      </div>
+      <div class="wi-headline">${interp.headline}</div>
+      <ul class="wi-advice-list">
+        ${interp.adviceList.map(a => `
+          <li class="wi-advice-item">
+            <span class="wi-advice-icon">${a.icon}</span>
+            <span>${a.text}</span>
+          </li>
+        `).join('')}
+      </ul>
+    `;
+  }
+
   async function fetchOpenMeteoData(communeKey, forceRefresh = false) {
     const cacheKey = `revolution_weather_cache_v4_${communeKey}`;
     const cachedRaw = localStorage.getItem(cacheKey);
@@ -2883,8 +3230,8 @@ document.addEventListener('DOMContentLoaded', () => {
           return {
             dateStr: dateStr,
             dayName: idx === 0 ? "Aujourd'hui" : DAY_NAMES_FR[dayDate.getDay()],
-            shortDay: idx === 0 ? "Auj." : DAY_NAMES_FR[dayDate.getDay()].slice(0, 4),
-            formattedDate: `${dayDate.getDate()} ${MONTH_NAMES_FR[dayDate.getMonth()].slice(0, 4)}`,
+            shortDay: idx === 0 ? "Auj." : SHORT_DAYS_FR[dayDate.getDay()],
+            formattedDate: `${dayDate.getDate()} ${SHORT_MONTHS_FR[dayDate.getMonth()]}`,
             weatherCode: json.daily.weather_code[idx],
             meta: getWeatherMeta(json.daily.weather_code[idx]),
             tempMax: Math.round(json.daily.temperature_2m_max[idx]),
@@ -2939,8 +3286,8 @@ document.addEventListener('DOMContentLoaded', () => {
           return {
             dateStr: d.toISOString().split('T')[0],
             dayName: i === 0 ? "Aujourd'hui" : DAY_NAMES_FR[d.getDay()],
-            shortDay: i === 0 ? "Auj." : DAY_NAMES_FR[d.getDay()].slice(0, 4),
-            formattedDate: `${d.getDate()} ${MONTH_NAMES_FR[d.getMonth()].slice(0, 4)}`,
+            shortDay: i === 0 ? "Auj." : SHORT_DAYS_FR[d.getDay()],
+            formattedDate: `${d.getDate()} ${SHORT_MONTHS_FR[d.getMonth()]}`,
             weatherCode: 1,
             meta: getWeatherMeta(1),
             tempMax: 34,
@@ -3013,6 +3360,31 @@ document.addEventListener('DOMContentLoaded', () => {
       } else {
         alertBanner.classList.add('hidden');
       }
+    }
+
+    // Encadré « Ce que ça veut dire pour vous » (Tableau de bord)
+    const interp = computeFarmerInterpretation(weatherRes.current, weatherRes.daily);
+    const interpBox = document.getElementById('dashWeatherInterpretation');
+    if (interpBox) {
+      interpBox.className = `weather-interpretation-box level-${interp.level}`;
+      interpBox.innerHTML = getWeatherInterpretationBoxHtml(interp, 'btnListenDashWeather');
+      const b = document.getElementById('btnListenDashWeather');
+      if (b) {
+        b.onclick = (e) => {
+          e.stopPropagation();
+          speakWeatherInterpretation(interp, b);
+        };
+      }
+    }
+
+    // Conseil de la semaine (Tableau de bord)
+    const weeklyAdvice = computeWeeklyAdvice(weatherRes.daily);
+    const weeklyBox = document.getElementById('dashWeatherWeeklyAdvice');
+    if (weeklyBox) {
+      weeklyBox.innerHTML = `
+        <span class="wab-icon">💡</span>
+        <div><strong>Conseil de la semaine :</strong> <span>${weeklyAdvice}</span></div>
+      `;
     }
 
     // Grille prévisions 7 jours du tableau de bord
@@ -3092,6 +3464,31 @@ document.addEventListener('DOMContentLoaded', () => {
     const mRainProb = document.getElementById('meteoMetricRainProb');
     if (mRainProb) mRainProb.textContent = `Probabilité : ${today.rainProb ?? 0} %`;
 
+    // Encadré « Ce que ça veut dire pour vous » (Page Météo)
+    const interp = computeFarmerInterpretation(weatherRes.current, weatherRes.daily);
+    const interpBox = document.getElementById('meteoPageInterpretation');
+    if (interpBox) {
+      interpBox.className = `weather-interpretation-box level-${interp.level}`;
+      interpBox.innerHTML = getWeatherInterpretationBoxHtml(interp, 'btnListenMeteoPage');
+      const b = document.getElementById('btnListenMeteoPage');
+      if (b) {
+        b.onclick = (e) => {
+          e.stopPropagation();
+          speakWeatherInterpretation(interp, b);
+        };
+      }
+    }
+
+    // Conseil de la semaine (Page Météo)
+    const weeklyAdvice = computeWeeklyAdvice(weatherRes.daily);
+    const weeklyBox = document.getElementById('meteoPageWeeklyAdvice');
+    if (weeklyBox) {
+      weeklyBox.innerHTML = `
+        <span class="wab-icon">💡</span>
+        <div><strong>Conseil de la semaine :</strong> <span>${weeklyAdvice}</span></div>
+      `;
+    }
+
     // Grille 7 jours détaillée
     const grid7 = document.getElementById('meteoPage7DaysGrid');
     if (grid7 && weatherRes.daily) {
@@ -3136,16 +3533,29 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   async function loadAndRenderWeather(forceRefresh = false) {
-    const communeKey = findCommuneKey();
-    const weatherRes = await fetchOpenMeteoData(communeKey, forceRefresh);
-    renderDashboardWeatherCard(weatherRes);
-    if (currentRoutePage === 'meteo') {
-      renderMeteoPage(weatherRes);
+    // La météo du tableau de bord utilise par défaut la commune du profil de l'utilisateur
+    const dashCommuneKey = getProfileCommuneKey();
+    const meteoPageCommuneKey = userManualCommuneKey || dashCommuneKey;
+
+    const dashWeather = await fetchOpenMeteoData(dashCommuneKey, forceRefresh);
+    cachedWeatherResult = dashWeather;
+    renderDashboardWeatherCard(dashWeather);
+
+    if (meteoPageCommuneKey !== dashCommuneKey) {
+      const meteoWeather = await fetchOpenMeteoData(meteoPageCommuneKey, forceRefresh);
+      if (currentRoutePage === 'meteo') {
+        renderMeteoPage(meteoWeather);
+      }
+    } else {
+      if (currentRoutePage === 'meteo') {
+        renderMeteoPage(dashWeather);
+      }
     }
+
     if (currentViewMode === 'mobile' || window.innerWidth < 1024) {
       renderMobileView();
     }
-    return weatherRes;
+    return dashWeather;
   }
 
   // Écouteurs Météo Bureau

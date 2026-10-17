@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
   
-  <link rel="stylesheet" href="styles/main.css?v=4.7">
+  <link rel="stylesheet" href="styles/main.css?v=4.8">
 </head>
 <body class="theme-light">
   <!-- BANDEAU DE CONTRÔLE PROTOTYPE (Permet de switcher de rôle, de vue et d'état en 1 clic) -->
@@ -989,6 +989,16 @@
                 </div>
               </div>
 
+              <!-- Encadré « Ce que ça veut dire pour vous » -->
+              <div class="weather-interpretation-box" id="dashWeatherInterpretation">
+                <!-- Rempli dynamiquement -->
+              </div>
+
+              <!-- Conseil de la semaine -->
+              <div class="weekly-advice-banner" id="dashWeatherWeeklyAdvice">
+                <!-- Rempli dynamiquement -->
+              </div>
+
               <!-- Mini Prévision 7 Jours (Calculé en direct avec vraies dates) -->
               <div class="forecast-mini-grid" id="dashWeatherForecastGrid" style="grid-template-columns: repeat(7, 1fr); overflow-x: auto;">
                 <!-- Rempli dynamiquement par Open-Meteo -->
@@ -1277,10 +1287,20 @@
             </div>
           </div>
 
+          <!-- Encadré « Ce que ça veut dire pour vous » -->
+          <div class="weather-interpretation-box" id="meteoPageInterpretation">
+            <!-- Rempli dynamiquement -->
+          </div>
+
           <!-- Prévisions détaillées 7 Jours -->
           <div style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
             <h3 style="font-size: 16px; font-weight: 800; color: var(--primary-900); margin: 0;">📅 Prévisions Agronomiques sur 7 Jours</h3>
             <span style="font-size: 12px; color: var(--text-dim);">Heure locale Ouagadougou</span>
+          </div>
+
+          <!-- Conseil de la semaine -->
+          <div class="weekly-advice-banner" id="meteoPageWeeklyAdvice">
+            <!-- Rempli dynamiquement -->
           </div>
 
           <div class="meteo-7days-grid" id="meteoPage7DaysGrid">
@@ -2077,6 +2097,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <!-- SCRIPT APPLICATION -->
-  <script src="scripts/app.js?v=4.7"></script>
+  <script src="scripts/app.js?v=4.8"></script>
 </body>
 </html>
