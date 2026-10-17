@@ -391,7 +391,29 @@ Depuis la version 2.9, l'application est entièrement Full Stack connectée au p
   - Tableau de bord : Carte « Météo agricole » synchronisée avec prévisions 7j en format compact et lien direct vers la page détaillée.
   - Page Météo dédiée (`#meteo`) : Accessible via la barre latérale, le tiroir mobile ou le lien de la carte, proposant la carte héros, les métriques d'évapotranspiration, les 7 jours détaillés avec badges de recommandations agronomiques adaptées, et les conseils culturaux sahéliens.
 
+### O. Architecture Sécurité Supabase Auth & RLS Étanches (v5.1)
+- **Authentification par Numéro (+226) sans SMS payant** :
+  - L'utilisateur saisit son numéro burkinabè et son mot de passe.
+  - Le frontend transforme automatiquement le numéro en email technique standardisé (`tel226XXXXXXXX@revolution-agricole.app`) accepté par Supabase GoTrue.
+  - Inscription via `supabase.auth.signUp` et connexion via `supabase.auth.signInWithPassword`.
+  - Suppression intégrale des faux codes SMS et du stockage en clair des mots de passe.
+- **Assainissement de la Table `public.profiles`** :
+  - Colonnes sensibles `password` et `verification_code` définitivement supprimées.
+  - Tous les profils sont liés par leur véritable identifiant cryptographique `profiles.id = auth.users.id`.
+- **Règles RLS Étanches sur l'Ensemble des Tables** :
+  - Suppression de tout contournement anonyme (`auth.uid() IS NULL`), de l'en-tête `x-profile-id`, et du profil `'admin'` simulé.
+  - Fonction de sécurité `public.is_admin()` en `SECURITY DEFINER`.
+  - `public.profiles`, `public.parcels`, `public.crop_cycles`, `public.expenses`, `public.revenues`, `public.subscriptions` : chaque utilisateur ne lit et ne modifie que ses propres données (`profile_id = auth.uid()::text`).
+  - `public.financements` : consultation publique réservée aux offres au statut `publie` ; insertion, mise à jour, suppression et consultation des offres en attente ou expirées strictement réservées aux profils avec `is_admin() = true`.
+- **Comptes d'Exploitation & Démonstration** :
+  - Compte administrateur de Fabrice ZOMAHOUN (Google OAuth et téléphone) conservé avec privilèges élevés (`is_admin: true`).
+  - Comptes de démonstration Awa, Rasmané, Salif et Dr. Aminata convertis en véritables utilisateurs Supabase Auth avec mots de passe chiffrés.
+  - Table `financements` et cron `expirer-financements-quotidien` préservés intacts.
+- **Google OAuth & Complétion de Profil** :
+  - Connexion officielle Google OAuth redirigeant vers `https://r2volution-agricole.vercel.app`.
+  - Modale d'onboarding `#modalOnboarding` pour recueillir numéro (+226), commune et activité à la première connexion sans écraser les privilèges d'administration.
+
 ---
 
-*Fin du document de spécification système — Version 4.6 • Révolution Agricole Burkina Faso.*
+*Fin du document de spécification système — Version 5.1 • Révolution Agricole Burkina Faso.*
 

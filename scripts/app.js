@@ -13,10 +13,19 @@ document.addEventListener('DOMContentLoaded', () => {
   let supabaseClient = null;
   if (window.supabase && typeof window.supabase.createClient === 'function') {
     supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    window.supabaseClient = supabaseClient;
     console.log('🌾 [Révolution Agricole] Connecté avec succès à Supabase !');
   } else {
     console.warn('⚠️ [Révolution Agricole] Client Supabase CDN indisponible, bascule en mode local.');
   }
+
+  // Identifiants réels Supabase Auth pour les profils de démonstration
+  const demoRoleCredentials = {
+    producer: { email: 'tel22676458912@revolution-agricole.app', pass: 'demopassword', name: 'Awa Ouédraogo' },
+    supplier: { email: 'tel22670123456@revolution-agricole.app', pass: 'demopassword', name: 'Rasmané Sawadogo' },
+    buyer: { email: 'tel22678901234@revolution-agricole.app', pass: 'demopassword', name: 'Salif Traoré' },
+    admin: { email: 'tel22625304050@revolution-agricole.app', pass: 'demopassword', name: 'Dr. Aminata Kaboré' }
+  };
 
   // ==========================================
   // DONNÉES DES 4 PROFILS CONFORMES AU CAHIER DES CHARGES
@@ -2790,16 +2799,25 @@ document.addEventListener('DOMContentLoaded', () => {
   // ==========================================
   // ÉVÉNEMENTS SUR LE SÉLECTEUR DE PROFIL ET D'ÉTAT
   // ==========================================
-  roleSelector.addEventListener('change', (e) => {
+  roleSelector.addEventListener('change', async (e) => {
     const newRole = e.target.value;
     userManualCommuneKey = null;
+    const cred = demoRoleCredentials[newRole];
+    if (cred && supabaseClient) {
+      try {
+        await supabaseClient.auth.signInWithPassword({
+          email: cred.email,
+          password: cred.pass
+        });
+      } catch (err) {}
+    }
     renderProfile(newRole);
     syncFinancialsFromSupabase(newRole);
     syncCropCyclesFromSupabase(newRole);
     syncSubscriptionStatusFromSupabase(newRole);
     fetchFinancements();
     loadAndRenderWeather();
-    showToast('Profil actualisé', `Bascule vers le profil : ${PROFILES_DATA[newRole].name}`);
+    showToast('Profil actualisé', `Bascule vers le profil : ${PROFILES_DATA[newRole]?.name || newRole}`);
   });
 
   stateSelector.addEventListener('change', (e) => {
@@ -4557,10 +4575,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const formattedPhone = rawPhone.startsWith('+226') ? rawPhone : ('+226 ' + rawPhone.replace(/^\+226\s*/, ''));
 
       // Sauvegarde dans Supabase
-      if (supabaseClient) {
+      if (supabaseClient && currentAuthUser) {
         try {
-          await supabaseClient.from('profiles').upsert([{
-            id: userId,
+          await supabaseClient.from('profiles').update({
             full_name: rawFullName,
             phone: formattedPhone,
             location: rawLocation,
@@ -4568,10 +4585,8 @@ document.addEventListener('DOMContentLoaded', () => {
             meta_role: metaRole,
             avatar_url: (currentAuthUser?.user_metadata?.avatar_url || currentAuthUser?.user_metadata?.picture) || avatar,
             is_onboarded: true,
-            is_admin: false,
-            is_pro: false,
             updated_at: new Date().toISOString()
-          }]);
+          }).eq('id', currentAuthUser.id);
           console.log('✅ Profil complété avec succès dans Supabase !');
         } catch (err) {
           console.warn('⚠️ Erreur mise à jour profil Supabase :', err);
@@ -4607,6 +4622,7 @@ document.addEventListener('DOMContentLoaded', () => {
   async function performLogout() {
     currentProfileKey = 'guest';
     currentAuthUser = null;
+    closeAuthModal();
     document.body.classList.remove('drawer-open');
     document.body.style.overflow = '';
 
@@ -4650,6 +4666,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnAuthText) btnAuthText.textContent = 'Connexion';
     showToast('Session fermée', 'Déconnexion effectuée.');
   }
+  window.performLogout = performLogout;
 
   // Déconnexion Bureau
   if (btnLogout) {
@@ -4658,16 +4675,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Raccourcis profils démo
   demoQuickBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
+    btn.addEventListener('click', async () => {
       const targetRole = btn.getAttribute('data-role');
-      if (targetRole && PROFILES_DATA[targetRole]) {
-        if (roleSelector) roleSelector.value = targetRole;
-        renderProfile(targetRole);
-        syncFinancialsFromSupabase(targetRole);
-        syncCropCyclesFromSupabase(targetRole);
-        syncSubscriptionStatusFromSupabase(targetRole);
+      const cred = demoRoleCredentials[targetRole];
+      if (cred && supabaseClient) {
         closeAuthModal();
-        showToast('Connexion démo', `Connecté en tant que ${PROFILES_DATA[targetRole].name}`);
+        try {
+          const { data, error } = await supabaseClient.auth.signInWithPassword({
+            email: cred.email,
+            password: cred.pass
+          });
+          if (data?.user) {
+            await checkUserProfileAndProceed(data.user);
+            await fetchFinancements();
+            handleRoute();
+            showToast('Connexion démo', `Connecté en tant que ${cred.name}`);
+          }
+        } catch (e) {
+          console.warn('Demo switch error', e);
+        }
       }
     });
   });
@@ -4952,6 +4978,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
   }
+  window.checkUserProfileAndProceed = checkUserProfileAndProceed;
 
   // Fonction centrale d'activation de session utilisateur
   async function activateUserSession(userData) {
@@ -5035,8 +5062,25 @@ document.addEventListener('DOMContentLoaded', () => {
     loadAndRenderWeather().catch(() => {});
     autoDetectResponsiveMode();
   }
+  window.PROFILES_DATA = PROFILES_DATA;
+  window.getCurrentProfileKey = () => currentProfileKey;
+  window.fetchFinancements = fetchFinancements;
 
-  // 3. Bouton Continuer avec Google (Supabase Auth)
+  // 3. Helper : conversion d'un numéro burkinabè ou contact en email technique Supabase
+  function convertContactToTechnicalEmail(contact) {
+    const trimmed = (contact || '').trim();
+    if (trimmed.includes('@')) {
+      return trimmed.toLowerCase();
+    }
+    let digits = trimmed.replace(/\D/g, '');
+    if (!digits.startsWith('226')) {
+      digits = '226' + digits;
+    }
+    return `tel${digits}@revolution-agricole.app`;
+  }
+  window.convertContactToTechnicalEmail = convertContactToTechnicalEmail;
+
+  // 4. Bouton Continuer avec Google (Supabase Auth)
   if (btnGoogleAuth) {
     btnGoogleAuth.addEventListener('click', async () => {
       if (!supabaseClient) {
@@ -5044,10 +5088,14 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
       try {
+        const redirectUrl = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+          ? window.location.origin
+          : 'https://r2volution-agricole.vercel.app';
+
         const { error } = await supabaseClient.auth.signInWithOAuth({
           provider: 'google',
           options: {
-            redirectTo: window.location.origin
+            redirectTo: redirectUrl
           }
         });
         if (error) {
@@ -5059,17 +5107,25 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 4. Formulaire Inscription Email + Mot de passe (Secours)
+  // 5. Formulaire Inscription par Téléphone (+226) ou Email (Supabase Auth)
   if (portalRegisterForm) {
     portalRegisterForm.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const email = portalRegEmail ? portalRegEmail.value.trim() : '';
+      const rawContact = portalRegEmail ? portalRegEmail.value.trim() : '';
       const password = portalRegPassword ? portalRegPassword.value : '';
 
-      if (!email || !password) {
-        showToast('⚠️ Champs requis', 'Veuillez saisir votre adresse email et un mot de passe.');
+      if (!rawContact || !password) {
+        showToast('⚠️ Champs requis', 'Veuillez saisir votre numéro (+226) ou email et un mot de passe.');
         return;
       }
+
+      if (password.length < 6) {
+        showToast('⚠️ Mot de passe court', 'Le mot de passe doit comporter au moins 6 caractères.');
+        return;
+      }
+
+      const technicalEmail = convertContactToTechnicalEmail(rawContact);
+      const formattedPhone = rawContact.includes('@') ? '' : (rawContact.startsWith('+226') ? rawContact : ('+226 ' + rawContact.replace(/^\+226\s*/, '')));
 
       const submitBtn = document.getElementById('btnSubmitPortalRegister');
       if (submitBtn) {
@@ -5080,8 +5136,13 @@ document.addEventListener('DOMContentLoaded', () => {
       if (supabaseClient) {
         try {
           const { data, error } = await supabaseClient.auth.signUp({
-            email: email,
-            password: password
+            email: technicalEmail,
+            password: password,
+            options: {
+              data: {
+                phone: formattedPhone
+              }
+            }
           });
 
           if (submitBtn) {
@@ -5096,8 +5157,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
           if (data?.session && data?.user) {
             await checkUserProfileAndProceed(data.user);
+            showToast('Compte créé avec succès', 'Bienvenue sur Révolution Agricole !');
           } else if (data?.user) {
-            showToast('📧 Vérification email', 'Un email de confirmation vous a été envoyé. Veuillez cliquer sur le lien pour valider votre compte.');
+            // Tenter la connexion immédiate au cas où l'auto-confirmation est active
+            const loginRes = await supabaseClient.auth.signInWithPassword({
+              email: technicalEmail,
+              password: password
+            });
+            if (loginRes.data?.user) {
+              await checkUserProfileAndProceed(loginRes.data.user);
+            } else {
+              showToast('Compte créé', 'Connectez-vous avec vos identifiants.');
+              switchPortalTab('login');
+              if (portalLoginEmail) portalLoginEmail.value = rawContact;
+              if (portalLoginPass) portalLoginPass.focus();
+            }
           }
         } catch (err) {
           if (submitBtn) {
@@ -5110,17 +5184,19 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 5. Formulaire Connexion Email + Mot de passe (Secours)
+  // 6. Formulaire Connexion Téléphone (+226) ou Email (Supabase Auth)
   if (portalLoginForm) {
     portalLoginForm.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const email = portalLoginEmail ? portalLoginEmail.value.trim() : '';
+      const rawContact = portalLoginEmail ? portalLoginEmail.value.trim() : '';
       const password = portalLoginPass ? portalLoginPass.value : '';
 
-      if (!email || !password) {
-        showToast('⚠️ Champs requis', 'Veuillez renseigner votre email et votre mot de passe.');
+      if (!rawContact || !password) {
+        showToast('⚠️ Champs requis', 'Veuillez renseigner votre numéro ou email et votre mot de passe.');
         return;
       }
+
+      const technicalEmail = convertContactToTechnicalEmail(rawContact);
 
       const submitBtn = document.getElementById('btnSubmitPortalLogin');
       if (submitBtn) {
@@ -5131,7 +5207,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (supabaseClient) {
         try {
           const { data, error } = await supabaseClient.auth.signInWithPassword({
-            email: email,
+            email: technicalEmail,
             password: password
           });
 
@@ -5141,7 +5217,7 @@ document.addEventListener('DOMContentLoaded', () => {
           }
 
           if (error) {
-            showToast('⚠️ Erreur connexion', error.message || 'Email ou mot de passe incorrect.');
+            showToast('⚠️ Erreur connexion', error.message || 'Identifiant ou mot de passe incorrect.');
             return;
           }
 
@@ -5160,20 +5236,26 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 6. Raccourci Démo rapide facultatif
+  // 7. Raccourci Démo rapide (Compte réel Awa Ouédraogo via Supabase Auth)
   if (btnPortalQuickDemo) {
     btnPortalQuickDemo.addEventListener('click', async () => {
-      await activateUserSession({
-        id: 'producer',
-        name: 'Awa Ouédraogo',
-        metaRole: 'Maraîchère & Céréalière',
-        location: '📍 Koudougou (Boulkiemdé)',
-        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&h=120&q=80',
-        hasExploitation: true
-      });
-      await fetchFinancements();
-      handleRoute();
-      showToast('Aperçu Démo', 'Connecté en tant que Awa Ouédraogo (Koudougou).');
+      if (supabaseClient) {
+        try {
+          const { data, error } = await supabaseClient.auth.signInWithPassword({
+            email: 'tel22676458912@revolution-agricole.app',
+            password: 'demopassword'
+          });
+          if (!error && data?.user) {
+            await checkUserProfileAndProceed(data.user);
+            await fetchFinancements();
+            handleRoute();
+            showToast('Aperçu Démo', 'Connecté en tant que Awa Ouédraogo (Koudougou).');
+            return;
+          }
+        } catch (e) {
+          console.warn('Demo login error', e);
+        }
+      }
     });
   }
 
@@ -5218,19 +5300,9 @@ document.addEventListener('DOMContentLoaded', () => {
       handleRoute();
       hideLoadingScreen();
     } else {
-      const savedSessionRaw = localStorage.getItem('revolution_session_user');
-      if (savedSessionRaw) {
-        try {
-          const savedUser = JSON.parse(savedSessionRaw);
-          if (savedUser && savedUser.id) {
-            await activateUserSession(savedUser);
-            await fetchFinancements();
-            handleRoute();
-            hideLoadingScreen();
-            return;
-          }
-        } catch (e) {}
-      }
+      try {
+        localStorage.removeItem('revolution_session_user');
+      } catch (e) {}
       if (viewportContainer) viewportContainer.classList.add('hidden');
       if (authPortalScreen) authPortalScreen.classList.remove('hidden');
       hideLoadingScreen();

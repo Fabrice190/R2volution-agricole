@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
   
-  <link rel="stylesheet" href="styles/main.css?v=5.0">
+  <link rel="stylesheet" href="styles/main.css?v=5.1">
 </head>
 <body class="theme-light">
   <!-- BANDEAU DE CONTRÔLE PROTOTYPE (Permet de switcher de rôle, de vue et d'état en 1 clic) -->
@@ -125,7 +125,7 @@
       </button>
 
       <div class="portal-divider">
-        <span>ou avec votre email</span>
+        <span>ou avec votre numéro (+226)</span>
       </div>
 
       <!-- Onglets : Se connecter / Créer un compte -->
@@ -134,11 +134,11 @@
         <button type="button" class="portal-tab" id="btnPortalTabRegister">Créer un compte</button>
       </div>
 
-      <!-- 1. FORMULAIRE DE CONNEXION EMAIL -->
+      <!-- 1. FORMULAIRE DE CONNEXION -->
       <form id="portalLoginForm" class="portal-form" autocomplete="off">
         <div class="portal-field-group">
-          <label for="portalLoginEmail">Adresse Email <span class="req">*</span></label>
-          <input type="email" id="portalLoginEmail" class="portal-input" placeholder="votre.email@gmail.com" required autocomplete="email">
+          <label for="portalLoginEmail">Numéro de téléphone (+226) ou Email <span class="req">*</span></label>
+          <input type="text" id="portalLoginEmail" class="portal-input" placeholder="Ex: 70 12 34 56 ou email@..." required autocomplete="username">
         </div>
 
         <div class="portal-field-group">
@@ -157,11 +157,11 @@
         </div>
       </form>
 
-      <!-- 2. FORMULAIRE DE CRÉATION DE COMPTE EMAIL -->
+      <!-- 2. FORMULAIRE DE CRÉATION DE COMPTE -->
       <form id="portalRegisterForm" class="portal-form hidden" autocomplete="off">
         <div class="portal-field-group">
-          <label for="portalRegEmail">Adresse Email <span class="req">*</span></label>
-          <input type="email" id="portalRegEmail" class="portal-input" placeholder="votre.email@gmail.com" required autocomplete="email">
+          <label for="portalRegEmail">Numéro de téléphone (+226) ou Email <span class="req">*</span></label>
+          <input type="text" id="portalRegEmail" class="portal-input" placeholder="Ex: 70 12 34 56 ou email@..." required autocomplete="username">
         </div>
 
         <div class="portal-field-group">
@@ -2097,6 +2097,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <!-- SCRIPT APPLICATION -->
-  <script src="scripts/app.js?v=5.0"></script>
+  <script src="scripts/app.js?v=5.1"></script>
 </body>
 </html>
