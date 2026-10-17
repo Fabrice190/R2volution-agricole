@@ -1537,7 +1537,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         <!-- 1. MÉTÉO EN PREMIER (Connectée Open-Meteo) -->
         ${getMobileDashboardWeatherCardHtml()}
-        `))}
 
         <!-- 2. INDICATEURS EN GRILLE 2x2 (Pas de défilement horizontal) -->
         <div class="mobile-stat-grid">
@@ -1613,7 +1612,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <span>mai</span><span>juin</span><span>juil</span><span>août</span><span>sept</span><span style="font-weight: 700; color: #1E5E2A;">oct</span>
           </div>
         </div>
-        `)}
+        `))}
       </div>
 
       <!-- BOUTON D'ACTION FLOTTANT (+) MOBILE -->
