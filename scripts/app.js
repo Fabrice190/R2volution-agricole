@@ -448,6 +448,20 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentCheckoutPlan = { id: 'pro', name: 'Pro Producteur', price: 5000 };
   let selectedOperator = 'orange'; // 'orange' | 'moov'
 
+  // Navigation & État du module Financements (Connecté Supabase)
+  let currentRoutePage = 'dashboard'; // 'dashboard' | 'opportunites' | 'admin-financements'
+  let cachedFinancements = [];
+  let userSelectedType = 'all';
+  let userSelectedRegion = 'all';
+  let adminActiveStatusTab = 'en_attente';
+
+  const pageFinancements = document.getElementById('pageFinancements');
+  const pageAdminFinancements = document.getElementById('pageAdminFinancements');
+  const dashboardContent = document.getElementById('dashboardContent');
+  const modalManageFinancement = document.getElementById('modalManageFinancement');
+  const modalFinancementDetails = document.getElementById('modalFinancementDetails');
+  const formManageFinancement = document.getElementById('formManageFinancement');
+
   // Sélecteurs DOM clés
   const roleSelector = document.getElementById('roleSelector');
   const stateSelector = document.getElementById('stateSelector');
@@ -758,6 +772,183 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ==========================================
+  // VUES MOBILES POUR FINANCEMENTS ET ADMINISTRATION
+  // ==========================================
+  function getMobileFinancementsHtml() {
+    const published = cachedFinancements.filter(f => f.statut === 'publie');
+    let filtered = published;
+    if (userSelectedType !== 'all') {
+      filtered = filtered.filter(f => f.type && f.type.toLowerCase().trim() === userSelectedType.toLowerCase().trim());
+    }
+    if (userSelectedRegion !== 'all') {
+      filtered = filtered.filter(f => f.region && (f.region.toLowerCase().includes(userSelectedRegion.toLowerCase()) || f.region.toLowerCase().includes('tout le burkina')));
+    }
+    filtered.sort((a, b) => new Date(a.date_limite) - new Date(b.date_limite));
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    return `
+      <div style="margin-bottom: 14px;">
+        <a href="#dashboard" class="breadcrumb-back-link mobile-back-to-dashboard" style="font-size: 12px; margin-bottom: 8px; display: inline-flex; align-items: center; gap: 4px; color: #1E5E2A; font-weight: 700; text-decoration: none;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+          <span>Tableau de bord</span>
+        </a>
+        <h2 style="font-size: 20px; font-weight: 800; color: #1E2822; margin: 0 0 2px;">🌾 Financements</h2>
+        <p style="font-size: 12px; color: #5B6660; margin: 0;">${published.length} opportunité${published.length > 1 ? 's' : ''} vérifiée${published.length > 1 ? 's' : ''}</p>
+      </div>
+
+      <!-- Filtres types en puces horizontales -->
+      <div style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 12px; scrollbar-width: none;">
+        ${['all', 'subvention', 'appel à projets', 'prêt', 'concours', 'incubation', 'formation', 'emploi'].map(t => `
+          <button type="button" class="mobile-type-chip ${userSelectedType === t ? 'active' : ''}" data-type="${t}" style="
+            padding: 6px 12px; border-radius: 99px; font-size: 11.5px; font-weight: 700; border: 1px solid ${userSelectedType === t ? '#1E5E2A' : '#E0E5DC'};
+            background: ${userSelectedType === t ? '#1E5E2A' : '#FFF'}; color: ${userSelectedType === t ? '#FFF' : '#4A5750'}; white-space: nowrap; cursor: pointer;
+          ">${t === 'all' ? 'Tous' : t.charAt(0).toUpperCase() + t.slice(1)}</button>
+        `).join('')}
+      </div>
+
+      <!-- Grille des cartes financements -->
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        ${filtered.length === 0 ? `
+          <div style="text-align: center; padding: 32px 16px; background: #FFF; border-radius: 12px; border: 1px dashed #DDD;">
+            <p style="font-weight: 700; font-size: 14px; margin-bottom: 4px; color: #1E2822;">Aucun financement trouvé</p>
+            <p style="font-size: 12px; color: #7C8781; margin: 0;">Essayez de sélectionner « Tous »</p>
+          </div>
+        ` : filtered.map(item => {
+          const dl = new Date(item.date_limite);
+          const diffDays = Math.ceil((dl - today) / (1000 * 60 * 60 * 24));
+          const formattedDate = dl.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
+          const isUrgent = diffDays >= 0 && diffDays <= 7;
+          const typeClass = (item.type || 'subvention').toLowerCase().replace(/[\s']/g, '-');
+
+          return `
+            <div class="mobile-fin-card" data-id="${item.id}" style="background: #FFF; border: 1px solid #E6EAE3; border-radius: 12px; padding: 14px; cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,0.03);">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <span class="fin-badge-type ${typeClass}">${item.type}</span>
+                <span style="font-size: 11px; color: #6C7A72;">📍 ${item.region || 'Tout le Burkina'}</span>
+              </div>
+              <span style="font-size: 10.5px; color: #8A978E; font-weight: 700; text-transform: uppercase;">${item.organisme}</span>
+              <h4 style="font-size: 14.5px; font-weight: 700; color: #1E2822; margin: 4px 0 8px; line-height: 1.35;">${item.titre}</h4>
+              <div style="background: #F4F9F2; border: 1px solid #DDF0DA; border-radius: 8px; padding: 6px 10px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 10.5px; color: #5B6660; font-weight: 700;">MONTANT</span>
+                <strong style="font-size: 12.5px; color: #1E5E2A;">${item.montant || 'Non spécifié'}</strong>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #F0F2EE; padding-top: 8px; font-size: 11.5px;">
+                <span style="color: #6C7A72;">Clôture : ${formattedDate}</span>
+                ${isUrgent ? `<span class="badge-urgent-closing" style="font-size: 10px; padding: 1px 6px;">⏳ Clôture dans ${diffDays === 0 ? "aujourd'hui" : diffDays + " j"}</span>` : ''}
+              </div>
+              <div style="margin-top: 8px; text-align: right;">
+                <span style="font-size: 11.5px; font-weight: 700; color: #1E5E2A;">Voir les détails & Postuler →</span>
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+  }
+
+  function getMobileAdminFinancementsHtml() {
+    const pending = cachedFinancements.filter(f => f.statut === 'en_attente');
+    const published = cachedFinancements.filter(f => f.statut === 'publie');
+    const expired = cachedFinancements.filter(f => f.statut === 'expire');
+
+    let list = cachedFinancements;
+    if (adminActiveStatusTab === 'en_attente') list = pending;
+    else if (adminActiveStatusTab === 'publie') list = published;
+    else if (adminActiveStatusTab === 'expire') list = expired;
+
+    list.sort((a, b) => {
+      if (a.statut === 'en_attente' && b.statut !== 'en_attente') return -1;
+      if (b.statut === 'en_attente' && a.statut !== 'en_attente') return 1;
+      return new Date(b.created_at || 0) - new Date(a.created_at || 0);
+    });
+
+    return `
+      <div style="margin-bottom: 12px;">
+        <a href="#dashboard" class="breadcrumb-back-link mobile-back-to-dashboard" style="font-size: 12px; margin-bottom: 8px; display: inline-flex; align-items: center; gap: 4px; color: #1E5E2A; font-weight: 700; text-decoration: none;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+          <span>Tableau de bord</span>
+        </a>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <h2 style="font-size: 18px; font-weight: 800; color: #1E2822; margin: 0 0 2px;">🛡️ Administration</h2>
+            <p style="font-size: 11.5px; color: #5B6660; margin: 0;">Gérer les financements</p>
+          </div>
+          <button type="button" class="btn-primary" id="btnMobileOpenAddFin" style="padding: 8px 12px; font-size: 12px; font-weight: 700; border-radius: 8px; cursor: pointer;">+ Ajouter</button>
+        </div>
+      </div>
+
+      ${pending.length > 0 ? `
+        <div class="admin-pending-alert-banner" style="margin-bottom: 12px; padding: 10px 12px;">
+          <span class="alert-icon" style="font-size: 18px;">⏳</span>
+          <div class="alert-content">
+            <strong style="font-size: 12.5px;">${pending.length} fiche${pending.length > 1 ? 's' : ''} en attente</strong>
+            <span style="font-size: 11px;">À valider pour mise en ligne.</span>
+          </div>
+        </div>
+      ` : ''}
+
+      <!-- Onglets de filtre de statut -->
+      <div style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 12px; scrollbar-width: none;">
+        <button type="button" class="mobile-admin-tab ${adminActiveStatusTab === 'en_attente' ? 'active' : ''}" data-tab="en_attente" style="
+          padding: 6px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; border: 1px solid ${adminActiveStatusTab === 'en_attente' ? '#C8862A' : '#DDD'};
+          background: ${adminActiveStatusTab === 'en_attente' ? '#FEF3D6' : '#FFF'}; color: ${adminActiveStatusTab === 'en_attente' ? '#8A4F00' : '#4A5750'}; cursor: pointer; white-space: nowrap;
+        ">En attente (${pending.length})</button>
+        <button type="button" class="mobile-admin-tab ${adminActiveStatusTab === 'publie' ? 'active' : ''}" data-tab="publie" style="
+          padding: 6px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; border: 1px solid ${adminActiveStatusTab === 'publie' ? '#2E7D32' : '#DDD'};
+          background: ${adminActiveStatusTab === 'publie' ? '#E6F4EA' : '#FFF'}; color: ${adminActiveStatusTab === 'publie' ? '#137333' : '#4A5750'}; cursor: pointer; white-space: nowrap;
+        ">Publiés (${published.length})</button>
+        <button type="button" class="mobile-admin-tab ${adminActiveStatusTab === 'expire' ? 'active' : ''}" data-tab="expire" style="
+          padding: 6px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; border: 1px solid #DDD;
+          background: ${adminActiveStatusTab === 'expire' ? '#EEEEEE' : '#FFF'}; color: #616161; cursor: pointer; white-space: nowrap;
+        ">Expirés (${expired.length})</button>
+        <button type="button" class="mobile-admin-tab ${adminActiveStatusTab === 'all' ? 'active' : ''}" data-tab="all" style="
+          padding: 6px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; border: 1px solid #DDD;
+          background: ${adminActiveStatusTab === 'all' ? '#E8ECE5' : '#FFF'}; color: #425247; cursor: pointer; white-space: nowrap;
+        ">Tous (${cachedFinancements.length})</button>
+      </div>
+
+      <!-- Liste des fiches -->
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        ${list.length === 0 ? `
+          <div style="text-align: center; padding: 24px; background: #FFF; border-radius: 12px; border: 1px dashed #DDD;">
+            <p style="font-weight: 700; font-size: 13px; margin: 0; color: #1E2822;">Aucune fiche</p>
+          </div>
+        ` : list.map(item => {
+          return `
+            <div class="admin-fin-item status-${item.statut}" style="padding: 12px 14px; background: #FFF; border-radius: 12px;">
+              <div class="admin-fin-content">
+                <div class="admin-fin-header-row">
+                  <span class="admin-status-pill ${item.statut}">
+                    ${item.statut === 'en_attente' ? '⏳ En attente' : (item.statut === 'publie' ? '✅ Publié' : '⏹️ Expiré')}
+                  </span>
+                  <span style="font-size: 11px; color: #7C8781;">${item.type}</span>
+                </div>
+                <h4 class="admin-fin-title" style="font-size: 13.5px; margin: 4px 0;">${item.titre}</h4>
+                <div class="admin-fin-meta-row" style="font-size: 11px; color: #6C7A72;">
+                  <span>${item.organisme}</span>
+                  <span>•</span>
+                  <span>${item.montant || 'Montant N/C'}</span>
+                </div>
+              </div>
+              <div class="admin-actions-group" style="margin-top: 8px; display: flex; gap: 6px; width: 100%;">
+                ${item.statut !== 'publie' ? `
+                  <button type="button" class="btn-admin-action btn-admin-publish btn-action-publish" data-id="${item.id}" style="flex: 1; justify-content: center;">✅ Publier</button>
+                ` : ''}
+                <button type="button" class="btn-admin-action btn-admin-edit btn-action-edit" data-id="${item.id}" style="flex: 1; justify-content: center;">✏️ Modifier</button>
+                ${item.statut !== 'expire' ? `
+                  <button type="button" class="btn-admin-action btn-admin-withdraw btn-action-withdraw" data-id="${item.id}" style="flex: 1; justify-content: center;">🚫 Retirer</button>
+                ` : ''}
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+  }
+
+  // ==========================================
   // FONCTION : RENDU DU SIMULATEUR MOBILE ANDROID (Spécification Section 2)
   // ==========================================
   function renderMobileView() {
@@ -837,12 +1028,12 @@ document.addEventListener('DOMContentLoaded', () => {
           <!-- Groupe 3: OPPORTUNITÉS -->
           <div class="nav-section">
             <div class="nav-section-title">OPPORTUNITÉS</div>
-            <a href="#opportunites" class="nav-item mobile-drawer-link">
+            <a href="#opportunites" class="nav-item mobile-drawer-link" data-page="opportunites">
               <span class="nav-icon">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m12 6 4 6-4 6"/><path d="M8 12h8"/></svg>
               </span>
               <span class="nav-label">Financements</span>
-              <span class="nav-badge-amber">5</span>
+              <span class="nav-badge-amber" id="mobileDrawerFinancementsBadge">${cachedFinancements.filter(f => f.statut === 'publie').length}</span>
             </a>
           </div>
 
@@ -896,6 +1087,11 @@ document.addEventListener('DOMContentLoaded', () => {
           ${data.isAdmin ? `
             <div class="nav-section">
               <div class="nav-section-title">ADMINISTRATION</div>
+              <a href="#admin-financements" class="nav-item mobile-drawer-link" data-page="admin-financements">
+                <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/><path d="M12 14v4"/><path d="M10 16h4"/></svg></span>
+                <span class="nav-label">Gérer les financements</span>
+                <span class="nav-badge-amber" id="mobileDrawerPendingBadge">${cachedFinancements.filter(f => f.statut === 'en_attente').length}</span>
+              </a>
               <a href="#admin-queue" class="nav-item mobile-drawer-link">
                 <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></span>
                 <span class="nav-label">Files de modération</span>
@@ -970,6 +1166,8 @@ document.addEventListener('DOMContentLoaded', () => {
       </header>
 
       <div class="mobile-body">
+        ${currentRoutePage === 'opportunites' ? getMobileFinancementsHtml() :
+          (currentRoutePage === 'admin-financements' ? getMobileAdminFinancementsHtml() : `
         <!-- Salutation -->
         <div>
           <h2 class="mobile-greeting">Bonjour, ${data.name.split(' ')[0]} ${isPro ? '<span class="user-badge-pro" style="font-size: 10px; vertical-align: middle;">⭐ PRO</span>' : '<span class="greeting-emoji">🌱</span>'}</h2>
@@ -1065,6 +1263,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <span>mai</span><span>juin</span><span>juil</span><span>août</span><span>sept</span><span style="font-weight: 700; color: #1E5E2A;">oct</span>
           </div>
         </div>
+        `)}
       </div>
 
       <!-- BOUTON D'ACTION FLOTTANT (+) MOBILE -->
@@ -1132,7 +1331,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }, { passive: false });
     }
 
-    // Empêcher toute fermeture accidentelle lors du défilement ou clic à l'intérieur du menu
     if (drawer) {
       drawer.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -1176,6 +1374,90 @@ document.addEventListener('DOMContentLoaded', () => {
         openRevenueModal();
       });
     }
+
+    // Liens du tiroir mobile (Routing)
+    document.querySelectorAll('.mobile-drawer-link').forEach(link => {
+      link.addEventListener('click', (e) => {
+        const href = link.getAttribute('href');
+        if (href && href.startsWith('#')) {
+          const target = href.replace(/^#/, '');
+          if (target === 'opportunites' || target === 'admin-financements' || target === 'dashboard') {
+            e.preventDefault();
+            closeMobileDrawer();
+            window.location.hash = target;
+            navigateToPage(target);
+          }
+        }
+      });
+    });
+
+    // Liens retour au tableau de bord en mobile
+    document.querySelectorAll('.mobile-back-to-dashboard').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        window.location.hash = 'dashboard';
+        navigateToPage('dashboard');
+      });
+    });
+
+    // Clic sur bouton + Ajouter financement en mobile
+    const btnMobileOpenAddFin = document.getElementById('btnMobileOpenAddFin');
+    if (btnMobileOpenAddFin) {
+      btnMobileOpenAddFin.addEventListener('click', () => {
+        openManageFinancementModal();
+      });
+    }
+
+    // Événements clic sur cartes financements mobiles
+    document.querySelectorAll('.mobile-fin-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const id = card.getAttribute('data-id');
+        const item = cachedFinancements.find(f => String(f.id) === String(id));
+        if (item) openFinancementDetailsModal(item);
+      });
+    });
+
+    // Puces filtres types en mobile
+    document.querySelectorAll('.mobile-type-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        userSelectedType = chip.getAttribute('data-type');
+        renderMobileView();
+      });
+    });
+
+    // Onglets statut admin en mobile
+    document.querySelectorAll('.mobile-admin-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        adminActiveStatusTab = tab.getAttribute('data-tab');
+        renderMobileView();
+      });
+    });
+
+    // Actions admin en mobile
+    document.querySelectorAll('.mobile-body .btn-action-publish').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const id = btn.getAttribute('data-id');
+        await updateFinancementStatus(id, 'publie');
+      });
+    });
+
+    document.querySelectorAll('.mobile-body .btn-action-withdraw').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const id = btn.getAttribute('data-id');
+        await updateFinancementStatus(id, 'expire');
+      });
+    });
+
+    document.querySelectorAll('.mobile-body .btn-action-edit').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const id = btn.getAttribute('data-id');
+        const item = cachedFinancements.find(f => String(f.id) === String(id));
+        if (item) openManageFinancementModal(item);
+      });
+    });
 
     // Feuille d'action contextuelle du bouton flottant (+)
     const actionSheetOverlay = document.getElementById('mobileActionSheetOverlay');
@@ -2006,6 +2288,7 @@ document.addEventListener('DOMContentLoaded', () => {
     syncFinancialsFromSupabase(newRole);
     syncCropCyclesFromSupabase(newRole);
     syncSubscriptionStatusFromSupabase(newRole);
+    fetchFinancements();
     showToast('Profil actualisé', `Bascule vers le profil : ${PROFILES_DATA[newRole].name}`);
   });
 
@@ -2026,10 +2309,696 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // ==========================================
+  // MODULE FINANCEMENTS & ADMINISTRATION (SUPABASE CONNECTÉ)
+  // ==========================================
+
+  // 1. Navigation & Routing
+  function navigateToPage(page) {
+    currentRoutePage = page;
+
+    if (pageFinancements) pageFinancements.classList.toggle('hidden', page !== 'opportunites');
+    if (pageAdminFinancements) pageAdminFinancements.classList.toggle('hidden', page !== 'admin-financements');
+    if (dashboardContent) dashboardContent.classList.toggle('hidden', page !== 'dashboard');
+
+    document.querySelectorAll('.sidebar-nav .nav-item').forEach(item => {
+      const itemPage = item.getAttribute('data-page');
+      if (itemPage === page || (page === 'dashboard' && itemPage === 'dashboard')) {
+        item.classList.add('active');
+      } else {
+        item.classList.remove('active');
+      }
+    });
+
+    if (currentViewMode === 'mobile' || window.innerWidth < 1024) {
+      renderMobileView();
+    }
+
+    if (page === 'opportunites') {
+      renderUserFinancements();
+    } else if (page === 'admin-financements') {
+      renderAdminFinancements();
+    }
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function handleRoute() {
+    const hash = (window.location.hash || '').replace(/^#/, '');
+    if (hash === 'opportunites') {
+      navigateToPage('opportunites');
+    } else if (hash === 'admin-financements') {
+      navigateToPage('admin-financements');
+    } else if (hash === 'dashboard' || hash === '') {
+      navigateToPage('dashboard');
+    }
+  }
+
+  window.addEventListener('hashchange', handleRoute);
+
+  // Écouteurs de navigation sur la sidebar bureau
+  document.querySelectorAll('.sidebar-nav .nav-item').forEach(link => {
+    link.addEventListener('click', (e) => {
+      const href = link.getAttribute('href');
+      if (href && href.startsWith('#')) {
+        const page = href.replace(/^#/, '');
+        if (page === 'opportunites' || page === 'admin-financements' || page === 'dashboard') {
+          e.preventDefault();
+          window.location.hash = page;
+          navigateToPage(page);
+        }
+      }
+    });
+  });
+
+  // Liens retour au tableau de bord (Desktop)
+  document.querySelectorAll('.breadcrumb-back-link').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      window.location.hash = 'dashboard';
+      navigateToPage('dashboard');
+    });
+  });
+
+  // Raccourci opportunités & Clic sur Carte 4
   const btnShortcutOpps = document.getElementById('btnShortcutOpps');
   if (btnShortcutOpps) {
     btnShortcutOpps.addEventListener('click', () => {
-      showToast('Opportunités vérifiées', 'Filtre appliqué : Appels à projets Ministère & PReCA.');
+      window.location.hash = 'opportunites';
+      navigateToPage('opportunites');
+    });
+  }
+
+  const statCard4 = document.getElementById('statCard4');
+  if (statCard4) {
+    statCard4.style.cursor = 'pointer';
+    statCard4.addEventListener('click', () => {
+      window.location.hash = 'opportunites';
+      navigateToPage('opportunites');
+    });
+  }
+
+  // 2. Synchronisation et Auto-expiration Supabase
+  async function fetchFinancements() {
+    if (!supabaseClient) return;
+
+    try {
+      const { data, error } = await supabaseClient
+        .from('financements')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.warn('⚠️ Erreur fetchFinancements Supabase :', error);
+        return;
+      }
+
+      const now = new Date();
+      now.setHours(0, 0, 0, 0);
+
+      // Auto-expiration : si date limite passée sur fiche publiée
+      const toExpire = [];
+      (data || []).forEach(item => {
+        if (item.statut === 'publie' && item.date_limite) {
+          const itemDeadline = new Date(item.date_limite);
+          itemDeadline.setHours(23, 59, 59, 999);
+          if (itemDeadline < now) {
+            item.statut = 'expire';
+            toExpire.push(item.id);
+          }
+        }
+      });
+
+      if (toExpire.length > 0) {
+        try {
+          await supabaseClient
+            .from('financements')
+            .update({ statut: 'expire', updated_at: new Date().toISOString() })
+            .in('id', toExpire);
+          console.log(`⏱️ [Auto-Expire] ${toExpire.length} offre(s) expirée(s) mise(s) à jour.`);
+        } catch (e) {
+          console.warn('Auto-expire update error :', e);
+        }
+      }
+
+      cachedFinancements = data || [];
+      updateFinancementsCounters();
+
+      if (currentRoutePage === 'opportunites') {
+        renderUserFinancements();
+      } else if (currentRoutePage === 'admin-financements') {
+        renderAdminFinancements();
+      }
+
+      if (currentViewMode === 'mobile' || window.innerWidth < 1024) {
+        renderMobileView();
+      }
+    } catch (err) {
+      console.warn('⚠️ Erreur réseau fetchFinancements :', err);
+    }
+  }
+
+  // 3. Mise à jour des compteurs et badges
+  function updateFinancementsCounters() {
+    const published = cachedFinancements.filter(f => f.statut === 'publie');
+    const pending = cachedFinancements.filter(f => f.statut === 'en_attente');
+    const expired = cachedFinancements.filter(f => f.statut === 'expire');
+
+    // Badge Administration
+    const navAdminBadge = document.getElementById('navAdminPendingBadge');
+    if (navAdminBadge) {
+      navAdminBadge.textContent = pending.length;
+      navAdminBadge.style.display = pending.length > 0 ? 'inline-block' : 'none';
+    }
+
+    const adminBanner = document.getElementById('adminPendingBanner');
+    const pendingAlertCount = document.getElementById('adminPendingAlertCount');
+    if (adminBanner) {
+      if (pending.length > 0) {
+        adminBanner.classList.remove('hidden');
+        if (pendingAlertCount) {
+          pendingAlertCount.textContent = `${pending.length} fiche${pending.length > 1 ? 's' : ''} en attente de validation`;
+        }
+      } else {
+        adminBanner.classList.add('hidden');
+      }
+    }
+
+    const bPending = document.getElementById('badgeCountEnAttente');
+    const bPublie = document.getElementById('badgeCountPublie');
+    const bExpire = document.getElementById('badgeCountExpire');
+    const bAll = document.getElementById('badgeCountAll');
+    if (bPending) bPending.textContent = pending.length;
+    if (bPublie) bPublie.textContent = published.length;
+    if (bExpire) bExpire.textContent = expired.length;
+    if (bAll) bAll.textContent = cachedFinancements.length;
+
+    // Badges Utilisateur
+    const navUserBadge = document.getElementById('navUserFinancementsBadge');
+    if (navUserBadge) navUserBadge.textContent = published.length;
+
+    const countText = document.getElementById('userFinancementsCountText');
+    if (countText) {
+      countText.textContent = `${published.length} opportunité${published.length > 1 ? 's' : ''} ouverte${published.length > 1 ? 's' : ''}`;
+    }
+
+    // Carte 4 Dashboard
+    const statVal4 = document.getElementById('statValue4');
+    if (statVal4) {
+      statVal4.innerHTML = `${published.length} <small>vérifiées</small>`;
+    }
+
+    const statCard4Footer = document.querySelector('#statCard4 .stat-footer');
+    if (statCard4Footer) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      let closingSoon = 0;
+      published.forEach(p => {
+        if (p.date_limite) {
+          const dl = new Date(p.date_limite);
+          const diffDays = Math.ceil((dl - today) / (1000 * 60 * 60 * 24));
+          if (diffDays >= 0 && diffDays <= 7) closingSoon++;
+        }
+      });
+
+      statCard4Footer.innerHTML = `
+        <span class="urgent-pill">
+          <span class="clock-icon">⏳</span> ${closingSoon} clôture${closingSoon > 1 ? 'nt' : ''} &lt; 7 j
+        </span>
+        <span class="comparison-text">Ministère & PReCA</span>
+      `;
+    }
+  }
+
+  // 4. Rendu de la grille Utilisateur (Desktop)
+  function renderUserFinancements() {
+    const grid = document.getElementById('financementsGrid');
+    const emptyState = document.getElementById('financementsEmptyState');
+    if (!grid) return;
+
+    const published = cachedFinancements.filter(f => f.statut === 'publie');
+    let filtered = published;
+
+    if (userSelectedType !== 'all') {
+      filtered = filtered.filter(f => f.type && f.type.toLowerCase().trim() === userSelectedType.toLowerCase().trim());
+    }
+
+    if (userSelectedRegion !== 'all') {
+      filtered = filtered.filter(f => f.region && (f.region.toLowerCase().includes(userSelectedRegion.toLowerCase()) || f.region.toLowerCase().includes('tout le burkina')));
+    }
+
+    filtered.sort((a, b) => new Date(a.date_limite) - new Date(b.date_limite));
+
+    if (filtered.length === 0) {
+      grid.innerHTML = '';
+      if (emptyState) emptyState.classList.remove('hidden');
+      return;
+    }
+
+    if (emptyState) emptyState.classList.add('hidden');
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    grid.innerHTML = filtered.map(item => {
+      const dl = new Date(item.date_limite);
+      const diffDays = Math.ceil((dl - today) / (1000 * 60 * 60 * 24));
+      const formattedDate = dl.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+      const isUrgent = diffDays >= 0 && diffDays <= 7;
+      const typeClass = (item.type || 'subvention').toLowerCase().replace(/[\s']/g, '-');
+
+      return `
+        <article class="financement-card" data-id="${item.id}">
+          <div class="fin-card-top-meta">
+            <span class="fin-badge-type ${typeClass}">${item.type}</span>
+            <span class="fin-badge-region">📍 ${item.region || 'Tout le Burkina'}</span>
+          </div>
+
+          <div class="fin-card-org">${item.organisme}</div>
+          <h3 class="fin-card-title">${item.titre}</h3>
+
+          <div class="fin-card-amount-box">
+            <span class="fin-amount-label">Dotation / Financement</span>
+            <span class="fin-amount-val">${item.montant || 'Non spécifié'}</span>
+          </div>
+
+          <p class="fin-card-desc">${item.description_courte || ''}</p>
+
+          <div class="fin-card-footer">
+            <div class="fin-card-deadline">
+              <span>Date limite : ${formattedDate}</span>
+              ${isUrgent ? `<span class="badge-urgent-closing">⏳ Clôture dans ${diffDays === 0 ? "aujourd'hui" : diffDays + " j"}</span>` : ''}
+            </div>
+            <button type="button" class="fin-card-link-btn">Voir les détails →</button>
+          </div>
+        </article>
+      `;
+    }).join('');
+
+    grid.querySelectorAll('.financement-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const id = card.getAttribute('data-id');
+        const item = cachedFinancements.find(f => String(f.id) === String(id));
+        if (item) openFinancementDetailsModal(item);
+      });
+    });
+  }
+
+  // 5. Rendu de la liste Administration (Desktop)
+  function renderAdminFinancements() {
+    const listContainer = document.getElementById('adminFinancementsList');
+    const emptyState = document.getElementById('adminFinancementsEmpty');
+    if (!listContainer) return;
+
+    const pending = cachedFinancements.filter(f => f.statut === 'en_attente');
+    const published = cachedFinancements.filter(f => f.statut === 'publie');
+    const expired = cachedFinancements.filter(f => f.statut === 'expire');
+
+    let list = cachedFinancements;
+    if (adminActiveStatusTab === 'en_attente') list = pending;
+    else if (adminActiveStatusTab === 'publie') list = published;
+    else if (adminActiveStatusTab === 'expire') list = expired;
+
+    // Fiches en attente en premier
+    list.sort((a, b) => {
+      if (a.statut === 'en_attente' && b.statut !== 'en_attente') return -1;
+      if (b.statut === 'en_attente' && a.statut !== 'en_attente') return 1;
+      return new Date(b.created_at || 0) - new Date(a.created_at || 0);
+    });
+
+    if (list.length === 0) {
+      listContainer.innerHTML = '';
+      if (emptyState) emptyState.classList.remove('hidden');
+      return;
+    }
+
+    if (emptyState) emptyState.classList.add('hidden');
+
+    listContainer.innerHTML = list.map(item => {
+      const dl = item.date_limite ? new Date(item.date_limite).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Non précisée';
+
+      return `
+        <div class="admin-fin-item status-${item.statut}" data-id="${item.id}">
+          <div class="admin-fin-content">
+            <div class="admin-fin-header-row">
+              <span class="admin-status-pill ${item.statut}">
+                ${item.statut === 'en_attente' ? '⏳ En attente' : (item.statut === 'publie' ? '✅ Publié' : '⏹️ Expiré')}
+              </span>
+              <span class="fin-badge-type ${(item.type || '').toLowerCase().replace(/[\s']/g, '-')}">${item.type}</span>
+              <span style="font-size: 11.5px; color: var(--text-dim);">📍 ${item.region}</span>
+            </div>
+            <h4 class="admin-fin-title">${item.titre}</h4>
+            <div class="admin-fin-meta-row">
+              <span><strong>Organisme :</strong> ${item.organisme}</span>
+              <span>•</span>
+              <span><strong>Montant :</strong> ${item.montant || 'N/C'}</span>
+              <span>•</span>
+              <span><strong>Date limite :</strong> ${dl}</span>
+            </div>
+          </div>
+          <div class="admin-actions-group">
+            ${item.statut !== 'publie' ? `
+              <button type="button" class="btn-admin-action btn-admin-publish btn-action-publish" data-id="${item.id}" title="Publier immédiatement cette fiche pour tous les utilisateurs">
+                ✅ Publier
+              </button>
+            ` : ''}
+            <button type="button" class="btn-admin-action btn-admin-edit btn-action-edit" data-id="${item.id}" title="Modifier les champs de l'offre">
+              ✏️ Modifier
+            </button>
+            ${item.statut !== 'expire' ? `
+              <button type="button" class="btn-admin-action btn-admin-withdraw btn-action-withdraw" data-id="${item.id}" title="Retirer l'offre du public">
+                🚫 Retirer
+              </button>
+            ` : ''}
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    listContainer.querySelectorAll('.btn-action-publish').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const id = btn.getAttribute('data-id');
+        await updateFinancementStatus(id, 'publie');
+      });
+    });
+
+    listContainer.querySelectorAll('.btn-action-withdraw').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const id = btn.getAttribute('data-id');
+        await updateFinancementStatus(id, 'expire');
+      });
+    });
+
+    listContainer.querySelectorAll('.btn-action-edit').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const id = btn.getAttribute('data-id');
+        const item = cachedFinancements.find(f => String(f.id) === String(id));
+        if (item) openManageFinancementModal(item);
+      });
+    });
+  }
+
+  // 6. Mise à jour de statut (Publier / Retirer)
+  async function updateFinancementStatus(id, newStatus) {
+    if (!supabaseClient) return;
+
+    try {
+      const { error } = await supabaseClient
+        .from('financements')
+        .update({ statut: newStatus, updated_at: new Date().toISOString() })
+        .eq('id', id);
+
+      if (error) {
+        showToast('⚠️ Erreur', error.message || 'Impossible de mettre à jour le statut.');
+        return;
+      }
+
+      const statusLabels = {
+        publie: 'publié en ligne et visible par tous les producteurs !',
+        expire: 'retiré du catalogue (statut expiré).',
+        en_attente: 'remis en attente de validation.'
+      };
+
+      showToast('Statut mis à jour', `Le financement a été ${statusLabels[newStatus] || newStatus}`);
+      await fetchFinancements();
+    } catch (e) {
+      showToast('Erreur', e.message);
+    }
+  }
+
+  // 7. Modale Détails du financement (Utilisateur)
+  function openFinancementDetailsModal(item) {
+    if (!modalFinancementDetails) return;
+
+    const bType = document.getElementById('finDetailTypeBadge');
+    const bRegion = document.getElementById('finDetailRegionBadge');
+    const dOrg = document.getElementById('finDetailOrganisme');
+    const dTitre = document.getElementById('finDetailTitre');
+    const dMontant = document.getElementById('finDetailMontant');
+    const dDateLimite = document.getElementById('finDetailDateLimite');
+    const dUrgent = document.getElementById('finDetailUrgentBadge');
+    const dDesc = document.getElementById('finDetailDescription');
+    const dPublic = document.getElementById('finDetailPublicVise');
+    const dCond = document.getElementById('finDetailConditions');
+    const dContact = document.getElementById('finDetailContact');
+    const dSource = document.getElementById('finDetailSource');
+    const btnApply = document.getElementById('btnApplyFinancement');
+
+    if (bType) bType.textContent = item.type;
+    if (bRegion) bRegion.textContent = `📍 ${item.region || 'Tout le Burkina'}`;
+    if (dOrg) dOrg.textContent = item.organisme;
+    if (dTitre) dTitre.textContent = item.titre;
+    if (dMontant) dMontant.textContent = item.montant || 'Non spécifié';
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const dl = new Date(item.date_limite);
+    const diffDays = Math.ceil((dl - today) / (1000 * 60 * 60 * 24));
+
+    if (dDateLimite) {
+      dDateLimite.textContent = dl.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+    }
+
+    if (dUrgent) {
+      if (diffDays >= 0 && diffDays <= 7) {
+        dUrgent.textContent = `⏳ Clôture dans ${diffDays === 0 ? "aujourd'hui" : diffDays + " j"}`;
+        dUrgent.style.display = 'inline-block';
+      } else {
+        dUrgent.style.display = 'none';
+      }
+    }
+
+    if (dDesc) dDesc.textContent = item.description_courte || '';
+    if (dPublic) dPublic.textContent = item.public_vise || 'Tout public agropastoral';
+    if (dCond) dCond.textContent = item.conditions_eligibilite || 'Consultez les termes détaillés.';
+    if (dContact) dContact.textContent = item.contact || 'Non précisé';
+
+    const sourceRow = document.getElementById('finDetailSourceRow');
+    if (dSource && sourceRow) {
+      if (item.source) {
+        dSource.href = item.source;
+        sourceRow.style.display = 'flex';
+      } else {
+        sourceRow.style.display = 'none';
+      }
+    }
+
+    if (btnApply) {
+      btnApply.href = item.lien_postuler || item.source || '#';
+      if (!item.lien_postuler && !item.source) {
+        btnApply.textContent = 'Contact direct nécessaire';
+        btnApply.removeAttribute('target');
+      } else {
+        btnApply.innerHTML = '<span>Postuler en ligne</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>';
+        btnApply.setAttribute('target', '_blank');
+      }
+    }
+
+    modalFinancementDetails.classList.remove('hidden');
+  }
+
+  function closeFinancementDetailsModal() {
+    if (modalFinancementDetails) modalFinancementDetails.classList.add('hidden');
+  }
+
+  const btnCloseFinDetails = document.getElementById('btnCloseFinancementDetails');
+  const btnCloseDetailsBottom = document.getElementById('btnCloseDetailsBottom');
+  if (btnCloseFinDetails) btnCloseFinDetails.addEventListener('click', closeFinancementDetailsModal);
+  if (btnCloseDetailsBottom) btnCloseDetailsBottom.addEventListener('click', closeFinancementDetailsModal);
+  if (modalFinancementDetails) {
+    modalFinancementDetails.addEventListener('click', (e) => {
+      if (e.target === modalFinancementDetails) closeFinancementDetailsModal();
+    });
+  }
+
+  // 8. Modale Gestion / Formulaire Financement (Admin)
+  function openManageFinancementModal(item = null) {
+    if (!modalManageFinancement) return;
+
+    const modalTitle = document.getElementById('manageFinancementModalTitle');
+    const fId = document.getElementById('financementId');
+    const fTitre = document.getElementById('finTitre');
+    const fOrganisme = document.getElementById('finOrganisme');
+    const fType = document.getElementById('finType');
+    const fMontant = document.getElementById('finMontant');
+    const fDateLimite = document.getElementById('finDateLimite');
+    const fRegion = document.getElementById('finRegion');
+    const fPublicVise = document.getElementById('finPublicVise');
+    const fDescription = document.getElementById('finDescription');
+    const fConditions = document.getElementById('finConditions');
+    const fContact = document.getElementById('finContact');
+    const fStatut = document.getElementById('finStatut');
+    const fLienPostuler = document.getElementById('finLienPostuler');
+    const fSource = document.getElementById('finSource');
+
+    if (item) {
+      if (modalTitle) modalTitle.textContent = 'Modifier le financement';
+      if (fId) fId.value = item.id;
+      if (fTitre) fTitre.value = item.titre || '';
+      if (fOrganisme) fOrganisme.value = item.organisme || '';
+      if (fType) fType.value = item.type || 'subvention';
+      if (fMontant) fMontant.value = item.montant || '';
+      if (fDateLimite) fDateLimite.value = item.date_limite ? item.date_limite.split('T')[0] : '';
+      if (fRegion) fRegion.value = item.region || 'Tout le Burkina Faso';
+      if (fPublicVise) fPublicVise.value = item.public_vise || '';
+      if (fDescription) fDescription.value = item.description_courte || '';
+      if (fConditions) fConditions.value = item.conditions_eligibilite || '';
+      if (fContact) fContact.value = item.contact || '';
+      if (fStatut) fStatut.value = item.statut || 'publie';
+      if (fLienPostuler) fLienPostuler.value = item.lien_postuler || '';
+      if (fSource) fSource.value = item.source || '';
+    } else {
+      if (modalTitle) modalTitle.textContent = 'Ajouter un financement';
+      if (formManageFinancement) formManageFinancement.reset();
+      if (fId) fId.value = '';
+      if (fRegion) fRegion.value = 'Tout le Burkina Faso';
+      if (fStatut) fStatut.value = 'publie';
+      if (fDateLimite) {
+        const nextMonth = new Date();
+        nextMonth.setDate(nextMonth.getDate() + 20);
+        fDateLimite.value = nextMonth.toISOString().split('T')[0];
+      }
+    }
+
+    modalManageFinancement.classList.remove('hidden');
+  }
+
+  function closeManageFinancementModal() {
+    if (modalManageFinancement) modalManageFinancement.classList.add('hidden');
+    if (formManageFinancement) formManageFinancement.reset();
+  }
+
+  const btnOpenAddFinancementModal = document.getElementById('btnOpenAddFinancementModal');
+  const btnCloseManageFinancement = document.getElementById('btnCloseManageFinancement');
+  const btnCancelManageFinancement = document.getElementById('btnCancelManageFinancement');
+
+  if (btnOpenAddFinancementModal) btnOpenAddFinancementModal.addEventListener('click', () => openManageFinancementModal());
+  if (btnCloseManageFinancement) btnCloseManageFinancement.addEventListener('click', closeManageFinancementModal);
+  if (btnCancelManageFinancement) btnCancelManageFinancement.addEventListener('click', closeManageFinancementModal);
+  if (modalManageFinancement) {
+    modalManageFinancement.addEventListener('click', (e) => {
+      if (e.target === modalManageFinancement) closeManageFinancementModal();
+    });
+  }
+
+  // 9. Enregistrement (Création / Modification) dans Supabase
+  if (formManageFinancement) {
+    formManageFinancement.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const fId = document.getElementById('financementId').value;
+      const fTitre = document.getElementById('finTitre').value.trim();
+      const fOrganisme = document.getElementById('finOrganisme').value.trim();
+      const fType = document.getElementById('finType').value;
+      const fMontant = document.getElementById('finMontant').value.trim();
+      const fDateLimite = document.getElementById('finDateLimite').value;
+      const fRegion = document.getElementById('finRegion').value.trim();
+      const fPublicVise = document.getElementById('finPublicVise').value.trim();
+      const fDescription = document.getElementById('finDescription').value.trim();
+      const fConditions = document.getElementById('finConditions').value.trim();
+      const fContact = document.getElementById('finContact').value.trim();
+      const fStatut = document.getElementById('finStatut').value;
+      const fLienPostuler = document.getElementById('finLienPostuler').value.trim();
+      const fSource = document.getElementById('finSource').value.trim();
+
+      const saveBtn = document.getElementById('btnSaveFinancement');
+      const saveBtnText = document.getElementById('btnSaveFinancementText');
+      if (saveBtn) saveBtn.disabled = true;
+      if (saveBtnText) saveBtnText.textContent = 'Enregistrement en cours…';
+
+      const payload = {
+        titre: fTitre,
+        organisme: fOrganisme,
+        type: fType,
+        montant: fMontant || null,
+        date_limite: fDateLimite,
+        region: fRegion,
+        public_vise: fPublicVise,
+        description_courte: fDescription,
+        conditions_eligibilite: fConditions,
+        contact: fContact || null,
+        statut: fStatut,
+        lien_postuler: fLienPostuler || null,
+        source: fSource || null,
+        updated_at: new Date().toISOString()
+      };
+
+      try {
+        if (fId) {
+          const { error } = await supabaseClient.from('financements').update(payload).eq('id', fId);
+          if (error) throw error;
+          showToast('Financement modifié', `« ${fTitre} » a été mis à jour avec succès.`);
+        } else {
+          const { error } = await supabaseClient.from('financements').insert([payload]);
+          if (error) throw error;
+          showToast('Financement créé', `« ${fTitre} » a été ajouté (statut : ${fStatut}).`);
+        }
+
+        closeManageFinancementModal();
+        await fetchFinancements();
+      } catch (err) {
+        showToast('⚠️ Erreur', err.message || 'Impossible d\'enregistrer le financement.');
+      } finally {
+        if (saveBtn) saveBtn.disabled = false;
+        if (saveBtnText) saveBtnText.textContent = 'Enregistrer le financement';
+      }
+    });
+  }
+
+  // 10. Filtres Utilisateur Desktop
+  const filterChips = document.querySelectorAll('#filterTypesContainer .type-filter-chip');
+  filterChips.forEach(chip => {
+    chip.addEventListener('click', () => {
+      filterChips.forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      userSelectedType = chip.getAttribute('data-type');
+      renderUserFinancements();
+    });
+  });
+
+  const selectRegion = document.getElementById('selectFilterRegion');
+  if (selectRegion) {
+    selectRegion.addEventListener('change', (e) => {
+      userSelectedRegion = e.target.value;
+      renderUserFinancements();
+    });
+  }
+
+  const btnResetFilters = document.getElementById('btnResetFinancementFilters');
+  if (btnResetFilters) {
+    btnResetFilters.addEventListener('click', () => {
+      userSelectedType = 'all';
+      userSelectedRegion = 'all';
+      filterChips.forEach(c => c.classList.remove('active'));
+      const allChip = document.querySelector('#filterTypesContainer .type-filter-chip[data-type="all"]');
+      if (allChip) allChip.classList.add('active');
+      if (selectRegion) selectRegion.value = 'all';
+      renderUserFinancements();
+    });
+  }
+
+  // 11. Onglets Statut Admin Desktop
+  const adminTabs = document.querySelectorAll('#adminStatusTabsGroup .admin-status-tab');
+  adminTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      adminTabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      adminActiveStatusTab = tab.getAttribute('data-status');
+      renderAdminFinancements();
+    });
+  });
+
+  const btnQuickFilterPending = document.getElementById('btnQuickFilterPending');
+  if (btnQuickFilterPending) {
+    btnQuickFilterPending.addEventListener('click', () => {
+      adminActiveStatusTab = 'en_attente';
+      adminTabs.forEach(t => t.classList.remove('active'));
+      const pendingTab = document.getElementById('tabStatusEnAttente');
+      if (pendingTab) pendingTab.classList.add('active');
+      renderAdminFinancements();
     });
   }
 
@@ -2798,6 +3767,8 @@ document.addEventListener('DOMContentLoaded', () => {
         avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&h=120&q=80',
         hasExploitation: true
       });
+      await fetchFinancements();
+      handleRoute();
       showToast('Aperçu Démo', 'Connecté en tant que Awa Ouédraogo (Koudougou).');
     });
   }
@@ -2833,8 +3804,13 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
+    // Charger les financements en tâche de fond dès le démarrage
+    fetchFinancements().catch(() => {});
+
     if (sessionUser) {
       await checkUserProfileAndProceed(sessionUser);
+      await fetchFinancements();
+      handleRoute();
       hideLoadingScreen();
     } else {
       const savedSessionRaw = localStorage.getItem('revolution_session_user');
@@ -2843,6 +3819,8 @@ document.addEventListener('DOMContentLoaded', () => {
           const savedUser = JSON.parse(savedSessionRaw);
           if (savedUser && savedUser.id) {
             await activateUserSession(savedUser);
+            await fetchFinancements();
+            handleRoute();
             hideLoadingScreen();
             return;
           }

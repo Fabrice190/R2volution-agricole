@@ -4647,4 +4647,892 @@ body.drawer-open {
   }
 }
 
+/* ==========================================================================
+   14. MODULE FINANCEMENTS & ADMINISTRATION (Supabase Real-time Connected)
+   ========================================================================== */
+
+/* Page View Headers & Breadcrumb */
+.page-view-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 22px;
+  flex-wrap: wrap;
+}
+
+.page-view-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.page-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-dim);
+  font-weight: 500;
+}
+
+.breadcrumb-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--primary-700);
+  font-weight: 600;
+  text-decoration: none;
+  transition: var(--transition-base);
+}
+
+.breadcrumb-back-link:hover {
+  text-decoration: underline;
+  color: var(--primary-800);
+}
+
+.page-main-title {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--text-main);
+  letter-spacing: -0.3px;
+  margin: 0;
+}
+
+.page-subtitle {
+  font-size: 13.5px;
+  color: var(--text-muted);
+  max-width: 720px;
+  margin: 0;
+  line-height: 1.45;
+}
+
+.page-header-meta-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #EAF4E6;
+  color: #1E5E2A;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  border: 1px solid #D2E7CB;
+}
+
+.page-header-actions-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-add-financement {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  font-size: 13.5px;
+  font-weight: 700;
+  border-radius: 10px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(30, 94, 42, 0.25);
+  transition: var(--transition-base);
+}
+
+.btn-add-financement:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(30, 94, 42, 0.35);
+}
+
+/* 14.1 FILTRE BAR (TYPES & RÉGIONS) */
+.financements-filter-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 22px;
+  background: #FFFFFF;
+  padding: 10px 16px;
+  border-radius: 14px;
+  border: 1px solid var(--border-light);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  flex-wrap: wrap;
+}
+
+.filter-types-scroll {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.filter-types-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.type-filter-chip {
+  background: #F3F5F1;
+  color: var(--text-muted);
+  border: 1px solid transparent;
+  padding: 6px 14px;
+  border-radius: 99px;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: var(--transition-base);
+}
+
+.type-filter-chip:hover {
+  background: #E8ECE5;
+  color: var(--text-main);
+}
+
+.type-filter-chip.active {
+  background: var(--primary-700);
+  color: #FFFFFF;
+  border-color: var(--primary-700);
+  box-shadow: 0 2px 8px rgba(30, 94, 42, 0.25);
+}
+
+.filter-region-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.region-label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.filter-region-select {
+  padding: 7px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-medium);
+  font-size: 12.5px;
+  font-weight: 600;
+  background: #FFFFFF;
+  color: var(--text-main);
+  cursor: pointer;
+  outline: none;
+  transition: var(--transition-base);
+}
+
+.filter-region-select:focus {
+  border-color: var(--primary-500);
+  box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.15);
+}
+
+/* 14.2 CARTE DE FINANCEMENT (GRILLE UTILISATEUR) */
+.financements-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+  gap: 18px;
+}
+
+.financement-card {
+  background: #FFFFFF;
+  border: 1px solid var(--border-light);
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease;
+  cursor: pointer;
+  position: relative;
+}
+
+.financement-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(14, 54, 21, 0.08);
+  border-color: var(--primary-300);
+}
+
+.fin-card-top-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.fin-badge-type {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 3px 10px;
+  border-radius: 6px;
+}
+
+.fin-badge-type.subvention { background: #E8F5E9; color: #1B5E20; }
+.fin-badge-type.appel-a-projets { background: #EDE7F6; color: #512DA8; }
+.fin-badge-type.pret { background: #E1F5FE; color: #0277BD; }
+.fin-badge-type.concours { background: #FFF3E0; color: #E65100; }
+.fin-badge-type.incubation { background: #F3E5F5; color: #7B1FA2; }
+.fin-badge-type.formation { background: #E0F2F1; color: #004D40; }
+.fin-badge-type.emploi { background: #E8EAF6; color: #283593; }
+
+.fin-badge-region {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.fin-card-org {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.fin-card-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-main);
+  line-height: 1.35;
+  margin: 0;
+}
+
+.fin-card-amount-box {
+  background: #F7FAF6;
+  border: 1px solid #E3EDE0;
+  border-radius: 10px;
+  padding: 8px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.fin-amount-label {
+  font-size: 11px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.fin-amount-val {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: var(--primary-700);
+}
+
+.fin-card-desc {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin: 0;
+}
+
+.fin-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-light);
+  margin-top: auto;
+}
+
+.fin-card-deadline {
+  font-size: 12px;
+  color: var(--text-dim);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.badge-urgent-closing {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 800;
+  background: #FFF1F0;
+  color: #CF1322;
+  padding: 2px 8px;
+  border-radius: 99px;
+  border: 1px solid #FFA39E;
+  animation: pulseUrgent 2s infinite ease-in-out;
+}
+
+@keyframes pulseUrgent {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.02); box-shadow: 0 0 8px rgba(207, 19, 34, 0.2); }
+  100% { transform: scale(1); }
+}
+
+.fin-card-link-btn {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--primary-700);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 6px;
+  transition: var(--transition-base);
+}
+
+.fin-card-link-btn:hover {
+  background: #EAF4E6;
+  color: var(--primary-900);
+}
+
+/* 14.3 ÉTAT VIDE */
+.financements-empty-state {
+  text-align: center;
+  padding: 48px 24px;
+  background: #FFFFFF;
+  border: 1px dashed var(--border-medium);
+  border-radius: 16px;
+  margin: 20px 0;
+}
+
+.financements-empty-state .empty-state-icon {
+  font-size: 40px;
+  margin-bottom: 12px;
+}
+
+.financements-empty-state h3 {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 6px;
+}
+
+.financements-empty-state p {
+  font-size: 13.5px;
+  color: var(--text-muted);
+  max-width: 480px;
+  margin: 0 auto 16px;
+}
+
+.btn-reset-filters {
+  background: var(--primary-700);
+  color: #FFFFFF;
+  border: none;
+  padding: 9px 18px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition-base);
+}
+
+.btn-reset-filters:hover {
+  background: var(--primary-800);
+}
+
+/* 14.4 ESPACE ADMINISTRATION DES FINANCEMENTS */
+.admin-pending-alert-banner {
+  background: linear-gradient(135deg, #FFF9E6 0%, #FFF3CC 100%);
+  border: 1px solid #F5D380;
+  border-radius: 14px;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(200, 134, 42, 0.1);
+}
+
+.admin-pending-alert-banner.hidden {
+  display: none !important;
+}
+
+.admin-pending-alert-banner .alert-icon {
+  font-size: 24px;
+}
+
+.admin-pending-alert-banner .alert-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.admin-pending-alert-banner .alert-content strong {
+  font-size: 14px;
+  color: #7A4F01;
+}
+
+.admin-pending-alert-banner .alert-content span {
+  font-size: 12.5px;
+  color: #8C651C;
+}
+
+.btn-filter-pending-quick {
+  background: #C8862A;
+  color: #FFFFFF;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: var(--transition-base);
+}
+
+.btn-filter-pending-quick:hover {
+  background: #B0721E;
+}
+
+/* Status Filter Tabs (Admin) */
+.admin-status-tabs-bar {
+  margin-bottom: 18px;
+}
+
+.admin-status-tabs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  border-bottom: 2px solid var(--border-light);
+  padding-bottom: 2px;
+}
+
+.admin-status-tab {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-dim);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: -2px;
+  transition: var(--transition-base);
+  white-space: nowrap;
+}
+
+.admin-status-tab:hover {
+  color: var(--text-main);
+}
+
+.admin-status-tab.active {
+  color: var(--primary-700);
+  border-bottom-color: var(--primary-700);
+}
+
+.tab-badge {
+  font-size: 11px;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 99px;
+}
+
+.tab-badge.badge-amber { background: #FEF3D6; color: #925807; }
+.tab-badge.badge-green { background: #E6F4EA; color: #137333; }
+.tab-badge.badge-gray { background: #EEEEEE; color: #616161; }
+.tab-badge.badge-neutral { background: #E8ECE5; color: #425247; }
+
+/* Liste des cartes d'administration */
+.admin-financements-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.admin-fin-item {
+  background: #FFFFFF;
+  border: 1px solid var(--border-light);
+  border-radius: 14px;
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+  transition: var(--transition-base);
+}
+
+.admin-fin-item:hover {
+  border-color: var(--primary-300);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.admin-fin-item.status-en_attente {
+  border-left: 5px solid #C8862A;
+  background: #FFFCF5;
+}
+
+.admin-fin-item.status-publie {
+  border-left: 5px solid #2E7D32;
+}
+
+.admin-fin-item.status-expire {
+  border-left: 5px solid #9E9E9E;
+  opacity: 0.75;
+}
+
+.admin-fin-content {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+
+.admin-fin-header-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.admin-status-pill {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 3px 9px;
+  border-radius: 6px;
+}
+
+.admin-status-pill.en_attente { background: #FEF3D6; color: #8A4F00; }
+.admin-status-pill.publie { background: #E6F4EA; color: #137333; }
+.admin-status-pill.expire { background: #EEEEEE; color: #616161; }
+
+.admin-fin-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin: 0;
+}
+
+.admin-fin-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--text-dim);
+  flex-wrap: wrap;
+}
+
+.admin-actions-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.btn-admin-action {
+  padding: 7px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: var(--transition-base);
+}
+
+.btn-admin-publish {
+  background: #2E7D32;
+  color: #FFFFFF;
+  border: 1px solid #1E5E2A;
+}
+
+.btn-admin-publish:hover {
+  background: #1E5E2A;
+}
+
+.btn-admin-edit {
+  background: #F3F5F1;
+  color: var(--text-main);
+  border: 1px solid var(--border-medium);
+}
+
+.btn-admin-edit:hover {
+  background: #E8ECE5;
+}
+
+.btn-admin-withdraw {
+  background: #FFF1F0;
+  color: #CF1322;
+  border: 1px solid #FFA39E;
+}
+
+.btn-admin-withdraw:hover {
+  background: #FFCCC7;
+}
+
+/* 14.5 MODALE FORMULAIRE FINANCEMENT (ADMIN) */
+.modal-dialog-financement {
+  max-width: 680px;
+  max-height: 92vh;
+  overflow-y: auto;
+}
+
+.form-row {
+  display: flex;
+  gap: 14px;
+}
+
+.form-row .flex-1 { flex: 1; }
+.form-row .flex-2 { flex: 2; }
+
+/* 14.6 MODALE DÉTAILS DU FINANCEMENT (UTILISATEUR) */
+.modal-dialog-financement-details {
+  max-width: 640px;
+  max-height: 92vh;
+  overflow-y: auto;
+}
+
+.fin-detail-type-badge {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  background: #EAF4E6;
+  color: #1E5E2A;
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+
+.fin-detail-region-badge {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 600;
+  background: #F3F5F1;
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+
+.fin-detail-body {
+  padding: 16px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.fin-detail-org {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  letter-spacing: 0.5px;
+}
+
+.fin-detail-title {
+  font-size: 19px;
+  font-weight: 800;
+  color: var(--text-main);
+  line-height: 1.35;
+  margin: 0;
+}
+
+.fin-detail-hero-box {
+  background: linear-gradient(135deg, #F4F9F2 0%, #E8F4E5 100%);
+  border: 1px solid #D2E7CB;
+  border-radius: 14px;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.fin-hero-col {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.fin-hero-divider {
+  width: 1px;
+  height: 40px;
+  background: #D2E7CB;
+}
+
+.fin-hero-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--text-dim);
+}
+
+.fin-hero-val {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--primary-700);
+}
+
+.fin-hero-badge {
+  font-size: 11px;
+  font-weight: 800;
+  background: #FFF1F0;
+  color: #CF1322;
+  padding: 2px 8px;
+  border-radius: 99px;
+  border: 1px solid #FFA39E;
+  display: inline-block;
+  margin-top: 2px;
+}
+
+.fin-detail-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fin-section-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin: 0;
+}
+
+.fin-section-desc,
+.fin-section-text {
+  font-size: 13.5px;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.fin-conditions-box {
+  background: #F9FAF8;
+  border: 1px solid var(--border-light);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 13px;
+  color: var(--text-main);
+  line-height: 1.5;
+  white-space: pre-line;
+}
+
+.fin-detail-meta-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  background: #FFFFFF;
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+
+.fin-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.fin-meta-icon {
+  font-size: 20px;
+}
+
+.fin-meta-label {
+  display: block;
+  font-size: 11px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  font-weight: 700;
+}
+
+.fin-meta-val {
+  font-size: 12.5px;
+  color: var(--text-main);
+}
+
+.fin-meta-link {
+  font-size: 12.5px;
+  color: var(--primary-700);
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+.fin-detail-footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 20px;
+}
+
+.btn-apply-direct {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 22px;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  border-radius: 10px;
+  box-shadow: 0 4px 14px rgba(30, 94, 42, 0.25);
+  transition: var(--transition-base);
+}
+
+.btn-apply-direct:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(30, 94, 42, 0.35);
+}
+
+/* RESPONSIVE MOBILE POUR FINANCEMENTS */
+@media screen and (max-width: 768px) {
+  .financements-cards-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .form-row {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .admin-fin-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .admin-actions-group {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .admin-actions-group .btn-admin-action {
+    flex: 1;
+    justify-content: center;
+    padding: 9px 12px;
+    font-size: 12px;
+  }
+
+  .fin-detail-hero-box {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .fin-hero-divider {
+    display: none;
+  }
+
+  .fin-detail-meta-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
 

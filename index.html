@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
   
-  <link rel="stylesheet" href="styles/main.css?v=4.2">
+  <link rel="stylesheet" href="styles/main.css?v=4.3">
 </head>
 <body class="theme-light">
   <!-- BANDEAU DE CONTRÔLE PROTOTYPE (Permet de switcher de rôle, de vue et d'état en 1 clic) -->
@@ -358,7 +358,7 @@
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m12 6 4 6-4 6"/><path d="M8 12h8"/></svg>
               </span>
               <span class="nav-label">Financements</span>
-              <span class="nav-badge-amber">5</span>
+              <span class="nav-badge-amber" id="navUserFinancementsBadge">3</span>
             </a>
           </div>
 
@@ -417,6 +417,13 @@
           <!-- Groupe 6: ADMIN (Affiché uniquement pour profil Admin) -->
           <div class="nav-section hidden" id="navGroupAdmin">
             <div class="nav-section-title">ADMINISTRATION</div>
+            <a href="#admin-financements" class="nav-item" data-page="admin-financements" id="navLinkAdminFinancements">
+              <span class="nav-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/><path d="M12 14v4"/><path d="M10 16h4"/></svg>
+              </span>
+              <span class="nav-label">Gérer les financements</span>
+              <span class="nav-badge-amber" id="navAdminPendingBadge">1</span>
+            </a>
             <a href="#admin-queue" class="nav-item" data-page="admin-queue">
               <span class="nav-icon">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
@@ -1072,6 +1079,141 @@
           </div>
 
         </div>
+
+        <!-- ==================== PAGE UTILISATEUR : FINANCEMENTS & OPPORTUNITÉS ==================== -->
+        <div class="dashboard-body hidden" id="pageFinancements">
+          <!-- En-tête de page -->
+          <div class="page-view-header">
+            <div class="page-view-title-group">
+              <div class="page-breadcrumb">
+                <a href="#dashboard" class="breadcrumb-back-link">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+                  <span>Tableau de bord</span>
+                </a>
+                <span class="bullet-sep">•</span>
+                <span>Opportunités & Financements</span>
+              </div>
+              <h1 class="page-main-title">🌾 Financements & Subventions</h1>
+              <p class="page-subtitle">Subventions, prêts bonifiés, appels à projets et concours vérifiés pour le secteur agropastoral au Burkina Faso.</p>
+            </div>
+            <div class="page-header-meta-badge" id="userFinancementsCountBadge">
+              <span class="pulse-dot-green"></span>
+              <span id="userFinancementsCountText">Chargement des offres…</span>
+            </div>
+          </div>
+
+          <!-- Barre de filtres (Types & Région) -->
+          <div class="financements-filter-bar">
+            <div class="filter-types-scroll" id="filterTypesContainer">
+              <button type="button" class="type-filter-chip active" data-type="all">Tous</button>
+              <button type="button" class="type-filter-chip" data-type="subvention">Subventions</button>
+              <button type="button" class="type-filter-chip" data-type="appel à projets">Appels à projets</button>
+              <button type="button" class="type-filter-chip" data-type="prêt">Prêts</button>
+              <button type="button" class="type-filter-chip" data-type="concours">Concours</button>
+              <button type="button" class="type-filter-chip" data-type="incubation">Incubation</button>
+              <button type="button" class="type-filter-chip" data-type="formation">Formations</button>
+              <button type="button" class="type-filter-chip" data-type="emploi">Emplois</button>
+            </div>
+            <div class="filter-region-wrap">
+              <label for="selectFilterRegion" class="region-label">Région :</label>
+              <select id="selectFilterRegion" class="filter-region-select">
+                <option value="all" selected>Toutes les régions</option>
+                <option value="Tout le Burkina Faso">Tout le Burkina Faso</option>
+                <option value="Centre-Ouest">Centre-Ouest (Koudougou)</option>
+                <option value="Hauts-Bassins">Hauts-Bassins (Bobo)</option>
+                <option value="Centre">Centre (Ouagadougou)</option>
+                <option value="Nord">Nord (Ouahigouya)</option>
+                <option value="Boucle du Mouhoun">Boucle du Mouhoun</option>
+                <option value="Cascades">Cascades (Banfora)</option>
+                <option value="Centre-Est">Centre-Est (Tenkodogo)</option>
+                <option value="Est">Est (Fada)</option>
+                <option value="Sahel">Sahel (Dori)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Grille des financements utilisateurs -->
+          <div class="financements-cards-grid" id="financementsGrid">
+            <!-- Injecté dynamiquement par JavaScript depuis Supabase -->
+          </div>
+
+          <!-- État vide -->
+          <div class="financements-empty-state hidden" id="financementsEmptyState">
+            <div class="empty-state-icon">💼</div>
+            <h3>Aucun financement disponible pour ces critères</h3>
+            <p>Essayez de réinitialiser vos filtres ou de sélectionner une autre région.</p>
+            <button type="button" class="btn-reset-filters" id="btnResetFinancementFilters">Afficher tous les financements</button>
+          </div>
+        </div>
+
+        <!-- ==================== PAGE ADMINISTRATION : GÉRER LES FINANCEMENTS ==================== -->
+        <div class="dashboard-body hidden" id="pageAdminFinancements">
+          <!-- En-tête Admin -->
+          <div class="page-view-header">
+            <div class="page-view-title-group">
+              <div class="page-breadcrumb">
+                <a href="#dashboard" class="breadcrumb-back-link">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+                  <span>Tableau de bord</span>
+                </a>
+                <span class="bullet-sep">•</span>
+                <span>Administration</span>
+              </div>
+              <h1 class="page-main-title">🛡️ Gérer les financements</h1>
+              <p class="page-subtitle">Validez les opportunités soumises par l'agent IA, ajoutez de nouvelles offres ou retirez les fiches expirées.</p>
+            </div>
+            <div class="page-header-actions-group">
+              <button type="button" class="btn-primary btn-add-financement" id="btnOpenAddFinancementModal">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                <span>+ Ajouter un financement</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Alerte jaune : fiches en attente -->
+          <div class="admin-pending-alert-banner" id="adminPendingBanner">
+            <span class="alert-icon">⏳</span>
+            <div class="alert-content">
+              <strong id="adminPendingAlertCount">1 fiche en attente de validation</strong>
+              <span>Les fiches en attente sont invisibles des utilisateurs jusqu'à publication par vos soins.</span>
+            </div>
+            <button type="button" class="btn-filter-pending-quick" id="btnQuickFilterPending">Afficher les fiches en attente</button>
+          </div>
+
+          <!-- Onglets de statut (En attente, Publiés, Expirés, Tous) -->
+          <div class="admin-status-tabs-bar">
+            <div class="admin-status-tabs" id="adminStatusTabsGroup">
+              <button type="button" class="admin-status-tab active" data-status="en_attente" id="tabStatusEnAttente">
+                <span>En attente</span>
+                <span class="tab-badge badge-amber" id="badgeCountEnAttente">1</span>
+              </button>
+              <button type="button" class="admin-status-tab" data-status="publie" id="tabStatusPublie">
+                <span>Publiés</span>
+                <span class="tab-badge badge-green" id="badgeCountPublie">3</span>
+              </button>
+              <button type="button" class="admin-status-tab" data-status="expire" id="tabStatusExpire">
+                <span>Expirés</span>
+                <span class="tab-badge badge-gray" id="badgeCountExpire">0</span>
+              </button>
+              <button type="button" class="admin-status-tab" data-status="all" id="tabStatusAll">
+                <span>Toutes les fiches</span>
+                <span class="tab-badge badge-neutral" id="badgeCountAll">4</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Liste des cartes pour admin -->
+          <div class="admin-financements-list" id="adminFinancementsList">
+            <!-- Injecté dynamiquement par JavaScript depuis Supabase -->
+          </div>
+
+          <!-- État vide admin -->
+          <div class="financements-empty-state hidden" id="adminFinancementsEmpty">
+            <div class="empty-state-icon">📂</div>
+            <h3 id="adminEmptyTitle">Aucune fiche dans cette catégorie</h3>
+            <p id="adminEmptySub">Cliquez sur « + Ajouter un financement » pour créer une nouvelle offre.</p>
+          </div>
+        </div>
       </main>
 
     </div>
@@ -1648,6 +1790,187 @@
     </div>
   </div>
 
+  <!-- ==================== MODALE GESTION FINANCEMENT (ADMIN) ==================== -->
+  <div class="modal-backdrop hidden" id="modalManageFinancement">
+    <div class="modal-dialog modal-dialog-financement">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <span class="modal-icon bg-green">💼</span>
+          <div>
+            <h3 class="modal-title" id="manageFinancementModalTitle">Ajouter un financement</h3>
+            <p class="modal-subtitle">Renseignez les détails de l'opportunité agropastorale.</p>
+          </div>
+        </div>
+        <button class="modal-close-btn" id="btnCloseManageFinancement">&times;</button>
+      </div>
+
+      <form id="formManageFinancement" class="modal-form" autocomplete="off">
+        <input type="hidden" id="financementId" value="">
+
+        <div class="form-row">
+          <div class="form-group flex-2">
+            <label for="finTitre">Titre de l'opportunité <span class="required">*</span></label>
+            <input type="text" id="finTitre" class="form-input" placeholder="Ex: Subvention PReCA pour intrants et semences" required>
+          </div>
+          <div class="form-group flex-1">
+            <label for="finType">Type <span class="required">*</span></label>
+            <select id="finType" class="form-select" required>
+              <option value="subvention">Subvention</option>
+              <option value="prêt">Prêt</option>
+              <option value="appel à projets">Appel à projets</option>
+              <option value="concours">Concours</option>
+              <option value="incubation">Incubation</option>
+              <option value="formation">Formation</option>
+              <option value="emploi">Emploi</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label for="finOrganisme">Organisme émetteur <span class="required">*</span></label>
+            <input type="text" id="finOrganisme" class="form-input" placeholder="Ex: Ministère de l'Agriculture, MEBF, PReCA" required>
+          </div>
+          <div class="form-group flex-1">
+            <label for="finMontant">Montant / Dotation</label>
+            <input type="text" id="finMontant" class="form-input" placeholder="Ex: Jusqu'à 5 000 000 F CFA">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label for="finDateLimite">Date limite de candidature <span class="required">*</span></label>
+            <input type="date" id="finDateLimite" class="form-input" required>
+          </div>
+          <div class="form-group flex-1">
+            <label for="finRegion">Région ciblée <span class="required">*</span></label>
+            <input type="text" id="finRegion" class="form-input" placeholder="Ex: Tout le Burkina Faso, ou Centre-Ouest" value="Tout le Burkina Faso" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="finPublicVise">Public visé <span class="required">*</span></label>
+          <input type="text" id="finPublicVise" class="form-input" placeholder="Ex: Maraîchers, jeunes diplômés agricoles, coopératives féminines" required>
+        </div>
+
+        <div class="form-group">
+          <label for="finDescription">Description courte <span class="required">*</span></label>
+          <textarea id="finDescription" class="form-textarea" rows="2" placeholder="Présentation synthétique de l'opportunité (2-3 phrases)..." required></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="finConditions">Conditions d'éligibilité <span class="required">*</span></label>
+          <textarea id="finConditions" class="form-textarea" rows="3" placeholder="Critères d'accès, pièces justificatives exigées, expérience..." required></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label for="finContact">Contact (Téléphone, Email)</label>
+            <input type="text" id="finContact" class="form-input" placeholder="Ex: +226 25 30 60 70 / contact@agriculture.bf">
+          </div>
+          <div class="form-group flex-1">
+            <label for="finStatut">Statut initial <span class="required">*</span></label>
+            <select id="finStatut" class="form-select" required>
+              <option value="en_attente">En attente (Non visible du public)</option>
+              <option value="publie" selected>Publié (Visible immédiatement)</option>
+              <option value="expire">Expiré / Retiré</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label for="finLienPostuler">Lien pour postuler</label>
+            <input type="url" id="finLienPostuler" class="form-input" placeholder="https://...">
+          </div>
+          <div class="form-group flex-1">
+            <label for="finSource">Source de l'annonce officielle</label>
+            <input type="url" id="finSource" class="form-input" placeholder="https://...">
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" id="btnCancelManageFinancement">Annuler</button>
+          <button type="submit" class="btn-primary" id="btnSaveFinancement">
+            <span id="btnSaveFinancementText">Enregistrer le financement</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== MODALE DÉTAILS DU FINANCEMENT (UTILISATEUR) ==================== -->
+  <div class="modal-backdrop hidden" id="modalFinancementDetails">
+    <div class="modal-dialog modal-dialog-financement-details">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <span class="fin-detail-type-badge" id="finDetailTypeBadge">Subvention</span>
+          <span class="fin-detail-region-badge" id="finDetailRegionBadge">📍 Tout le Burkina</span>
+        </div>
+        <button class="modal-close-btn" id="btnCloseFinancementDetails">&times;</button>
+      </div>
+
+      <div class="fin-detail-body">
+        <div class="fin-detail-org" id="finDetailOrganisme">Ministère de l'Agriculture</div>
+        <h2 class="fin-detail-title" id="finDetailTitre">Titre du financement</h2>
+
+        <!-- Hero Card Montant & Clôture -->
+        <div class="fin-detail-hero-box">
+          <div class="fin-hero-col">
+            <span class="fin-hero-label">Montant / Dotation</span>
+            <strong class="fin-hero-val" id="finDetailMontant">Jusqu'à 5 000 000 F CFA</strong>
+          </div>
+          <div class="fin-hero-divider"></div>
+          <div class="fin-hero-col">
+            <span class="fin-hero-label">Date limite</span>
+            <strong class="fin-hero-val" id="finDetailDateLimite">30 octobre 2026</strong>
+            <span class="fin-hero-badge" id="finDetailUrgentBadge">⏳ Clôture dans 5 j</span>
+          </div>
+        </div>
+
+        <div class="fin-detail-section">
+          <h4 class="fin-section-title">Description de l'opportunité</h4>
+          <p class="fin-section-desc" id="finDetailDescription"></p>
+        </div>
+
+        <div class="fin-detail-section">
+          <h4 class="fin-section-title">🎯 Public visé</h4>
+          <p class="fin-section-text" id="finDetailPublicVise"></p>
+        </div>
+
+        <div class="fin-detail-section">
+          <h4 class="fin-section-title">📋 Conditions d'éligibilité</h4>
+          <div class="fin-conditions-box" id="finDetailConditions"></div>
+        </div>
+
+        <div class="fin-detail-meta-grid">
+          <div class="fin-meta-item" id="finDetailContactRow">
+            <span class="fin-meta-icon">📞</span>
+            <div>
+              <span class="fin-meta-label">Contact</span>
+              <strong class="fin-meta-val" id="finDetailContact"></strong>
+            </div>
+          </div>
+          <div class="fin-meta-item" id="finDetailSourceRow">
+            <span class="fin-meta-icon">🔗</span>
+            <div>
+              <span class="fin-meta-label">Source officielle</span>
+              <a href="#" target="_blank" rel="noopener" class="fin-meta-link" id="finDetailSource">Consulter l'annonce ↗</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer fin-detail-footer">
+        <button type="button" class="btn-secondary" id="btnCloseDetailsBottom">Fermer</button>
+        <a href="#" target="_blank" rel="noopener" class="btn-primary btn-apply-direct" id="btnApplyFinancement">
+          <span>Postuler en ligne</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+        </a>
+      </div>
+    </div>
+  </div>
+
   <!-- TOAST DE NOTIFICATION FLOTTANT -->
   <div class="toast-notification hidden" id="toastNotification">
     <div class="toast-icon" id="toastIcon">✅</div>
@@ -1662,6 +1985,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <!-- SCRIPT APPLICATION -->
-  <script src="scripts/app.js?v=4.2"></script>
+  <script src="scripts/app.js?v=4.3"></script>
 </body>
 </html>

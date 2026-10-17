@@ -303,6 +303,31 @@ Depuis la version 2.9, l'application est entièrement Full Stack connectée au p
     - Si une session utilisateur valide existe : transition directe vers le tableau de bord sans jamais afficher le portail d'authentification.
     - S'il n'y a pas de session : bascule immédiate vers le portail de connexion et masquage de l'écran de chargement.
 
+### M. Module Financements & Opportunités Connecté Supabase (v4.3)
+- **Table Supabase `public.financements`** :
+  - 15 champs normalisés : `id`, `titre`, `organisme`, `type`, `description_courte`, `conditions_eligibilite`, `public_vise`, `montant`, `date_limite`, `region`, `contact`, `lien_postuler`, `source`, `statut` (`en_attente`, `publie`, `expire`), `created_at`, `updated_at`.
+  - Fonction de sécurité : `is_financements_admin()` vérifiant `profiles.is_admin`, la session démo admin ou les claims.
+  - **Sécurité RLS stricte** :
+    - Public / Utilisateurs normaux : lecture autorisée **uniquement** pour `statut = 'publie'`.
+    - Administrateurs : accès complet en lecture (tous statuts), insertion, modification et suppression.
+- **Espace Administration (« Gérer les financements »)** :
+  - Accessible via la barre latérale sous `ADMINISTRATION` (`#admin-financements`) et dans le tiroir mobile.
+  - Filtres par onglets de statut : `Tous`, `En attente`, `Publiés`, `Expirés`.
+  - Tri prioritaire : les fiches `en_attente` s'affichent en tête avec puce dorée et compteur dédié dans la navigation (prêt pour l'intégration future d'agents IA collecteurs).
+  - Bouton « + Ajouter un financement » ouvrant le formulaire complet à 13 champs.
+  - Boutons d'action sur chaque fiche :
+    - « Publier » (bascule immédiate du statut vers `publie`).
+    - « Retirer » (bascule immédiate du statut vers `expire`).
+    - « Modifier » (pré-remplit le formulaire pour mise à jour).
+- **Espace Utilisateur (« Financements & Opportunités »)** :
+  - Accessible via `OPPORTUNITÉS > Financements` (`#opportunites`) ou clic sur la carte statistique 4.
+  - Données 100% réelles issues de Supabase (anciens mockups supprimés).
+  - Tri chronologique automatique par date limite la plus proche.
+  - Filtres interactifs par type (Tous, Subvention, Prêt, Appel à projets, Formation...) et région (Tout le Burkina, Hauts-Bassins, Centre, Boucle du Mouhoun...).
+  - Badge clignotant rouge/ocre **« ⏳ Clôture dans X jours »** pour toute échéance `< 7 jours`.
+  - Détection automatique d'expiration : les fiches dont la date limite est passée basculent automatiquement en `expire` et n'apparaissent plus dans la liste publique.
+  - Modale détaillée (`#modalFinancementDetails`) avec récapitulatif complet, éligibilité et bouton « Postuler » ouvrant le lien officiel.
+
 ---
 
-*Fin du document de spécification système — Version 4.2 • Révolution Agricole Burkina Faso.*
+*Fin du document de spécification système — Version 4.3 • Révolution Agricole Burkina Faso.*
