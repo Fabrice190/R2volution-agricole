@@ -462,7 +462,34 @@ Depuis la version 2.9, l'application est entièrement Full Stack connectée au p
     - Dynamique et connectée : affiche le dernier conseil agronomique publié avec son titre, résumé, temps de lecture et catégorie.
     - Clic direct sur « Lire le conseil → » ouvrant immédiatement la fiche complète dans la modale.
 
+### R. Modèles de Cultures & Prévision Automatique de Récolte (v5.4)
+- **Table Supabase `public.modeles_cultures`** :
+  - Colonnes : `id` (UUID), `nom_culture` (texte not null), `variete` (texte, null = toutes variétés), `categorie` (maraîchage, céréales…), `mode_depart` (`pepiniere` ou `semis_direct`), `pepiniere_jours_min` (int), `pepiniere_jours_max` (int), `recolte_jours_min` (int), `recolte_jours_max` (int), `conseil_court` (phrase simple sans abréviations), `source` (nom/lien de l'organisme), `actif` (booléen default true), `created_at` (timestamptz).
+  - **Row Level Security (RLS)** :
+    - Lecture autorisée pour tous (`actif = true` ou `is_admin()`).
+    - Insertion, modification et suppression strictement réservées aux administrateurs (`is_admin()`).
+  - **Données certifiées de départ (sources officielles vérifiées)** :
+    1. *Oignon* : toutes variétés, maraîchage, pépinière (40 à 45 jours), récolte (90 à 120 jours après repiquage), conseil court : « Repiquez quand les plants ont 5 à 6 feuilles. », source : Chambre régionale d'agriculture de Maradi, fiche oignon 2017.
+    2. *Tomate* : toutes variétés, maraîchage, pépinière (28 à 42 jours), récolte : NULL (inconnue), conseil court : « Repiquez les plants après quatre à six semaines en pépinière. », source : Fiche technique tomate FBT3, CORAF / MITA.
+    3. *Maïs* : variété Komsaya, céréales, semis direct, récolte (85 à 95 jours après semis), conseil court : « Komsaya est une variété précoce de l'INERA. », source : INERA / Sidwaya.
+  - **Zéro donnée d'exemple dans les tables utilisateur** : les tables `parcels` et `crop_cycles` restent strictement dédiées aux utilisateurs (`profile_id`).
+- **Formulaire Utilisateur « Ajouter une culture » (`#modalAddCropCycle`)** :
+  - Sélecteur facultatif de modèle (`#cropCycleModeleSelect`) alimenté en direct depuis `modeles_cultures (actif = true)`.
+  - Sélection d'un modèle :
+    - Préremplissage automatique du nom de la culture et de la catégorie.
+    - Calcul automatique de la date de récolte estimée : `estimated_harvest_date = planting_date + recolte_jours_min`.
+    - Affichage de la fourchette de récolte en toutes lettres (ex: « Récolte prévue entre le 30 décembre 2026 et le 29 janvier 2027 »).
+    - Si `mode_depart = 'pepiniere'` : affichage de la période de repiquage en toutes lettres (ex: « Repiquage prévu entre le 10 novembre 2026 et le 15 novembre 2026 »).
+    - Si durée de récolte inconnue (Tomate) : le champ de date de récolte reste vide et le message officiel « Demandez la durée à l'agent d'agriculture de votre zone. » s'affiche clairement.
+    - Création manuelle sans modèle : fonctionne en saisie libre sans aucune contrainte.
+  - Bouton **« 🔊 Écouter »** : synthèse vocale adaptée aux producteurs peu lettrés qui lit à voix haute le nom de la culture, les dates de repiquage, les dates de récolte et le conseil agronomique.
+- **Espace Administration (« Gérer les modèles »)** :
+  - Accessible via `ADMINISTRATION > Gérer les modèles` (`#admin-modeles`) pour les profils administrateurs.
+  - Onglets de filtrage : `Tous`, `Actifs`, `Désactivés`.
+  - Création et modification de modèles dans la modale `#modalManageModele` (saisie des durées min/max, conseil court et source).
+  - Action d'activation / désactivation en 1 clic (`toggleModeleActive`).
+
 ---
 
-*Fin du document de spécification système — Version 5.3 • Révolution Agricole Burkina Faso.*
+*Fin du document de spécification système — Version 5.4 • Révolution Agricole Burkina Faso.*
 

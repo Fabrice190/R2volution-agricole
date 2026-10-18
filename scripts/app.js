@@ -50,10 +50,18 @@ document.addEventListener('DOMContentLoaded', () => {
   let adminConseilActiveStatusTab = 'en_attente';
   let activeConseilSpeechBtn = null;
 
+  // Variables d'état et sélecteurs DOM pour Modèles de Cultures & Parcelles
+  let cachedModelesCultures = [];
+  let cachedUserParcels = [];
+  let activeAdminModelesTab = 'all';
+  let activeCropSpeechBtn = null;
+
   const pageFinancements = document.getElementById('pageFinancements');
   const pageAdminFinancements = document.getElementById('pageAdminFinancements');
   const pageConseils = document.getElementById('pageConseils');
   const pageAdminConseils = document.getElementById('pageAdminConseils');
+  const pageAdminModeles = document.getElementById('pageAdminModeles');
+  const pageParcelles = document.getElementById('pageParcelles');
   const pageMeteo = document.getElementById('pageMeteo');
   const dashboardContent = document.getElementById('dashboardContent');
   const modalManageFinancement = document.getElementById('modalManageFinancement');
@@ -62,6 +70,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const modalManageConseil = document.getElementById('modalManageConseil');
   const modalConseilDetails = document.getElementById('modalConseilDetails');
   const formManageConseil = document.getElementById('formManageConseil');
+  const modalAddCropCycle = document.getElementById('modalAddCropCycle');
+  const formAddCropCycle = document.getElementById('formAddCropCycle');
+  const modalManageModele = document.getElementById('modalManageModele');
+  const formManageModele = document.getElementById('formManageModele');
 
   // Sélecteurs DOM clés
   const roleSelector = document.getElementById('roleSelector');
@@ -273,6 +285,47 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     } catch (e) {
       console.error('Erreur updateConseilStatus :', e);
+    }
+  }
+
+  // 6. Utilitaires pour Modèles de cultures & Dates en toutes lettres (Accessibles vocalement)
+  function formatDateEnToutesLettres(dateObj) {
+    if (!dateObj || isNaN(dateObj.getTime())) return '';
+    const mois = [
+      'janvier', 'février', 'mars', 'avril', 'mai', 'juin',
+      'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'
+    ];
+    return `${dateObj.getDate()} ${mois[dateObj.getMonth()]} ${dateObj.getFullYear()}`;
+  }
+
+  function addDaysToDate(baseDate, days) {
+    if (!baseDate || isNaN(baseDate.getTime())) return new Date();
+    const result = new Date(baseDate.getTime());
+    result.setDate(result.getDate() + Number(days || 0));
+    return result;
+  }
+
+  function formatDateForInput(dateObj) {
+    if (!dateObj || isNaN(dateObj.getTime())) return '';
+    const y = dateObj.getFullYear();
+    const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const d = String(dateObj.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
+
+  function getModeleModeBadge(mode) {
+    if (mode === 'pepiniere') {
+      return '<span class="modele-mode-badge modele-mode-pepiniere">🌱 Pépinière</span>';
+    }
+    return '<span class="modele-mode-badge modele-mode-semis">🌾 Semis direct</span>';
+  }
+
+  function getActiveModelesCount() {
+    try {
+      if (!Array.isArray(cachedModelesCultures)) return 0;
+      return cachedModelesCultures.filter(m => m && m.actif).length;
+    } catch (e) {
+      return 0;
     }
   }
 
@@ -1355,9 +1408,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg></span>
                 <span class="nav-label">Synthèse</span>
               </a>
-              <a href="#parcelles" class="nav-item mobile-drawer-link">
+              <a href="#parcelles" class="nav-item mobile-drawer-link" data-page="parcelles">
                 <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/></svg></span>
-                <span class="nav-label">Parcelles</span>
+                <span class="nav-label">Parcelles & cultures</span>
               </a>
               <a href="#cycles" class="nav-item mobile-drawer-link">
                 <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg></span>
@@ -1395,6 +1448,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     return `<span class="nav-badge-amber" id="mobileDrawerConseilsPendingBadge">${count}</span>`;
                   } catch (e) {
                     return `<span class="nav-badge-amber" id="mobileDrawerConseilsPendingBadge" style="display:none;"></span>`;
+                  }
+                })()}
+              </a>
+              <a href="#admin-modeles" class="nav-item mobile-drawer-link" data-page="admin-modeles">
+                <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10H12V2z"/><path d="M12 2a10 10 0 0 1 10 10"/></svg></span>
+                <span class="nav-label">Gérer les modèles</span>
+                ${(() => {
+                  try {
+                    const count = (cachedModelesCultures || []).length;
+                    return `<span class="nav-badge-neutral" id="mobileDrawerModelesBadge">${count}</span>`;
+                  } catch (e) {
+                    return `<span class="nav-badge-neutral" id="mobileDrawerModelesBadge" style="display:none;"></span>`;
                   }
                 })()}
               </a>
@@ -1476,6 +1541,8 @@ document.addEventListener('DOMContentLoaded', () => {
           (currentRoutePage === 'admin-financements' ? getMobileAdminFinancementsHtml() :
           (currentRoutePage === 'conseils' ? getMobileConseilsHtml() :
           (currentRoutePage === 'admin-conseils' ? getMobileAdminConseilsHtml() :
+          (currentRoutePage === 'admin-modeles' ? getMobileAdminModelesHtml() :
+          (currentRoutePage === 'parcelles' ? getMobileParcellesHtml() :
           (currentRoutePage === 'meteo' ? getMobileMeteoHtml() : `
         <!-- Salutation -->
         <div>
@@ -1560,7 +1627,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <span>mai</span><span>juin</span><span>juil</span><span>août</span><span>sept</span><span style="font-weight: 700; color: #1E5E2A;">oct</span>
           </div>
         </div>
-        `))))}
+        `))))))}
       </div>
 
       <!-- BOUTON D'ACTION FLOTTANT (+) MOBILE -->
@@ -1678,11 +1745,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const href = link.getAttribute('href');
         if (href && href.startsWith('#')) {
           const target = href.replace(/^#/, '');
-          if (target === 'opportunites' || target === 'admin-financements' || target === 'conseils' || target === 'admin-conseils' || target === 'dashboard' || target === 'meteo') {
+          if (target === 'opportunites' || target === 'admin-financements' || target === 'conseils' || target === 'admin-conseils' || target === 'admin-modeles' || target === 'parcelles' || target === 'cycles' || target === 'dashboard' || target === 'meteo') {
             e.preventDefault();
             closeMobileDrawer();
-            window.location.hash = target;
-            navigateToPage(target);
+            const routeTarget = (target === 'cycles') ? 'parcelles' : target;
+            window.location.hash = routeTarget;
+            navigateToPage(routeTarget);
           }
         }
       });
@@ -2768,6 +2836,8 @@ document.addEventListener('DOMContentLoaded', () => {
       syncSubscriptionStatusFromSupabase(newRole);
       fetchFinancements();
       fetchConseils();
+      fetchModelesCultures().catch(() => {});
+      fetchUserParcels(newRole).catch(() => {});
       loadAndRenderWeather();
       showToast('Profil actualisé', `Bascule vers le profil : ${PROFILES_DATA[newRole]?.name || newRole}`);
     });
@@ -3600,12 +3670,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (pageAdminFinancements) pageAdminFinancements.classList.toggle('hidden', page !== 'admin-financements');
     if (pageConseils) pageConseils.classList.toggle('hidden', page !== 'conseils');
     if (pageAdminConseils) pageAdminConseils.classList.toggle('hidden', page !== 'admin-conseils');
+    if (pageAdminModeles) pageAdminModeles.classList.toggle('hidden', page !== 'admin-modeles');
+    if (pageParcelles) pageParcelles.classList.toggle('hidden', page !== 'parcelles');
     if (pageMeteo) pageMeteo.classList.toggle('hidden', page !== 'meteo');
     if (dashboardContent) dashboardContent.classList.toggle('hidden', page !== 'dashboard');
 
     document.querySelectorAll('.sidebar-nav .nav-item').forEach(item => {
       const itemPage = item.getAttribute('data-page');
-      if (itemPage === page || (page === 'dashboard' && itemPage === 'dashboard')) {
+      if (itemPage === page || (page === 'dashboard' && itemPage === 'dashboard') || (page === 'parcelles' && (itemPage === 'parcelles' || itemPage === 'cycles'))) {
         item.classList.add('active');
       } else {
         item.classList.remove('active');
@@ -3624,6 +3696,10 @@ document.addEventListener('DOMContentLoaded', () => {
       renderUserConseils();
     } else if (page === 'admin-conseils') {
       renderAdminConseils();
+    } else if (page === 'admin-modeles') {
+      renderAdminModeles();
+    } else if (page === 'parcelles') {
+      renderParcellesPage();
     } else if (page === 'meteo') {
       if (cachedWeatherResult) {
         renderMeteoPage(cachedWeatherResult);
@@ -3645,6 +3721,10 @@ document.addEventListener('DOMContentLoaded', () => {
       navigateToPage('conseils');
     } else if (hash === 'admin-conseils') {
       navigateToPage('admin-conseils');
+    } else if (hash === 'admin-modeles') {
+      navigateToPage('admin-modeles');
+    } else if (hash === 'parcelles' || hash === 'cycles' || hash === 'tous-les-cycles') {
+      navigateToPage('parcelles');
     } else if (hash === 'meteo' || hash === 'meteo-details') {
       navigateToPage('meteo');
     } else if (hash === 'dashboard' || hash === '') {
@@ -3660,10 +3740,11 @@ document.addEventListener('DOMContentLoaded', () => {
       const href = link.getAttribute('href');
       if (href && href.startsWith('#')) {
         const page = href.replace(/^#/, '');
-        if (page === 'opportunites' || page === 'admin-financements' || page === 'conseils' || page === 'admin-conseils' || page === 'dashboard' || page === 'meteo') {
+        if (page === 'opportunites' || page === 'admin-financements' || page === 'conseils' || page === 'admin-conseils' || page === 'admin-modeles' || page === 'parcelles' || page === 'cycles' || page === 'dashboard' || page === 'meteo') {
           e.preventDefault();
-          window.location.hash = page;
-          navigateToPage(page);
+          const routeTarget = (page === 'cycles') ? 'parcelles' : page;
+          window.location.hash = routeTarget;
+          navigateToPage(routeTarget);
         }
       }
     });
@@ -5029,6 +5110,931 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // ==========================================
+  // MODULE MODÈLES DE CULTURES & PARCELLES (SUPABASE CONNECTÉ)
+  // ==========================================
+
+  async function fetchModelesCultures() {
+    if (!supabaseClient) return cachedModelesCultures || [];
+    try {
+      const { data, error } = await supabaseClient
+        .from('modeles_cultures')
+        .select('*')
+        .order('nom_culture', { ascending: true });
+
+      if (!error && data) {
+        cachedModelesCultures = data;
+        updateModelesUI();
+      }
+    } catch (err) {
+      console.warn('⚠️ Erreur fetchModelesCultures :', err);
+    }
+    return cachedModelesCultures || [];
+  }
+
+  async function fetchUserParcels(profileId = currentProfileKey) {
+    if (!supabaseClient || !profileId) return [];
+    try {
+      const { data, error } = await supabaseClient
+        .from('parcels')
+        .select('*')
+        .eq('profile_id', profileId)
+        .order('created_at', { ascending: true });
+
+      if (!error && data) {
+        cachedUserParcels = data;
+        return data;
+      }
+      return [];
+    } catch (err) {
+      console.warn('⚠️ Erreur fetchUserParcels :', err);
+      return [];
+    }
+  }
+
+  function updateModelesUI() {
+    const bDesk = document.getElementById('navAdminModelesBadge');
+    if (bDesk) {
+      bDesk.textContent = cachedModelesCultures.length;
+      bDesk.style.display = cachedModelesCultures.length > 0 ? '' : 'none';
+    }
+    const bMobile = document.getElementById('mobileDrawerModelesBadge');
+    if (bMobile) {
+      bMobile.textContent = cachedModelesCultures.length;
+      bMobile.style.display = cachedModelesCultures.length > 0 ? '' : 'none';
+    }
+
+    if (currentRoutePage === 'admin-modeles') {
+      renderAdminModeles();
+    }
+  }
+
+  function updateCropCycleCalculations(model) {
+    if (!model) return;
+    const forecastBox = document.getElementById('cropCycleForecastBox');
+    const repiqRow = document.getElementById('cropForecastRepiquageRow');
+    const repiqText = document.getElementById('cropForecastRepiquageText');
+    const harvestText = document.getElementById('cropForecastHarvestText');
+    const harvestInput = document.getElementById('cropCycleHarvestDate');
+    const adviceBox = document.getElementById('cropForecastAdviceBox');
+    const adviceText = document.getElementById('cropForecastAdviceText');
+    const sourceBox = document.getElementById('cropForecastSourceBox');
+    const sourceText = document.getElementById('cropForecastSourceText');
+    const plantingInput = document.getElementById('cropCyclePlantingDate');
+
+    if (!plantingInput.value) {
+      plantingInput.value = formatDateForInput(new Date());
+    }
+
+    const parts = plantingInput.value.split('-');
+    const baseDate = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+
+    // 1. Pépinière & Repiquage
+    if (model.mode_depart === 'pepiniere' && model.pepiniere_jours_min && model.pepiniere_jours_max) {
+      const repiqMin = addDaysToDate(baseDate, model.pepiniere_jours_min);
+      const repiqMax = addDaysToDate(baseDate, model.pepiniere_jours_max);
+      repiqText.textContent = `Repiquage prévu entre le ${formatDateEnToutesLettres(repiqMin)} et le ${formatDateEnToutesLettres(repiqMax)}`;
+      repiqRow.classList.remove('hidden');
+    } else {
+      repiqRow.classList.add('hidden');
+    }
+
+    // 2. Récolte (comptée depuis le repiquage ou semis direct)
+    if (model.recolte_jours_min != null && model.recolte_jours_min > 0) {
+      const harvestMin = addDaysToDate(baseDate, model.recolte_jours_min);
+      const harvestMax = model.recolte_jours_max ? addDaysToDate(baseDate, model.recolte_jours_max) : harvestMin;
+      
+      harvestInput.value = formatDateForInput(harvestMin);
+      harvestText.innerHTML = `Récolte prévue entre le <strong>${formatDateEnToutesLettres(harvestMin)}</strong> et le <strong>${formatDateEnToutesLettres(harvestMax)}</strong>`;
+    } else {
+      // Si recolte_jours est vide : ne rien calculer et afficher le message officiel
+      harvestInput.value = '';
+      harvestText.innerHTML = `<span class="forecast-warning-tag">Demandez la durée à l'agent d'agriculture de votre zone.</span>`;
+    }
+
+    // 3. Conseil court
+    if (model.conseil_court && model.conseil_court.trim() !== '') {
+      adviceText.textContent = model.conseil_court;
+      adviceBox.classList.remove('hidden');
+    } else {
+      adviceBox.classList.add('hidden');
+    }
+
+    // 4. Source
+    if (model.source && model.source.trim() !== '') {
+      sourceText.textContent = model.source;
+      sourceBox.classList.remove('hidden');
+    } else {
+      sourceBox.classList.add('hidden');
+    }
+
+    forecastBox.classList.remove('hidden');
+  }
+
+  function applySelectedModelToForm(model) {
+    const nameInput = document.getElementById('cropCycleName');
+    const catInput = document.getElementById('cropCycleCategory');
+    const dateLabel = document.getElementById('cropCyclePlantingDateLabel');
+
+    if (nameInput) {
+      nameInput.value = model.variete ? `${model.nom_culture} (${model.variete})` : model.nom_culture;
+    }
+    if (catInput) {
+      catInput.value = model.categorie || 'maraîchage';
+    }
+    if (dateLabel) {
+      dateLabel.textContent = (model.mode_depart === 'pepiniere') ? 'Date de semis en pépinière' : 'Date de semis';
+    }
+
+    updateCropCycleCalculations(model);
+  }
+
+  async function openAddCropCycleModal(preselectedModelId = null) {
+    if (!modalAddCropCycle) return;
+
+    if (cachedModelesCultures.length === 0) {
+      await fetchModelesCultures();
+    }
+    await fetchUserParcels(currentProfileKey);
+
+    const modeleSelect = document.getElementById('cropCycleModeleSelect');
+    if (modeleSelect) {
+      const activeModeles = (cachedModelesCultures || []).filter(m => m.actif);
+      modeleSelect.innerHTML = '<option value="">-- Aucun modèle (saisie libre manuelle) --</option>' +
+        activeModeles.map(m => {
+          const varLabel = m.variete ? ` (variété ${m.variete})` : ' (toutes variétés)';
+          const modeLabel = m.mode_depart === 'pepiniere' ? '🌱 pépinière' : '🌾 semis direct';
+          return `<option value="${m.id}">${m.nom_culture}${varLabel} • ${m.categorie || 'culture'} • ${modeLabel}</option>`;
+        }).join('');
+
+      if (preselectedModelId) {
+        modeleSelect.value = preselectedModelId;
+      } else {
+        modeleSelect.value = '';
+      }
+    }
+
+    const parcelSelect = document.getElementById('cropCycleParcelSelect');
+    if (parcelSelect) {
+      if (cachedUserParcels && cachedUserParcels.length > 0) {
+        parcelSelect.innerHTML = cachedUserParcels.map(p =>
+          `<option value="${p.id}">${p.name} (${p.area_ha || 1} ha) • ${p.irrigation_type || 'Irrigué'}</option>`
+        ).join('');
+      } else {
+        parcelSelect.innerHTML = '<option value="new_default">Parcelle 1 (1,0 ha - Irrigué)</option>';
+      }
+    }
+
+    const plantingInput = document.getElementById('cropCyclePlantingDate');
+    if (plantingInput) {
+      plantingInput.value = formatDateForInput(new Date());
+    }
+
+    const nameInput = document.getElementById('cropCycleName');
+    const catInput = document.getElementById('cropCycleCategory');
+    const harvestInput = document.getElementById('cropCycleHarvestDate');
+    const forecastBox = document.getElementById('cropCycleForecastBox');
+    const dateLabel = document.getElementById('cropCyclePlantingDateLabel');
+
+    if (nameInput) nameInput.value = '';
+    if (catInput) catInput.value = 'maraîchage';
+    if (harvestInput) harvestInput.value = '';
+    if (dateLabel) dateLabel.textContent = 'Date de semis';
+    if (forecastBox) forecastBox.classList.add('hidden');
+
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    const btnListen = document.getElementById('btnListenCropForecast');
+    if (btnListen) {
+      btnListen.classList.remove('speaking');
+      btnListen.innerHTML = '🔊 <span>Écouter</span>';
+    }
+
+    if (preselectedModelId && modeleSelect) {
+      const selectedModel = cachedModelesCultures.find(m => String(m.id) === String(preselectedModelId));
+      if (selectedModel) {
+        applySelectedModelToForm(selectedModel);
+      }
+    }
+
+    modalAddCropCycle.classList.remove('hidden');
+  }
+
+  function handleListenCropForecast() {
+    const btn = document.getElementById('btnListenCropForecast');
+    if (!('speechSynthesis' in window)) {
+      alert('La lecture vocale n\'est pas supportée par votre navigateur.');
+      return;
+    }
+
+    if (window.speechSynthesis.speaking) {
+      window.speechSynthesis.cancel();
+      if (btn) {
+        btn.classList.remove('speaking');
+        btn.innerHTML = '🔊 <span>Écouter</span>';
+      }
+      return;
+    }
+
+    const cropName = document.getElementById('cropCycleName')?.value || 'Culture';
+    const repiqText = document.getElementById('cropForecastRepiquageText')?.textContent || '';
+    const isRepiqVisible = !document.getElementById('cropForecastRepiquageRow')?.classList.contains('hidden');
+    const harvestText = document.getElementById('cropForecastHarvestText')?.innerText || '';
+    const adviceText = document.getElementById('cropForecastAdviceText')?.textContent || '';
+    const isAdviceVisible = !document.getElementById('cropForecastAdviceBox')?.classList.contains('hidden');
+
+    let textToSpeak = `Culture : ${cropName}. `;
+    if (isRepiqVisible && repiqText) {
+      textToSpeak += `${repiqText}. `;
+    }
+    if (harvestText) {
+      textToSpeak += `${harvestText}. `;
+    }
+    if (isAdviceVisible && adviceText) {
+      textToSpeak += `Conseil pratique : ${adviceText}.`;
+    }
+
+    const utterance = new SpeechSynthesisUtterance(textToSpeak);
+    utterance.lang = 'fr-FR';
+    utterance.rate = 0.95;
+
+    utterance.onstart = () => {
+      if (btn) {
+        btn.classList.add('speaking');
+        btn.innerHTML = '⏹️ <span>Arrêter</span>';
+      }
+    };
+
+    utterance.onend = utterance.onerror = () => {
+      if (btn) {
+        btn.classList.remove('speaking');
+        btn.innerHTML = '🔊 <span>Écouter</span>';
+      }
+    };
+
+    window.speechSynthesis.speak(utterance);
+  }
+
+  async function handleSaveCropCycle(e) {
+    e.preventDefault();
+    if (!supabaseClient) return;
+
+    const btnSubmit = document.getElementById('btnSaveCropCycle');
+    const btnText = document.getElementById('btnSaveCropCycleText');
+    const profileId = currentProfileKey;
+
+    if (!profileId) {
+      showToast('Erreur', 'Veuillez vous connecter pour enregistrer une culture.');
+      return;
+    }
+
+    const cropName = document.getElementById('cropCycleName')?.value?.trim();
+    const category = document.getElementById('cropCycleCategory')?.value;
+    const plantingDate = document.getElementById('cropCyclePlantingDate')?.value;
+    const harvestDate = document.getElementById('cropCycleHarvestDate')?.value || null;
+    let parcelId = document.getElementById('cropCycleParcelSelect')?.value;
+
+    if (!cropName) {
+      alert('Veuillez renseigner le nom de la culture.');
+      return;
+    }
+    if (!plantingDate) {
+      alert('Veuillez renseigner la date de semis.');
+      return;
+    }
+
+    try {
+      if (btnSubmit) btnSubmit.disabled = true;
+      if (btnText) btnText.textContent = 'Enregistrement...';
+
+      if (!parcelId || parcelId === 'new_default') {
+        const { data: newP, error: pErr } = await supabaseClient
+          .from('parcels')
+          .insert({
+            profile_id: profileId,
+            name: 'Parcelle 1',
+            area_ha: 1.0,
+            irrigation_type: 'Irrigué',
+            location: PROFILES_DATA[profileId]?.location || 'Koudougou'
+          })
+          .select('id')
+          .single();
+
+        if (pErr) throw pErr;
+        parcelId = newP.id;
+        await fetchUserParcels(profileId);
+      }
+
+      const payload = {
+        profile_id: profileId,
+        parcel_id: parcelId,
+        crop_name: cropName,
+        category: category || 'maraîchage',
+        planting_date: plantingDate,
+        estimated_harvest_date: harvestDate,
+        status: 'En végétation'
+      };
+
+      const { error: cycleErr } = await supabaseClient
+        .from('crop_cycles')
+        .insert(payload);
+
+      if (cycleErr) throw cycleErr;
+
+      showToast('Culture enregistrée', `${cropName} a été ajouté avec succès à vos parcelles.`);
+      modalAddCropCycle.classList.add('hidden');
+
+      await syncCropCyclesFromSupabase(profileId);
+      if (currentRoutePage === 'parcelles') {
+        renderParcellesPage();
+      }
+    } catch (err) {
+      console.error('Erreur handleSaveCropCycle :', err);
+      showToast('Erreur', err.message || 'Impossible d\'enregistrer la culture.');
+    } finally {
+      if (btnSubmit) btnSubmit.disabled = false;
+      if (btnText) btnText.textContent = 'Enregistrer la culture';
+    }
+  }
+
+  async function deleteCropCycle(cycleId) {
+    if (!confirm('Voulez-vous vraiment retirer cette culture de votre suivi ?')) return;
+    if (!supabaseClient) return;
+    try {
+      const { error } = await supabaseClient
+        .from('crop_cycles')
+        .delete()
+        .eq('id', cycleId);
+
+      if (!error) {
+        showToast('Culture retirée', 'La culture a été retirée avec succès.');
+        await syncCropCyclesFromSupabase(currentProfileKey);
+        renderParcellesPage();
+      } else {
+        showToast('Erreur', error.message || 'Impossible de retirer la culture.');
+      }
+    } catch (err) {
+      console.error('Erreur deleteCropCycle :', err);
+    }
+  }
+
+  function renderParcellesPage() {
+    const cropsCountEl = document.getElementById('parcellesCropsCount');
+    const totalAreaEl = document.getElementById('parcellesTotalArea');
+    const totalAreaSubEl = document.getElementById('parcellesTotalAreaSub');
+    const nextHarvestEl = document.getElementById('parcellesNextHarvest');
+    const cropsListEl = document.getElementById('parcellesCropsList');
+    const emptyStateEl = document.getElementById('parcellesEmptyState');
+
+    const profileData = PROFILES_DATA[currentProfileKey] || {};
+    const cycles = profileData.realCycles || [];
+    const parcels = cachedUserParcels || [];
+
+    if (cropsCountEl) cropsCountEl.textContent = cycles.length;
+
+    let totalHa = 0;
+    if (parcels.length > 0) {
+      totalHa = parcels.reduce((sum, p) => sum + (parseFloat(p.area_ha) || 0), 0);
+    }
+    if (totalAreaEl) totalAreaEl.textContent = `${totalHa.toFixed(1)} ha`;
+    if (totalAreaSubEl) totalAreaSubEl.textContent = `${parcels.length} parcelle${parcels.length > 1 ? 's' : ''}`;
+
+    const upcoming = cycles
+      .filter(c => c.estimated_harvest_date)
+      .map(c => new Date(c.estimated_harvest_date))
+      .filter(d => !isNaN(d.getTime()))
+      .sort((a, b) => a - b);
+
+    if (nextHarvestEl) {
+      if (upcoming.length > 0) {
+        nextHarvestEl.textContent = formatDateEnToutesLettres(upcoming[0]);
+      } else {
+        nextHarvestEl.textContent = 'Aucune date';
+      }
+    }
+
+    if (!cropsListEl) return;
+
+    if (cycles.length === 0) {
+      cropsListEl.innerHTML = '';
+      if (emptyStateEl) emptyStateEl.classList.remove('hidden');
+      return;
+    }
+
+    if (emptyStateEl) emptyStateEl.classList.add('hidden');
+
+    cropsListEl.innerHTML = cycles.map(cycle => {
+      const pInfo = cycle.parcels ? `${cycle.parcels.name} (${cycle.parcels.area_ha} ha)` : 'Parcelle';
+      const plantingDateFormatted = cycle.planting_date ? formatDateEnToutesLettres(new Date(cycle.planting_date)) : '-';
+      const harvestDateFormatted = cycle.estimated_harvest_date ? formatDateEnToutesLettres(new Date(cycle.estimated_harvest_date)) : 'Non définie';
+
+      return `
+        <div class="admin-fin-card" style="border-left: 4px solid #1E5E2A;">
+          <div class="admin-fin-card-header">
+            <div>
+              <div class="admin-fin-meta-row">
+                <span class="fin-badge-type">${cycle.category || 'Culture'}</span>
+                <span class="fin-badge-region">📍 ${pInfo}</span>
+                <span class="fin-badge-status badge-status-publie">${cycle.status || 'En végétation'}</span>
+              </div>
+              <h3 class="admin-fin-title" style="margin-top: 4px;">🌱 ${cycle.crop_name}</h3>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin: 12px 0; background: #F8FAF7; padding: 12px; border-radius: 8px;">
+            <div>
+              <span style="display: block; font-size: 11px; text-transform: uppercase; color: #5D6C63; font-weight: 700;">Date de semis</span>
+              <strong style="font-size: 13.5px; color: #1E2822;">${plantingDateFormatted}</strong>
+            </div>
+            <div>
+              <span style="display: block; font-size: 11px; text-transform: uppercase; color: #5D6C63; font-weight: 700;">Récolte prévue</span>
+              <strong style="font-size: 13.5px; color: #1E5E2A;">${harvestDateFormatted}</strong>
+            </div>
+          </div>
+
+          <div class="admin-fin-card-footer" style="display: flex; justify-content: flex-end; gap: 8px;">
+            <button type="button" class="btn-table-action" onclick="deleteCropCycle('${cycle.id}')" style="color: #C62828; border-color: #F8B4B0; cursor: pointer;">
+              🗑️ Retirer du suivi
+            </button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function renderAdminModeles() {
+    const listEl = document.getElementById('adminModelesList');
+    const emptyEl = document.getElementById('adminModelesEmpty');
+    const bAll = document.getElementById('badgeModeleCountAll');
+    const bActif = document.getElementById('badgeModeleCountActif');
+    const bInactif = document.getElementById('badgeModeleCountInactif');
+
+    const allModeles = cachedModelesCultures || [];
+    const actifs = allModeles.filter(m => m.actif);
+    const inactifs = allModeles.filter(m => !m.actif);
+
+    if (bAll) bAll.textContent = allModeles.length;
+    if (bActif) bActif.textContent = actifs.length;
+    if (bInactif) bInactif.textContent = inactifs.length;
+
+    let items = allModeles;
+    if (activeAdminModelesTab === 'actif') items = actifs;
+    else if (activeAdminModelesTab === 'inactif') items = inactifs;
+
+    if (!listEl) return;
+
+    if (items.length === 0) {
+      listEl.innerHTML = '';
+      if (emptyEl) emptyEl.classList.remove('hidden');
+      return;
+    }
+
+    if (emptyEl) emptyEl.classList.add('hidden');
+
+    listEl.innerHTML = items.map(m => {
+      const isActif = !!m.actif;
+      const statusBadge = isActif
+        ? '<span class="fin-badge-status badge-status-publie">✅ Actif</span>'
+        : '<span class="fin-badge-status badge-status-expire">⏸️ Désactivé</span>';
+
+      const modeBadge = getModeleModeBadge(m.mode_depart);
+      const pepDuration = (m.mode_depart === 'pepiniere' && m.pepiniere_jours_min)
+        ? `${m.pepiniere_jours_min} à ${m.pepiniere_jours_max} jours`
+        : 'Non applicable (Semis direct)';
+
+      const recolteDuration = (m.recolte_jours_min != null && m.recolte_jours_min > 0)
+        ? `${m.recolte_jours_min} à ${m.recolte_jours_max} jours`
+        : '<span style="color: #874D00; font-weight: 700;">Inconnue (Demandez à l\'agent de zone)</span>';
+
+      return `
+        <div class="admin-fin-card" style="border-left: 4px solid ${isActif ? '#1E5E2A' : '#A0AEC0'};">
+          <div class="admin-fin-card-header">
+            <div>
+              <div class="admin-fin-meta-row">
+                <span class="fin-badge-type">${m.categorie || 'Agriculture'}</span>
+                ${modeBadge}
+                ${statusBadge}
+              </div>
+              <h3 class="admin-fin-title" style="margin-top: 4px;">
+                🌱 ${m.nom_culture} ${m.variete ? `<small style="font-size: 13px; font-weight: 600; color: #5D6C63;">(variété ${m.variete})</small>` : '<small style="font-size: 13px; font-weight: 500; color: #5D6C63;">(toutes variétés)</small>'}
+              </h3>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin: 10px 0; background: #F8FAF7; padding: 12px; border-radius: 8px;">
+            <div>
+              <span style="display: block; font-size: 11px; text-transform: uppercase; color: #5D6C63; font-weight: 700;">Pépinière</span>
+              <strong style="font-size: 13px; color: #1E2822;">${pepDuration}</strong>
+            </div>
+            <div>
+              <span style="display: block; font-size: 11px; text-transform: uppercase; color: #5D6C63; font-weight: 700;">Récolte</span>
+              <strong style="font-size: 13px; color: #1E5E2A;">${recolteDuration}</strong>
+            </div>
+          </div>
+
+          ${m.conseil_court ? `
+            <div style="background: #FFFFFF; border: 1px dashed #B8D8B2; border-radius: 8px; padding: 8px 12px; margin-bottom: 8px; font-size: 12.5px; color: #1E2822;">
+              💡 <strong>Conseil court :</strong> ${m.conseil_court}
+            </div>
+          ` : ''}
+
+          <div style="font-size: 11px; color: #6E7C74; margin-bottom: 12px;">
+            <strong>Source :</strong> ${m.source}
+          </div>
+
+          <div class="admin-fin-card-footer" style="display: flex; justify-content: flex-end; gap: 8px; border-top: 1px solid #EDF3EB; padding-top: 10px;">
+            <button type="button" class="btn-table-action" onclick="openManageModeleModal('${m.id}')" style="cursor: pointer;">
+              ✏️ Modifier
+            </button>
+            <button type="button" class="btn-table-action" onclick="toggleModeleActive('${m.id}')" style="cursor: pointer; ${isActif ? 'color: #D97706;' : 'color: #1E5E2A;'}">
+              ${isActif ? '👁️ Désactiver' : '✅ Activer'}
+            </button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function openManageModeleModal(modeleId = null) {
+    if (!modalManageModele) return;
+
+    const modalTitle = document.getElementById('manageModeleModalTitle');
+    const idInput = document.getElementById('modeleId');
+    const nomInput = document.getElementById('modeleNomCulture');
+    const varInput = document.getElementById('modeleVariete');
+    const catInput = document.getElementById('modeleCategorie');
+    const modeInput = document.getElementById('modeleModeDepart');
+    const pepMinInput = document.getElementById('modelePepiniereMin');
+    const pepMaxInput = document.getElementById('modelePepiniereMax');
+    const recMinInput = document.getElementById('modeleRecolteMin');
+    const recMaxInput = document.getElementById('modeleRecolteMax');
+    const conseilInput = document.getElementById('modeleConseilCourt');
+    const srcInput = document.getElementById('modeleSource');
+    const actifInput = document.getElementById('modeleActif');
+    const pepRow = document.getElementById('modelePepiniereRow');
+
+    if (modeleId) {
+      const m = cachedModelesCultures.find(item => String(item.id) === String(modeleId));
+      if (!m) return;
+      modalTitle.textContent = `Modifier : ${m.nom_culture}`;
+      idInput.value = m.id;
+      nomInput.value = m.nom_culture || '';
+      varInput.value = m.variete || '';
+      catInput.value = m.categorie || 'maraîchage';
+      modeInput.value = m.mode_depart || 'pepiniere';
+      pepMinInput.value = m.pepiniere_jours_min != null ? m.pepiniere_jours_min : '';
+      pepMaxInput.value = m.pepiniere_jours_max != null ? m.pepiniere_jours_max : '';
+      recMinInput.value = m.recolte_jours_min != null ? m.recolte_jours_min : '';
+      recMaxInput.value = m.recolte_jours_max != null ? m.recolte_jours_max : '';
+      conseilInput.value = m.conseil_court || '';
+      srcInput.value = m.source || '';
+      actifInput.value = m.actif ? 'true' : 'false';
+    } else {
+      modalTitle.textContent = 'Ajouter un modèle de culture';
+      idInput.value = '';
+      nomInput.value = '';
+      varInput.value = '';
+      catInput.value = 'maraîchage';
+      modeInput.value = 'pepiniere';
+      pepMinInput.value = '';
+      pepMaxInput.value = '';
+      recMinInput.value = '';
+      recMaxInput.value = '';
+      conseilInput.value = '';
+      srcInput.value = '';
+      actifInput.value = 'true';
+    }
+
+    if (pepRow) {
+      pepRow.style.display = (modeInput.value === 'pepiniere') ? '' : 'none';
+    }
+
+    modalManageModele.classList.remove('hidden');
+  }
+
+  async function toggleModeleActive(modeleId) {
+    if (!supabaseClient) return;
+    const m = cachedModelesCultures.find(item => String(item.id) === String(modeleId));
+    if (!m) return;
+    const newStatus = !m.actif;
+    try {
+      const { error } = await supabaseClient
+        .from('modeles_cultures')
+        .update({ actif: newStatus })
+        .eq('id', modeleId);
+
+      if (!error) {
+        m.actif = newStatus;
+        showToast('Modèle actualisé', `Le modèle « ${m.nom_culture} » est désormais ${newStatus ? 'actif' : 'désactivé'}.`);
+        renderAdminModeles();
+      } else {
+        showToast('Erreur', error.message || 'Action impossible.');
+      }
+    } catch (e) {
+      console.error('Erreur toggleModeleActive :', e);
+    }
+  }
+
+  async function handleSaveModele(e) {
+    e.preventDefault();
+    if (!supabaseClient) return;
+
+    const id = document.getElementById('modeleId')?.value;
+    const nom = document.getElementById('modeleNomCulture')?.value?.trim();
+    const variete = document.getElementById('modeleVariete')?.value?.trim() || null;
+    const categorie = document.getElementById('modeleCategorie')?.value;
+    const modeDepart = document.getElementById('modeleModeDepart')?.value;
+    const pepMin = document.getElementById('modelePepiniereMin')?.value ? parseInt(document.getElementById('modelePepiniereMin').value, 10) : null;
+    const pepMax = document.getElementById('modelePepiniereMax')?.value ? parseInt(document.getElementById('modelePepiniereMax').value, 10) : null;
+    const recMin = document.getElementById('modeleRecolteMin')?.value ? parseInt(document.getElementById('modeleRecolteMin').value, 10) : null;
+    const recMax = document.getElementById('modeleRecolteMax')?.value ? parseInt(document.getElementById('modeleRecolteMax').value, 10) : null;
+    const conseil = document.getElementById('modeleConseilCourt')?.value?.trim() || null;
+    const source = document.getElementById('modeleSource')?.value?.trim();
+    const actif = document.getElementById('modeleActif')?.value === 'true';
+
+    if (!nom) {
+      alert('Veuillez spécifier le nom de la culture.');
+      return;
+    }
+    if (!source) {
+      alert('Veuillez indiquer la source officielle.');
+      return;
+    }
+
+    const payload = {
+      nom_culture: nom,
+      variete: variete,
+      categorie: categorie,
+      mode_depart: modeDepart,
+      pepiniere_jours_min: modeDepart === 'pepiniere' ? pepMin : null,
+      pepiniere_jours_max: modeDepart === 'pepiniere' ? pepMax : null,
+      recolte_jours_min: recMin,
+      recolte_jours_max: recMax,
+      conseil_court: conseil,
+      source: source,
+      actif: actif
+    };
+
+    try {
+      if (id) {
+        const { error } = await supabaseClient.from('modeles_cultures').update(payload).eq('id', id);
+        if (error) throw error;
+        showToast('Modèle modifié', `Le modèle « ${nom} » a été mis à jour.`);
+      } else {
+        const { error } = await supabaseClient.from('modeles_cultures').insert(payload);
+        if (error) throw error;
+        showToast('Modèle créé', `Le modèle « ${nom} » a été ajouté avec succès.`);
+      }
+
+      modalManageModele.classList.add('hidden');
+      await fetchModelesCultures();
+      renderAdminModeles();
+    } catch (err) {
+      console.error('Erreur handleSaveModele :', err);
+      showToast('Erreur', err.message || 'Impossible d\'enregistrer le modèle.');
+    }
+  }
+
+  function getMobileAdminModelesHtml() {
+    const all = cachedModelesCultures || [];
+    const actifs = all.filter(m => m.actif);
+    const inactifs = all.filter(m => !m.actif);
+
+    let list = all;
+    if (activeAdminModelesTab === 'actif') list = actifs;
+    else if (activeAdminModelesTab === 'inactif') list = inactifs;
+
+    return `
+      <div style="margin-bottom: 12px;">
+        <a href="#dashboard" class="breadcrumb-back-link mobile-back-to-dashboard" style="font-size: 12px; margin-bottom: 8px; display: inline-flex; align-items: center; gap: 4px; color: #1E5E2A; font-weight: 700; text-decoration: none;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+          <span>Tableau de bord</span>
+        </a>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <h2 style="font-size: 18px; font-weight: 800; color: #1E2822; margin: 0 0 2px;">🛡️ Administration</h2>
+            <p style="font-size: 11.5px; color: #5B6660; margin: 0;">Gérer les modèles de cultures</p>
+          </div>
+          <button type="button" class="btn-primary" id="btnMobileOpenAddModele" style="padding: 8px 12px; font-size: 12px; font-weight: 700; border-radius: 8px; cursor: pointer;">+ Ajouter</button>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 12px; scrollbar-width: none;">
+        <button type="button" class="mobile-admin-modele-tab" data-status="all" style="
+          padding: 6px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; border: 1px solid #DDD;
+          background: ${activeAdminModelesTab === 'all' ? '#EAF4E6' : '#FFF'}; color: ${activeAdminModelesTab === 'all' ? '#1E5E2A' : '#425247'}; cursor: pointer; white-space: nowrap;
+        ">Tous (${all.length})</button>
+        <button type="button" class="mobile-admin-modele-tab" data-status="actif" style="
+          padding: 6px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; border: 1px solid #DDD;
+          background: ${activeAdminModelesTab === 'actif' ? '#EAF4E6' : '#FFF'}; color: ${activeAdminModelesTab === 'actif' ? '#1E5E2A' : '#425247'}; cursor: pointer; white-space: nowrap;
+        ">Actifs (${actifs.length})</button>
+        <button type="button" class="mobile-admin-modele-tab" data-status="inactif" style="
+          padding: 6px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; border: 1px solid #DDD;
+          background: ${activeAdminModelesTab === 'inactif' ? '#EAF4E6' : '#FFF'}; color: ${activeAdminModelesTab === 'inactif' ? '#1E5E2A' : '#425247'}; cursor: pointer; white-space: nowrap;
+        ">Désactivés (${inactifs.length})</button>
+      </div>
+
+      <div class="mobile-cards-list">
+        ${list.map(m => `
+          <div style="background: #fff; border: 1px solid #E2E8F0; border-radius: 12px; padding: 12px; margin-bottom: 10px; border-left: 4px solid ${m.actif ? '#1E5E2A' : '#A0AEC0'};">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 6px;">
+              <div>
+                <span style="font-size: 11px; font-weight: 700; color: #1E5E2A; background: #EAF4E6; padding: 2px 6px; border-radius: 4px;">${m.categorie || 'Culture'}</span>
+                <span style="font-size: 11px; font-weight: 600; color: #5D6C63; margin-left: 4px;">${m.mode_depart === 'pepiniere' ? '🌱 Pépinière' : '🌾 Semis direct'}</span>
+              </div>
+              <span style="font-size: 10.5px; font-weight: 700; padding: 2px 6px; border-radius: 4px; ${m.actif ? 'background: #DEF7EC; color: #03543F;' : 'background: #F3F4F6; color: #6B7280;'}">
+                ${m.actif ? 'Actif' : 'Désactivé'}
+              </span>
+            </div>
+            <h4 style="font-size: 14.5px; font-weight: 800; color: #1E2822; margin: 4px 0 6px;">
+              🌱 ${m.nom_culture} ${m.variete ? `(${m.variete})` : ''}
+            </h4>
+            <div style="font-size: 12px; color: #4F6456; line-height: 1.4; margin-bottom: 6px;">
+              ${m.mode_depart === 'pepiniere' ? `Pépinière : ${m.pepiniere_jours_min || 0} à ${m.pepiniere_jours_max || 0}j • ` : ''}
+              Récolte : ${m.recolte_jours_min ? `${m.recolte_jours_min} à ${m.recolte_jours_max}j` : '<span style="color:#C65D07;font-weight:700;">Inconnue (agent de zone)</span>'}
+            </div>
+            ${m.conseil_court ? `<div style="font-size: 11.5px; background: #F8FAF7; padding: 6px 8px; border-radius: 6px; margin-bottom: 8px; color: #2D3A31;">💡 ${m.conseil_court}</div>` : ''}
+            <div style="display: flex; justify-content: flex-end; gap: 6px; border-top: 1px solid #F0F4EF; padding-top: 8px;">
+              <button type="button" onclick="openManageModeleModal('${m.id}')" style="padding: 4px 10px; font-size: 11.5px; font-weight: 700; border-radius: 6px; border: 1px solid #CBD5E1; background: #FFF; cursor: pointer;">Modifier</button>
+              <button type="button" onclick="toggleModeleActive('${m.id}')" style="padding: 4px 10px; font-size: 11.5px; font-weight: 700; border-radius: 6px; border: 1px solid #CBD5E1; background: #FFF; cursor: pointer; ${m.actif ? 'color: #D97706;' : 'color: #1E5E2A;'}">${m.actif ? 'Désactiver' : 'Activer'}</button>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
+
+  function getMobileParcellesHtml() {
+    const profileData = PROFILES_DATA[currentProfileKey] || {};
+    const cycles = profileData.realCycles || [];
+
+    return `
+      <div style="margin-bottom: 12px;">
+        <a href="#dashboard" class="breadcrumb-back-link mobile-back-to-dashboard" style="font-size: 12px; margin-bottom: 8px; display: inline-flex; align-items: center; gap: 4px; color: #1E5E2A; font-weight: 700; text-decoration: none;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+          <span>Tableau de bord</span>
+        </a>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <h2 style="font-size: 18px; font-weight: 800; color: #1E2822; margin: 0 0 2px;">🌾 Parcelles & Cultures</h2>
+            <p style="font-size: 11.5px; color: #5B6660; margin: 0;">${cycles.length} culture${cycles.length > 1 ? 's' : ''} en cours</p>
+          </div>
+          <button type="button" class="btn-primary" id="btnMobileOpenAddCrop" style="padding: 8px 12px; font-size: 12px; font-weight: 700; border-radius: 8px; cursor: pointer;">+ Ajouter</button>
+        </div>
+      </div>
+
+      <div class="mobile-cards-list">
+        ${cycles.length === 0 ? `
+          <div style="text-align: center; padding: 30px 16px; background: #fff; border-radius: 12px; border: 1px dashed #CBD5E1;">
+            <div style="font-size: 28px; margin-bottom: 6px;">🌱</div>
+            <strong style="font-size: 14px; color: #1E2822; display: block; margin-bottom: 4px;">Aucune culture en cours</strong>
+            <p style="font-size: 12px; color: #5D6C63; margin: 0 0 12px;">Ajoutez votre première culture avec les modèles agronomiques.</p>
+            <button type="button" class="btn-primary" id="btnMobileEmptyAddCrop" style="margin: 0 auto; padding: 8px 16px; font-size: 12px;">+ Ajouter une culture</button>
+          </div>
+        ` : cycles.map(c => `
+          <div style="background: #fff; border: 1px solid #E2E8F0; border-radius: 12px; padding: 12px; margin-bottom: 10px; border-left: 4px solid #1E5E2A;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <span style="font-size: 11px; font-weight: 700; color: #1E5E2A; background: #EAF4E6; padding: 2px 6px; border-radius: 4px;">${c.category || 'Culture'}</span>
+              <span style="font-size: 11px; font-weight: 600; color: #5D6C63;">${c.parcels?.name || 'Parcelle'}</span>
+            </div>
+            <h4 style="font-size: 15px; font-weight: 800; color: #1E2822; margin: 0 0 6px;">🌱 ${c.crop_name}</h4>
+            <div style="font-size: 12px; color: #4F6456; margin-bottom: 8px;">
+              Semis : <strong>${c.planting_date ? formatDateEnToutesLettres(new Date(c.planting_date)) : '-'}</strong><br>
+              Récolte prévue : <strong style="color: #1E5E2A;">${c.estimated_harvest_date ? formatDateEnToutesLettres(new Date(c.estimated_harvest_date)) : 'Non définie'}</strong>
+            </div>
+            <div style="display: flex; justify-content: flex-end;">
+              <button type="button" onclick="deleteCropCycle('${c.id}')" style="padding: 4px 8px; font-size: 11px; color: #C62828; border: 1px solid #F8B4B0; background: #FFF; border-radius: 6px; cursor: pointer;">🗑️ Retirer</button>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
+
+  // Écouteurs Modèles de Cultures & Parcelles
+  const btnOpenAddCropCyclePage = document.getElementById('btnOpenAddCropCyclePage');
+  if (btnOpenAddCropCyclePage) {
+    btnOpenAddCropCyclePage.addEventListener('click', () => openAddCropCycleModal());
+  }
+
+  const btnEmptyStateAddCrop = document.getElementById('btnEmptyStateAddCrop');
+  if (btnEmptyStateAddCrop) {
+    btnEmptyStateAddCrop.addEventListener('click', () => openAddCropCycleModal());
+  }
+
+  const btnDashAddCropCycle = document.getElementById('btnDashAddCropCycle');
+  if (btnDashAddCropCycle) {
+    btnDashAddCropCycle.addEventListener('click', () => openAddCropCycleModal());
+  }
+
+  const btnEmptyStateAddCropCycle = document.getElementById('btnEmptyStateAddCropCycle');
+  if (btnEmptyStateAddCropCycle) {
+    btnEmptyStateAddCropCycle.addEventListener('click', () => openAddCropCycleModal());
+  }
+
+  const btnCloseAddCropCycle = document.getElementById('btnCloseAddCropCycle');
+  if (btnCloseAddCropCycle) {
+    btnCloseAddCropCycle.addEventListener('click', () => {
+      modalAddCropCycle.classList.add('hidden');
+      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    });
+  }
+
+  const btnCancelAddCropCycle = document.getElementById('btnCancelAddCropCycle');
+  if (btnCancelAddCropCycle) {
+    btnCancelAddCropCycle.addEventListener('click', () => {
+      modalAddCropCycle.classList.add('hidden');
+      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    });
+  }
+
+  const cropCycleModeleSelect = document.getElementById('cropCycleModeleSelect');
+  if (cropCycleModeleSelect) {
+    cropCycleModeleSelect.addEventListener('change', (e) => {
+      const modelId = e.target.value;
+      if (!modelId) {
+        document.getElementById('cropCycleForecastBox')?.classList.add('hidden');
+        const dateLabel = document.getElementById('cropCyclePlantingDateLabel');
+        if (dateLabel) dateLabel.textContent = 'Date de semis';
+        return;
+      }
+      const model = cachedModelesCultures.find(m => String(m.id) === String(modelId));
+      if (model) {
+        applySelectedModelToForm(model);
+      }
+    });
+  }
+
+  const cropCyclePlantingDate = document.getElementById('cropCyclePlantingDate');
+  if (cropCyclePlantingDate) {
+    cropCyclePlantingDate.addEventListener('input', () => {
+      const modelId = document.getElementById('cropCycleModeleSelect')?.value;
+      if (modelId) {
+        const model = cachedModelesCultures.find(m => String(m.id) === String(modelId));
+        if (model) updateCropCycleCalculations(model);
+      }
+    });
+  }
+
+  const btnListenCropForecast = document.getElementById('btnListenCropForecast');
+  if (btnListenCropForecast) {
+    btnListenCropForecast.addEventListener('click', handleListenCropForecast);
+  }
+
+  if (formAddCropCycle) {
+    formAddCropCycle.addEventListener('submit', handleSaveCropCycle);
+  }
+
+  // Écouteurs Admin Modèles
+  const btnOpenAddModeleModal = document.getElementById('btnOpenAddModeleModal');
+  if (btnOpenAddModeleModal) {
+    btnOpenAddModeleModal.addEventListener('click', () => openManageModeleModal());
+  }
+
+  const btnCloseManageModele = document.getElementById('btnCloseManageModele');
+  if (btnCloseManageModele) {
+    btnCloseManageModele.addEventListener('click', () => modalManageModele.classList.add('hidden'));
+  }
+
+  const btnCancelManageModele = document.getElementById('btnCancelManageModele');
+  if (btnCancelManageModele) {
+    btnCancelManageModele.addEventListener('click', () => modalManageModele.classList.add('hidden'));
+  }
+
+  const modeleModeDepart = document.getElementById('modeleModeDepart');
+  if (modeleModeDepart) {
+    modeleModeDepart.addEventListener('change', (e) => {
+      const pepRow = document.getElementById('modelePepiniereRow');
+      if (pepRow) pepRow.style.display = (e.target.value === 'pepiniere') ? '' : 'none';
+    });
+  }
+
+  if (formManageModele) {
+    formManageModele.addEventListener('submit', handleSaveModele);
+  }
+
+  const adminModeleTabs = document.querySelectorAll('#adminModelesStatusTabsGroup .admin-status-tab');
+  adminModeleTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      adminModeleTabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      activeAdminModelesTab = tab.getAttribute('data-status') || 'all';
+      renderAdminModeles();
+    });
+  });
+
+  // Mobile écouteurs délégués pour parcelles et modèles
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('#btnMobileOpenAddCrop') || e.target.closest('#btnMobileEmptyAddCrop')) {
+      openAddCropCycleModal();
+    } else if (e.target.closest('#btnMobileOpenAddModele')) {
+      openManageModeleModal();
+    } else if (e.target.closest('.mobile-admin-modele-tab')) {
+      const btn = e.target.closest('.mobile-admin-modele-tab');
+      activeAdminModelesTab = btn.getAttribute('data-status') || 'all';
+      renderMobileView();
+    }
+  });
+
   // Interactivité du graphique en barres
   const chartCols = document.querySelectorAll('.chart-col');
   const tooltip = document.getElementById('chartTooltip');
@@ -5635,6 +6641,8 @@ document.addEventListener('DOMContentLoaded', () => {
     await syncSubscriptionStatusFromSupabase(pKey);
     loadAndRenderWeather().catch(() => {});
     fetchConseils().catch(() => {});
+    fetchModelesCultures().catch(() => {});
+    fetchUserParcels(pKey).catch(() => {});
     autoDetectResponsiveMode();
   }
   window.PROFILES_DATA = PROFILES_DATA;
@@ -5648,6 +6656,12 @@ document.addEventListener('DOMContentLoaded', () => {
   window.getConseilCategoryBadgeClass = getConseilCategoryBadgeClass;
   window.updateConseilStatus = updateConseilStatus;
   window.filterOpenFinancementsForUsers = filterOpenFinancementsForUsers;
+  window.fetchModelesCultures = fetchModelesCultures;
+  window.fetchUserParcels = fetchUserParcels;
+  window.openAddCropCycleModal = openAddCropCycleModal;
+  window.openManageModeleModal = openManageModeleModal;
+  window.toggleModeleActive = toggleModeleActive;
+  window.deleteCropCycle = deleteCropCycle;
 
   // 3. Helper : conversion d'un numéro burkinabè ou contact en email technique Supabase
   function convertContactToTechnicalEmail(contact) {
@@ -5852,15 +6866,18 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    // Charger les financements, conseils et météo en tâche de fond dès le démarrage
+    // Charger les financements, conseils, modèles et météo en tâche de fond dès le démarrage
     fetchFinancements().catch(() => {});
     fetchConseils().catch(() => {});
+    fetchModelesCultures().catch(() => {});
     loadAndRenderWeather().catch(() => {});
 
     if (sessionUser) {
       await checkUserProfileAndProceed(sessionUser);
       await fetchFinancements();
       await fetchConseils();
+      await fetchModelesCultures();
+      await fetchUserParcels(currentProfileKey);
       handleRoute();
       hideLoadingScreen();
     } else {

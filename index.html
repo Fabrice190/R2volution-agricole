@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
   
-  <link rel="stylesheet" href="styles/main.css?v=20261018">
+  <link rel="stylesheet" href="styles/main.css?v=20261018.1">
 </head>
 <body class="theme-light">
   <!-- BANDEAU DISCRET ADMIN (Visible uniquement en mode Admin) -->
@@ -338,11 +338,11 @@
               </span>
               <span class="nav-label">Synthèse</span>
             </a>
-            <a href="#parcelles" class="nav-item" data-page="parcelles">
+            <a href="#parcelles" class="nav-item" data-page="parcelles" id="navLinkParcelles">
               <span class="nav-icon">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
               </span>
-              <span class="nav-label">Parcelles</span>
+              <span class="nav-label">Parcelles et cultures</span>
             </a>
             <a href="#cycles" class="nav-item" data-page="cycles">
               <span class="nav-icon">
@@ -374,6 +374,13 @@
               </span>
               <span class="nav-label">Gérer les conseils</span>
               <span class="nav-badge-amber" id="navAdminConseilsPendingBadge">1</span>
+            </a>
+            <a href="#admin-modeles" class="nav-item" data-page="admin-modeles" id="navLinkAdminModeles">
+              <span class="nav-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10H12V2z"/><path d="M12 2a10 10 0 0 1 10 10"/></svg>
+              </span>
+              <span class="nav-label">Gérer les modèles</span>
+              <span class="nav-badge-neutral" id="navAdminModelesBadge">3</span>
             </a>
             <a href="#admin-queue" class="nav-item" data-page="admin-queue">
               <span class="nav-icon">
@@ -742,9 +749,15 @@
               <div class="card-header-row">
                 <div class="card-title-group">
                   <h3 class="card-title" id="tableSectionTitle">Mes cycles en cours</h3>
-                  <span class="card-subtitle">3 cultures suivies sur 1,8 hectare</span>
+                  <span class="card-subtitle">Cultures suivies sur vos parcelles</span>
                 </div>
-                <a href="#tous-les-cycles" class="card-link-action">Voir tous les cycles</a>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <button type="button" class="btn-primary-action" id="btnDashAddCropCycle" style="font-size: 12px; padding: 6px 12px; display: inline-flex; align-items: center; gap: 4px; cursor: pointer;">
+                    <span class="action-icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
+                    <span>+ Nouvelle culture</span>
+                  </button>
+                  <a href="#parcelles" class="card-link-action" id="linkToParcellesPage">Voir toutes les parcelles →</a>
+                </div>
               </div>
 
               <!-- Tableau responsive haute visibilité -->
@@ -766,12 +779,17 @@
                         <div style="font-size: 30px; margin-bottom: 6px;">🌱</div>
                         <strong style="font-size: 14.5px; color: var(--text-dark); display: block; margin-bottom: 4px;">Aucun cycle ou culture en cours</strong>
                         <p style="font-size: 12.5px; margin: 0 0 14px; color: #5D6C63; max-width: 400px; margin-left: auto; margin-right: auto;">
-                          Votre tableau de bord démarre à blanc. Enregistrez votre première dépense pour lancer le suivi agronomique.
+                          Votre tableau de bord démarre à blanc. Enregistrez votre première culture avec les modèles agronomiques.
                         </p>
-                        <button type="button" class="btn-primary-action" id="btnEmptyStateAddExpense" style="margin: 0 auto; display: inline-flex; font-size: 12.5px; padding: 7px 16px;">
-                          <span class="action-icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
-                          <span>+ Enregistrer une première dépense</span>
-                        </button>
+                        <div style="display: flex; justify-content: center; gap: 8px; flex-wrap: wrap;">
+                          <button type="button" class="btn-primary-action" id="btnEmptyStateAddCropCycle" style="font-size: 12.5px; padding: 7px 16px;">
+                            <span class="action-icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
+                            <span>+ Ajouter une culture</span>
+                          </button>
+                          <button type="button" class="btn-table-action" id="btnEmptyStateAddExpense" style="font-size: 12.5px; padding: 7px 14px;">
+                            <span>💸 + Dépense</span>
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   </tbody>
@@ -1163,6 +1181,122 @@
             <div class="empty-state-icon">📂</div>
             <h3 id="adminConseilsEmptyTitle">Aucun conseil dans cette catégorie</h3>
             <p id="adminConseilsEmptySub">Cliquez sur « + Ajouter un conseil » pour rédiger une nouvelle fiche.</p>
+          </div>
+        </div>
+
+        <!-- ==========================================
+             PAGE GÉRER LES MODÈLES DE CULTURES (ADMIN)
+             ========================================== -->
+        <div class="dashboard-body hidden" id="pageAdminModeles">
+          <div class="page-header-admin-fin">
+            <div>
+              <div class="admin-breadcrumbs">
+                <a href="#dashboard" class="breadcrumb-back-link" style="display:inline-flex;margin-bottom:0;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+                  <span>Tableau de bord</span>
+                </a>
+                <span class="bullet-sep">•</span>
+                <span>Administration</span>
+              </div>
+              <h1 class="page-main-title">🛡️ Gérer les modèles de cultures</h1>
+              <p class="page-subtitle">Configurez les durées de pépinière et de récolte de référence pour aider automatiquement les producteurs.</p>
+            </div>
+            <div class="page-header-actions-group">
+              <button type="button" class="btn-primary" id="btnOpenAddModeleModal">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                <span>+ Ajouter un modèle</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Onglets de statut (Tous, Actifs, Désactivés) -->
+          <div class="admin-status-tabs-bar">
+            <div class="admin-status-tabs" id="adminModelesStatusTabsGroup">
+              <button type="button" class="admin-status-tab active" data-status="all" id="tabModeleStatusAll">
+                <span>Tous les modèles</span>
+                <span class="tab-badge badge-neutral" id="badgeModeleCountAll">3</span>
+              </button>
+              <button type="button" class="admin-status-tab" data-status="actif" id="tabModeleStatusActif">
+                <span>Actifs</span>
+                <span class="tab-badge badge-green" id="badgeModeleCountActif">3</span>
+              </button>
+              <button type="button" class="admin-status-tab" data-status="inactif" id="tabModeleStatusInactif">
+                <span>Désactivés</span>
+                <span class="tab-badge badge-gray" id="badgeModeleCountInactif">0</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Liste des cartes de modèles pour admin -->
+          <div class="admin-financements-list" id="adminModelesList">
+            <!-- Injecté dynamiquement par JavaScript depuis Supabase -->
+          </div>
+
+          <!-- État vide admin -->
+          <div class="financements-empty-state hidden" id="adminModelesEmpty">
+            <div class="empty-state-icon">🌾</div>
+            <h3 id="adminModelesEmptyTitle">Aucun modèle de culture trouvé</h3>
+            <p id="adminModelesEmptySub">Cliquez sur « + Ajouter un modèle » pour créer un nouveau modèle agronomique.</p>
+          </div>
+        </div>
+
+        <!-- ==========================================
+             PAGE PARCELLES ET CULTURES (UTILISATEUR)
+             ========================================== -->
+        <div class="dashboard-body hidden" id="pageParcelles">
+          <!-- Lien retour au tableau de bord -->
+          <a href="#dashboard" class="breadcrumb-back-link">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+            <span>Tableau de bord</span>
+          </a>
+
+          <!-- En-tête de la page parcelles & cultures -->
+          <div class="fin-page-header">
+            <div class="fin-page-title-group">
+              <div class="fin-pill-tag">Gestion & Suivi Agronomique</div>
+              <h2 class="fin-main-title">🌾 Mes Parcelles & Cultures</h2>
+              <p class="fin-subtitle">Suivez vos cultures en cours, vos parcelles et les dates prévues de repiquage et de récolte.</p>
+            </div>
+            <div class="page-header-actions-group">
+              <button type="button" class="btn-primary" id="btnOpenAddCropCyclePage">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                <span>+ Ajouter une culture</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Cartes métriques récapitulatives -->
+          <div class="stats-overview-grid" style="margin-bottom: 24px;">
+            <div class="stat-card" style="border-left: 4px solid #1E5E2A;">
+              <span class="stat-label">CULTURES EN COURS</span>
+              <strong class="stat-value" id="parcellesCropsCount">0</strong>
+              <span class="comparison-text">Suivi actif</span>
+            </div>
+            <div class="stat-card" style="border-left: 4px solid #C8862A;">
+              <span class="stat-label">PARCELLES CONNECTÉES</span>
+              <strong class="stat-value" id="parcellesTotalArea">0</strong>
+              <span class="comparison-text" id="parcellesTotalAreaSub">Superficie déclarée</span>
+            </div>
+            <div class="stat-card" style="border-left: 4px solid #2B6CB0;">
+              <span class="stat-label">PROCHAINE RÉCOLTE</span>
+              <strong class="stat-value" id="parcellesNextHarvest" style="font-size: 15px; font-weight: 800;">--</strong>
+              <span class="comparison-text">Date prévisionnelle</span>
+            </div>
+          </div>
+
+          <!-- Liste / Tableau des cultures enregistrées -->
+          <div class="admin-financements-list" id="parcellesCropsList">
+            <!-- Injecté dynamiquement par JavaScript depuis Supabase -->
+          </div>
+
+          <!-- État vide si aucune culture -->
+          <div class="financements-empty-state hidden" id="parcellesEmptyState">
+            <div class="empty-state-icon">🌱</div>
+            <h3>Aucune culture enregistrée pour le moment</h3>
+            <p>Ajoutez votre première culture avec nos modèles agronomiques pour obtenir immédiatement votre date de récolte prévue.</p>
+            <button type="button" class="btn-primary" id="btnEmptyStateAddCrop" style="margin: 12px auto 0; display: inline-flex;">
+              + Ajouter une culture avec modèle
+            </button>
           </div>
         </div>
 
@@ -2185,6 +2319,231 @@
     </div>
   </div>
 
+  <!-- ==================== MODALE AJOUTER UNE CULTURE (AVEC MODÈLES) ==================== -->
+  <div class="modal-backdrop hidden" id="modalAddCropCycle">
+    <div class="modal-dialog modal-dialog-financement">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <span class="modal-icon bg-green">🌱</span>
+          <div>
+            <h3 class="modal-title">Ajouter une culture</h3>
+            <p class="modal-subtitle">Enregistrez une culture sur vos parcelles avec estimation automatique de la récolte.</p>
+          </div>
+        </div>
+        <button class="modal-close-btn" id="btnCloseAddCropCycle">&times;</button>
+      </div>
+
+      <form id="formAddCropCycle" class="modal-form" autocomplete="off">
+        <!-- 1. Choix du modèle (facultatif) -->
+        <div class="form-group" style="background: #F4F8F3; padding: 14px; border-radius: 10px; border: 1.5px solid #D5E4D2; margin-bottom: 16px;">
+          <label for="cropCycleModeleSelect" style="font-weight: 700; color: #1E5E2A; display: flex; align-items: center; justify-content: space-between;">
+            <span>🌱 Choisir un modèle de culture <span style="font-size: 11.5px; font-weight: 500; color: #4F6456;">(facultatif)</span></span>
+            <span style="font-size: 11px; background: #E1EFE0; color: #1E5E2A; padding: 2px 8px; border-radius: 12px; font-weight: 700;">Recommandé</span>
+          </label>
+          <p style="font-size: 12px; color: #4F6456; margin: 4px 0 8px;">Sélectionnez un modèle pour préremplir la culture et calculer automatiquement la date de récolte.</p>
+          <select id="cropCycleModeleSelect" class="form-select" style="background: #fff; font-weight: 600;">
+            <option value="">-- Aucun modèle (saisie libre manuelle) --</option>
+            <!-- Rempli dynamiquement depuis modeles_cultures (actif = true) -->
+          </select>
+        </div>
+
+        <!-- 2. Parcelle de rattachement -->
+        <div class="form-group">
+          <label for="cropCycleParcelSelect">Parcelle de rattachement <span class="required">*</span></label>
+          <select id="cropCycleParcelSelect" class="form-select" required>
+            <!-- Rempli dynamiquement avec les parcelles de l'utilisateur -->
+          </select>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group flex-2">
+            <label for="cropCycleName">Nom de la culture <span class="required">*</span></label>
+            <input type="text" id="cropCycleName" class="form-input" placeholder="Ex: Oignon, Tomate, Maïs..." required>
+          </div>
+          <div class="form-group flex-1">
+            <label for="cropCycleCategory">Catégorie <span class="required">*</span></label>
+            <select id="cropCycleCategory" class="form-select" required>
+              <option value="maraîchage" selected>Maraîchage</option>
+              <option value="céréales">Céréales</option>
+              <option value="élevage">Élevage</option>
+              <option value="légumineuses">Légumineuses</option>
+              <option value="tubercules">Tubercules</option>
+              <option value="arboriculture">Arboriculture</option>
+              <option value="autre">Autre</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label for="cropCyclePlantingDate" id="cropCyclePlantingDateLabel">Date de semis <span class="required">*</span></label>
+            <input type="date" id="cropCyclePlantingDate" class="form-input" required>
+          </div>
+          <div class="form-group flex-1">
+            <label for="cropCycleHarvestDate">Date de récolte estimée <small style="color: var(--text-muted);">(modifiable)</small></label>
+            <input type="date" id="cropCycleHarvestDate" class="form-input">
+          </div>
+        </div>
+
+        <!-- Encadré Dynamique de Prévision & Conseils avec bouton Écouter -->
+        <div class="crop-forecast-card hidden" id="cropCycleForecastBox">
+          <div class="crop-forecast-header">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span class="crop-forecast-icon">📅</span>
+              <strong class="crop-forecast-title" id="cropForecastTitle">Prévisions agronomiques</strong>
+            </div>
+            <button type="button" class="btn-listen-crop" id="btnListenCropForecast" title="Écouter les prévisions à voix haute">
+              🔊 <span>Écouter</span>
+            </button>
+          </div>
+
+          <!-- Ligne Repiquage (si pépinière) -->
+          <div class="crop-forecast-row hidden" id="cropForecastRepiquageRow">
+            <span class="forecast-bullet">🌱</span>
+            <div class="forecast-text-wrap">
+              <span class="forecast-label">Période de repiquage :</span>
+              <strong class="forecast-val" id="cropForecastRepiquageText">Repiquage prévu entre le ... et le ...</strong>
+            </div>
+          </div>
+
+          <!-- Ligne Récolte -->
+          <div class="crop-forecast-row" id="cropForecastHarvestRow">
+            <span class="forecast-bullet">🌾</span>
+            <div class="forecast-text-wrap">
+              <span class="forecast-label">Période de récolte :</span>
+              <strong class="forecast-val" id="cropForecastHarvestText">Récolte prévue entre le ... et le ...</strong>
+            </div>
+          </div>
+
+          <!-- Conseil court -->
+          <div class="crop-forecast-advice hidden" id="cropForecastAdviceBox">
+            <span class="forecast-advice-icon">💡</span>
+            <div class="forecast-advice-content">
+              <strong class="forecast-advice-title">Bonne pratique :</strong>
+              <p class="forecast-advice-text" id="cropForecastAdviceText"></p>
+            </div>
+          </div>
+
+          <!-- Source -->
+          <div class="crop-forecast-source" id="cropForecastSourceBox">
+            <span class="forecast-source-label">Source agronomique :</span>
+            <span class="forecast-source-text" id="cropForecastSourceText"></span>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" id="btnCancelAddCropCycle">Annuler</button>
+          <button type="submit" class="btn-primary" id="btnSaveCropCycle">
+            <span id="btnSaveCropCycleText">Enregistrer la culture</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== MODALE GESTION MODÈLE DE CULTURE (ADMIN) ==================== -->
+  <div class="modal-backdrop hidden" id="modalManageModele">
+    <div class="modal-dialog modal-dialog-financement">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <span class="modal-icon bg-green">🌱</span>
+          <div>
+            <h3 class="modal-title" id="manageModeleModalTitle">Ajouter un modèle de culture</h3>
+            <p class="modal-subtitle">Paramétrez les caractéristiques agronomiques et durées de référence.</p>
+          </div>
+        </div>
+        <button class="modal-close-btn" id="btnCloseManageModele">&times;</button>
+      </div>
+
+      <form id="formManageModele" class="modal-form" autocomplete="off">
+        <input type="hidden" id="modeleId" value="">
+
+        <div class="form-row">
+          <div class="form-group flex-2">
+            <label for="modeleNomCulture">Nom de la culture <span class="required">*</span></label>
+            <input type="text" id="modeleNomCulture" class="form-input" placeholder="Ex: Oignon, Tomate, Maïs" required>
+          </div>
+          <div class="form-group flex-1">
+            <label for="modeleVariete">Variété <small style="color: var(--text-muted);">(optionnel)</small></label>
+            <input type="text" id="modeleVariete" class="form-input" placeholder="Ex: Komsaya, Violet de Galmi">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label for="modeleCategorie">Catégorie <span class="required">*</span></label>
+            <select id="modeleCategorie" class="form-select" required>
+              <option value="maraîchage" selected>Maraîchage</option>
+              <option value="céréales">Céréales</option>
+              <option value="élevage">Élevage</option>
+              <option value="légumineuses">Légumineuses</option>
+              <option value="tubercules">Tubercules</option>
+              <option value="arboriculture">Arboriculture</option>
+              <option value="autre">Autre</option>
+            </select>
+          </div>
+          <div class="form-group flex-1">
+            <label for="modeleModeDepart">Mode de départ <span class="required">*</span></label>
+            <select id="modeleModeDepart" class="form-select" required>
+              <option value="pepiniere" selected>Pépinière</option>
+              <option value="semis_direct">Semis direct</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Durée pépinière (si pépinière) -->
+        <div class="form-row" id="modelePepiniereRow">
+          <div class="form-group flex-1">
+            <label for="modelePepiniereMin">Pépinière min (jours)</label>
+            <input type="number" id="modelePepiniereMin" class="form-input" min="1" placeholder="Ex: 40">
+          </div>
+          <div class="form-group flex-1">
+            <label for="modelePepiniereMax">Pépinière max (jours)</label>
+            <input type="number" id="modelePepiniereMax" class="form-input" min="1" placeholder="Ex: 45">
+          </div>
+        </div>
+
+        <!-- Durée récolte (jours) -->
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label for="modeleRecolteMin">Récolte min (jours) <small style="color: var(--text-muted);">(vide si inconnue)</small></label>
+            <input type="number" id="modeleRecolteMin" class="form-input" min="1" placeholder="Ex: 90">
+          </div>
+          <div class="form-group flex-1">
+            <label for="modeleRecolteMax">Récolte max (jours) <small style="color: var(--text-muted);">(vide si inconnue)</small></label>
+            <input type="number" id="modeleRecolteMax" class="form-input" min="1" placeholder="Ex: 120">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="modeleConseilCourt">Conseil court (lisible à voix haute) <small style="color: var(--text-muted);">(1 phrase sans abréviations)</small></label>
+          <textarea id="modeleConseilCourt" class="form-textarea" rows="2" placeholder="Ex: Repiquez quand les plants ont 5 à 6 feuilles."></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group flex-2">
+            <label for="modeleSource">Source agronomique officielle <span class="required">*</span></label>
+            <input type="text" id="modeleSource" class="form-input" placeholder="Ex: INERA, CRA Maradi, CORAF..." required>
+          </div>
+          <div class="form-group flex-1">
+            <label for="modeleActif">Statut <span class="required">*</span></label>
+            <select id="modeleActif" class="form-select" required>
+              <option value="true" selected>Actif (Visible des producteurs)</option>
+              <option value="false">Désactivé (Masqué)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" id="btnCancelManageModele">Annuler</button>
+          <button type="submit" class="btn-primary" id="btnSaveModele">
+            <span id="btnSaveModeleText">Enregistrer le modèle</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- TOAST DE NOTIFICATION FLOTTANT -->
   <div class="toast-notification hidden" id="toastNotification">
     <div class="toast-icon" id="toastIcon">✅</div>
@@ -2199,6 +2558,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <!-- SCRIPT APPLICATION -->
-  <script src="scripts/app.js?v=20261018"></script>
+  <script src="scripts/app.js?v=20261018.1"></script>
 </body>
 </html>
