@@ -6099,9 +6099,183 @@ body.drawer-open {
   font-weight: 800;
 }
 
+/* ==================== 15. MODULE CONSEILS AGRONOMIQUES ==================== */
+.conseils-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 18px;
+  margin-top: 14px;
+}
+
+.conseil-card {
+  background: #FFFFFF;
+  border: 1px solid var(--border-light);
+  border-radius: 14px;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 12px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+  transition: var(--transition-base);
+  cursor: pointer;
+}
+
+.conseil-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--primary-400);
+  box-shadow: 0 6px 18px rgba(30, 94, 42, 0.08);
+}
+
+.conseil-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.conseil-badge-category {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  padding: 3px 9px;
+  border-radius: 6px;
+  letter-spacing: 0.3px;
+}
+
+.cat-maraichage { background: #E6F4EA; color: #137333; }
+.cat-cereales { background: #FEF3D6; color: #8A4F00; }
+.cat-elevage { background: #FCE8E6; color: #C5221F; }
+.cat-irrigation { background: #E8F0FE; color: #1967D2; }
+.cat-sol { background: #EAF4E6; color: #1E5E2A; }
+.cat-maladies { background: #FDE8E8; color: #9B1C1C; }
+.cat-recolte { background: #FFF4E5; color: #B25E00; }
+
+.conseil-badge-season {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: #F4F6F2;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.conseil-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--text-main);
+  line-height: 1.35;
+  margin: 0;
+}
+
+.conseil-summary {
+  font-size: 13px;
+  color: var(--text-dim);
+  line-height: 1.5;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.conseil-cultures-tag {
+  font-size: 11.5px;
+  color: var(--primary-800);
+  background: #EAF4E6;
+  border: 1px solid #D2E7CC;
+  padding: 2px 8px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+  width: fit-content;
+}
+
+.conseil-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid var(--border-light);
+  padding-top: 10px;
+  margin-top: 4px;
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+
+.conseil-link-read {
+  color: var(--primary-700);
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  text-decoration: none;
+}
+
+.conseil-link-read:hover {
+  text-decoration: underline;
+}
+
+/* Modale Lecture Complète & Écouter */
+.modal-dialog-conseil-details {
+  max-width: 680px;
+  max-height: 92vh;
+  overflow-y: auto;
+}
+
+.btn-listen-conseil {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #EAF4E6;
+  color: #1E5E2A;
+  border: 1px solid #C4DFC0;
+  border-radius: 8px;
+  padding: 7px 14px;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-listen-conseil:hover {
+  background: #D8EDD2;
+}
+
+.btn-listen-conseil.speaking {
+  background: #FEECEB;
+  color: #C62828;
+  border-color: #F8B4B0;
+  animation: pulse-speaking 1.5s infinite;
+}
+
+.conseil-detail-content-box {
+  background: #FAFCF9;
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  padding: 16px 18px;
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--text-main);
+  white-space: pre-line;
+}
+
+.admin-actions-group .btn-admin-archive {
+  background: #FFF7E6;
+  color: #D46B08;
+  border: 1px solid #FFD591;
+}
+
+.admin-actions-group .btn-admin-archive:hover {
+  background: #FFE7BA;
+}
+
 /* RÈGLE ABSOLUE DE SÉCURITÉ D'AFFICHAGE */
 #viewportContainer.hidden,
 .viewport-wrapper.hidden,
 .hidden {
   display: none !important;
 }
+

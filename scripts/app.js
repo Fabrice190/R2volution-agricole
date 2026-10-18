@@ -44,13 +44,24 @@ document.addEventListener('DOMContentLoaded', () => {
   let cachedWeatherResult = null;
   let userManualCommuneKey = null;
 
+  // Variables d'état et sélecteurs DOM pour Conseils Agronomiques
+  let cachedConseils = [];
+  let userSelectedConseilCategory = 'all';
+  let adminConseilActiveStatusTab = 'en_attente';
+  let activeConseilSpeechBtn = null;
+
   const pageFinancements = document.getElementById('pageFinancements');
   const pageAdminFinancements = document.getElementById('pageAdminFinancements');
+  const pageConseils = document.getElementById('pageConseils');
+  const pageAdminConseils = document.getElementById('pageAdminConseils');
   const pageMeteo = document.getElementById('pageMeteo');
   const dashboardContent = document.getElementById('dashboardContent');
   const modalManageFinancement = document.getElementById('modalManageFinancement');
   const modalFinancementDetails = document.getElementById('modalFinancementDetails');
   const formManageFinancement = document.getElementById('formManageFinancement');
+  const modalManageConseil = document.getElementById('modalManageConseil');
+  const modalConseilDetails = document.getElementById('modalConseilDetails');
+  const formManageConseil = document.getElementById('formManageConseil');
 
   // Sélecteurs DOM clés
   const roleSelector = document.getElementById('roleSelector');
@@ -961,6 +972,170 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
   }
 
+  function getMobileConseilsHtml() {
+    let published = cachedConseils.filter(c => c.statut === 'publie');
+    if (userSelectedConseilCategory && userSelectedConseilCategory !== 'all') {
+      const cat = userSelectedConseilCategory.toLowerCase().trim();
+      published = published.filter(c => (c.categorie || '').toLowerCase().trim() === cat);
+    }
+    published.sort((a, b) => new Date(b.date_publication || b.created_at) - new Date(a.date_publication || a.created_at));
+
+    const cats = [
+      { key: 'all', label: 'Tous' },
+      { key: 'maraîchage', label: 'Maraîchage' },
+      { key: 'céréales', label: 'Céréales' },
+      { key: 'élevage', label: 'Élevage' },
+      { key: 'irrigation', label: 'Irrigation' },
+      { key: 'sol et fertilisation', label: 'Sol' },
+      { key: 'maladies et ravageurs', label: 'Ravageurs' },
+      { key: 'récolte et conservation', label: 'Récolte' }
+    ];
+
+    return `
+      <div style="margin-bottom: 14px;">
+        <a href="#dashboard" class="breadcrumb-back-link mobile-back-to-dashboard" style="font-size: 12px; margin-bottom: 8px; display: inline-flex; align-items: center; gap: 4px; color: #1E5E2A; font-weight: 700; text-decoration: none;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+          <span>Tableau de bord</span>
+        </a>
+        <h2 style="font-size: 20px; font-weight: 800; color: #1E2822; margin: 0 0 2px;">💡 Conseils Agricoles</h2>
+        <p style="font-size: 12px; color: #5B6660; margin: 0;">${cachedConseils.filter(c => c.statut === 'publie').length} fiches techniques vérifiées</p>
+      </div>
+
+      <!-- Filtres catégories en puces horizontales -->
+      <div style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 12px; scrollbar-width: none;">
+        ${cats.map(c => `
+          <button type="button" class="mobile-conseil-cat-chip" data-cat="${c.key}" style="
+            padding: 6px 12px; border-radius: 99px; font-size: 11.5px; font-weight: 700; border: 1px solid ${userSelectedConseilCategory === c.key ? '#1E5E2A' : '#E0E5DC'};
+            background: ${userSelectedConseilCategory === c.key ? '#1E5E2A' : '#FFF'}; color: ${userSelectedConseilCategory === c.key ? '#FFF' : '#4A5750'}; white-space: nowrap; cursor: pointer;
+          ">${c.label}</button>
+        `).join('')}
+      </div>
+
+      <!-- Grille des cartes conseils mobiles -->
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        ${published.length === 0 ? `
+          <div style="text-align: center; padding: 32px 16px; background: #FFF; border-radius: 12px; border: 1px dashed #DDD;">
+            <p style="font-weight: 700; font-size: 14px; margin-bottom: 4px; color: #1E2822;">Aucun conseil dans cette catégorie</p>
+            <p style="font-size: 12px; color: #7C8781; margin: 0;">Sélectionnez « Tous » pour voir l'ensemble des fiches.</p>
+          </div>
+        ` : published.map(item => `
+          <div class="mobile-conseil-card" data-id="${item.id}" style="background: #FFF; border: 1px solid #E6EAE3; border-radius: 12px; padding: 14px; cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,0.03);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              ${getConseilCategoryBadge(item.categorie)}
+              <span style="font-size: 11px; color: #6C7A72;">⏱️ ${item.duree_lecture || 3} min • ${item.saison || 'Toute l\'année'}</span>
+            </div>
+            <h4 style="font-size: 14.5px; font-weight: 700; color: #1E2822; margin: 4px 0 6px; line-height: 1.35;">${item.titre}</h4>
+            ${item.cultures ? `<div class="conseil-cultures-tag" style="margin-bottom: 6px; font-size: 10.5px;">🌱 ${item.cultures}</div>` : ''}
+            <p style="font-size: 12px; color: #5B6660; line-height: 1.45; margin: 0 0 10px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${item.resume || ''}</p>
+            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #F0F2EE; padding-top: 8px; font-size: 11.5px;">
+              <span style="color: #6C7A72;">${item.source || 'INERA / DGPV'}</span>
+              <span style="font-weight: 700; color: #1E5E2A;">Lire le conseil →</span>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
+
+  function getMobileAdminConseilsHtml() {
+    const pending = cachedConseils.filter(c => c.statut === 'en_attente');
+    const published = cachedConseils.filter(c => c.statut === 'publie');
+    const archived = cachedConseils.filter(c => c.statut === 'archive');
+
+    let list = cachedConseils;
+    if (adminConseilActiveStatusTab === 'en_attente') list = pending;
+    else if (adminConseilActiveStatusTab === 'publie') list = published;
+    else if (adminConseilActiveStatusTab === 'archive') list = archived;
+
+    list = [...list].sort((a, b) => {
+      if (a.statut === 'en_attente' && b.statut !== 'en_attente') return -1;
+      if (b.statut === 'en_attente' && a.statut !== 'en_attente') return 1;
+      return new Date(b.created_at || 0) - new Date(a.created_at || 0);
+    });
+
+    return `
+      <div style="margin-bottom: 12px;">
+        <a href="#dashboard" class="breadcrumb-back-link mobile-back-to-dashboard" style="font-size: 12px; margin-bottom: 8px; display: inline-flex; align-items: center; gap: 4px; color: #1E5E2A; font-weight: 700; text-decoration: none;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+          <span>Tableau de bord</span>
+        </a>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <h2 style="font-size: 18px; font-weight: 800; color: #1E2822; margin: 0 0 2px;">🛡️ Administration</h2>
+            <p style="font-size: 11.5px; color: #5B6660; margin: 0;">Gérer les conseils agronomiques</p>
+          </div>
+          <button type="button" class="btn-primary" id="btnMobileOpenAddConseil" style="padding: 8px 12px; font-size: 12px; font-weight: 700; border-radius: 8px; cursor: pointer;">+ Ajouter</button>
+        </div>
+      </div>
+
+      ${pending.length > 0 ? `
+        <div class="admin-pending-alert-banner" style="margin-bottom: 12px; padding: 10px 12px;">
+          <span class="alert-icon" style="font-size: 18px;">⏳</span>
+          <div class="alert-content">
+            <strong style="font-size: 12.5px;">${pending.length} conseil${pending.length > 1 ? 's' : ''} en attente</strong>
+            <span style="font-size: 11px;">À valider pour mise en ligne publique.</span>
+          </div>
+        </div>
+      ` : ''}
+
+      <!-- Onglets statuts admin mobile -->
+      <div style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 12px; scrollbar-width: none;">
+        <button type="button" class="mobile-admin-conseil-tab" data-status="en_attente" style="
+          padding: 6px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; border: 1px solid #DDD;
+          background: ${adminConseilActiveStatusTab === 'en_attente' ? '#FEF3D6' : '#FFF'}; color: ${adminConseilActiveStatusTab === 'en_attente' ? '#8A4F00' : '#425247'}; cursor: pointer; white-space: nowrap;
+        ">En attente (${pending.length})</button>
+        <button type="button" class="mobile-admin-conseil-tab" data-status="publie" style="
+          padding: 6px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; border: 1px solid #DDD;
+          background: ${adminConseilActiveStatusTab === 'publie' ? '#E6F4EA' : '#FFF'}; color: ${adminConseilActiveStatusTab === 'publie' ? '#137333' : '#425247'}; cursor: pointer; white-space: nowrap;
+        ">Publiés (${published.length})</button>
+        <button type="button" class="mobile-admin-conseil-tab" data-status="archive" style="
+          padding: 6px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; border: 1px solid #DDD;
+          background: ${adminConseilActiveStatusTab === 'archive' ? '#EEEEEE' : '#FFF'}; color: ${adminConseilActiveStatusTab === 'archive' ? '#616161' : '#425247'}; cursor: pointer; white-space: nowrap;
+        ">Archivés (${archived.length})</button>
+        <button type="button" class="mobile-admin-conseil-tab" data-status="all" style="
+          padding: 6px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; border: 1px solid #DDD;
+          background: ${adminConseilActiveStatusTab === 'all' ? '#E8ECE5' : '#FFF'}; color: #425247; cursor: pointer; white-space: nowrap;
+        ">Tous (${cachedConseils.length})</button>
+      </div>
+
+      <!-- Liste des fiches admin mobile -->
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        ${list.length === 0 ? `
+          <div style="text-align: center; padding: 24px; background: #FFF; border-radius: 12px; border: 1px dashed #DDD;">
+            <p style="font-weight: 700; font-size: 13px; margin: 0; color: #1E2822;">Aucun conseil</p>
+          </div>
+        ` : list.map(item => `
+          <div class="admin-fin-item status-${item.statut}" style="padding: 12px 14px; background: #FFF; border-radius: 12px;">
+            <div class="admin-fin-content">
+              <div class="admin-fin-header-row">
+                <span class="admin-status-pill ${item.statut}">
+                  ${item.statut === 'en_attente' ? '⏳ En attente' : (item.statut === 'publie' ? '✅ Publié' : '📦 Archivé')}
+                </span>
+                ${getConseilCategoryBadge(item.categorie)}
+              </div>
+              <h4 class="admin-fin-title" style="font-size: 13.5px; margin: 4px 0;">${item.titre}</h4>
+              <div class="admin-fin-meta-row" style="font-size: 11px; color: #6C7A72;">
+                <span>${item.cultures || item.saison || 'Conseil'}</span>
+                <span>•</span>
+                <span>${item.source || 'INERA / DGPV'}</span>
+              </div>
+            </div>
+            <div class="admin-actions-group" style="margin-top: 8px; display: flex; gap: 6px; width: 100%;">
+              <button type="button" class="btn-admin-action btn-admin-edit btn-mobile-conseil-read" data-id="${item.id}" style="flex: 1; justify-content: center;">📖 Lire</button>
+              <button type="button" class="btn-admin-action btn-admin-edit btn-mobile-conseil-edit" data-id="${item.id}" style="flex: 1; justify-content: center;">✏️ Modifier</button>
+              ${item.statut !== 'publie' ? `
+                <button type="button" class="btn-admin-action btn-admin-publish btn-mobile-conseil-publish" data-id="${item.id}" style="flex: 1; justify-content: center;">✅ Publier</button>
+              ` : ''}
+              ${item.statut !== 'archive' ? `
+                <button type="button" class="btn-admin-action btn-admin-archive btn-mobile-conseil-archive" data-id="${item.id}" style="flex: 1; justify-content: center;">📦 Archiver</button>
+              ` : ''}
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
+
   // ==========================================
   // FONCTION : RENDU DU SIMULATEUR MOBILE ANDROID (Spécification Section 2)
   // ==========================================
@@ -1016,12 +1191,12 @@ document.addEventListener('DOMContentLoaded', () => {
           <!-- Groupe 2: S'INFORMER -->
           <div class="nav-section">
             <div class="nav-section-title">S'INFORMER</div>
-            <a href="#conseils" class="nav-item mobile-drawer-link">
+            <a href="#conseils" class="nav-item mobile-drawer-link" data-page="conseils">
               <span class="nav-icon">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10"/><path d="M6 10h10"/></svg>
               </span>
               <span class="nav-label">Conseils</span>
-              <span class="nav-pill-count">3 nvx</span>
+              <span class="nav-pill-count" id="mobileDrawerConseilsBadge" style="${getNewConseilsCount() > 0 ? '' : 'display:none;'}">${getNewConseilsCount()} nvx</span>
             </a>
             <a href="#formations" class="nav-item mobile-drawer-link">
               <span class="nav-icon">
@@ -1105,6 +1280,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 <span class="nav-label">Gérer les financements</span>
                 <span class="nav-badge-amber" id="mobileDrawerPendingBadge">${cachedFinancements.filter(f => f.statut === 'en_attente').length}</span>
               </a>
+              <a href="#admin-conseils" class="nav-item mobile-drawer-link" data-page="admin-conseils">
+                <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></span>
+                <span class="nav-label">Gérer les conseils</span>
+                <span class="nav-badge-amber" id="mobileDrawerConseilsPendingBadge">${cachedConseils.filter(c => c.statut === 'en_attente').length}</span>
+              </a>
               <a href="#admin-queue" class="nav-item mobile-drawer-link">
                 <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></span>
                 <span class="nav-label">Files de modération</span>
@@ -1181,6 +1361,8 @@ document.addEventListener('DOMContentLoaded', () => {
       <div class="mobile-body">
         ${currentRoutePage === 'opportunites' ? getMobileFinancementsHtml() :
           (currentRoutePage === 'admin-financements' ? getMobileAdminFinancementsHtml() :
+          (currentRoutePage === 'conseils' ? getMobileConseilsHtml() :
+          (currentRoutePage === 'admin-conseils' ? getMobileAdminConseilsHtml() :
           (currentRoutePage === 'meteo' ? getMobileMeteoHtml() : `
         <!-- Salutation -->
         <div>
@@ -1265,7 +1447,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <span>mai</span><span>juin</span><span>juil</span><span>août</span><span>sept</span><span style="font-weight: 700; color: #1E5E2A;">oct</span>
           </div>
         </div>
-        `))}
+        `))))}
       </div>
 
       <!-- BOUTON D'ACTION FLOTTANT (+) MOBILE -->
@@ -1383,7 +1565,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const href = link.getAttribute('href');
         if (href && href.startsWith('#')) {
           const target = href.replace(/^#/, '');
-          if (target === 'opportunites' || target === 'admin-financements' || target === 'dashboard' || target === 'meteo') {
+          if (target === 'opportunites' || target === 'admin-financements' || target === 'conseils' || target === 'admin-conseils' || target === 'dashboard' || target === 'meteo') {
             e.preventDefault();
             closeMobileDrawer();
             window.location.hash = target;
@@ -1468,6 +1650,74 @@ document.addEventListener('DOMContentLoaded', () => {
         const id = btn.getAttribute('data-id');
         const item = cachedFinancements.find(f => String(f.id) === String(id));
         if (item) openManageFinancementModal(item);
+      });
+    });
+
+    // Clic sur bouton + Ajouter conseil en mobile
+    const btnMobileOpenAddConseil = document.getElementById('btnMobileOpenAddConseil');
+    if (btnMobileOpenAddConseil) {
+      btnMobileOpenAddConseil.addEventListener('click', () => {
+        openManageConseilModal();
+      });
+    }
+
+    // Événements clic sur cartes conseils mobiles
+    document.querySelectorAll('.mobile-conseil-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const id = card.getAttribute('data-id');
+        const item = cachedConseils.find(c => String(c.id) === String(id));
+        if (item) openConseilDetailsModal(item);
+      });
+    });
+
+    // Puces filtres catégories conseils en mobile
+    document.querySelectorAll('.mobile-conseil-cat-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        userSelectedConseilCategory = chip.getAttribute('data-cat');
+        renderMobileView();
+      });
+    });
+
+    // Onglets statut admin conseils en mobile
+    document.querySelectorAll('.mobile-admin-conseil-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        adminConseilActiveStatusTab = tab.getAttribute('data-status');
+        renderMobileView();
+      });
+    });
+
+    // Actions admin conseils en mobile
+    document.querySelectorAll('.mobile-body .btn-mobile-conseil-read').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const id = btn.getAttribute('data-id');
+        const item = cachedConseils.find(c => String(c.id) === String(id));
+        if (item) openConseilDetailsModal(item);
+      });
+    });
+
+    document.querySelectorAll('.mobile-body .btn-mobile-conseil-edit').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const id = btn.getAttribute('data-id');
+        const item = cachedConseils.find(c => String(c.id) === String(id));
+        if (item) openManageConseilModal(item);
+      });
+    });
+
+    document.querySelectorAll('.mobile-body .btn-mobile-conseil-publish').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const id = btn.getAttribute('data-id');
+        await updateConseilStatus(id, 'publie');
+      });
+    });
+
+    document.querySelectorAll('.mobile-body .btn-mobile-conseil-archive').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const id = btn.getAttribute('data-id');
+        await updateConseilStatus(id, 'archive');
       });
     });
 
@@ -2404,6 +2654,7 @@ document.addEventListener('DOMContentLoaded', () => {
       syncCropCyclesFromSupabase(newRole);
       syncSubscriptionStatusFromSupabase(newRole);
       fetchFinancements();
+      fetchConseils();
       loadAndRenderWeather();
       showToast('Profil actualisé', `Bascule vers le profil : ${PROFILES_DATA[newRole]?.name || newRole}`);
     });
@@ -3234,6 +3485,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (pageFinancements) pageFinancements.classList.toggle('hidden', page !== 'opportunites');
     if (pageAdminFinancements) pageAdminFinancements.classList.toggle('hidden', page !== 'admin-financements');
+    if (pageConseils) pageConseils.classList.toggle('hidden', page !== 'conseils');
+    if (pageAdminConseils) pageAdminConseils.classList.toggle('hidden', page !== 'admin-conseils');
     if (pageMeteo) pageMeteo.classList.toggle('hidden', page !== 'meteo');
     if (dashboardContent) dashboardContent.classList.toggle('hidden', page !== 'dashboard');
 
@@ -3254,6 +3507,10 @@ document.addEventListener('DOMContentLoaded', () => {
       renderUserFinancements();
     } else if (page === 'admin-financements') {
       renderAdminFinancements();
+    } else if (page === 'conseils') {
+      renderUserConseils();
+    } else if (page === 'admin-conseils') {
+      renderAdminConseils();
     } else if (page === 'meteo') {
       if (cachedWeatherResult) {
         renderMeteoPage(cachedWeatherResult);
@@ -3271,6 +3528,10 @@ document.addEventListener('DOMContentLoaded', () => {
       navigateToPage('opportunites');
     } else if (hash === 'admin-financements') {
       navigateToPage('admin-financements');
+    } else if (hash === 'conseils') {
+      navigateToPage('conseils');
+    } else if (hash === 'admin-conseils') {
+      navigateToPage('admin-conseils');
     } else if (hash === 'meteo' || hash === 'meteo-details') {
       navigateToPage('meteo');
     } else if (hash === 'dashboard' || hash === '') {
@@ -3286,7 +3547,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const href = link.getAttribute('href');
       if (href && href.startsWith('#')) {
         const page = href.replace(/^#/, '');
-        if (page === 'opportunites' || page === 'admin-financements' || page === 'dashboard' || page === 'meteo') {
+        if (page === 'opportunites' || page === 'admin-financements' || page === 'conseils' || page === 'admin-conseils' || page === 'dashboard' || page === 'meteo') {
           e.preventDefault();
           window.location.hash = page;
           navigateToPage(page);
@@ -4014,6 +4275,689 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // ==========================================
+  // MODULE CONSEILS AGRONOMIQUES (SUPABASE)
+  // ==========================================
+
+  function getConseilCategoryBadgeClass(cat) {
+    if (!cat) return 'cat-sol';
+    const c = cat.toLowerCase();
+    if (c.includes('maraîch') || c.includes('maraich')) return 'cat-maraichage';
+    if (c.includes('céréal') || c.includes('cereal')) return 'cat-cereales';
+    if (c.includes('élev') || c.includes('elev')) return 'cat-elevage';
+    if (c.includes('irrig')) return 'cat-irrigation';
+    if (c.includes('sol') || c.includes('fertil')) return 'cat-sol';
+    if (c.includes('malad') || c.includes('ravage')) return 'cat-maladies';
+    if (c.includes('récolt') || c.includes('recolt') || c.includes('conserv')) return 'cat-recolte';
+    return 'cat-sol';
+  }
+
+  async function fetchConseils() {
+    if (!supabaseClient) return;
+
+    try {
+      const { data, error } = await supabaseClient
+        .from('conseils')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.warn('⚠️ Erreur fetchConseils Supabase :', error);
+        return;
+      }
+
+      cachedConseils = data || [];
+      updateConseilsCounters();
+
+      renderUserConseils();
+      if (currentRoutePage === 'admin-conseils') {
+        renderAdminConseils();
+      }
+
+      if (currentViewMode === 'mobile' || window.innerWidth < 1024) {
+        renderMobileView();
+      }
+    } catch (err) {
+      console.warn('⚠️ Erreur réseau fetchConseils :', err);
+    }
+  }
+
+  function updateConseilsCounters() {
+    const published = cachedConseils.filter(c => c.statut === 'publie');
+    const pending = cachedConseils.filter(c => c.statut === 'en_attente');
+    const archived = cachedConseils.filter(c => c.statut === 'archive');
+
+    // Conseils publiés depuis moins de 7 jours
+    const now = new Date();
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const recentNewCount = published.filter(c => {
+      const pubDate = c.date_publication ? new Date(c.date_publication) : (c.created_at ? new Date(c.created_at) : null);
+      return pubDate && pubDate >= sevenDaysAgo;
+    }).length;
+
+    // Badges Utilisateur (Desktop Sidebar & Mobile Drawer) : « X nvx »
+    const navUserBadge = document.getElementById('navUserConseilsBadge');
+    if (navUserBadge) {
+      navUserBadge.textContent = recentNewCount > 0 ? `${recentNewCount} nvx` : '0 nvx';
+      navUserBadge.style.display = recentNewCount > 0 ? 'inline-block' : 'none';
+    }
+
+    const drawerUserBadge = document.getElementById('mobileDrawerConseilsBadge');
+    if (drawerUserBadge) {
+      drawerUserBadge.textContent = recentNewCount > 0 ? `${recentNewCount} nvx` : '';
+      drawerUserBadge.style.display = recentNewCount > 0 ? 'inline-block' : 'none';
+    }
+
+    // Badges Administration
+    const navAdminBadge = document.getElementById('navAdminConseilsPendingBadge');
+    if (navAdminBadge) {
+      navAdminBadge.textContent = pending.length;
+      navAdminBadge.style.display = pending.length > 0 ? 'inline-block' : 'none';
+    }
+
+    const drawerAdminBadge = document.getElementById('mobileDrawerConseilsPendingBadge');
+    if (drawerAdminBadge) {
+      drawerAdminBadge.textContent = pending.length;
+      drawerAdminBadge.style.display = pending.length > 0 ? 'inline-block' : 'none';
+    }
+
+    const adminBanner = document.getElementById('adminConseilsPendingBanner');
+    const pendingAlertCount = document.getElementById('adminConseilsPendingAlertCount');
+    if (adminBanner) {
+      if (pending.length > 0) {
+        adminBanner.classList.remove('hidden');
+        if (pendingAlertCount) {
+          pendingAlertCount.textContent = `${pending.length} conseil${pending.length > 1 ? 's' : ''} en attente de validation`;
+        }
+      } else {
+        adminBanner.classList.add('hidden');
+      }
+    }
+
+    const bPending = document.getElementById('badgeConseilsEnAttente');
+    const bPublie = document.getElementById('badgeConseilsPublie');
+    const bArchive = document.getElementById('badgeConseilsArchive');
+    const bAll = document.getElementById('badgeConseilsAll');
+    if (bPending) bPending.textContent = pending.length;
+    if (bPublie) bPublie.textContent = published.length;
+    if (bArchive) bArchive.textContent = archived.length;
+    if (bAll) bAll.textContent = cachedConseils.length;
+
+    const countText = document.getElementById('userConseilsCountText');
+    if (countText) {
+      countText.textContent = `${published.length} fiche${published.length > 1 ? 's' : ''} pratique${published.length > 1 ? 's' : ''} vérifiée${published.length > 1 ? 's' : ''}`;
+    }
+
+    updateDashboardAdviceCard();
+  }
+
+  function updateDashboardAdviceCard() {
+    const published = cachedConseils
+      .filter(c => c.statut === 'publie')
+      .sort((a, b) => new Date(b.date_publication || b.created_at) - new Date(a.date_publication || a.created_at));
+
+    const latest = published[0];
+    if (!latest) return;
+
+    const catEl = document.getElementById('dashAdviceCategory');
+    const timeEl = document.getElementById('dashAdviceReadTime');
+    const titleEl = document.getElementById('dashAdviceTitle');
+    const summaryEl = document.getElementById('dashAdviceSummary');
+    const authorEl = document.getElementById('dashAdviceAuthor');
+    const linkEl = document.getElementById('dashAdviceLink');
+    const cardEl = document.getElementById('dashAdviceCard');
+
+    if (catEl) catEl.textContent = latest.categorie ? latest.categorie.charAt(0).toUpperCase() + latest.categorie.slice(1) : 'Conseil agronomique';
+    if (timeEl) timeEl.textContent = `Lecture ${latest.duree_lecture || 3} min`;
+    if (titleEl) titleEl.textContent = latest.titre;
+    if (summaryEl) summaryEl.textContent = latest.resume;
+    if (authorEl) authorEl.textContent = latest.source ? `Par ${latest.source}` : 'Par INERA / DGPV';
+
+    if (linkEl) {
+      linkEl.onclick = (e) => {
+        e.preventDefault();
+        openConseilDetailsModal(latest);
+      };
+    }
+
+    if (cardEl) {
+      cardEl.style.cursor = 'pointer';
+      cardEl.onclick = (e) => {
+        if (e.target.tagName.toLowerCase() === 'a') return;
+        openConseilDetailsModal(latest);
+      };
+    }
+  }
+
+  function renderUserConseils() {
+    const grid = document.getElementById('userConseilsGrid');
+    const emptyState = document.getElementById('userConseilsEmptyState');
+    if (!grid) return;
+
+    let published = cachedConseils.filter(c => c.statut === 'publie');
+
+    // Filtre par catégorie
+    if (userSelectedConseilCategory && userSelectedConseilCategory !== 'all') {
+      const targetCat = userSelectedConseilCategory.toLowerCase().trim();
+      published = published.filter(c => {
+        if (!c.categorie) return false;
+        const cat = c.categorie.toLowerCase().trim();
+        if (targetCat === 'maraichage') return cat.includes('maraîch') || cat.includes('maraich');
+        if (targetCat === 'cereales') return cat.includes('céréal') || cat.includes('cereal');
+        if (targetCat === 'elevage') return cat.includes('élev') || cat.includes('elev');
+        if (targetCat === 'irrigation') return cat.includes('irrig');
+        if (targetCat === 'sol-fertilisation') return cat.includes('sol') || cat.includes('fertil');
+        if (targetCat === 'maladies-ravageurs') return cat.includes('malad') || cat.includes('ravage');
+        if (targetCat === 'recolte-conservation') return cat.includes('récolt') || cat.includes('recolt') || cat.includes('conserv');
+        return cat.includes(targetCat);
+      });
+    }
+
+    // Plus récents en premier
+    published.sort((a, b) => new Date(b.date_publication || b.created_at || 0) - new Date(a.date_publication || a.created_at || 0));
+
+    if (published.length === 0) {
+      grid.innerHTML = '';
+      if (emptyState) emptyState.classList.remove('hidden');
+      return;
+    }
+
+    if (emptyState) emptyState.classList.add('hidden');
+
+    grid.innerHTML = published.map(item => {
+      const catClass = getConseilCategoryBadgeClass(item.categorie);
+      return `
+        <article class="conseil-card" data-id="${item.id}">
+          <div class="conseil-card-top-meta">
+            <span class="conseil-badge-category ${catClass}">${item.categorie || 'Conseil'}</span>
+            <span class="conseil-badge-season">⏱️ ${item.duree_lecture || 3} min</span>
+          </div>
+
+          <div class="conseil-card-source">${item.source || 'INERA / DGPV Burkina Faso'}</div>
+          <h3 class="conseil-card-title">${item.titre}</h3>
+
+          ${item.cultures ? `<div class="conseil-cultures-tag">🌱 ${item.cultures}</div>` : ''}
+
+          <p class="conseil-card-resume">${item.resume || ''}</p>
+
+          <div class="conseil-card-footer">
+            <span class="conseil-season-tag">📅 ${item.saison || 'Toute l\'année'}</span>
+            <button type="button" class="conseil-card-link-btn">Lire le conseil →</button>
+          </div>
+        </article>
+      `;
+    }).join('');
+  }
+
+  function renderAdminConseils() {
+    const list = document.getElementById('adminConseilsList');
+    const emptyState = document.getElementById('adminConseilsEmptyState');
+    if (!list) return;
+
+    let items = [...cachedConseils];
+
+    // En attente en premier, puis date décroissante
+    items.sort((a, b) => {
+      if (a.statut === 'en_attente' && b.statut !== 'en_attente') return -1;
+      if (a.statut !== 'en_attente' && b.statut === 'en_attente') return 1;
+      return new Date(b.created_at || 0) - new Date(a.created_at || 0);
+    });
+
+    if (adminConseilActiveStatusTab !== 'all') {
+      items = items.filter(c => c.statut === adminConseilActiveStatusTab);
+    }
+
+    if (items.length === 0) {
+      list.innerHTML = '';
+      if (emptyState) emptyState.classList.remove('hidden');
+      return;
+    }
+
+    if (emptyState) emptyState.classList.add('hidden');
+
+    list.innerHTML = items.map(c => {
+      const isPending = c.statut === 'en_attente';
+      const isPublie = c.statut === 'publie';
+      const isArchive = c.statut === 'archive';
+      const catClass = getConseilCategoryBadgeClass(c.categorie);
+
+      return `
+        <div class="admin-financement-item ${isPending ? 'pending-highlight' : ''}" data-id="${c.id}">
+          <div class="admin-item-top">
+            <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+              <span class="admin-status-pill status-${c.statut}">
+                ${isPending ? '⏳ En attente' : (isPublie ? '✅ Publié' : '📦 Archivé')}
+              </span>
+              <span class="conseil-badge-category ${catClass}" style="font-size: 11px; padding: 2px 8px;">${c.categorie || 'Conseil'}</span>
+            </div>
+            <span class="admin-item-date">${c.created_at ? new Date(c.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : ''}</span>
+          </div>
+
+          <h4 class="admin-item-title">${c.titre}</h4>
+          ${c.cultures ? `<div style="font-size: 12px; color: #1E5E2A; margin: 4px 0 6px 0;">🌱 Cultures : <strong>${c.cultures}</strong></div>` : ''}
+          <p class="admin-item-desc">${c.resume || ''}</p>
+
+          <div class="admin-item-footer">
+            <div class="admin-item-meta-info">
+              <span>⏱️ ${c.duree_lecture || 3} min</span> •
+              <span>📅 ${c.saison || 'Toute l\'année'}</span> •
+              <span>🏛️ ${c.source || 'INERA / DGPV'}</span>
+            </div>
+            <div class="admin-actions-group">
+              <button type="button" class="btn-admin-action btn-admin-view" data-action="view" data-id="${c.id}">Lire</button>
+              <button type="button" class="btn-admin-action btn-admin-edit" data-action="edit" data-id="${c.id}">Modifier</button>
+              ${isPending || isArchive ? `<button type="button" class="btn-admin-action btn-admin-publish" data-action="publish" data-id="${c.id}">Publier</button>` : ''}
+              ${!isArchive ? `<button type="button" class="btn-admin-action btn-admin-archive" data-action="archive" data-id="${c.id}">Archiver</button>` : ''}
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // Modale de Gestion (Ajout / Modification)
+  function openManageConseilModal(conseil = null) {
+    if (!modalManageConseil) return;
+
+    const modalTitle = document.getElementById('manageConseilModalTitle');
+    const inputId = document.getElementById('conseilId');
+    const inputTitre = document.getElementById('conseilTitre');
+    const inputCat = document.getElementById('conseilCategorie');
+    const inputCultures = document.getElementById('conseilCultures');
+    const inputSaison = document.getElementById('conseilSaison');
+    const inputRegions = document.getElementById('conseilRegions');
+    const inputDuree = document.getElementById('conseilDuree');
+    const inputSource = document.getElementById('conseilSource');
+    const inputStatut = document.getElementById('conseilStatut');
+    const inputResume = document.getElementById('conseilResume');
+    const inputContenu = document.getElementById('conseilContenu');
+    const btnSaveText = document.getElementById('btnSaveConseilText');
+
+    if (conseil) {
+      if (modalTitle) modalTitle.textContent = 'Modifier le conseil agronomique';
+      if (inputId) inputId.value = conseil.id;
+      if (inputTitre) inputTitre.value = conseil.titre || '';
+      if (inputCat) inputCat.value = conseil.categorie || 'maraîchage';
+      if (inputCultures) inputCultures.value = conseil.cultures || '';
+      if (inputSaison) inputSaison.value = conseil.saison || 'toute l\'année';
+      if (inputRegions) inputRegions.value = conseil.regions || 'Tout le Burkina Faso';
+      if (inputDuree) inputDuree.value = conseil.duree_lecture || 3;
+      if (inputSource) inputSource.value = conseil.source || '';
+      if (inputStatut) inputStatut.value = conseil.statut || 'publie';
+      if (inputResume) inputResume.value = conseil.resume || '';
+      if (inputContenu) inputContenu.value = conseil.contenu || '';
+      if (btnSaveText) btnSaveText.textContent = 'Mettre à jour le conseil';
+    } else {
+      if (modalTitle) modalTitle.textContent = 'Ajouter un conseil agronomique';
+      if (formManageConseil) formManageConseil.reset();
+      if (inputId) inputId.value = '';
+      if (inputCat) inputCat.value = 'maraîchage';
+      if (inputSaison) inputSaison.value = 'toute l\'année';
+      if (inputRegions) inputRegions.value = 'Tout le Burkina Faso';
+      if (inputDuree) inputDuree.value = 3;
+      if (inputStatut) inputStatut.value = 'publie';
+      if (btnSaveText) btnSaveText.textContent = 'Enregistrer le conseil';
+    }
+
+    modalManageConseil.classList.remove('hidden');
+  }
+
+  function closeManageConseilModal() {
+    if (modalManageConseil) modalManageConseil.classList.add('hidden');
+  }
+
+  // Publication & Archivage rapides
+  async function publishConseil(id) {
+    if (!supabaseClient) return;
+    try {
+      const nowIso = new Date().toISOString();
+      const { error } = await supabaseClient
+        .from('conseils')
+        .update({ statut: 'publie', date_publication: nowIso, updated_at: nowIso })
+        .eq('id', id);
+      if (error) throw error;
+      showToast('Conseil publié', 'La fiche est désormais visible de tous les producteurs.');
+      await fetchConseils();
+    } catch (err) {
+      console.error('Erreur publishConseil :', err);
+      showToast('Erreur', 'Impossible de publier le conseil.', 'error');
+    }
+  }
+
+  async function archiveConseil(id) {
+    if (!supabaseClient) return;
+    try {
+      const nowIso = new Date().toISOString();
+      const { error } = await supabaseClient
+        .from('conseils')
+        .update({ statut: 'archive', updated_at: nowIso })
+        .eq('id', id);
+      if (error) throw error;
+      showToast('Conseil archivé', 'La fiche a été déplacée dans les archives.');
+      await fetchConseils();
+    } catch (err) {
+      console.error('Erreur archiveConseil :', err);
+      showToast('Erreur', "Impossible d'archiver le conseil.", 'error');
+    }
+  }
+
+  // Synthèse vocale pour conseils agronomiques
+  let currentReadingConseil = null;
+
+  function stopConseilSpeech() {
+    if ('speechSynthesis' in window) {
+      try { window.speechSynthesis.cancel(); } catch (e) {}
+    }
+    if (activeConseilSpeechBtn) {
+      activeConseilSpeechBtn.innerHTML = '🔊 <span>Écouter le conseil</span>';
+      activeConseilSpeechBtn.classList.remove('speaking');
+      activeConseilSpeechBtn = null;
+    }
+  }
+
+  function speakConseil(conseil, btnElement) {
+    if (!('speechSynthesis' in window)) return;
+
+    if (window.speechSynthesis.speaking && activeConseilSpeechBtn === btnElement) {
+      stopConseilSpeech();
+      return;
+    }
+
+    stopConseilSpeech();
+
+    const defSource = "Ministère de l'Agriculture du Burkina Faso";
+    const speechText = `Conseil agronomique : ${conseil.titre}. Catégorie : ${conseil.categorie || ''}. Cultures : ${conseil.cultures || 'cultures sahéliennes'}. Résumé : ${conseil.resume || ''}. Détails et étapes : ${conseil.contenu || ''}. Source : ${conseil.source || defSource}.`;
+
+    try {
+      const utterance = new SpeechSynthesisUtterance(speechText);
+      utterance.lang = 'fr-FR';
+      utterance.rate = 0.92;
+
+      utterance.onstart = () => {
+        activeConseilSpeechBtn = btnElement;
+        btnElement.innerHTML = '⏹️ <span>Arrêter la lecture</span>';
+        btnElement.classList.add('speaking');
+      };
+
+      utterance.onend = () => {
+        stopConseilSpeech();
+      };
+
+      utterance.onerror = () => {
+        stopConseilSpeech();
+      };
+
+      window.speechSynthesis.speak(utterance);
+    } catch (err) {
+      console.warn('Erreur synthèse vocale conseil :', err);
+      stopConseilSpeech();
+    }
+  }
+
+  // Modale Détails du Conseil (Lecture complète)
+  function openConseilDetailsModal(conseil) {
+    if (!modalConseilDetails || !conseil) return;
+    currentReadingConseil = conseil;
+
+    const catEl = document.getElementById('conseilDetailCategory');
+    const seasonEl = document.getElementById('conseilDetailSeason');
+    const timeEl = document.getElementById('conseilDetailReadTime');
+    const sourceEl = document.getElementById('conseilDetailSource');
+    const titleEl = document.getElementById('conseilDetailTitle');
+    const cultTag = document.getElementById('conseilDetailCulturesTag');
+    const cultEl = document.getElementById('conseilDetailCultures');
+    const resumeEl = document.getElementById('conseilDetailResume');
+    const contentEl = document.getElementById('conseilDetailContent');
+    const regEl = document.getElementById('conseilDetailRegions');
+    const dateEl = document.getElementById('conseilDetailDate');
+
+    if (catEl) {
+      catEl.className = `conseil-badge-category ${getConseilCategoryBadgeClass(conseil.categorie)}`;
+      catEl.textContent = conseil.categorie || 'Conseil';
+    }
+    if (seasonEl) seasonEl.textContent = `🌱 ${conseil.saison || 'Toute l\'année'}`;
+    if (timeEl) timeEl.textContent = `⏱️ ${conseil.duree_lecture || 3} min`;
+    if (sourceEl) sourceEl.textContent = conseil.source || 'INERA / DGPV Burkina Faso';
+    if (titleEl) titleEl.textContent = conseil.titre;
+
+    if (cultTag) {
+      if (conseil.cultures && conseil.cultures.trim() !== '') {
+        cultTag.classList.remove('hidden');
+        if (cultEl) cultEl.textContent = conseil.cultures;
+      } else {
+        cultTag.classList.add('hidden');
+      }
+    }
+
+    if (resumeEl) resumeEl.textContent = conseil.resume || '';
+
+    if (contentEl) {
+      const lines = (conseil.contenu || '').split('\n').filter(l => l.trim() !== '');
+      if (lines.length > 1) {
+        contentEl.innerHTML = lines.map(line => {
+          const trimmed = line.trim();
+          if (/^\d+[\.\)]/.test(trimmed)) {
+            const firstSpace = trimmed.indexOf(' ');
+            if (firstSpace > -1) {
+              return `<p style="margin-bottom: 10px; font-weight: 500;"><strong style="color: #1E5E2A;">${trimmed.substring(0, firstSpace)}</strong> ${trimmed.substring(firstSpace + 1)}</p>`;
+            }
+          }
+          return `<p style="margin-bottom: 10px;">${trimmed}</p>`;
+        }).join('');
+      } else {
+        contentEl.innerHTML = `<p>${conseil.contenu || ''}</p>`;
+      }
+    }
+
+    if (regEl) regEl.textContent = conseil.regions || 'Tout le Burkina Faso';
+    if (dateEl) {
+      const d = conseil.date_publication ? new Date(conseil.date_publication) : (conseil.created_at ? new Date(conseil.created_at) : new Date());
+      dateEl.textContent = d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+    }
+
+    const listenBtn = document.getElementById('btnListenConseil');
+    if (listenBtn) {
+      listenBtn.innerHTML = '🔊 <span>Écouter le conseil</span>';
+      listenBtn.classList.remove('speaking');
+    }
+
+    modalConseilDetails.classList.remove('hidden');
+  }
+
+  function closeConseilDetailsModal() {
+    stopConseilSpeech();
+    currentReadingConseil = null;
+    if (modalConseilDetails) modalConseilDetails.classList.add('hidden');
+  }
+
+  // Écouteurs d'événements du module Conseils
+  if (formManageConseil) {
+    formManageConseil.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!supabaseClient) return;
+
+      const conseilId = document.getElementById('conseilId')?.value?.trim();
+      const titre = document.getElementById('conseilTitre')?.value?.trim();
+      const categorie = document.getElementById('conseilCategorie')?.value;
+      const cultures = document.getElementById('conseilCultures')?.value?.trim() || null;
+      const saison = document.getElementById('conseilSaison')?.value || 'toute l\'année';
+      const regions = document.getElementById('conseilRegions')?.value?.trim() || 'Tout le Burkina Faso';
+      const duree_lecture = parseInt(document.getElementById('conseilDuree')?.value, 10) || 3;
+      const source = document.getElementById('conseilSource')?.value?.trim() || null;
+      const statut = document.getElementById('conseilStatut')?.value || 'publie';
+      const resume = document.getElementById('conseilResume')?.value?.trim();
+      const contenu = document.getElementById('conseilContenu')?.value?.trim();
+
+      const nowIso = new Date().toISOString();
+      const payload = {
+        titre,
+        categorie,
+        cultures,
+        saison,
+        regions,
+        duree_lecture,
+        source,
+        statut,
+        resume,
+        contenu,
+        updated_at: nowIso
+      };
+
+      const btnSave = document.getElementById('btnSaveConseil');
+      const btnSaveText = document.getElementById('btnSaveConseilText');
+      if (btnSave) btnSave.disabled = true;
+      if (btnSaveText) btnSaveText.textContent = 'Enregistrement en cours...';
+
+      try {
+        if (conseilId) {
+          if (statut === 'publie') {
+            const existing = cachedConseils.find(c => c.id === conseilId);
+            if (!existing || !existing.date_publication) {
+              payload.date_publication = nowIso;
+            }
+          }
+          const { error } = await supabaseClient
+            .from('conseils')
+            .update(payload)
+            .eq('id', conseilId);
+          if (error) throw error;
+          showToast('Conseil mis à jour', `Le conseil « ${titre} » a été actualisé.`);
+        } else {
+          payload.created_at = nowIso;
+          if (statut === 'publie') {
+            payload.date_publication = nowIso;
+          }
+          const { error } = await supabaseClient
+            .from('conseils')
+            .insert([payload]);
+          if (error) throw error;
+          showToast('Conseil ajouté', `Le conseil « ${titre} » a été créé avec succès.`);
+        }
+
+        closeManageConseilModal();
+        await fetchConseils();
+      } catch (err) {
+        console.error('Erreur enregistrement conseil :', err);
+        showToast('Erreur', err.message || 'Impossible d\'enregistrer le conseil.', 'error');
+      } finally {
+        if (btnSave) btnSave.disabled = false;
+        if (btnSaveText) btnSaveText.textContent = conseilId ? 'Mettre à jour le conseil' : 'Enregistrer le conseil';
+      }
+    });
+  }
+
+  const btnOpenAddConseilModal = document.getElementById('btnOpenAddConseilModal');
+  if (btnOpenAddConseilModal) {
+    btnOpenAddConseilModal.addEventListener('click', () => openManageConseilModal());
+  }
+
+  const btnCloseManageConseil = document.getElementById('btnCloseManageConseil');
+  if (btnCloseManageConseil) {
+    btnCloseManageConseil.addEventListener('click', closeManageConseilModal);
+  }
+
+  const btnCancelManageConseil = document.getElementById('btnCancelManageConseil');
+  if (btnCancelManageConseil) {
+    btnCancelManageConseil.addEventListener('click', closeManageConseilModal);
+  }
+
+  if (modalManageConseil) {
+    modalManageConseil.addEventListener('click', (e) => {
+      if (e.target === modalManageConseil) closeManageConseilModal();
+    });
+  }
+
+  const btnCloseConseilDetails = document.getElementById('btnCloseConseilDetails');
+  if (btnCloseConseilDetails) {
+    btnCloseConseilDetails.addEventListener('click', closeConseilDetailsModal);
+  }
+
+  const btnCloseConseilDetailsBottom = document.getElementById('btnCloseConseilDetailsBottom');
+  if (btnCloseConseilDetailsBottom) {
+    btnCloseConseilDetailsBottom.addEventListener('click', closeConseilDetailsModal);
+  }
+
+  if (modalConseilDetails) {
+    modalConseilDetails.addEventListener('click', (e) => {
+      if (e.target === modalConseilDetails) closeConseilDetailsModal();
+    });
+  }
+
+  const btnListenConseil = document.getElementById('btnListenConseil');
+  if (btnListenConseil) {
+    btnListenConseil.addEventListener('click', () => {
+      if (currentReadingConseil) {
+        speakConseil(currentReadingConseil, btnListenConseil);
+      }
+    });
+  }
+
+  const conseilCategoryChips = document.querySelectorAll('#conseilsCategoryFilters .type-filter-chip');
+  conseilCategoryChips.forEach(chip => {
+    chip.addEventListener('click', () => {
+      conseilCategoryChips.forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      userSelectedConseilCategory = chip.getAttribute('data-cat') || 'all';
+      renderUserConseils();
+    });
+  });
+
+  const adminConseilTabs = document.querySelectorAll('#adminConseilsStatusTabsGroup .admin-status-tab');
+  adminConseilTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      adminConseilTabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      adminConseilActiveStatusTab = tab.getAttribute('data-status') || 'all';
+      renderAdminConseils();
+    });
+  });
+
+  const btnQuickFilterPendingConseils = document.getElementById('btnQuickFilterPendingConseils');
+  if (btnQuickFilterPendingConseils) {
+    btnQuickFilterPendingConseils.addEventListener('click', () => {
+      adminConseilActiveStatusTab = 'en_attente';
+      adminConseilTabs.forEach(t => t.classList.remove('active'));
+      const pendingTab = document.getElementById('tabConseilEnAttente');
+      if (pendingTab) pendingTab.classList.add('active');
+      renderAdminConseils();
+    });
+  }
+
+  const userConseilsGrid = document.getElementById('userConseilsGrid');
+  if (userConseilsGrid) {
+    userConseilsGrid.addEventListener('click', (e) => {
+      const card = e.target.closest('.conseil-card');
+      if (!card) return;
+      const id = card.getAttribute('data-id');
+      const item = cachedConseils.find(c => c.id === id);
+      if (item) {
+        openConseilDetailsModal(item);
+      }
+    });
+  }
+
+  const adminConseilsList = document.getElementById('adminConseilsList');
+  if (adminConseilsList) {
+    adminConseilsList.addEventListener('click', (e) => {
+      const btn = e.target.closest('.btn-admin-action');
+      if (!btn) return;
+      const action = btn.getAttribute('data-action');
+      const id = btn.getAttribute('data-id');
+      const item = cachedConseils.find(c => c.id === id);
+      if (!item) return;
+
+      if (action === 'view') {
+        openConseilDetailsModal(item);
+      } else if (action === 'edit') {
+        openManageConseilModal(item);
+      } else if (action === 'publish') {
+        publishConseil(id);
+      } else if (action === 'archive') {
+        archiveConseil(id);
+      }
+    });
+  }
+
   // Interactivité du graphique en barres
   const chartCols = document.querySelectorAll('.chart-col');
   const tooltip = document.getElementById('chartTooltip');
@@ -4619,11 +5563,15 @@ document.addEventListener('DOMContentLoaded', () => {
     await syncCropCyclesFromSupabase(pKey);
     await syncSubscriptionStatusFromSupabase(pKey);
     loadAndRenderWeather().catch(() => {});
+    fetchConseils().catch(() => {});
     autoDetectResponsiveMode();
   }
   window.PROFILES_DATA = PROFILES_DATA;
   window.getCurrentProfileKey = () => currentProfileKey;
   window.fetchFinancements = fetchFinancements;
+  window.fetchConseils = fetchConseils;
+  window.openConseilDetailsModal = openConseilDetailsModal;
+  window.openManageConseilModal = openManageConseilModal;
 
   // 3. Helper : conversion d'un numéro burkinabè ou contact en email technique Supabase
   function convertContactToTechnicalEmail(contact) {
@@ -4828,13 +5776,15 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    // Charger les financements et la météo en tâche de fond dès le démarrage
+    // Charger les financements, conseils et météo en tâche de fond dès le démarrage
     fetchFinancements().catch(() => {});
+    fetchConseils().catch(() => {});
     loadAndRenderWeather().catch(() => {});
 
     if (sessionUser) {
       await checkUserProfileAndProceed(sessionUser);
       await fetchFinancements();
+      await fetchConseils();
       handleRoute();
       hideLoadingScreen();
     } else {

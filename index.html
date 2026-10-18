@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
   
-  <link rel="stylesheet" href="styles/main.css?v=5.2">
+  <link rel="stylesheet" href="styles/main.css?v=5.3">
 </head>
 <body class="theme-light">
   <!-- BANDEAU DISCRET ADMIN (Visible uniquement en mode Admin) -->
@@ -272,12 +272,12 @@
           <!-- Groupe 2: S'INFORMER -->
           <div class="nav-section">
             <div class="nav-section-title">S'INFORMER</div>
-            <a href="#conseils" class="nav-item" data-page="conseils">
+            <a href="#conseils" class="nav-item" data-page="conseils" id="navLinkUserConseils">
               <span class="nav-icon">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10"/><path d="M6 10h10"/></svg>
               </span>
               <span class="nav-label">Conseils</span>
-              <span class="nav-pill-count">3 nvx</span>
+              <span class="nav-pill-count" id="navUserConseilsBadge">0 nvx</span>
             </a>
             <a href="#formations" class="nav-item" data-page="formations">
               <span class="nav-icon">
@@ -367,6 +367,13 @@
               </span>
               <span class="nav-label">Gérer les financements</span>
               <span class="nav-badge-amber" id="navAdminPendingBadge">1</span>
+            </a>
+            <a href="#admin-conseils" class="nav-item" data-page="admin-conseils" id="navLinkAdminConseils">
+              <span class="nav-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+              </span>
+              <span class="nav-label">Gérer les conseils</span>
+              <span class="nav-badge-amber" id="navAdminConseilsPendingBadge">1</span>
             </a>
             <a href="#admin-queue" class="nav-item" data-page="admin-queue">
               <span class="nav-icon">
@@ -851,16 +858,16 @@
           <div class="bottom-features-grid">
             
             <!-- Carte 1 : Conseil de saison -->
-            <article class="feature-card feature-advice">
+            <article class="feature-card feature-advice" id="dashAdviceCard">
               <div class="feature-card-header">
-                <span class="feature-badge-tag tag-green">Conseil agronomique</span>
-                <span class="feature-read-time">Lecture 2 min</span>
+                <span class="feature-badge-tag tag-green" id="dashAdviceCategory">Conseil agronomique</span>
+                <span class="feature-read-time" id="dashAdviceReadTime">Lecture 3 min</span>
               </div>
-              <h4 class="feature-card-title">Préparation du sol & gestion de l'eau pour l'oignon de contre-saison</h4>
-              <p class="feature-card-summary">Comment pailler efficacement avec des tiges de mil pour réduire l'évaporation de 40% en période chaude.</p>
+              <h4 class="feature-card-title" id="dashAdviceTitle">Chargement du conseil agronomique…</h4>
+              <p class="feature-card-summary" id="dashAdviceSummary">Conseil agronomique pratique pour optimiser vos rendements au Burkina Faso.</p>
               <div class="feature-card-footer">
-                <span class="author-label">Par Dr. Idrissa Traoré (INERA)</span>
-                <a href="#lire-conseil" class="feature-link">Lire le conseil →</a>
+                <span class="author-label" id="dashAdviceAuthor">Par INERA / DGPV</span>
+                <a href="#conseils" class="feature-link" id="dashAdviceLink">Lire le conseil →</a>
               </div>
             </article>
 
@@ -1036,6 +1043,126 @@
             <div class="empty-state-icon">📂</div>
             <h3 id="adminEmptyTitle">Aucune fiche dans cette catégorie</h3>
             <p id="adminEmptySub">Cliquez sur « + Ajouter un financement » pour créer une nouvelle offre.</p>
+          </div>
+        </div>
+
+        <!-- ==========================================
+             PAGE CONSEILS AGRONOMIQUES (UTILISATEUR)
+             ========================================== -->
+        <div class="dashboard-body hidden" id="pageConseils">
+          <!-- Lien retour au tableau de bord -->
+          <a href="#dashboard" class="breadcrumb-back-link">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+            <span>Tableau de bord</span>
+          </a>
+
+          <!-- En-tête de la page conseils -->
+          <div class="fin-page-header">
+            <div class="fin-page-title-group">
+              <div class="fin-pill-tag">Fiches Techniques & Agroécologie Sahélienne</div>
+              <h2 class="fin-main-title">💡 Conseils & Bonnes Pratiques Agricoles</h2>
+              <p class="fin-subtitle" id="userConseilsSubtitle">Conseils pratiques vérifiés par des agronomes pour maximiser vos rendements au Burkina Faso.</p>
+            </div>
+            <div class="fin-header-counter-box">
+              <span class="fin-counter-number" id="userConseilsCountNumber">--</span>
+              <span class="fin-counter-label" id="userConseilsCountText">conseils publiés</span>
+            </div>
+          </div>
+
+          <!-- Filtres par catégorie -->
+          <div class="fin-filters-bar">
+            <div class="fin-filters-scroll" id="conseilsCategoryFilters">
+              <button type="button" class="fin-filter-btn active" data-cat="all">Tous les conseils</button>
+              <button type="button" class="fin-filter-btn" data-cat="maraîchage">Maraîchage</button>
+              <button type="button" class="fin-filter-btn" data-cat="céréales">Céréales</button>
+              <button type="button" class="fin-filter-btn" data-cat="élevage">Élevage</button>
+              <button type="button" class="fin-filter-btn" data-cat="irrigation">Irrigation</button>
+              <button type="button" class="fin-filter-btn" data-cat="sol et fertilisation">Sol & Fertilisation</button>
+              <button type="button" class="fin-filter-btn" data-cat="maladies et ravageurs">Maladies & Ravageurs</button>
+              <button type="button" class="fin-filter-btn" data-cat="récolte et conservation">Récolte & Conservation</button>
+            </div>
+          </div>
+
+          <!-- Grille des cartes conseils publiés -->
+          <div class="conseils-grid" id="userConseilsGrid">
+            <!-- Injecté dynamiquement par JavaScript depuis Supabase -->
+          </div>
+
+          <!-- État vide utilisateur -->
+          <div class="financements-empty-state hidden" id="userConseilsEmpty">
+            <div class="empty-state-icon">🌱</div>
+            <h3>Aucun conseil dans cette catégorie</h3>
+            <p>De nouvelles fiches techniques sont publiées régulièrement par nos agronomes partenaires.</p>
+          </div>
+        </div>
+
+        <!-- ==========================================
+             PAGE GÉRER LES CONSEILS (ADMINISTRATION)
+             ========================================== -->
+        <div class="dashboard-body hidden" id="pageAdminConseils">
+          <div class="page-header-admin-fin">
+            <div>
+              <div class="admin-breadcrumbs">
+                <a href="#dashboard" class="breadcrumb-back-link" style="display:inline-flex;margin-bottom:0;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+                  <span>Tableau de bord</span>
+                </a>
+                <span class="bullet-sep">•</span>
+                <span>Administration</span>
+              </div>
+              <h1 class="page-main-title">🛡️ Gérer les conseils agronomiques</h1>
+              <p class="page-subtitle">Validez les fiches techniques soumises, modifiez les contenus ou publiez de nouveaux guides pratiques.</p>
+            </div>
+            <div class="page-header-actions-group">
+              <button type="button" class="btn-primary" id="btnOpenAddConseilModal">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                <span>+ Ajouter un conseil</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Alerte jaune : conseils en attente -->
+          <div class="admin-pending-alert-banner" id="adminConseilsPendingBanner">
+            <span class="alert-icon">⏳</span>
+            <div class="alert-content">
+              <strong id="adminConseilsPendingAlertCount">1 conseil en attente de validation</strong>
+              <span>Les conseils en attente sont invisibles des utilisateurs jusqu'à publication par vos soins.</span>
+            </div>
+            <button type="button" class="btn-filter-pending-quick" id="btnQuickFilterConseilsPending">Afficher les conseils en attente</button>
+          </div>
+
+          <!-- Onglets de statut (En attente, Publiés, Archivés, Tous) -->
+          <div class="admin-status-tabs-bar">
+            <div class="admin-status-tabs" id="adminConseilsStatusTabsGroup">
+              <button type="button" class="admin-status-tab active" data-status="en_attente" id="tabConseilStatusEnAttente">
+                <span>En attente</span>
+                <span class="tab-badge badge-amber" id="badgeConseilCountEnAttente">1</span>
+              </button>
+              <button type="button" class="admin-status-tab" data-status="publie" id="tabConseilStatusPublie">
+                <span>Publiés</span>
+                <span class="tab-badge badge-green" id="badgeConseilCountPublie">4</span>
+              </button>
+              <button type="button" class="admin-status-tab" data-status="archive" id="tabConseilStatusArchive">
+                <span>Archivés</span>
+                <span class="tab-badge badge-gray" id="badgeConseilCountArchive">0</span>
+              </button>
+              <button type="button" class="admin-status-tab" data-status="all" id="tabConseilStatusAll">
+                <span>Tous les conseils</span>
+                <span class="tab-badge badge-neutral" id="badgeConseilCountAll">5</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Liste des cartes pour admin -->
+          <div class="admin-financements-list" id="adminConseilsList">
+            <!-- Injecté dynamiquement par JavaScript depuis Supabase -->
+          </div>
+
+          <!-- État vide admin -->
+          <div class="financements-empty-state hidden" id="adminConseilsEmpty">
+            <div class="empty-state-icon">📂</div>
+            <h3 id="adminConseilsEmptyTitle">Aucun conseil dans cette catégorie</h3>
+            <p id="adminConseilsEmptySub">Cliquez sur « + Ajouter un conseil » pour rédiger une nouvelle fiche.</p>
           </div>
         </div>
 
@@ -1900,6 +2027,164 @@
     </div>
   </div>
 
+  <!-- ==================== MODALE GESTION CONSEIL (ADMIN) ==================== -->
+  <div class="modal-backdrop hidden" id="modalManageConseil">
+    <div class="modal-dialog modal-dialog-financement">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <span class="modal-icon bg-green">💡</span>
+          <div>
+            <h3 class="modal-title" id="manageConseilModalTitle">Ajouter un conseil agronomique</h3>
+            <p class="modal-subtitle">Renseignez la fiche technique et les bonnes pratiques associées.</p>
+          </div>
+        </div>
+        <button class="modal-close-btn" id="btnCloseManageConseil">&times;</button>
+      </div>
+
+      <form id="formManageConseil" class="modal-form" autocomplete="off">
+        <input type="hidden" id="conseilId" value="">
+
+        <div class="form-row">
+          <div class="form-group flex-2">
+            <label for="conseilTitre">Titre du conseil <span class="required">*</span></label>
+            <input type="text" id="conseilTitre" class="form-input" placeholder="Ex: Préparation du sol pour l'oignon de contre-saison" required>
+          </div>
+          <div class="form-group flex-1">
+            <label for="conseilCategorie">Catégorie <span class="required">*</span></label>
+            <select id="conseilCategorie" class="form-select" required>
+              <option value="maraîchage">Maraîchage</option>
+              <option value="céréales">Céréales</option>
+              <option value="élevage">Élevage</option>
+              <option value="irrigation">Irrigation</option>
+              <option value="sol et fertilisation">Sol et fertilisation</option>
+              <option value="maladies et ravageurs">Maladies et ravageurs</option>
+              <option value="récolte et conservation">Récolte et conservation</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label for="conseilCultures">Cultures ciblées</label>
+            <input type="text" id="conseilCultures" class="form-input" placeholder="Ex: tomate, oignon, maïs">
+          </div>
+          <div class="form-group flex-1">
+            <label for="conseilSaison">Saison <span class="required">*</span></label>
+            <select id="conseilSaison" class="form-select" required>
+              <option value="toute l'année">Toute l'année</option>
+              <option value="saison sèche">Saison sèche</option>
+              <option value="saison des pluies">Saison des pluies</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label for="conseilRegions">Régions concernées</label>
+            <input type="text" id="conseilRegions" class="form-input" placeholder="Ex: Tout le Burkina Faso" value="Tout le Burkina Faso">
+          </div>
+          <div class="form-group flex-1">
+            <label for="conseilDuree">Durée de lecture (minutes)</label>
+            <input type="number" id="conseilDuree" class="form-input" min="1" max="60" value="3">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label for="conseilSource">Source (organisme ou lien)</label>
+            <input type="text" id="conseilSource" class="form-input" placeholder="Ex: INERA / DGPV Burkina Faso">
+          </div>
+          <div class="form-group flex-1">
+            <label for="conseilStatut">Statut initial <span class="required">*</span></label>
+            <select id="conseilStatut" class="form-select" required>
+              <option value="en_attente">En attente (Non visible du public)</option>
+              <option value="publie" selected>Publié (Visible immédiatement)</option>
+              <option value="archive">Archivé</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="conseilResume">Résumé synthétique (2 phrases maximum) <span class="required">*</span></label>
+          <textarea id="conseilResume" class="form-textarea" rows="2" placeholder="Résumé clair et percutant de la pratique agricole..." required></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="conseilContenu">Contenu détaillé (étapes, conseils, dosage) <span class="required">*</span></label>
+          <textarea id="conseilContenu" class="form-textarea" rows="6" placeholder="Rédigez en français simple, avec des étapes numérotées si besoin (1. ..., 2. ...)..." required></textarea>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" id="btnCancelManageConseil">Annuler</button>
+          <button type="submit" class="btn-primary" id="btnSaveConseil">
+            <span id="btnSaveConseilText">Enregistrer le conseil</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== MODALE DÉTAILS DU CONSEIL (LECTURE COMPLÈTE & ÉCOUTER) ==================== -->
+  <div class="modal-backdrop hidden" id="modalConseilDetails">
+    <div class="modal-dialog modal-dialog-conseil-details">
+      <div class="modal-header">
+        <div class="modal-title-wrap" style="gap: 8px; flex-wrap: wrap; align-items: center;">
+          <span class="conseil-badge-category cat-sol" id="conseilDetailCategory">Sol et fertilisation</span>
+          <span class="conseil-badge-season" id="conseilDetailSeason">Saison sèche</span>
+          <span class="conseil-badge-season" id="conseilDetailReadTime">⏱️ 3 min</span>
+        </div>
+        <button class="modal-close-btn" id="btnCloseConseilDetails">&times;</button>
+      </div>
+
+      <div class="fin-detail-body">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap;">
+          <div style="flex: 1; min-width: 250px;">
+            <div class="fin-detail-org" id="conseilDetailSource">INERA / DGPV</div>
+            <h2 class="fin-detail-title" id="conseilDetailTitle">Titre du conseil</h2>
+          </div>
+          <button type="button" class="btn-listen-conseil" id="btnListenConseil" title="Écouter le conseil à voix haute">
+            🔊 <span>Écouter le conseil</span>
+          </button>
+        </div>
+
+        <div id="conseilDetailCulturesTag" class="conseil-cultures-tag">
+          🌱 Cultures : <span id="conseilDetailCultures">oignon, échalote</span>
+        </div>
+
+        <div class="fin-detail-section">
+          <h4 class="fin-section-title">En résumé</h4>
+          <p class="fin-section-desc" id="conseilDetailResume" style="font-weight: 600; color: #1E2822;"></p>
+        </div>
+
+        <div class="fin-detail-section">
+          <h4 class="fin-section-title">📋 Guide pratique & Étapes recommandées</h4>
+          <div class="conseil-detail-content-box" id="conseilDetailContent"></div>
+        </div>
+
+        <div class="fin-detail-meta-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
+          <div class="fin-meta-item">
+            <span class="fin-meta-icon">📍</span>
+            <div>
+              <span class="fin-meta-label">Régions recommandées</span>
+              <strong class="fin-meta-val" id="conseilDetailRegions">Tout le Burkina Faso</strong>
+            </div>
+          </div>
+          <div class="fin-meta-item">
+            <span class="fin-meta-icon">📅</span>
+            <div>
+              <span class="fin-meta-label">Date de publication</span>
+              <strong class="fin-meta-val" id="conseilDetailDate">18 octobre 2026</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" id="btnCloseConseilDetailsBottom">Fermer la lecture</button>
+      </div>
+    </div>
+  </div>
+
   <!-- TOAST DE NOTIFICATION FLOTTANT -->
   <div class="toast-notification hidden" id="toastNotification">
     <div class="toast-icon" id="toastIcon">✅</div>
@@ -1914,6 +2199,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <!-- SCRIPT APPLICATION -->
-  <script src="scripts/app.js?v=5.2"></script>
+  <script src="scripts/app.js?v=5.3"></script>
 </body>
 </html>

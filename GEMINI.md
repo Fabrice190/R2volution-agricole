@@ -434,10 +434,35 @@ Depuis la version 2.9, l'application est entièrement Full Stack connectée au p
 - **Sécurisation des Fonctions Supabase (search_path & Privilèges)** :
   - Droits `EXECUTE` révoqués pour `anon` et `authenticated` sur les fonctions internes `handle_new_user()` et `rls_auto_enable()`.
   - Ajout explicite de `SET search_path = public` sur les fonctions `handle_new_user()` et `clean_security_columns()` pour prévenir toute injection de schéma.
-- **Préservation Intacte de la Table Financements** :
-  - La table `public.financements` (8 fiches : 7 publiées, 1 expirée) ainsi que la tâche d'expiration planifiée `expirer-financements-quotidien` demeurent 100% intactes.
+### Q. Module Conseils Agronomiques Réels Connecté Supabase & Administration (v5.3)
+- **Table Supabase `public.conseils`** :
+  - Colonnes : `id` (UUID), `titre` (texte), `categorie` (`maraîchage`, `céréales`, `élevage`, `irrigation`, `sol et fertilisation`, `maladies et ravageurs`, `récolte et conservation`), `cultures` (texte, ex: `tomate, oignon`), `resume` (2 phrases max), `contenu` (texte complet avec étapes numérotées), `saison` (`saison sèche`, `saison des pluies`, `toute l'année`), `regions` (défaut `Tout le Burkina Faso`), `source` (nom de l'organisme ou lien), `duree_lecture` (en minutes), `statut` (`en_attente`, `publie`, `archive`), `date_publication` (date), `created_at`, `updated_at`.
+  - **Sécurité Row Level Security (RLS)** :
+    - Public / Utilisateurs connectés : lecture autorisée **uniquement** pour `statut = 'publie'` (`conseils_select_policy`).
+    - Administrateurs (`is_admin = true`) : lecture complète de tous les statuts (`en_attente`, `publie`, `archive`), création (`conseils_insert_policy`), modification / publication / archivage (`conseils_update_policy`), et suppression (`conseils_delete_policy`).
+  - Déclencheur automatique `trg_conseils_updated_at` pour actualiser `updated_at` à chaque modification.
+- **Espace Administration (« Gérer les conseils »)** :
+  - Accessible sous la section `ADMINISTRATION > Gérer les conseils` (`#admin-conseils`) pour les profils administrateurs.
+  - Filtre par statut : `Tous`, `En attente`, `Publiés`, `Archivés`.
+  - Tri prioritaire : les fiches `en_attente` s'affichent en tête avec puce dorée et badge compteur d'alerte en direct dans la barre latérale et le tiroir mobile.
+  - Bouton « + Ajouter un conseil » ouvrant la modale `#modalManageConseil` avec saisie des fiches techniques.
+  - Boutons d'action par fiche : `Lire` (lecture complète), `Modifier` (édition), `Publier` (mise en ligne immédiate), `Archiver` (déplacement en archives).
+- **Espace Utilisateur (« Conseils Agronomiques »)** :
+  - Accessible via `S'INFORMER > Conseils` (`#conseils`) ou depuis la carte héro du tableau de bord.
+  - Affichage strict des seuls conseils au statut `publie` issus de Supabase (faux conseils démo supprimés), triés du plus récent au plus ancien.
+  - Filtre interactif par catégorie : *Tous*, *Maraîchage*, *Céréales*, *Élevage*, *Irrigation*, *Sol et fertilisation*, *Maladies et ravageurs*, *Récolte et conservation*.
+  - Modale de lecture complète (`#modalConseilDetails`) affichant le résumé, le guide étape par étape, les cultures ciblées, la saison et la région.
+  - **Synthèse Vocale 🔊 « Écouter le conseil »** :
+    - Intégration de la Web Speech API (`SpeechSynthesis`) avec voix française rythmée (`rate = 0.92`).
+    - Lecture fluide du titre, de la catégorie, des cultures, du résumé synthétique, des étapes pratiques et de la source.
+    - Bascule dynamique du bouton en `⏹️ Arrêter la lecture` avec animation pulsée durant l'écoute.
+  - **Badge « X nvx » dans le menu** :
+    - Calcule automatiquement le nombre de conseils publiés depuis moins de 7 jours (`date_publication >= now - 7j`).
+  - **Carte « Conseil agronomique » du Tableau de Bord (`#dashAdviceCard`)** :
+    - Dynamique et connectée : affiche le dernier conseil agronomique publié avec son titre, résumé, temps de lecture et catégorie.
+    - Clic direct sur « Lire le conseil → » ouvrant immédiatement la fiche complète dans la modale.
 
 ---
 
-*Fin du document de spécification système — Version 5.2 • Révolution Agricole Burkina Faso.*
+*Fin du document de spécification système — Version 5.3 • Révolution Agricole Burkina Faso.*
 
