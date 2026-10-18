@@ -194,6 +194,88 @@ document.addEventListener('DOMContentLoaded', () => {
     return `${diffDays} jours`;
   }
 
+  // ==========================================
+  // HELPERS GLOBAUX : CONSEILS & FINANCEMENTS (BUREAU & MOBILE)
+  // ==========================================
+
+  // 1. Filtrage des financements ouverts pour les producteurs
+  function filterOpenFinancementsForUsers(items) {
+    try {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      return (items || []).filter(item => {
+        if (!item) return false;
+        if (String(item.statut || '').trim() !== 'publie') return false;
+        if (!item.date_limite || String(item.date_limite).trim() === '') return true; // Guichet permanent
+        const deadline = parseLocalDate(item.date_limite);
+        if (!deadline || isNaN(deadline.getTime())) return true;
+        deadline.setHours(0, 0, 0, 0);
+        return deadline >= today;
+      });
+    } catch (e) {
+      console.warn('Erreur filterOpenFinancementsForUsers :', e);
+      return [];
+    }
+  }
+
+  // 2. Classe CSS du badge de catégorie de conseil
+  function getConseilCategoryBadgeClass(cat) {
+    if (!cat) return 'cat-sol';
+    const c = String(cat).toLowerCase();
+    if (c.includes('maraîch') || c.includes('maraich')) return 'cat-maraichage';
+    if (c.includes('céréal') || c.includes('cereal')) return 'cat-cereales';
+    if (c.includes('élev') || c.includes('elev')) return 'cat-elevage';
+    if (c.includes('irrig')) return 'cat-irrigation';
+    if (c.includes('sol') || c.includes('fertil')) return 'cat-sol';
+    if (c.includes('malad') || c.includes('ravage')) return 'cat-maladies';
+    if (c.includes('récolt') || c.includes('recolt') || c.includes('conserv')) return 'cat-recolte';
+    return 'cat-sol';
+  }
+
+  // 3. Élément HTML du badge de catégorie (utilisé dans mobile & bureau)
+  function getConseilCategoryBadge(cat) {
+    const cls = getConseilCategoryBadgeClass(cat);
+    return `<span class="conseil-badge-category ${cls}" style="font-size: 11px; padding: 2px 8px;">${cat || 'Conseil'}</span>`;
+  }
+
+  // 4. Comptage sécurisé des conseils récents (< 7 jours)
+  function getNewConseilsCount() {
+    try {
+      if (!Array.isArray(cachedConseils) || cachedConseils.length === 0) return 0;
+      const now = new Date();
+      const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      return cachedConseils.filter(c => {
+        if (!c || c.statut !== 'publie') return false;
+        const pubDate = c.date_publication ? new Date(c.date_publication) : (c.created_at ? new Date(c.created_at) : null);
+        return pubDate && !isNaN(pubDate.getTime()) && pubDate >= sevenDaysAgo;
+      }).length;
+    } catch (e) {
+      console.warn('Erreur getNewConseilsCount :', e);
+      return 0;
+    }
+  }
+
+  // 5. Mise à jour de statut de conseil (publie / archive)
+  async function updateConseilStatus(id, newStatus) {
+    try {
+      if (newStatus === 'publie') {
+        if (typeof publishConseil === 'function') return await publishConseil(id);
+      } else if (newStatus === 'archive') {
+        if (typeof archiveConseil === 'function') return await archiveConseil(id);
+      }
+      if (supabaseClient) {
+        const nowIso = new Date().toISOString();
+        const payload = { statut: newStatus, updated_at: nowIso };
+        if (newStatus === 'publie') payload.date_publication = nowIso;
+        await supabaseClient.from('conseils').update(payload).eq('id', id);
+        if (typeof fetchConseils === 'function') await fetchConseils();
+      }
+    } catch (e) {
+      console.error('Erreur updateConseilStatus :', e);
+    }
+  }
+
   function updateDashboardDateTime() {
     const now = new Date();
 
@@ -1196,7 +1278,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10"/><path d="M6 10h10"/></svg>
               </span>
               <span class="nav-label">Conseils</span>
-              <span class="nav-pill-count" id="mobileDrawerConseilsBadge" style="${getNewConseilsCount() > 0 ? '' : 'display:none;'}">${getNewConseilsCount()} nvx</span>
+              ${(() => {
+                try {
+                  const cnt = (typeof getNewConseilsCount === 'function') ? getNewConseilsCount() : 0;
+                  if (cnt > 0) {
+                    return `<span class="nav-pill-count" id="mobileDrawerConseilsBadge">${cnt} nvx</span>`;
+                  }
+                } catch (e) {
+                  console.warn('Erreur affichage badge conseils mobile :', e);
+                }
+                return `<span class="nav-pill-count" id="mobileDrawerConseilsBadge" style="display:none;"></span>`;
+              })()}
             </a>
             <a href="#formations" class="nav-item mobile-drawer-link">
               <span class="nav-icon">
@@ -1221,7 +1313,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m12 6 4 6-4 6"/><path d="M8 12h8"/></svg>
               </span>
               <span class="nav-label">Financements</span>
-              <span class="nav-badge-amber" id="mobileDrawerFinancementsBadge">${filterOpenFinancementsForUsers(cachedFinancements).length}</span>
+              ${(() => {
+                try {
+                  const len = (typeof filterOpenFinancementsForUsers === 'function') ? filterOpenFinancementsForUsers(cachedFinancements).length : 0;
+                  return `<span class="nav-badge-amber" id="mobileDrawerFinancementsBadge">${len}</span>`;
+                } catch (e) {
+                  return `<span class="nav-badge-amber" id="mobileDrawerFinancementsBadge" style="display:none;"></span>`;
+                }
+              })()}
             </a>
           </div>
 
@@ -1278,12 +1377,26 @@ document.addEventListener('DOMContentLoaded', () => {
               <a href="#admin-financements" class="nav-item mobile-drawer-link" data-page="admin-financements">
                 <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/><path d="M12 14v4"/><path d="M10 16h4"/></svg></span>
                 <span class="nav-label">Gérer les financements</span>
-                <span class="nav-badge-amber" id="mobileDrawerPendingBadge">${cachedFinancements.filter(f => f.statut === 'en_attente').length}</span>
+                ${(() => {
+                  try {
+                    const count = (cachedFinancements || []).filter(f => f.statut === 'en_attente').length;
+                    return `<span class="nav-badge-amber" id="mobileDrawerPendingBadge">${count}</span>`;
+                  } catch (e) {
+                    return `<span class="nav-badge-amber" id="mobileDrawerPendingBadge" style="display:none;"></span>`;
+                  }
+                })()}
               </a>
               <a href="#admin-conseils" class="nav-item mobile-drawer-link" data-page="admin-conseils">
                 <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></span>
                 <span class="nav-label">Gérer les conseils</span>
-                <span class="nav-badge-amber" id="mobileDrawerConseilsPendingBadge">${cachedConseils.filter(c => c.statut === 'en_attente').length}</span>
+                ${(() => {
+                  try {
+                    const count = (cachedConseils || []).filter(c => c.statut === 'en_attente').length;
+                    return `<span class="nav-badge-amber" id="mobileDrawerConseilsPendingBadge">${count}</span>`;
+                  } catch (e) {
+                    return `<span class="nav-badge-amber" id="mobileDrawerConseilsPendingBadge" style="display:none;"></span>`;
+                  }
+                })()}
               </a>
               <a href="#admin-queue" class="nav-item mobile-drawer-link">
                 <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></span>
@@ -3583,31 +3696,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 2. Synchronisation Supabase et Filtre officiel des opportunités ouvertes
-  function filterOpenFinancementsForUsers(items) {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    return (items || []).filter(item => {
-      if (!item) return false;
-
-      // 1. statut === 'publie' (valeur exacte, sans accent)
-      if (String(item.statut || '').trim() !== 'publie') return false;
-
-      // 2. date_limite est vide OU supérieure ou égale à aujourd'hui
-      if (!item.date_limite || String(item.date_limite).trim() === '') {
-        return true; // Guichet permanent
-      }
-
-      const deadline = parseLocalDate(item.date_limite);
-      if (!deadline || isNaN(deadline.getTime())) {
-        return true;
-      }
-      deadline.setHours(0, 0, 0, 0);
-
-      return deadline >= today;
-    });
-  }
+  // 2. Synchronisation Supabase des opportunités (fetchFinancements)
 
   async function fetchFinancements() {
     if (!supabaseClient) return;
@@ -4279,19 +4368,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // MODULE CONSEILS AGRONOMIQUES (SUPABASE)
   // ==========================================
 
-  function getConseilCategoryBadgeClass(cat) {
-    if (!cat) return 'cat-sol';
-    const c = cat.toLowerCase();
-    if (c.includes('maraîch') || c.includes('maraich')) return 'cat-maraichage';
-    if (c.includes('céréal') || c.includes('cereal')) return 'cat-cereales';
-    if (c.includes('élev') || c.includes('elev')) return 'cat-elevage';
-    if (c.includes('irrig')) return 'cat-irrigation';
-    if (c.includes('sol') || c.includes('fertil')) return 'cat-sol';
-    if (c.includes('malad') || c.includes('ravage')) return 'cat-maladies';
-    if (c.includes('récolt') || c.includes('recolt') || c.includes('conserv')) return 'cat-recolte';
-    return 'cat-sol';
-  }
-
   async function fetchConseils() {
     if (!supabaseClient) return;
 
@@ -4327,13 +4403,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const pending = cachedConseils.filter(c => c.statut === 'en_attente');
     const archived = cachedConseils.filter(c => c.statut === 'archive');
 
-    // Conseils publiés depuis moins de 7 jours
-    const now = new Date();
-    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-    const recentNewCount = published.filter(c => {
-      const pubDate = c.date_publication ? new Date(c.date_publication) : (c.created_at ? new Date(c.created_at) : null);
-      return pubDate && pubDate >= sevenDaysAgo;
-    }).length;
+    // Conseils publiés depuis moins de 7 jours (calcul sécurisé)
+    const recentNewCount = getNewConseilsCount();
 
     // Badges Utilisateur (Desktop Sidebar & Mobile Drawer) : « X nvx »
     const navUserBadge = document.getElementById('navUserConseilsBadge');
@@ -5572,6 +5643,11 @@ document.addEventListener('DOMContentLoaded', () => {
   window.fetchConseils = fetchConseils;
   window.openConseilDetailsModal = openConseilDetailsModal;
   window.openManageConseilModal = openManageConseilModal;
+  window.getNewConseilsCount = getNewConseilsCount;
+  window.getConseilCategoryBadge = getConseilCategoryBadge;
+  window.getConseilCategoryBadgeClass = getConseilCategoryBadgeClass;
+  window.updateConseilStatus = updateConseilStatus;
+  window.filterOpenFinancementsForUsers = filterOpenFinancementsForUsers;
 
   // 3. Helper : conversion d'un numéro burkinabè ou contact en email technique Supabase
   function convertContactToTechnicalEmail(contact) {
