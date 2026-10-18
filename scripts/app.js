@@ -5169,6 +5169,39 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function formatSourceDisplay(rawSource) {
+    if (!rawSource) return { org: '', url: '' };
+    const str = String(rawSource).trim();
+    // Extraire l'URL si présente
+    const urlMatch = str.match(/https?:\/\/[^\s,)]+/i);
+    const url = urlMatch ? urlMatch[0] : '';
+
+    // Nom de l'organisme : texte avant la première virgule ou avant « http »
+    let org = str;
+    const httpIdx = org.search(/https?:\/\//i);
+    if (httpIdx !== -1) {
+      org = org.substring(0, httpIdx).trim();
+    }
+    const commaIdx = org.indexOf(',');
+    if (commaIdx !== -1) {
+      org = org.substring(0, commaIdx).trim();
+    }
+    // Nettoyer d'éventuels préfixes "Source :" ou séparateurs en fin
+    org = org.replace(/^Source\s*:\s*/i, '').replace(/[,;:\s]+$/, '').trim();
+    if (!org) org = 'Organisme officiel';
+    return { org, url };
+  }
+
   function updateCropCycleCalculations(model) {
     if (!model) return;
     const forecastBox = document.getElementById('cropCycleForecastBox');
@@ -5220,9 +5253,14 @@ document.addEventListener('DOMContentLoaded', () => {
       adviceBox.classList.add('hidden');
     }
 
-    // 4. Source
+    // 4. Source (nom de l'organisme seul et lien discret)
     if (model.source && model.source.trim() !== '') {
-      sourceText.textContent = model.source;
+      const { org, url } = formatSourceDisplay(model.source);
+      let html = escapeHtml(org);
+      if (url) {
+        html += ` <a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" class="forecast-source-link">voir la source</a>`;
+      }
+      sourceText.innerHTML = html;
       sourceBox.classList.remove('hidden');
     } else {
       sourceBox.classList.add('hidden');
@@ -5262,9 +5300,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const activeModeles = (cachedModelesCultures || []).filter(m => m.actif);
       modeleSelect.innerHTML = '<option value="">-- Aucun modèle (saisie libre manuelle) --</option>' +
         activeModeles.map(m => {
-          const varLabel = m.variete ? ` (variété ${m.variete})` : ' (toutes variétés)';
-          const modeLabel = m.mode_depart === 'pepiniere' ? '🌱 pépinière' : '🌾 semis direct';
-          return `<option value="${m.id}">${m.nom_culture}${varLabel} • ${m.categorie || 'culture'} • ${modeLabel}</option>`;
+          const label = m.variete && m.variete.trim() ? `${m.nom_culture} – ${m.variete.trim()}` : m.nom_culture;
+          return `<option value="${m.id}">${escapeHtml(label)}</option>`;
         }).join('');
 
       if (preselectedModelId) {
@@ -5335,27 +5372,55 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    const cropName = document.getElementById('cropCycleName')?.value || 'Culture';
-    const repiqText = document.getElementById('cropForecastRepiquageText')?.textContent || '';
+    function cleanForSpeech(str) {
+      if (!str) return '';
+      return str
+        .replace(/https?:\/\/[^\s]+/gi, '') // Supprimer tout lien ou URL
+        .replace(/\p{Extended_Pictographic}/gu, '') // Supprimer tous les émojis
+        .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu, '')
+        .replace(/[•*–—_~#|/\\<>[\]{}]/g, ' ') // Supprimer puces et symboles
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+
+    const repiqEl = document.getElementById('cropForecastRepiquageText');
     const isRepiqVisible = !document.getElementById('cropForecastRepiquageRow')?.classList.contains('hidden');
-    const harvestText = document.getElementById('cropForecastHarvestText')?.innerText || '';
-    const adviceText = document.getElementById('cropForecastAdviceText')?.textContent || '';
+    const harvestEl = document.getElementById('cropForecastHarvestText');
+    const adviceEl = document.getElementById('cropForecastAdviceText');
     const isAdviceVisible = !document.getElementById('cropForecastAdviceBox')?.classList.contains('hidden');
 
-    let textToSpeak = `Culture : ${cropName}. `;
-    if (isRepiqVisible && repiqText) {
-      textToSpeak += `${repiqText}. `;
+    const sentences = [];
+
+    // 1. Période de repiquage (si pépinière)
+    if (isRepiqVisible && repiqEl) {
+      const cleanRepiq = cleanForSpeech(repiqEl.innerText || repiqEl.textContent);
+      if (cleanRepiq) {
+        sentences.push(cleanRepiq.endsWith('.') ? cleanRepiq : cleanRepiq + '.');
+      }
     }
-    if (harvestText) {
-      textToSpeak += `${harvestText}. `;
+
+    // 2. Période de récolte ou consigne zone
+    if (harvestEl) {
+      const cleanHarvest = cleanForSpeech(harvestEl.innerText || harvestEl.textContent);
+      if (cleanHarvest) {
+        sentences.push(cleanHarvest.endsWith('.') ? cleanHarvest : cleanHarvest + '.');
+      }
     }
-    if (isAdviceVisible && adviceText) {
-      textToSpeak += `Conseil pratique : ${adviceText}.`;
+
+    // 3. À savoir (conseil pratique, jamais la source ni l'URL)
+    if (isAdviceVisible && adviceEl) {
+      const cleanAdvice = cleanForSpeech(adviceEl.innerText || adviceEl.textContent);
+      if (cleanAdvice) {
+        sentences.push(`À savoir : ${cleanAdvice}${cleanAdvice.endsWith('.') ? '' : '.'}`);
+      }
     }
+
+    const textToSpeak = sentences.join(' ');
+    if (!textToSpeak) return;
 
     const utterance = new SpeechSynthesisUtterance(textToSpeak);
     utterance.lang = 'fr-FR';
-    utterance.rate = 0.95;
+    utterance.rate = 0.92;
 
     utterance.onstart = () => {
       if (btn) {

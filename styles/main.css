@@ -6419,6 +6419,20 @@ body.drawer-open {
   font-weight: 700;
 }
 
+.forecast-source-link {
+  color: #1E5E2A;
+  text-decoration: underline;
+  margin-left: 6px;
+  font-weight: 500;
+  display: inline-block;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+.forecast-source-link:hover {
+  color: #0E3615;
+  opacity: 0.8;
+}
+
 /* Modèles Admin Cards */
 .modele-mode-badge {
   font-size: 11px;
