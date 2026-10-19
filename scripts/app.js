@@ -5226,7 +5226,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (model.mode_depart === 'pepiniere' && model.pepiniere_jours_min && model.pepiniere_jours_max) {
       const repiqMin = addDaysToDate(baseDate, model.pepiniere_jours_min);
       const repiqMax = addDaysToDate(baseDate, model.pepiniere_jours_max);
-      repiqText.textContent = `Repiquage prévu entre le ${formatDateEnToutesLettres(repiqMin)} et le ${formatDateEnToutesLettres(repiqMax)}`;
+      const repiqMinFormatted = formatDateEnToutesLettres(repiqMin);
+      const repiqMaxFormatted = formatDateEnToutesLettres(repiqMax);
+
+      if (repiqMinFormatted === repiqMaxFormatted || repiqMin.getTime() === repiqMax.getTime()) {
+        repiqText.textContent = `Repiquage prévu vers le ${repiqMinFormatted}`;
+      } else {
+        repiqText.textContent = `Repiquage prévu entre le ${repiqMinFormatted} et le ${repiqMaxFormatted}`;
+      }
       repiqRow.classList.remove('hidden');
     } else {
       repiqRow.classList.add('hidden');
@@ -5236,9 +5243,15 @@ document.addEventListener('DOMContentLoaded', () => {
     if (model.recolte_jours_min != null && model.recolte_jours_min > 0) {
       const harvestMin = addDaysToDate(baseDate, model.recolte_jours_min);
       const harvestMax = model.recolte_jours_max ? addDaysToDate(baseDate, model.recolte_jours_max) : harvestMin;
+      const harvestMinFormatted = formatDateEnToutesLettres(harvestMin);
+      const harvestMaxFormatted = formatDateEnToutesLettres(harvestMax);
       
       harvestInput.value = formatDateForInput(harvestMin);
-      harvestText.innerHTML = `Récolte prévue entre le <strong>${formatDateEnToutesLettres(harvestMin)}</strong> et le <strong>${formatDateEnToutesLettres(harvestMax)}</strong>`;
+      if (!model.recolte_jours_max || harvestMinFormatted === harvestMaxFormatted || harvestMin.getTime() === harvestMax.getTime()) {
+        harvestText.innerHTML = `Récolte prévue vers le <strong>${harvestMinFormatted}</strong>`;
+      } else {
+        harvestText.innerHTML = `Récolte prévue entre le <strong>${harvestMinFormatted}</strong> et le <strong>${harvestMaxFormatted}</strong>`;
+      }
     } else {
       // Si recolte_jours est vide : ne rien calculer et afficher le message officiel
       harvestInput.value = '';
@@ -5278,7 +5291,35 @@ document.addEventListener('DOMContentLoaded', () => {
       nameInput.value = model.variete ? `${model.nom_culture} (${model.variete})` : model.nom_culture;
     }
     if (catInput) {
-      catInput.value = model.categorie || 'maraîchage';
+      if (model.categorie) {
+        const cleanNorm = (str) => (str || '')
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .toLowerCase()
+          .trim();
+
+        const targetNorm = cleanNorm(model.categorie);
+        let matched = false;
+
+        for (let i = 0; i < catInput.options.length; i++) {
+          const opt = catInput.options[i];
+          if (cleanNorm(opt.value) === targetNorm || cleanNorm(opt.text) === targetNorm) {
+            catInput.selectedIndex = i;
+            matched = true;
+            break;
+          }
+        }
+
+        if (!matched) {
+          const opt = document.createElement('option');
+          opt.value = model.categorie.toLowerCase();
+          opt.textContent = model.categorie.charAt(0).toUpperCase() + model.categorie.slice(1);
+          catInput.appendChild(opt);
+          catInput.value = opt.value;
+        }
+      } else {
+        catInput.value = 'maraîchage';
+      }
     }
     if (dateLabel) {
       dateLabel.textContent = (model.mode_depart === 'pepiniere') ? 'Date de semis en pépinière' : 'Date de semis';
@@ -6724,6 +6765,8 @@ document.addEventListener('DOMContentLoaded', () => {
   window.fetchModelesCultures = fetchModelesCultures;
   window.fetchUserParcels = fetchUserParcels;
   window.openAddCropCycleModal = openAddCropCycleModal;
+  window.applySelectedModelToForm = applySelectedModelToForm;
+  window.updateCropCycleCalculations = updateCropCycleCalculations;
   window.openManageModeleModal = openManageModeleModal;
   window.toggleModeleActive = toggleModeleActive;
   window.deleteCropCycle = deleteCropCycle;
@@ -6918,39 +6961,45 @@ document.addEventListener('DOMContentLoaded', () => {
         loadingScreen.classList.add('hidden');
       }
     }
+    // Failsafe absolu : l'écran de chargement ne doit JAMAIS rester bloqué
+    setTimeout(hideLoadingScreen, 2500);
 
-    let sessionUser = null;
-    if (supabaseClient) {
-      try {
-        const { data: { session } } = await supabaseClient.auth.getSession();
-        if (session?.user) {
-          sessionUser = session.user;
+    try {
+      let sessionUser = null;
+      if (supabaseClient) {
+        try {
+          const { data: { session } } = await supabaseClient.auth.getSession();
+          if (session?.user) {
+            sessionUser = session.user;
+          }
+        } catch (e) {
+          console.warn('Session Supabase getSession :', e);
         }
-      } catch (e) {
-        console.warn('Session Supabase getSession :', e);
       }
-    }
 
-    // Charger les financements, conseils, modèles et météo en tâche de fond dès le démarrage
-    fetchFinancements().catch(() => {});
-    fetchConseils().catch(() => {});
-    fetchModelesCultures().catch(() => {});
-    loadAndRenderWeather().catch(() => {});
+      // Charger les financements, conseils, modèles et météo en tâche de fond dès le démarrage
+      fetchFinancements().catch(() => {});
+      fetchConseils().catch(() => {});
+      fetchModelesCultures().catch(() => {});
+      loadAndRenderWeather().catch(() => {});
 
-    if (sessionUser) {
-      await checkUserProfileAndProceed(sessionUser);
-      await fetchFinancements();
-      await fetchConseils();
-      await fetchModelesCultures();
-      await fetchUserParcels(currentProfileKey);
-      handleRoute();
-      hideLoadingScreen();
-    } else {
-      try {
-        localStorage.removeItem('revolution_session_user');
-      } catch (e) {}
-      if (viewportContainer) viewportContainer.classList.add('hidden');
-      if (authPortalScreen) authPortalScreen.classList.remove('hidden');
+      if (sessionUser) {
+        await checkUserProfileAndProceed(sessionUser);
+        await fetchFinancements();
+        await fetchConseils();
+        await fetchModelesCultures();
+        await fetchUserParcels(currentProfileKey);
+        handleRoute();
+      } else {
+        try {
+          localStorage.removeItem('revolution_session_user');
+        } catch (e) {}
+        if (viewportContainer) viewportContainer.classList.add('hidden');
+        if (authPortalScreen) authPortalScreen.classList.remove('hidden');
+      }
+    } catch (err) {
+      console.error('Erreur initAppAuth :', err);
+    } finally {
       hideLoadingScreen();
     }
   }
