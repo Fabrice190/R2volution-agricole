@@ -5999,6 +5999,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const plantingDate = document.getElementById('cropCyclePlantingDate')?.value;
     const harvestDate = document.getElementById('cropCycleHarvestDate')?.value || null;
     let parcelId = document.getElementById('cropCycleParcelSelect')?.value;
+    const rawModelId = document.getElementById('cropCycleModeleSelect')?.value;
+    const modeleId = (rawModelId && rawModelId.trim() !== '') ? rawModelId.trim() : null;
 
     if (!cropName) {
       alert('Veuillez renseigner le nom de la culture.');
@@ -6034,6 +6036,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const payload = {
         profile_id: profileId,
         parcel_id: parcelId,
+        modele_id: modeleId,
         crop_name: cropName,
         category: category || 'maraîchage',
         planting_date: plantingDate,
