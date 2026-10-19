@@ -5789,6 +5789,7 @@ document.addEventListener('DOMContentLoaded', () => {
           .normalize('NFD')
           .replace(/[\u0300-\u036f]/g, '')
           .toLowerCase()
+          .replace(/\s+/g, ' ')
           .trim();
 
         const targetNorm = cleanNorm(model.categorie);
@@ -5798,6 +5799,7 @@ document.addEventListener('DOMContentLoaded', () => {
           const opt = catInput.options[i];
           if (cleanNorm(opt.value) === targetNorm || cleanNorm(opt.text) === targetNorm) {
             catInput.selectedIndex = i;
+            catInput.value = opt.value;
             matched = true;
             break;
           }
@@ -5808,6 +5810,7 @@ document.addEventListener('DOMContentLoaded', () => {
           opt.value = model.categorie.toLowerCase();
           opt.textContent = model.categorie.charAt(0).toUpperCase() + model.categorie.slice(1);
           catInput.appendChild(opt);
+          catInput.selectedIndex = catInput.options.length - 1;
           catInput.value = opt.value;
         }
       } else {
@@ -7505,12 +7508,13 @@ document.addEventListener('DOMContentLoaded', () => {
   window.listenParcelBalance = listenParcelBalance;
   window.formatFrancsCFA = formatFrancsCFA;
   window.renderParcellesPage = renderParcellesPage;
-  window.setTestCaches = function(p, c, e, r, reg) {
+  window.setTestCaches = function(p, c, e, r, reg, mod) {
     if (p) cachedUserParcels = p;
     if (c) cachedCropCycles = c;
     if (e) cachedExpenses = e;
     if (r) cachedRevenues = r;
     if (reg) cachedRegions = reg;
+    if (mod) cachedModelesCultures = mod;
   };
 
   // 3. Helper : conversion d'un numéro burkinabè ou contact en email technique Supabase
