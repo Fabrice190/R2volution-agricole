@@ -1539,9 +1539,9 @@
           </div>
 
           <div class="form-group">
-            <label for="expenseCycle">Cycle rattaché</label>
+            <label for="expenseCycle">Culture concernée <small style="color: var(--text-muted);">(facultatif)</small></label>
             <select id="expenseCycle" class="form-select">
-              <option value="global">Frais généraux exploitation</option>
+              <option value="">-- Aucune culture (Frais généraux hors parcelle) --</option>
             </select>
           </div>
         </div>
@@ -1617,13 +1617,13 @@
 
         <!-- SÉLECTION DU CYCLE OU SAISIE MANUELLE (Besoin utilisateur) -->
         <div class="form-group">
-          <label>Cycle de culture rattaché ou produit vendu <span class="required">*</span></label>
+          <label>Culture concernée ou produit vendu <span class="required">*</span></label>
           
           <!-- Onglets de bascule rapide -->
           <div class="cycle-toggle-bar">
             <button type="button" class="cycle-tab-btn active" id="tabCycleRegistered">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm-1 15-5-5 1.4-1.4 3.6 3.6 7.6-7.6L20 8z"/></svg>
-              <span>Cycle de parcelle</span>
+              <span>Culture de parcelle</span>
             </button>
             <button type="button" class="cycle-tab-btn" id="tabCycleCustom">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
@@ -1634,6 +1634,7 @@
           <!-- Sélecteur standard des cycles -->
           <div id="cycleSelectWrapper">
             <select id="revenueCycle" class="form-select">
+              <option value="">-- Aucune culture spécifique (Vente hors parcelle) --</option>
               <option value="custom">✏️ + Vente libre / Saisie personnalisée...</option>
             </select>
           </div>
@@ -2665,6 +2666,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <!-- SCRIPT APPLICATION -->
-  <script src="scripts/app.js?v=20261019.10"></script>
+  <script src="scripts/app.js?v=20261019.11"></script>
 </body>
 </html>

@@ -54,8 +54,12 @@ document.addEventListener('DOMContentLoaded', () => {
   let cachedModelesCultures = [];
   let cachedUserParcels = [];
   let cachedRegions = [];
+  let cachedExpenses = [];
+  let cachedRevenues = [];
+  let cachedCropCycles = [];
   let activeAdminModelesTab = 'all';
   let activeCropSpeechBtn = null;
+  let activeParcelSpeechBtn = null;
   const modalAddParcel = document.getElementById('modalAddParcel');
   const formAddParcel = document.getElementById('formAddParcel');
   const parcelRegionSelect = document.getElementById('parcelRegionSelect');
@@ -2097,10 +2101,11 @@ document.addEventListener('DOMContentLoaded', () => {
       // 1. Charger les dépenses réelles depuis Supabase
       const { data: expData, error: expError } = await supabaseClient
         .from('expenses')
-        .select('amount')
+        .select('id, crop_cycle_id, amount, category, expense_date, notes')
         .eq('profile_id', profileId);
 
       if (!expError && expData) {
+        cachedExpenses = expData;
         if (expData.length > 0) {
           currentExpenseTotal = expData.reduce((acc, row) => acc + (parseFloat(row.amount) || 0), 0);
         } else {
@@ -2111,10 +2116,11 @@ document.addEventListener('DOMContentLoaded', () => {
       // 2. Charger les recettes réelles depuis Supabase
       const { data: revData, error: revError } = await supabaseClient
         .from('revenues')
-        .select('amount')
+        .select('id, crop_cycle_id, amount, crop_name, revenue_date')
         .eq('profile_id', profileId);
 
       if (!revError && revData) {
+        cachedRevenues = revData;
         if (revData.length > 0) {
           currentRevenueTotal = revData.reduce((acc, row) => acc + (parseFloat(row.amount) || 0), 0);
         } else {
@@ -2123,6 +2129,9 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       updateFinancialMetrics();
+      if (currentRoutePage === 'parcelles') {
+        renderParcellesPage();
+      }
     } catch (err) {
       console.warn('⚠️ Synchronisation financière Supabase :', err);
       updateFinancialMetrics();
@@ -2139,6 +2148,8 @@ document.addEventListener('DOMContentLoaded', () => {
         .select('*, parcels(name, area_ha, irrigation_type)')
         .eq('profile_id', profileId)
         .order('planting_date', { ascending: true });
+
+      cachedCropCycles = data || [];
 
       if (!error && PROFILES_DATA[profileId]) {
         PROFILES_DATA[profileId].realCycles = data || [];
@@ -2184,12 +2195,13 @@ document.addEventListener('DOMContentLoaded', () => {
         // Mettre à jour les sélecteurs de cycles dans les modales
         const expCycleSel = document.getElementById('expenseCycle');
         if (expCycleSel) {
-          expCycleSel.innerHTML = '<option value="global">Frais généraux exploitation</option>' +
+          expCycleSel.innerHTML = '<option value="">-- Aucune culture (Frais généraux hors parcelle) --</option>' +
             (data || []).map(c => `<option value="${c.id}">${c.crop_name} (${c.parcels?.name || 'Parcelle'})</option>`).join('');
         }
         const revCycleSel = document.getElementById('revenueCycle');
         if (revCycleSel) {
-          revCycleSel.innerHTML = (data || []).map(c => `<option value="${c.id}">${c.crop_name} (${c.parcels?.name || 'Parcelle'})</option>`).join('') +
+          revCycleSel.innerHTML = '<option value="">-- Aucune culture spécifique (Vente hors parcelle) --</option>' +
+            (data || []).map(c => `<option value="${c.id}">${c.crop_name} (${c.parcels?.name || 'Parcelle'})</option>`).join('') +
             '<option value="custom">✏️ + Vente libre / Saisie personnalisée...</option>';
         }
 
@@ -2336,7 +2348,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const catVal = cat ? cat.value : 'autre';
       const catText = cat ? cat.options[cat.selectedIndex].text : 'Autre';
       const cycleSelect = document.getElementById('expenseCycle');
-      const cycleVal = cycleSelect ? cycleSelect.value : 'global';
+      const cycleVal = cycleSelect ? cycleSelect.value : '';
+      const cropCycleId = (cycleVal && cycleVal !== 'global' && cycleVal !== '') ? cycleVal : null;
       const expenseDate = document.getElementById('expenseDate') ? document.getElementById('expenseDate').value : new Date().toISOString().split('T')[0];
       const expenseNotes = document.getElementById('expenseNote') ? document.getElementById('expenseNote').value.trim() : '';
       const numericAmount = parseInt(amountVal, 10) || 0;
@@ -2346,11 +2359,12 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
           const { error } = await supabaseClient.from('expenses').insert([{
             profile_id: currentProfileKey,
+            crop_cycle_id: cropCycleId,
+            cycle_code: cycleVal || null,
             amount: numericAmount,
             category: catVal,
-            cycle_code: cycleVal,
             expense_date: expenseDate,
-            notes: expenseNotes || `${catText} - ${cycleVal}`
+            notes: expenseNotes || `${catText}${cycleVal ? ' - ' + cycleVal : ''}`
           }]);
           if (error) {
             console.error('Erreur Supabase insert expense:', error);
@@ -2740,6 +2754,7 @@ document.addEventListener('DOMContentLoaded', () => {
       // Déterminer le libellé du produit
       let finalCropName = 'Récolte';
       let originVal = 'garden';
+      let revenueCropCycleId = null;
       if (isCustomCropMode) {
         const customVal = revenueCustomCropInput ? revenueCustomCropInput.value.trim() : '';
         const originSelect = document.getElementById('revenueCustomOrigin');
@@ -2748,7 +2763,13 @@ document.addEventListener('DOMContentLoaded', () => {
         finalCropName = customVal ? `${customVal} (${originText})` : `Autre vente libre (${originText})`;
       } else {
         const cycleSelect = document.getElementById('revenueCycle');
-        finalCropName = cycleSelect ? cycleSelect.options[cycleSelect.selectedIndex].text.split('(')[0].trim() : 'Récolte';
+        const cycleVal = cycleSelect ? cycleSelect.value : '';
+        if (cycleVal && cycleVal !== 'custom') {
+          revenueCropCycleId = cycleVal;
+          finalCropName = cycleSelect.options[cycleSelect.selectedIndex].text.split('(')[0].trim();
+        } else {
+          finalCropName = 'Récolte hors parcelle';
+        }
       }
 
       // Mode de paiement
@@ -2768,6 +2789,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
           const { error } = await supabaseClient.from('revenues').insert([{
             profile_id: currentProfileKey,
+            crop_cycle_id: revenueCropCycleId,
             amount: numericAmount,
             crop_name: finalCropName,
             is_custom_crop: isCustomCropMode,
@@ -5525,6 +5547,104 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  function formatFrancsCFA(num) {
+    const val = Math.round(Math.abs(num) || 0);
+    const parts = [];
+    const str = String(val);
+    let count = 0;
+    for (let i = str.length - 1; i >= 0; i--) {
+      parts.unshift(str[i]);
+      count++;
+      if (count % 3 === 0 && i > 0) {
+        parts.unshift(' ');
+      }
+    }
+    return `${parts.join('')} francs CFA`;
+  }
+
+  function listenParcelBalance(parcelId) {
+    if (!('speechSynthesis' in window)) {
+      alert('La synthèse vocale n\'est pas disponible sur votre navigateur.');
+      return;
+    }
+
+    const btn = document.querySelector(`.btn-listen-parcel-balance[data-parcel-id="${parcelId}"]`);
+
+    if (window.speechSynthesis.speaking) {
+      window.speechSynthesis.cancel();
+      if (activeParcelSpeechBtn) {
+        activeParcelSpeechBtn.classList.remove('speaking');
+        activeParcelSpeechBtn.innerHTML = '🔊 <span>Écouter</span>';
+        activeParcelSpeechBtn = null;
+      }
+      return;
+    }
+
+    const parcel = (cachedUserParcels || []).find(p => String(p.id) === String(parcelId));
+    if (!parcel) return;
+
+    const parcelCrops = (cachedCropCycles || []).filter(c => c.parcel_id === parcel.id);
+    const parcelCropIds = new Set(parcelCrops.map(c => c.id));
+
+    const parcelExpenses = (cachedExpenses || []).filter(e => e.crop_cycle_id && parcelCropIds.has(e.crop_cycle_id));
+    const totalExpenses = parcelExpenses.reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
+
+    const parcelRevenues = (cachedRevenues || []).filter(r => r.crop_cycle_id && parcelCropIds.has(r.crop_cycle_id));
+    const totalSales = parcelRevenues.reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0);
+
+    const gain = totalSales - totalExpenses;
+
+    let text = '';
+    if (totalExpenses === 0 && totalSales === 0) {
+      text = `Bilan de la parcelle ${parcel.name}. Ajoutez vos dépenses et vos ventes pour voir si cette parcelle vous fait gagner de l'argent.`;
+    } else {
+      text = `Bilan de la parcelle ${parcel.name}. Total des dépenses : ${formatFrancsCFA(totalExpenses)}. Total des ventes : ${formatFrancsCFA(totalSales)}. `;
+      if (gain > 0) {
+        text += `Vous avez gagné ${formatFrancsCFA(gain)}. `;
+      } else if (gain < 0) {
+        text += `Vous avez perdu ${formatFrancsCFA(Math.abs(gain))}. `;
+      } else {
+        text += `Votre résultat est à l'équilibre, zéro francs CFA. `;
+      }
+
+      if (parcelCrops.length > 0) {
+        text += `Détail par culture : `;
+        parcelCrops.forEach(c => {
+          const cExp = (cachedExpenses || []).filter(e => e.crop_cycle_id === c.id).reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
+          const cRev = (cachedRevenues || []).filter(r => r.crop_cycle_id === c.id).reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0);
+          const cGain = cRev - cExp;
+          const plantingStr = c.planting_date ? `, semé le ${formatDateEnToutesLettres(new Date(c.planting_date))}` : '';
+          const gStr = cGain > 0 
+            ? `gain ${formatFrancsCFA(cGain)}` 
+            : (cGain < 0 ? `perte ${formatFrancsCFA(Math.abs(cGain))}` : 'gain zéro francs CFA');
+          text += `${c.crop_name}${plantingStr} : dépenses ${formatFrancsCFA(cExp)}, ventes ${formatFrancsCFA(cRev)}, ${gStr}. `;
+        });
+      }
+    }
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'fr-FR';
+    utterance.rate = 0.92;
+
+    utterance.onstart = () => {
+      if (btn) {
+        btn.classList.add('speaking');
+        btn.innerHTML = '⏹️ <span>Arrêter</span>';
+        activeParcelSpeechBtn = btn;
+      }
+    };
+
+    utterance.onend = utterance.onerror = () => {
+      if (btn) {
+        btn.classList.remove('speaking');
+        btn.innerHTML = '🔊 <span>Écouter</span>';
+      }
+      activeParcelSpeechBtn = null;
+    };
+
+    window.speechSynthesis.speak(utterance);
+  }
+
   function updateModelesUI() {
     const bDesk = document.getElementById('navAdminModelesBadge');
     if (bDesk) {
@@ -5961,6 +6081,98 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  function renderParcelBalanceHtml(p) {
+    const parcelCrops = (cachedCropCycles || []).filter(c => c.parcel_id === p.id);
+    const parcelCropIds = new Set(parcelCrops.map(c => c.id));
+
+    const parcelExpenses = (cachedExpenses || []).filter(e => e.crop_cycle_id && parcelCropIds.has(e.crop_cycle_id));
+    const totalExpenses = parcelExpenses.reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
+
+    const parcelRevenues = (cachedRevenues || []).filter(r => r.crop_cycle_id && parcelCropIds.has(r.crop_cycle_id));
+    const totalSales = parcelRevenues.reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0);
+
+    const gain = totalSales - totalExpenses;
+
+    let balanceBodyHtml = '';
+    if (totalExpenses === 0 && totalSales === 0) {
+      balanceBodyHtml = `
+        <p class="parcel-balance-empty">Ajoutez vos dépenses et vos ventes pour voir si cette parcelle vous fait gagner de l'argent.</p>
+      `;
+    } else {
+      let gainBadgeClass = 'gain-neutral';
+      let gainBadgeText = 'Résultat à l\'équilibre (0 francs CFA)';
+      if (gain > 0) {
+        gainBadgeClass = 'gain-positive';
+        gainBadgeText = `Vous avez gagné ${formatFrancsCFA(gain)}`;
+      } else if (gain < 0) {
+        gainBadgeClass = 'gain-negative';
+        gainBadgeText = `Vous avez perdu ${formatFrancsCFA(Math.abs(gain))}`;
+      }
+
+      let cropsDetailHtml = '';
+      if (parcelCrops.length > 0) {
+        const cropsItems = parcelCrops.map(c => {
+          const cExp = (cachedExpenses || []).filter(e => e.crop_cycle_id === c.id).reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
+          const cRev = (cachedRevenues || []).filter(r => r.crop_cycle_id === c.id).reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0);
+          const cGain = cRev - cExp;
+          const plantingStr = c.planting_date ? `, semé le ${formatDateEnToutesLettres(new Date(c.planting_date))}` : '';
+          let cGainFormatted = '';
+          if (cGain > 0) {
+            cGainFormatted = `<span style="color: #1B5E20; font-weight: 700;">gain ${formatFrancsCFA(cGain)}</span>`;
+          } else if (cGain < 0) {
+            cGainFormatted = `<span style="color: #C8862A; font-weight: 700;">perte ${formatFrancsCFA(Math.abs(cGain))}</span>`;
+          } else {
+            cGainFormatted = `<span style="color: #455A64; font-weight: 600;">gain 0 francs CFA</span>`;
+          }
+          return `
+            <div class="parcel-crop-detail-card">
+              <div class="parcel-crop-detail-title">🌱 ${escapeHtml(c.crop_name)}${plantingStr}</div>
+              <div class="parcel-crop-detail-stats">dépenses ${formatFrancsCFA(cExp)}, ventes ${formatFrancsCFA(cRev)}, ${cGainFormatted}</div>
+            </div>
+          `;
+        }).join('');
+
+        cropsDetailHtml = `
+          <div class="parcel-crops-detail-list">
+            <div class="parcel-crops-detail-heading">Détail par culture :</div>
+            ${cropsItems}
+          </div>
+        `;
+      }
+
+      balanceBodyHtml = `
+        <div class="parcel-balance-metrics">
+          <div class="parcel-balance-metric">
+            <span class="parcel-balance-metric-label">Dépenses</span>
+            <div class="parcel-balance-metric-val">${formatFrancsCFA(totalExpenses)}</div>
+          </div>
+          <div class="parcel-balance-metric">
+            <span class="parcel-balance-metric-label">Ventes</span>
+            <div class="parcel-balance-metric-val">${formatFrancsCFA(totalSales)}</div>
+          </div>
+        </div>
+        <div class="parcel-balance-gain-badge ${gainBadgeClass}">
+          ${gainBadgeText}
+        </div>
+        ${cropsDetailHtml}
+      `;
+    }
+
+    return `
+      <div class="parcel-balance-box">
+        <div class="parcel-balance-header">
+          <div class="parcel-balance-title-wrap">
+            <span>💰 Bilan de cette parcelle</span>
+          </div>
+          <button type="button" class="btn-listen-parcel-balance" data-parcel-id="${p.id}" onclick="listenParcelBalance('${p.id}')">
+            🔊 <span>Écouter</span>
+          </button>
+        </div>
+        ${balanceBodyHtml}
+      </div>
+    `;
+  }
+
   function renderParcellesPage() {
     const cropsCountEl = document.getElementById('parcellesCropsCount');
     const totalAreaEl = document.getElementById('parcellesTotalArea');
@@ -6012,6 +6224,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div><span>Irrigation :</span> ${escapeHtml(p.irrigation_type || 'Goutte-à-goutte')}</div>
                 <div><span>Cultures actives :</span> ${activeCropCount} culture${activeCropCount > 1 ? 's' : ''}</div>
               </div>
+              ${renderParcelBalanceHtml(p)}
               <div class="parcel-card-actions">
                 <button type="button" class="btn-edit-parcel" onclick="openAddParcelModal('${p.id}')">
                   ✏️ Modifier
@@ -6395,6 +6608,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function getMobileParcellesHtml() {
     const profileData = PROFILES_DATA[currentProfileKey] || {};
     const cycles = profileData.realCycles || [];
+    const parcels = cachedUserParcels || [];
 
     return `
       <div style="margin-bottom: 12px;">
@@ -6404,20 +6618,66 @@ document.addEventListener('DOMContentLoaded', () => {
         </a>
         <div style="display: flex; justify-content: space-between; align-items: center;">
           <div>
-            <h2 style="font-size: 18px; font-weight: 800; color: #1E2822; margin: 0 0 2px;">🌾 Parcelles & Cultures</h2>
-            <p style="font-size: 11.5px; color: #5B6660; margin: 0;">${cycles.length} culture${cycles.length > 1 ? 's' : ''} en cours</p>
+            <h2 style="font-size: 18px; font-weight: 800; color: #1E2822; margin: 0 0 2px;">🌾 Parcelles & Bilan</h2>
+            <p style="font-size: 11.5px; color: #5B6660; margin: 0;">${parcels.length} parcelle${parcels.length > 1 ? 's' : ''} • ${cycles.length} culture${cycles.length > 1 ? 's' : ''}</p>
           </div>
-          <button type="button" class="btn-primary" id="btnMobileOpenAddCrop" style="padding: 8px 12px; font-size: 12px; font-weight: 700; border-radius: 8px; cursor: pointer;">+ Ajouter</button>
+          <div style="display: flex; gap: 6px;">
+            <button type="button" class="btn-primary" onclick="openAddParcelModal()" style="padding: 6px 10px; font-size: 11.5px; font-weight: 700; border-radius: 8px; cursor: pointer;">+ Parcelle</button>
+            <button type="button" class="btn-primary" id="btnMobileOpenAddCrop" style="padding: 6px 10px; font-size: 11.5px; font-weight: 700; border-radius: 8px; cursor: pointer;">+ Culture</button>
+          </div>
         </div>
       </div>
 
+      <!-- Parcelles & Bilan -->
+      <div style="margin-bottom: 16px;">
+        <h3 style="font-size: 14px; font-weight: 800; color: #1E2822; margin: 0 0 8px;">📍 Vos Parcelles</h3>
+        ${parcels.length === 0 ? `
+          <div style="text-align: center; padding: 20px 14px; background: #fff; border-radius: 10px; border: 1px dashed #CBD5E1; margin-bottom: 12px;">
+            <p style="font-size: 12px; color: #5D6C63; margin: 0 0 10px;">Vous n'avez pas encore de parcelle enregistrée.</p>
+            <button type="button" class="btn-primary" onclick="openAddParcelModal()" style="padding: 6px 12px; font-size: 12px;">+ Ajouter ma première parcelle</button>
+          </div>
+        ` : parcels.map(p => {
+          const region = (cachedRegions || []).find(r => r.id === p.region_id);
+          const regionName = region ? `${region.nom} (${region.chef_lieu})` : 'Région non définie';
+          const activeCropCount = cycles.filter(c => c.parcel_id === p.id).length;
+
+          return `
+            <div class="parcel-card" style="margin-bottom: 12px;">
+              <div class="parcel-card-header">
+                <div>
+                  <h4 class="parcel-card-name">📍 ${escapeHtml(p.name)}</h4>
+                  <span class="parcel-card-badge">${escapeHtml(p.area_ha)} ha</span>
+                </div>
+              </div>
+              <div class="parcel-card-meta">
+                <div><span>Région :</span> <strong>${escapeHtml(regionName)}</strong></div>
+                ${p.location ? `<div><span>Village/Quartier :</span> ${escapeHtml(p.location)}</div>` : ''}
+                <div><span>Irrigation :</span> ${escapeHtml(p.irrigation_type || 'Goutte-à-goutte')}</div>
+                <div><span>Cultures actives :</span> ${activeCropCount} culture${activeCropCount > 1 ? 's' : ''}</div>
+              </div>
+              ${renderParcelBalanceHtml(p)}
+              <div class="parcel-card-actions">
+                <button type="button" class="btn-edit-parcel" onclick="openAddParcelModal('${p.id}')">
+                  ✏️ Modifier
+                </button>
+                <button type="button" class="btn-delete-parcel" onclick="deleteParcel('${p.id}')">
+                  🗑️ Supprimer
+                </button>
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+
+      <!-- Cultures -->
+      <h3 style="font-size: 14px; font-weight: 800; color: #1E2822; margin: 0 0 8px;">🌱 Vos Cultures en cours</h3>
       <div class="mobile-cards-list">
         ${cycles.length === 0 ? `
-          <div style="text-align: center; padding: 30px 16px; background: #fff; border-radius: 12px; border: 1px dashed #CBD5E1;">
-            <div style="font-size: 28px; margin-bottom: 6px;">🌱</div>
-            <strong style="font-size: 14px; color: #1E2822; display: block; margin-bottom: 4px;">Aucune culture en cours</strong>
-            <p style="font-size: 12px; color: #5D6C63; margin: 0 0 12px;">Ajoutez votre première culture avec les modèles agronomiques.</p>
-            <button type="button" class="btn-primary" id="btnMobileEmptyAddCrop" style="margin: 0 auto; padding: 8px 16px; font-size: 12px;">+ Ajouter une culture</button>
+          <div style="text-align: center; padding: 24px 16px; background: #fff; border-radius: 12px; border: 1px dashed #CBD5E1;">
+            <div style="font-size: 24px; margin-bottom: 4px;">🌱</div>
+            <strong style="font-size: 13.5px; color: #1E2822; display: block; margin-bottom: 4px;">Aucune culture en cours</strong>
+            <p style="font-size: 11.5px; color: #5D6C63; margin: 0 0 10px;">Ajoutez votre première culture avec les modèles agronomiques.</p>
+            <button type="button" class="btn-primary" id="btnMobileEmptyAddCrop" style="margin: 0 auto; padding: 7px 14px; font-size: 12px;">+ Ajouter une culture</button>
           </div>
         ` : cycles.map(c => `
           <div style="background: #fff; border: 1px solid #E2E8F0; border-radius: 12px; padding: 12px; margin-bottom: 10px; border-left: 4px solid #1E5E2A;">
@@ -7242,6 +7502,16 @@ document.addEventListener('DOMContentLoaded', () => {
   window.openManageModeleModal = openManageModeleModal;
   window.toggleModeleActive = toggleModeleActive;
   window.deleteCropCycle = deleteCropCycle;
+  window.listenParcelBalance = listenParcelBalance;
+  window.formatFrancsCFA = formatFrancsCFA;
+  window.renderParcellesPage = renderParcellesPage;
+  window.setTestCaches = function(p, c, e, r, reg) {
+    if (p) cachedUserParcels = p;
+    if (c) cachedCropCycles = c;
+    if (e) cachedExpenses = e;
+    if (r) cachedRevenues = r;
+    if (reg) cachedRegions = reg;
+  };
 
   // 3. Helper : conversion d'un numéro burkinabè ou contact en email technique Supabase
   function convertContactToTechnicalEmail(contact) {

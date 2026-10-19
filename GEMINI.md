@@ -489,7 +489,31 @@ Depuis la version 2.9, l'application est entièrement Full Stack connectée au p
   - Création et modification de modèles dans la modale `#modalManageModele` (saisie des durées min/max, conseil court et source).
   - Action d'activation / désactivation en 1 clic (`toggleModeleActive`).
 
+### S. Régions Officielles du Burkina Faso & Bilan Financier par Parcelle (v5.5)
+- **Table Supabase `public.regions`** :
+  - Colonnes : `id` (UUID), `nom` (text not null), `chef_lieu` (text not null), `anciens_noms` (text[]), `ordre` (int).
+  - Remplie avec les **17 régions officielles** (Conseil des ministres du 2 juillet 2025) : Bankui (Dédougou), Djôrô (Gaoua), Goulmou (Fada N'Gourma), Guiriko (Bobo-Dioulasso), Kadiogo (Ouagadougou), Kuilsé (Kaya), Liptako (Dori), Nando (Koudougou), Nakambé (Tenkodogo), Nazinon (Manga), Oubri (Ziniaré), Sirba (Bogandé), Soum (Djibo), Tannounyan (Banfora), Tapoa (Diapaga), Sourou (Tougan), Yaadga (Ouahigouya).
+  - `public.parcels` dispose d'une colonne `region_id` (UUID nullable, référence vers `regions`).
+- **Formulaire Parcelle** :
+  - Menu déroulant « Votre région » listant « Nom (Chef-lieu) » trié par nom.
+  - Champ location transformé en « Village ou quartier (facultatif) ».
+- **Classement Régional des Conseils et Financements** :
+  - Si l'utilisateur possède au moins une parcelle localisée :
+    1. Section « Pour votre région » (correspondance exacte avec nom ou anciens noms, regex mot entier).
+    2. Section « Tout le Burkina Faso ».
+    3. Section « Autres régions ».
+  - Aucun élément n'est masqué, seul l'ordre est optimisé pour la pertinence locale.
+- **Bilan Financier par Parcelle** :
+  - Bloc « Bilan de cette parcelle » affiché sur chaque fiche parcelle (desktop et mobile).
+  - Total des dépenses = somme des dépenses rattachées aux cultures de cette parcelle (`expenses.crop_cycle_id -> crop_cycles.parcel_id`).
+  - Total des ventes = somme des recettes rattachées aux cultures de cette parcelle (`revenues.crop_cycle_id -> crop_cycles.parcel_id`).
+  - Gain = ventes - dépenses. Vert « Vous avez gagné X francs CFA » si positif, orange « Vous avez perdu X francs CFA » si négatif.
+  - Détail culture par culture en dessous.
+  - État vide pédagogique sans dépenses ni ventes : « Ajoutez vos dépenses et vos ventes pour voir si cette parcelle vous fait gagner de l'argent. »
+  - Bouton « 🔊 Écouter » lisant le bilan complet en français pour les exploitants peu lettrés (sans abréviation : strictly « francs CFA »).
+  - Modales d'ajout de dépense et de vente proposant le rattachement facultatif à une culture (`crop_cycle_id`).
+
 ---
 
-*Fin du document de spécification système — Version 5.4 • Révolution Agricole Burkina Faso.*
+*Fin du document de spécification système — Version 5.5 • Révolution Agricole Burkina Faso.*
 
