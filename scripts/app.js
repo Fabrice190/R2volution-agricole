@@ -1134,6 +1134,114 @@ document.addEventListener('DOMContentLoaded', () => {
       { key: 'récolte et conservation', label: 'Récolte' }
     ];
 
+    const userCropTerms = getUserActiveCropTerms();
+    const userRegionTerms = getUserRegionTerms();
+
+    let groupUserCrops = [];
+    let remainingConseils = [...published];
+
+    if (userCropTerms.length > 0) {
+      groupUserCrops = published.filter(item => {
+        if (!item.cultures) return false;
+        return userCropTerms.some(term => matchesCropTerm(item.cultures, term));
+      });
+      const cropItemIds = new Set(groupUserCrops.map(item => item.id));
+      remainingConseils = published.filter(item => !cropItemIds.has(item.id));
+    }
+
+    function renderMobileCard(item) {
+      return `
+        <div class="mobile-conseil-card" data-id="${item.id}" style="background: #FFF; border: 1px solid #E6EAE3; border-radius: 12px; padding: 14px; cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,0.03);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            ${getConseilCategoryBadge(item.categorie)}
+            <span style="font-size: 11px; color: #6C7A72;">⏱️ ${item.duree_lecture || 3} min • ${item.saison || 'Toute l\'année'}</span>
+          </div>
+          <h4 style="font-size: 14.5px; font-weight: 700; color: #1E2822; margin: 4px 0 6px; line-height: 1.35;">${item.titre}</h4>
+          ${item.cultures ? `<div class="conseil-cultures-tag" style="margin-bottom: 6px; font-size: 10.5px;">🌱 ${item.cultures}</div>` : ''}
+          <p style="font-size: 12px; color: #5B6660; line-height: 1.45; margin: 0 0 10px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${item.resume || ''}</p>
+          <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #F0F2EE; padding-top: 8px; font-size: 11.5px;">
+            <span style="color: #6C7A72;">${item.source || 'INERA / DGPV'}</span>
+            <span style="font-weight: 700; color: #1E5E2A;">Lire le conseil →</span>
+          </div>
+        </div>
+      `;
+    }
+
+    let cardsHtml = '';
+    if (published.length === 0) {
+      cardsHtml = `
+        <div style="text-align: center; padding: 32px 16px; background: #FFF; border-radius: 12px; border: 1px dashed #DDD;">
+          <p style="font-weight: 700; font-size: 14px; margin-bottom: 4px; color: #1E2822;">Aucun conseil dans cette catégorie</p>
+          <p style="font-size: 12px; color: #7C8781; margin: 0;">Sélectionnez « Tous » pour voir l'ensemble des fiches.</p>
+        </div>
+      `;
+    } else {
+      if (groupUserCrops.length > 0) {
+        cardsHtml += `
+          <div style="margin: 8px 0 4px; padding-left: 8px; border-left: 3px solid #1E5E2A; display: flex; align-items: center; gap: 8px;">
+            <strong style="font-size: 13.5px; color: #1E2822;">🌱 Pour vos cultures</strong>
+            <span style="font-size: 10.5px; background: #EAF4E6; color: #1E5E2A; padding: 1px 6px; border-radius: 8px; font-weight: 700;">${groupUserCrops.length}</span>
+          </div>
+          ${groupUserCrops.map(renderMobileCard).join('')}
+        `;
+      }
+
+      if (userRegionTerms && userRegionTerms.length > 0) {
+        const groupUserRegion = [];
+        const groupNational = [];
+        const groupOther = [];
+
+        remainingConseils.forEach(item => {
+          const group = getItemRegionGroup(item.regions, userRegionTerms);
+          if (group === 'user_region') groupUserRegion.push(item);
+          else if (group === 'national') groupNational.push(item);
+          else groupOther.push(item);
+        });
+
+        if (groupUserRegion.length > 0) {
+          cardsHtml += `
+            <div style="margin: 14px 0 4px; padding-left: 8px; border-left: 3px solid #C8862A; display: flex; align-items: center; gap: 8px;">
+              <strong style="font-size: 13.5px; color: #1E2822;">📍 Pour votre région</strong>
+              <span style="font-size: 10.5px; background: #FFF8E1; color: #8D5B15; padding: 1px 6px; border-radius: 8px; font-weight: 700;">${groupUserRegion.length}</span>
+            </div>
+            ${groupUserRegion.map(renderMobileCard).join('')}
+          `;
+        }
+
+        if (groupNational.length > 0) {
+          cardsHtml += `
+            <div style="margin: 14px 0 4px; padding-left: 8px; border-left: 3px solid #2E7D32; display: flex; align-items: center; gap: 8px;">
+              <strong style="font-size: 13.5px; color: #1E2822;">🇧🇫 Tout le Burkina Faso</strong>
+              <span style="font-size: 10.5px; background: #E8F5E9; color: #1B5E20; padding: 1px 6px; border-radius: 8px; font-weight: 700;">${groupNational.length}</span>
+            </div>
+            ${groupNational.map(renderMobileCard).join('')}
+          `;
+        }
+
+        if (groupOther.length > 0) {
+          cardsHtml += `
+            <div style="margin: 14px 0 4px; padding-left: 8px; border-left: 3px solid #78909C; display: flex; align-items: center; gap: 8px;">
+              <strong style="font-size: 13.5px; color: #1E2822;">🌍 Autres régions</strong>
+              <span style="font-size: 10.5px; background: #ECEFF1; color: #455A64; padding: 1px 6px; border-radius: 8px; font-weight: 700;">${groupOther.length}</span>
+            </div>
+            ${groupOther.map(renderMobileCard).join('')}
+          `;
+        }
+      } else {
+        if (groupUserCrops.length > 0 && remainingConseils.length > 0) {
+          cardsHtml += `
+            <div style="margin: 14px 0 4px; padding-left: 8px; border-left: 3px solid #2E7D32; display: flex; align-items: center; gap: 8px;">
+              <strong style="font-size: 13.5px; color: #1E2822;">📚 Autres conseils</strong>
+              <span style="font-size: 10.5px; background: #E8F5E9; color: #1B5E20; padding: 1px 6px; border-radius: 8px; font-weight: 700;">${remainingConseils.length}</span>
+            </div>
+            ${remainingConseils.map(renderMobileCard).join('')}
+          `;
+        } else if (groupUserCrops.length === 0) {
+          cardsHtml = remainingConseils.map(renderMobileCard).join('');
+        }
+      }
+    }
+
     return `
       <div style="margin-bottom: 14px;">
         <a href="#dashboard" class="breadcrumb-back-link mobile-back-to-dashboard" style="font-size: 12px; margin-bottom: 8px; display: inline-flex; align-items: center; gap: 4px; color: #1E5E2A; font-weight: 700; text-decoration: none;">
@@ -1156,26 +1264,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       <!-- Grille des cartes conseils mobiles -->
       <div style="display: flex; flex-direction: column; gap: 12px;">
-        ${published.length === 0 ? `
-          <div style="text-align: center; padding: 32px 16px; background: #FFF; border-radius: 12px; border: 1px dashed #DDD;">
-            <p style="font-weight: 700; font-size: 14px; margin-bottom: 4px; color: #1E2822;">Aucun conseil dans cette catégorie</p>
-            <p style="font-size: 12px; color: #7C8781; margin: 0;">Sélectionnez « Tous » pour voir l'ensemble des fiches.</p>
-          </div>
-        ` : published.map(item => `
-          <div class="mobile-conseil-card" data-id="${item.id}" style="background: #FFF; border: 1px solid #E6EAE3; border-radius: 12px; padding: 14px; cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,0.03);">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-              ${getConseilCategoryBadge(item.categorie)}
-              <span style="font-size: 11px; color: #6C7A72;">⏱️ ${item.duree_lecture || 3} min • ${item.saison || 'Toute l\'année'}</span>
-            </div>
-            <h4 style="font-size: 14.5px; font-weight: 700; color: #1E2822; margin: 4px 0 6px; line-height: 1.35;">${item.titre}</h4>
-            ${item.cultures ? `<div class="conseil-cultures-tag" style="margin-bottom: 6px; font-size: 10.5px;">🌱 ${item.cultures}</div>` : ''}
-            <p style="font-size: 12px; color: #5B6660; line-height: 1.45; margin: 0 0 10px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${item.resume || ''}</p>
-            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #F0F2EE; padding-top: 8px; font-size: 11.5px;">
-              <span style="color: #6C7A72;">${item.source || 'INERA / DGPV'}</span>
-              <span style="font-weight: 700; color: #1E5E2A;">Lire le conseil →</span>
-            </div>
-          </div>
-        `).join('')}
+        ${cardsHtml}
       </div>
     `;
   }
@@ -4717,26 +4806,52 @@ document.addEventListener('DOMContentLoaded', () => {
       `;
     }
 
+    const userCropTerms = getUserActiveCropTerms();
     const userTerms = getUserRegionTerms();
 
+    let groupUserCrops = [];
+    let remainingConseils = [...published];
+
+    if (userCropTerms.length > 0) {
+      groupUserCrops = published.filter(item => {
+        if (!item.cultures) return false;
+        return userCropTerms.some(term => matchesCropTerm(item.cultures, term));
+      });
+      const cropItemIds = new Set(groupUserCrops.map(item => item.id));
+      remainingConseils = published.filter(item => !cropItemIds.has(item.id));
+    }
+
+    let html = '';
+
+    // 1. Section « Pour vos cultures » en priorité absolue si le producteur a des cultures actives
+    if (groupUserCrops.length > 0) {
+      html += `
+        <div class="region-section-divider" style="border-left-color: #1E5E2A;">
+          <h3 class="region-section-title">🌱 Pour vos cultures</h3>
+          <span class="region-section-badge" style="background: #EAF4E6; color: #1E5E2A;">${groupUserCrops.length} conseil${groupUserCrops.length > 1 ? 's' : ''}</span>
+        </div>
+        ${groupUserCrops.map(renderConseilCard).join('')}
+      `;
+    }
+
+    // 2. Sections régionales (Pour votre région, Tout le Burkina Faso, Autres régions)
     if (userTerms && userTerms.length > 0) {
       const groupUserRegion = [];
       const groupNational = [];
       const groupOther = [];
 
-      published.forEach(item => {
+      remainingConseils.forEach(item => {
         const group = getItemRegionGroup(item.regions, userTerms);
         if (group === 'user_region') groupUserRegion.push(item);
         else if (group === 'national') groupNational.push(item);
         else groupOther.push(item);
       });
 
-      let html = '';
       if (groupUserRegion.length > 0) {
         html += `
-          <div class="region-section-divider">
+          <div class="region-section-divider" style="border-left-color: #C8862A;">
             <h3 class="region-section-title">📍 Pour votre région</h3>
-            <span class="region-section-badge">${groupUserRegion.length} conseil${groupUserRegion.length > 1 ? 's' : ''}</span>
+            <span class="region-section-badge" style="background: #FFF8E1; color: #8D5B15;">${groupUserRegion.length} conseil${groupUserRegion.length > 1 ? 's' : ''}</span>
           </div>
           ${groupUserRegion.map(renderConseilCard).join('')}
         `;
@@ -4761,12 +4876,22 @@ document.addEventListener('DOMContentLoaded', () => {
           ${groupOther.map(renderConseilCard).join('')}
         `;
       }
-
-      grid.innerHTML = html;
     } else {
-      // Aucune région définie sur les parcelles : affichage classique
-      grid.innerHTML = published.map(renderConseilCard).join('');
+      // Aucune région définie sur les parcelles : afficher les conseils restants
+      if (groupUserCrops.length > 0 && remainingConseils.length > 0) {
+        html += `
+          <div class="region-section-divider" style="border-left-color: #2E7D32;">
+            <h3 class="region-section-title">📚 Autres conseils</h3>
+            <span class="region-section-badge" style="background: #E8F5E9; color: #1B5E20;">${remainingConseils.length} conseil${remainingConseils.length > 1 ? 's' : ''}</span>
+          </div>
+          ${remainingConseils.map(renderConseilCard).join('')}
+        `;
+      } else if (groupUserCrops.length === 0) {
+        html = remainingConseils.map(renderConseilCard).join('');
+      }
     }
+
+    grid.innerHTML = html;
   }
 
   function renderAdminConseils() {
@@ -5311,6 +5436,61 @@ document.addEventListener('DOMContentLoaded', () => {
       console.warn('⚠️ Erreur fetchUserParcels :', err);
       return [];
     }
+  }
+
+  function normalizeTextForComparison(str) {
+    if (!str) return '';
+    return String(str)
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .trim();
+  }
+
+  function matchesCropTerm(culturesText, cropTerm) {
+    if (!culturesText || !cropTerm) return false;
+    const cleanText = normalizeTextForComparison(culturesText);
+    const cleanTerm = normalizeTextForComparison(cropTerm);
+    if (!cleanText || !cleanTerm) return false;
+
+    const escaped = escapeRegex(cleanTerm);
+    const regex = new RegExp('(?:^|[^a-z0-9_\\-])' + escaped + 's?(?=$|[^a-z0-9_\\-])', 'i');
+    return regex.test(cleanText);
+  }
+
+  function getUserActiveCropTerms() {
+    const profileData = PROFILES_DATA[currentProfileKey] || {};
+    const cycles = profileData.realCycles || cachedCropCycles || [];
+    if (!cycles || cycles.length === 0) return [];
+
+    const terms = new Set();
+    cycles.forEach(c => {
+      if (c.modele_id) {
+        const m = (cachedModelesCultures || []).find(item => String(item.id) === String(c.modele_id));
+        if (m && m.nom_culture && m.nom_culture.trim()) {
+          terms.add(m.nom_culture.trim());
+        }
+      }
+      if (c.crop_name && c.crop_name.trim()) {
+        const rawName = c.crop_name.trim();
+        const matchedM = (cachedModelesCultures || []).find(item => {
+          if (!item.nom_culture) return false;
+          return matchesCropTerm(rawName, item.nom_culture) || matchesCropTerm(item.nom_culture, rawName);
+        });
+        if (matchedM && matchedM.nom_culture) {
+          terms.add(matchedM.nom_culture.trim());
+        } else {
+          const firstWord = rawName.split(/[\s\(\–\-,;]/)[0].trim();
+          if (firstWord && firstWord.length >= 3) {
+            terms.add(firstWord);
+          }
+          const base = rawName.split(/[\(\–\-]/)[0].trim();
+          if (base) terms.add(base);
+        }
+      }
+    });
+
+    return Array.from(terms);
   }
 
   function getUserRegionTerms() {
@@ -7660,9 +7840,16 @@ document.addEventListener('DOMContentLoaded', () => {
   window.listenParcelBalance = listenParcelBalance;
   window.formatFrancsCFA = formatFrancsCFA;
   window.renderParcellesPage = renderParcellesPage;
+  window.renderUserConseils = renderUserConseils;
+  window.getUserActiveCropTerms = getUserActiveCropTerms;
   window.setTestCaches = function(p, c, e, r, reg, mod) {
     if (p) cachedUserParcels = p;
-    if (c) cachedCropCycles = c;
+    if (c) {
+      cachedCropCycles = c;
+      if (PROFILES_DATA[currentProfileKey]) {
+        PROFILES_DATA[currentProfileKey].realCycles = c;
+      }
+    }
     if (e) cachedExpenses = e;
     if (r) cachedRevenues = r;
     if (reg) cachedRegions = reg;

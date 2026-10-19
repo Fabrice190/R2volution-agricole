@@ -524,7 +524,13 @@ Depuis la version 2.9, l'application est entièrement Full Stack connectée au p
   - Affichage clair et pédagogique : *« Nous ne connaissons pas encore la durée de cette culture. Indiquez vous-même la date de récolte prévue. »*, lisible à voix haute via « 🔊 Écouter ».
   - Dans l'espace administrateur « Gérer les modèles de cultures », une section *« 📋 Cultures déclarées par les producteurs »* recense les cultures saisies librement avec le nombre de producteurs distincts, et un bouton d'action directe *« ➕ Créer modèle »* pour pré-remplir la création du modèle agronomique correspondant.
 
+- **Conseils Adaptés aux Cultures du Producteur (Point 3 - v5.7)** :
+  - Dans le menu Conseils (desktop et mobile), si le producteur a au moins une culture en cours, ajout en tête d'une section prioritaire **« 🌱 Pour vos cultures »**.
+  - Sélection des conseils publiés dont le champ `cultures` mentionne le nom de la culture ou du modèle du producteur (comparaison insensible aux majuscules et aux accents, par mot entier avec tolérance plurielle).
+  - Principe de préservation intégrale : **aucun conseil n'est jamais masqué**, seul l'ordre d'affichage est optimisé pour placer en premier les conseils pertinents pour les cultures du producteur, suivi des sections territoriales « 📍 Pour votre région », « 🇧🇫 Tout le Burkina Faso », et « 🌍 Autres régions ».
+
 ---
 
-*Fin du document de spécification système — Version 5.6 • Révolution Agricole Burkina Faso.*
+*Fin du document de spécification système — Version 5.7 • Révolution Agricole Burkina Faso.*
+
 
