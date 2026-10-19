@@ -1258,6 +1258,9 @@
               <p class="fin-subtitle">Suivez vos cultures en cours, vos parcelles et les dates prévues de repiquage et de récolte.</p>
             </div>
             <div class="page-header-actions-group">
+              <button type="button" class="btn-secondary" id="btnOpenAddParcelPage" style="margin-right: 8px;">
+                <span>📍 + Ajouter une parcelle</span>
+              </button>
               <button type="button" class="btn-primary" id="btnOpenAddCropCyclePage">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                 <span>+ Ajouter une culture</span>
@@ -1282,6 +1285,33 @@
               <strong class="stat-value" id="parcellesNextHarvest" style="font-size: 15px; font-weight: 800;">--</strong>
               <span class="comparison-text">Date prévisionnelle</span>
             </div>
+          </div>
+
+          <!-- Section des parcelles déclarées -->
+          <div style="margin-bottom: 28px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+              <h3 style="font-size: 16px; font-weight: 800; color: #1E2822; margin: 0; display: flex; align-items: center; gap: 6px;">
+                <span>📍 Vos Parcelles</span>
+                <span id="parcellesCountBadge" class="nav-pill-count" style="margin-left: 4px;">0</span>
+              </h3>
+              <button type="button" id="btnQuickAddParcelSection" style="font-size: 13px; font-weight: 700; color: #1E5E2A; background: none; border: none; cursor: pointer; text-decoration: underline;">
+                + Nouvelle parcelle
+              </button>
+            </div>
+            <div id="parcellesCardsGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px;">
+              <!-- Injecté dynamiquement par JavaScript -->
+            </div>
+            <div id="parcellesEmptyNotice" class="hidden" style="text-align: center; padding: 20px; background: #FAFBF9; border-radius: 10px; border: 1.5px dashed #D5E0D5;">
+              <p style="margin: 0 0 10px; font-size: 13.5px; color: #5D6C63; font-weight: 600;">Vous n'avez pas encore de parcelle. Ajoutez votre première parcelle.</p>
+              <button type="button" class="btn-primary" id="btnEmptyNoticeAddParcel" style="font-size: 13px; padding: 8px 16px; cursor: pointer;">
+                📍 + Ajouter ma première parcelle
+              </button>
+            </div>
+          </div>
+
+          <!-- Titre des cultures -->
+          <div style="margin-bottom: 10px;">
+            <h3 style="font-size: 16px; font-weight: 800; color: #1E2822; margin: 0;">🌱 Vos Cultures en cours</h3>
           </div>
 
           <!-- Liste / Tableau des cultures enregistrées -->
@@ -2319,6 +2349,69 @@
     </div>
   </div>
 
+  <!-- ==================== MODALE AJOUTER / MODIFIER UNE PARCELLE ==================== -->
+  <div class="modal-backdrop hidden" id="modalAddParcel">
+    <div class="modal-dialog modal-dialog-financement">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <span class="modal-icon bg-green">📍</span>
+          <div>
+            <h3 class="modal-title" id="addParcelModalTitle">Ajouter une parcelle</h3>
+            <p class="modal-subtitle">Enregistrez votre parcelle et sa région pour adapter vos conseils et opportunités.</p>
+          </div>
+        </div>
+        <button class="modal-close-btn" id="btnCloseAddParcel">&times;</button>
+      </div>
+
+      <form id="formAddParcel" class="modal-form" autocomplete="off">
+        <input type="hidden" id="parcelId" value="">
+
+        <div class="form-group">
+          <label for="parcelName">Nom de la parcelle <span class="required">*</span></label>
+          <input type="text" id="parcelName" class="form-input" placeholder="Ex: Bas-fond, Champ du barrage, Parcelle Nord..." required>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label for="parcelRegionSelect">Votre région <span class="required">*</span></label>
+            <select id="parcelRegionSelect" class="form-select" required>
+              <option value="">-- Choisissez votre région --</option>
+              <!-- Rempli dynamiquement avec les 17 régions -->
+            </select>
+          </div>
+          <div class="form-group flex-1">
+            <label for="parcelArea">Superficie (en hectares) <span class="required">*</span></label>
+            <input type="number" id="parcelArea" class="form-input" placeholder="Ex: 1.0" step="0.01" min="0.01" required>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label for="parcelLocation">Village ou quartier <small style="color: var(--text-muted);">(facultatif)</small></label>
+            <input type="text" id="parcelLocation" class="form-input" placeholder="Ex: Secteur 4, Ramongo, Vallée du Kou...">
+          </div>
+          <div class="form-group flex-1">
+            <label for="parcelIrrigation">Système d'irrigation <span class="required">*</span></label>
+            <select id="parcelIrrigation" class="form-select" required>
+              <option value="Irrigué (Goutte-à-goutte)" selected>Goutte-à-goutte</option>
+              <option value="Irrigué (Californien / Tuyaux)">Californien / Tuyaux</option>
+              <option value="Irrigué (Puits / Motopompe)">Puits / Motopompe</option>
+              <option value="Pluviale / Sans irrigation">Pluviale (Saison des pluies)</option>
+              <option value="Autre système">Autre système</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" id="btnCancelAddParcel">Annuler</button>
+          <button type="submit" class="btn-primary" id="btnSubmitAddParcel">
+            <span id="btnSubmitAddParcelText">Enregistrer la parcelle</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- ==================== MODALE AJOUTER UNE CULTURE (AVEC MODÈLES) ==================== -->
   <div class="modal-backdrop hidden" id="modalAddCropCycle">
     <div class="modal-dialog modal-dialog-financement">
@@ -2348,8 +2441,21 @@
         </div>
 
         <!-- 2. Parcelle de rattachement -->
-        <div class="form-group">
-          <label for="cropCycleParcelSelect">Parcelle de rattachement <span class="required">*</span></label>
+        <div class="form-group" id="cropCycleParcelGroup">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+            <label for="cropCycleParcelSelect" style="margin-bottom: 0;">Parcelle de rattachement <span class="required">*</span></label>
+            <button type="button" id="btnOpenAddParcelFromCropModal" style="font-size: 12px; color: #1E5E2A; font-weight: 700; background: none; border: none; cursor: pointer; text-decoration: underline;">
+              + Nouvelle parcelle
+            </button>
+          </div>
+          <div id="cropModalNoParcelNotice" class="hidden" style="background: #FFF8E1; border: 1.5px dashed #C8862A; border-radius: 8px; padding: 12px 14px; text-align: center; margin-bottom: 8px;">
+            <p style="margin: 0 0 8px; font-size: 13px; color: #8D5B15; font-weight: 600;">
+              Vous n'avez pas encore de parcelle. Ajoutez votre première parcelle.
+            </p>
+            <button type="button" class="btn-primary" id="btnCropModalCreateFirstParcel" style="font-size: 12px; padding: 6px 14px; margin: 0 auto; display: inline-flex; cursor: pointer;">
+              📍 Ajouter ma première parcelle
+            </button>
+          </div>
           <select id="cropCycleParcelSelect" class="form-select" required>
             <!-- Rempli dynamiquement avec les parcelles de l'utilisateur -->
           </select>
@@ -2559,6 +2665,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <!-- SCRIPT APPLICATION -->
-  <script src="scripts/app.js?v=20261019.8"></script>
+  <script src="scripts/app.js?v=20261019.10"></script>
 </body>
 </html>

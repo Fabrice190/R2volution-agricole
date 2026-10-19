@@ -50,11 +50,15 @@ document.addEventListener('DOMContentLoaded', () => {
   let adminConseilActiveStatusTab = 'en_attente';
   let activeConseilSpeechBtn = null;
 
-  // Variables d'état et sélecteurs DOM pour Modèles de Cultures & Parcelles
+  // Variables d'état et sélecteurs DOM pour Modèles de Cultures, Parcelles & Régions
   let cachedModelesCultures = [];
   let cachedUserParcels = [];
+  let cachedRegions = [];
   let activeAdminModelesTab = 'all';
   let activeCropSpeechBtn = null;
+  const modalAddParcel = document.getElementById('modalAddParcel');
+  const formAddParcel = document.getElementById('formAddParcel');
+  const parcelRegionSelect = document.getElementById('parcelRegionSelect');
 
   const pageFinancements = document.getElementById('pageFinancements');
   const pageAdminFinancements = document.getElementById('pageAdminFinancements');
@@ -3990,7 +3994,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (emptyState) emptyState.classList.add('hidden');
 
-    grid.innerHTML = filtered.map(item => {
+    function renderFinancementCard(item) {
       const hasDeadline = Boolean(item.date_limite && String(item.date_limite).trim() !== '');
       const diffDays = hasDeadline ? getDiffDaysFromToday(item.date_limite) : null;
       const dl = hasDeadline ? parseLocalDate(item.date_limite) : null;
@@ -4028,7 +4032,58 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
         </article>
       `;
-    }).join('');
+    }
+
+    const userTerms = getUserRegionTerms();
+
+    if (userTerms && userTerms.length > 0) {
+      const groupUserRegion = [];
+      const groupNational = [];
+      const groupOther = [];
+
+      filtered.forEach(item => {
+        const group = getItemRegionGroup(item.region, userTerms);
+        if (group === 'user_region') groupUserRegion.push(item);
+        else if (group === 'national') groupNational.push(item);
+        else groupOther.push(item);
+      });
+
+      let html = '';
+      if (groupUserRegion.length > 0) {
+        html += `
+          <div class="region-section-divider">
+            <h3 class="region-section-title">📍 Pour votre région</h3>
+            <span class="region-section-badge">${groupUserRegion.length} opportunité${groupUserRegion.length > 1 ? 's' : ''}</span>
+          </div>
+          ${groupUserRegion.map(renderFinancementCard).join('')}
+        `;
+      }
+
+      if (groupNational.length > 0) {
+        html += `
+          <div class="region-section-divider" style="border-left-color: #2E7D32;">
+            <h3 class="region-section-title">🇧🇫 Tout le Burkina Faso</h3>
+            <span class="region-section-badge" style="background: #E8F5E9; color: #1B5E20;">${groupNational.length} opportunité${groupNational.length > 1 ? 's' : ''}</span>
+          </div>
+          ${groupNational.map(renderFinancementCard).join('')}
+        `;
+      }
+
+      if (groupOther.length > 0) {
+        html += `
+          <div class="region-section-divider" style="border-left-color: #78909C;">
+            <h3 class="region-section-title">🌍 Autres régions</h3>
+            <span class="region-section-badge" style="background: #ECEFF1; color: #455A64;">${groupOther.length} opportunité${groupOther.length > 1 ? 's' : ''}</span>
+          </div>
+          ${groupOther.map(renderFinancementCard).join('')}
+        `;
+      }
+
+      grid.innerHTML = html;
+    } else {
+      // Aucune région définie sur les parcelles de l'utilisateur : affichage classique
+      grid.innerHTML = filtered.map(renderFinancementCard).join('');
+    }
 
     grid.querySelectorAll('.financement-card').forEach(card => {
       card.addEventListener('click', () => {
@@ -4616,7 +4671,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (emptyState) emptyState.classList.add('hidden');
 
-    grid.innerHTML = published.map(item => {
+    function renderConseilCard(item) {
       const catClass = getConseilCategoryBadgeClass(item.categorie);
       return `
         <article class="conseil-card" data-id="${item.id}">
@@ -4638,7 +4693,58 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
         </article>
       `;
-    }).join('');
+    }
+
+    const userTerms = getUserRegionTerms();
+
+    if (userTerms && userTerms.length > 0) {
+      const groupUserRegion = [];
+      const groupNational = [];
+      const groupOther = [];
+
+      published.forEach(item => {
+        const group = getItemRegionGroup(item.regions, userTerms);
+        if (group === 'user_region') groupUserRegion.push(item);
+        else if (group === 'national') groupNational.push(item);
+        else groupOther.push(item);
+      });
+
+      let html = '';
+      if (groupUserRegion.length > 0) {
+        html += `
+          <div class="region-section-divider">
+            <h3 class="region-section-title">📍 Pour votre région</h3>
+            <span class="region-section-badge">${groupUserRegion.length} conseil${groupUserRegion.length > 1 ? 's' : ''}</span>
+          </div>
+          ${groupUserRegion.map(renderConseilCard).join('')}
+        `;
+      }
+
+      if (groupNational.length > 0) {
+        html += `
+          <div class="region-section-divider" style="border-left-color: #2E7D32;">
+            <h3 class="region-section-title">🇧🇫 Tout le Burkina Faso</h3>
+            <span class="region-section-badge" style="background: #E8F5E9; color: #1B5E20;">${groupNational.length} conseil${groupNational.length > 1 ? 's' : ''}</span>
+          </div>
+          ${groupNational.map(renderConseilCard).join('')}
+        `;
+      }
+
+      if (groupOther.length > 0) {
+        html += `
+          <div class="region-section-divider" style="border-left-color: #78909C;">
+            <h3 class="region-section-title">🌍 Autres régions</h3>
+            <span class="region-section-badge" style="background: #ECEFF1; color: #455A64;">${groupOther.length} conseil${groupOther.length > 1 ? 's' : ''}</span>
+          </div>
+          ${groupOther.map(renderConseilCard).join('')}
+        `;
+      }
+
+      grid.innerHTML = html;
+    } else {
+      // Aucune région définie sur les parcelles : affichage classique
+      grid.innerHTML = published.map(renderConseilCard).join('');
+    }
   }
 
   function renderAdminConseils() {
@@ -5132,6 +5238,39 @@ document.addEventListener('DOMContentLoaded', () => {
     return cachedModelesCultures || [];
   }
 
+  // ==========================================
+  // RÉGIONS DU BURKINA FASO (17 RÉGIONS OFFICIELLES)
+  // ==========================================
+
+  async function fetchRegions() {
+    if (cachedRegions && cachedRegions.length > 0) return cachedRegions;
+    if (!supabaseClient) return [];
+    try {
+      const { data, error } = await supabaseClient
+        .from('regions')
+        .select('id, nom, chef_lieu, anciens_noms, ordre')
+        .order('nom', { ascending: true });
+
+      if (!error && data) {
+        cachedRegions = data;
+        populateRegionsSelect();
+        return data;
+      }
+    } catch (err) {
+      console.warn('⚠️ Erreur fetchRegions :', err);
+    }
+    return [];
+  }
+
+  function populateRegionsSelect() {
+    const sel = document.getElementById('parcelRegionSelect');
+    if (!sel) return;
+    const currentVal = sel.value;
+    sel.innerHTML = '<option value="">-- Choisissez votre région --</option>' +
+      (cachedRegions || []).map(r => `<option value="${r.id}">${escapeHtml(r.nom)} (${escapeHtml(r.chef_lieu)})</option>`).join('');
+    if (currentVal) sel.value = currentVal;
+  }
+
   async function fetchUserParcels(profileId = currentProfileKey) {
     if (!supabaseClient || !profileId) return [];
     try {
@@ -5149,6 +5288,240 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (err) {
       console.warn('⚠️ Erreur fetchUserParcels :', err);
       return [];
+    }
+  }
+
+  function getUserRegionTerms() {
+    const parcels = cachedUserParcels || [];
+    const terms = new Set();
+    parcels.forEach(p => {
+      if (!p.region_id) return;
+      const region = (cachedRegions || []).find(r => r.id === p.region_id);
+      if (region) {
+        if (region.nom) terms.add(region.nom.trim());
+        if (region.chef_lieu) terms.add(region.chef_lieu.trim());
+        if (Array.isArray(region.anciens_noms)) {
+          region.anciens_noms.forEach(an => {
+            if (an && String(an).trim()) terms.add(String(an).trim());
+          });
+        }
+      }
+    });
+    return Array.from(terms);
+  }
+
+  function escapeRegex(string) {
+    return String(string).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+
+  function matchesWholeTerm(text, term) {
+    if (!text || !term) return false;
+    const str = String(text);
+    const escaped = escapeRegex(String(term).trim());
+    if (!escaped) return false;
+    // Whole-word matching excluding letters, digits, accents, hyphens and underscores
+    // \u00C0-\u00FF covers all Latin-1 accented characters (À to ÿ)
+    // Escaped \- prevents "Range out of order" syntax errors
+    const regex = new RegExp('(?:^|[^a-zA-Z0-9\\u00C0-\\u00FF_\\-])' + escaped + '(?=$|[^a-zA-Z0-9\\u00C0-\\u00FF_\\-])', 'i');
+    return regex.test(str);
+  }
+
+  function getItemRegionGroup(itemRegionText, userTerms) {
+    const text = String(itemRegionText || '').trim();
+
+    // 1. Pour votre région : si l'un des termes de la région de l'utilisateur correspond
+    if (userTerms && userTerms.length > 0) {
+      for (const term of userTerms) {
+        if (matchesWholeTerm(text, term)) {
+          return 'user_region';
+        }
+      }
+    }
+
+    // 2. Tout le Burkina Faso
+    if (
+      matchesWholeTerm(text, 'Tout le Burkina Faso') ||
+      matchesWholeTerm(text, 'Tout le Burkina') ||
+      matchesWholeTerm(text, 'National') ||
+      /tout\s+le\s+burkina/i.test(text) ||
+      /national/i.test(text) ||
+      text === '' ||
+      text.toLowerCase() === 'toutes'
+    ) {
+      return 'national';
+    }
+
+    // 3. Autres régions
+    return 'other_regions';
+  }
+
+  async function openAddParcelModal(parcelId = null) {
+    if (!modalAddParcel) return;
+    if (cachedRegions.length === 0) {
+      await fetchRegions();
+    } else {
+      populateRegionsSelect();
+    }
+
+    const titleEl = document.getElementById('addParcelModalTitle');
+    const submitBtnText = document.getElementById('btnSubmitAddParcelText');
+    const pIdInput = document.getElementById('parcelId');
+    const nameInput = document.getElementById('parcelName');
+    const regionSelect = document.getElementById('parcelRegionSelect');
+    const areaInput = document.getElementById('parcelArea');
+    const locationInput = document.getElementById('parcelLocation');
+    const irrigationSelect = document.getElementById('parcelIrrigation');
+
+    if (parcelId) {
+      const p = (cachedUserParcels || []).find(item => String(item.id) === String(parcelId));
+      if (p) {
+        if (pIdInput) pIdInput.value = p.id;
+        if (titleEl) titleEl.textContent = 'Modifier la parcelle';
+        if (submitBtnText) submitBtnText.textContent = 'Enregistrer les modifications';
+        if (nameInput) nameInput.value = p.name || '';
+        if (regionSelect) regionSelect.value = p.region_id || '';
+        if (areaInput) areaInput.value = p.area_ha || '';
+        if (locationInput) locationInput.value = p.location || '';
+        if (irrigationSelect) irrigationSelect.value = p.irrigation_type || 'Irrigué (Goutte-à-goutte)';
+      }
+    } else {
+      if (pIdInput) pIdInput.value = '';
+      if (titleEl) titleEl.textContent = 'Ajouter une parcelle';
+      if (submitBtnText) submitBtnText.textContent = 'Enregistrer la parcelle';
+      if (formAddParcel) formAddParcel.reset();
+      if (irrigationSelect) irrigationSelect.value = 'Irrigué (Goutte-à-goutte)';
+    }
+
+    modalAddParcel.classList.remove('hidden');
+  }
+
+  function closeAddParcelModal() {
+    if (modalAddParcel) modalAddParcel.classList.add('hidden');
+    if (formAddParcel) formAddParcel.reset();
+  }
+
+  async function handleSaveParcel(e) {
+    e.preventDefault();
+    if (!supabaseClient) {
+      showToast('Erreur', 'Connexion Supabase non initialisée.');
+      return;
+    }
+
+    let authUser = null;
+    try {
+      const { data: { user } } = await supabaseClient.auth.getUser();
+      authUser = user;
+    } catch (err) {
+      console.warn('Erreur getUser :', err);
+    }
+    const profileId = authUser?.id || currentProfileKey;
+
+    if (!profileId) {
+      showToast('Erreur', 'Veuillez vous connecter pour gérer vos parcelles.');
+      return;
+    }
+
+    const parcelId = document.getElementById('parcelId')?.value;
+    const name = document.getElementById('parcelName')?.value?.trim();
+    const regionId = document.getElementById('parcelRegionSelect')?.value;
+    const area = parseFloat(document.getElementById('parcelArea')?.value);
+    const location = document.getElementById('parcelLocation')?.value?.trim();
+    const irrigation = document.getElementById('parcelIrrigation')?.value;
+    const btnSubmit = document.getElementById('btnSubmitAddParcel');
+    const btnText = document.getElementById('btnSubmitAddParcelText');
+
+    if (!name) {
+      alert('Veuillez donner un nom à votre parcelle.');
+      return;
+    }
+    if (!regionId) {
+      alert('Veuillez sélectionner la région de votre parcelle.');
+      return;
+    }
+    if (isNaN(area) || area <= 0) {
+      alert('Veuillez indiquer une superficie valide en hectares.');
+      return;
+    }
+
+    try {
+      if (btnSubmit) btnSubmit.disabled = true;
+      if (btnText) btnText.textContent = 'Enregistrement...';
+
+      const payload = {
+        profile_id: profileId,
+        name: name,
+        region_id: regionId,
+        area_ha: area,
+        location: location || null,
+        irrigation_type: irrigation || null
+      };
+
+      if (parcelId) {
+        const { error: updErr } = await supabaseClient
+          .from('parcels')
+          .update(payload)
+          .eq('id', parcelId)
+          .eq('profile_id', profileId);
+        if (updErr) throw updErr;
+        showToast('Parcelle modifiée', `La parcelle ${name} a été mise à jour.`);
+      } else {
+        const { error: insErr } = await supabaseClient
+          .from('parcels')
+          .insert([payload]);
+        if (insErr) throw insErr;
+        showToast('Parcelle enregistrée', `La parcelle ${name} a été ajoutée.`);
+      }
+
+      closeAddParcelModal();
+      await fetchUserParcels(profileId);
+      if (currentRoutePage === 'parcelles') {
+        renderParcellesPage();
+      }
+      renderUserConseils();
+      renderUserFinancements();
+    } catch (err) {
+      console.error('Erreur handleSaveParcel :', err);
+      showToast('Erreur', err.message || 'Impossible d\'enregistrer la parcelle.');
+    } finally {
+      if (btnSubmit) btnSubmit.disabled = false;
+      if (btnText) btnText.textContent = parcelId ? 'Enregistrer les modifications' : 'Enregistrer la parcelle';
+    }
+  }
+
+  async function deleteParcel(parcelId) {
+    if (!confirm('Voulez-vous vraiment supprimer cette parcelle ? Ses cultures associées perdront leur rattachement.')) {
+      return;
+    }
+    if (!supabaseClient) return;
+
+    let authUser = null;
+    try {
+      const { data: { user } } = await supabaseClient.auth.getUser();
+      authUser = user;
+    } catch (err) {}
+    const profileId = authUser?.id || currentProfileKey;
+
+    try {
+      const { error } = await supabaseClient
+        .from('parcels')
+        .delete()
+        .eq('id', parcelId)
+        .eq('profile_id', profileId);
+
+      if (!error) {
+        showToast('Parcelle supprimée', 'La parcelle a été supprimée avec succès.');
+        await fetchUserParcels(profileId);
+        if (currentRoutePage === 'parcelles') {
+          renderParcellesPage();
+        }
+        renderUserConseils();
+        renderUserFinancements();
+      } else {
+        showToast('Erreur', error.message || 'Impossible de supprimer la parcelle.');
+      }
+    } catch (err) {
+      console.error('Erreur deleteParcel :', err);
+      showToast('Erreur', 'Erreur lors de la suppression.');
     }
   }
 
@@ -5353,13 +5726,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const parcelSelect = document.getElementById('cropCycleParcelSelect');
+    const noParcelNotice = document.getElementById('cropModalNoParcelNotice');
     if (parcelSelect) {
       if (cachedUserParcels && cachedUserParcels.length > 0) {
-        parcelSelect.innerHTML = cachedUserParcels.map(p =>
-          `<option value="${p.id}">${p.name} (${p.area_ha || 1} ha) • ${p.irrigation_type || 'Irrigué'}</option>`
-        ).join('');
+        if (noParcelNotice) noParcelNotice.classList.add('hidden');
+        parcelSelect.innerHTML = cachedUserParcels.map(p => {
+          const region = (cachedRegions || []).find(r => r.id === p.region_id);
+          const regText = region ? ` – ${escapeHtml(region.nom)}` : '';
+          return `<option value="${p.id}">${escapeHtml(p.name)}${regText} (${p.area_ha || 1} ha)</option>`;
+        }).join('');
       } else {
-        parcelSelect.innerHTML = '<option value="new_default">Parcelle 1 (1,0 ha - Irrigué)</option>';
+        if (noParcelNotice) noParcelNotice.classList.remove('hidden');
+        parcelSelect.innerHTML = '<option value="">-- Aucune parcelle enregistrée --</option>';
       }
     }
 
@@ -5590,6 +5968,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const nextHarvestEl = document.getElementById('parcellesNextHarvest');
     const cropsListEl = document.getElementById('parcellesCropsList');
     const emptyStateEl = document.getElementById('parcellesEmptyState');
+    const parcellesCardsGrid = document.getElementById('parcellesCardsGrid');
+    const parcellesEmptyNotice = document.getElementById('parcellesEmptyNotice');
+    const parcellesCountBadge = document.getElementById('parcellesCountBadge');
 
     const profileData = PROFILES_DATA[currentProfileKey] || {};
     const cycles = profileData.realCycles || [];
@@ -5603,6 +5984,47 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (totalAreaEl) totalAreaEl.textContent = `${totalHa.toFixed(1)} ha`;
     if (totalAreaSubEl) totalAreaSubEl.textContent = `${parcels.length} parcelle${parcels.length > 1 ? 's' : ''}`;
+    if (parcellesCountBadge) parcellesCountBadge.textContent = parcels.length;
+
+    // Rendu des cartes de parcelles
+    if (parcellesCardsGrid) {
+      if (parcels.length === 0) {
+        parcellesCardsGrid.innerHTML = '';
+        if (parcellesEmptyNotice) parcellesEmptyNotice.classList.remove('hidden');
+      } else {
+        if (parcellesEmptyNotice) parcellesEmptyNotice.classList.add('hidden');
+        parcellesCardsGrid.innerHTML = parcels.map(p => {
+          const region = (cachedRegions || []).find(r => r.id === p.region_id);
+          const regionName = region ? `${region.nom} (${region.chef_lieu})` : 'Région non définie';
+          const activeCropCount = cycles.filter(c => c.parcel_id === p.id).length;
+
+          return `
+            <div class="parcel-card">
+              <div class="parcel-card-header">
+                <div>
+                  <h4 class="parcel-card-name">📍 ${escapeHtml(p.name)}</h4>
+                  <span class="parcel-card-badge">${escapeHtml(p.area_ha)} ha</span>
+                </div>
+              </div>
+              <div class="parcel-card-meta">
+                <div><span>Région :</span> <strong>${escapeHtml(regionName)}</strong></div>
+                ${p.location ? `<div><span>Village/Quartier :</span> ${escapeHtml(p.location)}</div>` : ''}
+                <div><span>Irrigation :</span> ${escapeHtml(p.irrigation_type || 'Goutte-à-goutte')}</div>
+                <div><span>Cultures actives :</span> ${activeCropCount} culture${activeCropCount > 1 ? 's' : ''}</div>
+              </div>
+              <div class="parcel-card-actions">
+                <button type="button" class="btn-edit-parcel" onclick="openAddParcelModal('${p.id}')">
+                  ✏️ Modifier
+                </button>
+                <button type="button" class="btn-delete-parcel" onclick="deleteParcel('${p.id}')">
+                  🗑️ Supprimer
+                </button>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+    }
 
     const upcoming = cycles
       .filter(c => c.estimated_harvest_date)
@@ -5629,7 +6051,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (emptyStateEl) emptyStateEl.classList.add('hidden');
 
     cropsListEl.innerHTML = cycles.map(cycle => {
-      const pInfo = cycle.parcels ? `${cycle.parcels.name} (${cycle.parcels.area_ha} ha)` : 'Parcelle';
+      const parcelObj = parcels.find(p => p.id === cycle.parcel_id);
+      const pInfo = parcelObj ? `${parcelObj.name} (${parcelObj.area_ha} ha)` : (cycle.parcels ? `${cycle.parcels.name} (${cycle.parcels.area_ha} ha)` : 'Parcelle');
       const plantingDateFormatted = cycle.planting_date ? formatDateEnToutesLettres(new Date(cycle.planting_date)) : '-';
       const harvestDateFormatted = cycle.estimated_harvest_date ? formatDateEnToutesLettres(new Date(cycle.estimated_harvest_date)) : 'Non définie';
 
@@ -6014,6 +6437,50 @@ document.addEventListener('DOMContentLoaded', () => {
         `).join('')}
       </div>
     `;
+  }
+
+  // Écouteurs Gestion des Parcelles
+  const btnOpenAddParcelPage = document.getElementById('btnOpenAddParcelPage');
+  if (btnOpenAddParcelPage) {
+    btnOpenAddParcelPage.addEventListener('click', () => openAddParcelModal());
+  }
+
+  const btnQuickAddParcelSection = document.getElementById('btnQuickAddParcelSection');
+  if (btnQuickAddParcelSection) {
+    btnQuickAddParcelSection.addEventListener('click', () => openAddParcelModal());
+  }
+
+  const btnEmptyNoticeAddParcel = document.getElementById('btnEmptyNoticeAddParcel');
+  if (btnEmptyNoticeAddParcel) {
+    btnEmptyNoticeAddParcel.addEventListener('click', () => openAddParcelModal());
+  }
+
+  const btnOpenAddParcelFromCropModal = document.getElementById('btnOpenAddParcelFromCropModal');
+  if (btnOpenAddParcelFromCropModal) {
+    btnOpenAddParcelFromCropModal.addEventListener('click', () => {
+      modalAddCropCycle.classList.add('hidden');
+      openAddParcelModal();
+    });
+  }
+
+  const btnCloseAddParcel = document.getElementById('btnCloseAddParcel');
+  if (btnCloseAddParcel) {
+    btnCloseAddParcel.addEventListener('click', closeAddParcelModal);
+  }
+
+  const btnCancelAddParcel = document.getElementById('btnCancelAddParcel');
+  if (btnCancelAddParcel) {
+    btnCancelAddParcel.addEventListener('click', closeAddParcelModal);
+  }
+
+  if (formAddParcel) {
+    formAddParcel.addEventListener('submit', handleSaveParcel);
+  }
+
+  if (modalAddParcel) {
+    modalAddParcel.addEventListener('click', (e) => {
+      if (e.target === modalAddParcel) closeAddParcelModal();
+    });
   }
 
   // Écouteurs Modèles de Cultures & Parcelles
@@ -6748,6 +7215,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadAndRenderWeather().catch(() => {});
     fetchConseils().catch(() => {});
     fetchModelesCultures().catch(() => {});
+    fetchRegions().catch(() => {});
     fetchUserParcels(pKey).catch(() => {});
     autoDetectResponsiveMode();
   }
@@ -6763,7 +7231,11 @@ document.addEventListener('DOMContentLoaded', () => {
   window.updateConseilStatus = updateConseilStatus;
   window.filterOpenFinancementsForUsers = filterOpenFinancementsForUsers;
   window.fetchModelesCultures = fetchModelesCultures;
+  window.fetchRegions = fetchRegions;
   window.fetchUserParcels = fetchUserParcels;
+  window.openAddParcelModal = openAddParcelModal;
+  window.closeAddParcelModal = closeAddParcelModal;
+  window.deleteParcel = deleteParcel;
   window.openAddCropCycleModal = openAddCropCycleModal;
   window.applySelectedModelToForm = applySelectedModelToForm;
   window.updateCropCycleCalculations = updateCropCycleCalculations;
@@ -6977,10 +7449,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
 
-      // Charger les financements, conseils, modèles et météo en tâche de fond dès le démarrage
+      // Charger les financements, conseils, modèles, régions et météo en tâche de fond dès le démarrage
       fetchFinancements().catch(() => {});
       fetchConseils().catch(() => {});
       fetchModelesCultures().catch(() => {});
+      fetchRegions().catch(() => {});
       loadAndRenderWeather().catch(() => {});
 
       if (sessionUser) {
@@ -6988,6 +7461,7 @@ document.addEventListener('DOMContentLoaded', () => {
         await fetchFinancements();
         await fetchConseils();
         await fetchModelesCultures();
+        await fetchRegions();
         await fetchUserParcels(currentProfileKey);
         handleRoute();
       } else {

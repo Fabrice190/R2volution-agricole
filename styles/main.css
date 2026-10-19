@@ -6454,6 +6454,127 @@ body.drawer-open {
   border: 1px solid #FFE0B2;
 }
 
+/* Cartes des parcelles déclarées */
+.parcel-card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 10px;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  border-left: 4px solid var(--primary-600);
+}
+.parcel-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+.parcel-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+}
+.parcel-card-name {
+  font-size: 15px;
+  font-weight: 800;
+  color: #1E2822;
+  margin: 0;
+}
+.parcel-card-badge {
+  font-size: 11.5px;
+  font-weight: 700;
+  background: #EAF4E6;
+  color: var(--primary-700);
+  padding: 3px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+.parcel-card-meta {
+  font-size: 12.5px;
+  color: #5D6C63;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.parcel-card-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  border-top: 1px solid #F0F4EF;
+  padding-top: 8px;
+  margin-top: 4px;
+}
+.btn-edit-parcel {
+  font-size: 12px;
+  color: #1E5E2A;
+  background: none;
+  border: 1px solid #D5E0D5;
+  cursor: pointer;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.btn-edit-parcel:hover {
+  background: #EAF4E6;
+}
+.btn-delete-parcel {
+  font-size: 12px;
+  color: #C62828;
+  background: none;
+  border: 1px solid #FCDAD7;
+  cursor: pointer;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.btn-delete-parcel:hover {
+  background: #FEECEB;
+}
+
+/* Sections régionales dans Conseils et Financements */
+.region-section-divider {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+  margin-bottom: 2px;
+  padding: 10px 14px;
+  background: #F1F6F2;
+  border-left: 4px solid var(--primary-600);
+  border-radius: 8px;
+}
+.region-section-divider:first-child {
+  margin-top: 0;
+}
+.region-section-title {
+  font-size: 15px;
+  font-weight: 800;
+  color: #1E2822;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.region-section-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 12px;
+  background: #E0EFE2;
+  color: var(--primary-700);
+}
+
 /* RÈGLE ABSOLUE DE SÉCURITÉ D'AFFICHAGE */
 #viewportContainer.hidden,
 .viewport-wrapper.hidden,
