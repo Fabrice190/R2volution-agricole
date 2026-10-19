@@ -1,52 +1,11 @@
 /* ==========================================================================
-   RÉVOLUTION AGRICOLE — SYSTÈME DE DESIGN & DASHBOARD
-   Inspiré d'AgriVision & adapté au contexte sahélien burkinabè
+   RÃ‰VOLUTION AGRICOLE â€” SYSTÃˆME DE DESIGN & DASHBOARD
+   InspirÃ© d'AgriVision & adaptÃ© au contexte sahÃ©lien burkinabÃ¨
    ========================================================================== */
 
+@import url('theme.css');
+
 :root {
-  /* Palette de marque (Nature & Sahel) */
-  --primary-900: #0E3615;
-  --primary-700: #1E5E2A; /* Marque principale, textes actifs, boutons pleins */
-  --primary-600: #256E30;
-  --primary-500: #2E7D32; /* Survols, liens */
-  --primary-400: #4CAF50;
-  --primary-300: #8BC34A; /* Accents, séries secondaires */
-  --primary-100: #C8E6C9;
-  --primary-50:  #EAF4E6; /* Navigation active, pastilles ok */
-
-  /* Identité Sahel (Terre & Soleil) */
-  --sahel-ochre: #C8862A;
-  --sahel-ochre-dark: #9E6519;
-  --sahel-ochre-light: #FDF6ED;
-
-  /* Teintes par modules fonctionnels (Spécification G.2 & G.3) */
-  --info-50: #EEF5FD;   /* Météo */
-  --info-600: #1E6FD9;
-  --info-800: #0F4894;
-
-  --warning-50: #FFF7E0; /* Échéances proches, alertes moyennes */
-  --warning-600: #B7791F;
-  --warning-800: #784F11;
-
-  --accent-50: #F2EFFD;  /* Formations */
-  --accent-600: #6D4BD8;
-  --accent-800: #452B9C;
-
-  --danger-50: #FDEDED;  /* Erreurs, déconnexion */
-  --danger-600: #C62828;
-  --danger-800: #8E1C1C;
-
-  /* Surfaces, Bordures & Textes haute lisibilité */
-  --surface: #FFFFFF;
-  --surface-alt: #FBFDFB;
-  --background: #F6F8F4; /* Fond vert-gris très doux, fidèle à AgriVision */
-  --border-color: #E6EAE3;
-  --border-light: #F0F3EF;
-
-  --text-main: #18201A;    /* Noir verdâtre profond pour plein soleil (contraste >= 4.5:1) */
-  --text-muted: #5B6660;   /* Gris foncé lisible */
-  --text-dim: #7C8781;
-
   /* Typographie & Formes */
   --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
@@ -63,6 +22,7 @@
   --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
   --transition-normal: 220ms cubic-bezier(0.4, 0, 0.2, 1);
 }
+
 
 /* ==================== RESET & BASE ==================== */
 *, *::before, *::after {
@@ -97,13 +57,13 @@ a {
   display: none !important;
 }
 
-/* ==================== BANDEAU DE CONTRÔLE PROTOTYPE ==================== */
+/* ==================== BANDEAU DE CONTRÃ”LE PROTOTYPE ==================== */
 .prototype-control-bar {
-  display: none; /* Masqué en production pour garantir une interface 100% professionnelle */
+  display: none; /* MasquÃ© en production pour garantir une interface 100% professionnelle */
   position: sticky;
   top: 0;
   z-index: 1000;
-  background: #18201A;
+  background: var(--texte);
   color: #FFFFFF;
   padding: 10px 24px;
   align-items: center;
@@ -208,8 +168,8 @@ body.show-proto-bar .prototype-control-bar {
 }
 
 .demo-pill {
-  background: #FFF7E0;
-  color: #B7791F;
+  background: var(--alerte-fond);
+  color: var(--alerte);
   border: 1px solid #F6E0A4;
   padding: 2px 8px;
   border-radius: var(--radius-full);
@@ -221,10 +181,10 @@ body.show-proto-bar .prototype-control-bar {
 /* ==================== BANDEAU NOTICE ADMIN ==================== */
 .admin-notice-bar {
   background: #2D1540;
-  color: #F2EFFD;
+  color: var(--accent-fond);
   padding: 7px 24px;
   font-size: 12.5px;
-  border-bottom: 1px solid #452B9C;
+  border-bottom: 1px solid var(--accent-fonce);
 }
 
 .admin-notice-inner {
@@ -234,7 +194,7 @@ body.show-proto-bar .prototype-control-bar {
 }
 
 .admin-tag {
-  background: #6D4BD8;
+  background: var(--accent);
   color: #FFFFFF;
   font-size: 10px;
   font-weight: 700;
@@ -324,7 +284,7 @@ body.show-proto-bar .sidebar {
   color: var(--primary-700);
 }
 
-/* Navigation groupée */
+/* Navigation groupÃ©e */
 .sidebar-nav {
   display: flex;
   flex-direction: column;
@@ -365,7 +325,7 @@ body.show-proto-bar .sidebar {
   color: var(--text-main);
 }
 
-/* Style de l'item actif inspiré fidèlement d'AgriVision */
+/* Style de l'item actif inspirÃ© fidÃ¨lement d'AgriVision */
 .nav-item.active {
   background-color: var(--primary-50);
   color: var(--primary-700);
@@ -422,7 +382,7 @@ body.show-proto-bar .sidebar {
   border-radius: var(--radius-full);
 }
 
-/* Déconnexion isolée en rouge */
+/* DÃ©connexion isolÃ©e en rouge */
 .sidebar-logout {
   padding-top: 14px;
   border-top: 1px solid var(--border-color);
@@ -449,10 +409,10 @@ body.show-proto-bar .sidebar {
   background-color: var(--danger-50);
 }
 
-/* Carte promotionnelle / complétion profil */
+/* Carte promotionnelle / complÃ©tion profil */
 .sidebar-promo-card {
   margin-top: 18px;
-  background: linear-gradient(145deg, #FBFDFB 0%, #EAF4E6 100%);
+  background: linear-gradient(145deg, var(--surface-alt) 0%, var(--couleur-principale-fond) 100%);
   border: 1px solid #D5E5D1;
   border-radius: var(--radius-md);
   padding: 16px;
@@ -663,7 +623,7 @@ body.show-proto-bar .sidebar {
   }
 }
 
-/* Bouton principal contextuel (Ex: "+ Ajouter une dépense") */
+/* Bouton principal contextuel (Ex: "+ Ajouter une dÃ©pense") */
 .btn-primary-action {
   background-color: var(--surface);
   color: var(--primary-700);
@@ -687,7 +647,7 @@ body.show-proto-bar .sidebar {
   color: #FFFFFF;
 }
 
-/* Bouton d'action Recette / Vente de récolte (Vert Forêt plein) */
+/* Bouton d'action Recette / Vente de rÃ©colte (Vert ForÃªt plein) */
 .btn-revenue-action {
   background-color: var(--primary-700);
   color: #FFFFFF;
@@ -722,7 +682,7 @@ body.show-proto-bar .sidebar {
   cursor: pointer !important;
   padding: 2px 10px 2px 3px !important;
   background: #FFFFFF !important;
-  border: 1.5px solid #2E7D32 !important;
+  border: 1.5px solid var(--couleur-principale-claire) !important;
   border-radius: var(--radius-full) !important;
   height: 34px !important;
   transition: all var(--transition-fast) !important;
@@ -734,8 +694,8 @@ body.show-proto-bar .sidebar {
 
 .user-profile-menu-btn:hover,
 .user-profile-pill-btn:hover {
-  background: #EAF4E6 !important;
-  border-color: #1E5E2A !important;
+  background: var(--couleur-principale-fond) !important;
+  border-color: var(--couleur-principale) !important;
   box-shadow: 0 2px 8px rgba(30, 94, 42, 0.2) !important;
   transform: translateY(-1px) !important;
 }
@@ -747,7 +707,7 @@ body.show-proto-bar .sidebar {
   min-height: 28px !important;
   border-radius: 50% !important;
   object-fit: cover !important;
-  border: 1.5px solid #2E7D32 !important;
+  border: 1.5px solid var(--couleur-principale-claire) !important;
   background: #CDE3CA !important;
   flex-shrink: 0 !important;
   display: block !important;
@@ -756,7 +716,7 @@ body.show-proto-bar .sidebar {
 .user-pill-text {
   font-size: 12.5px !important;
   font-weight: 700 !important;
-  color: #0E3615 !important;
+  color: var(--couleur-principale-foncee) !important;
   white-space: nowrap !important;
 }
 
@@ -776,7 +736,7 @@ body.show-proto-bar .sidebar {
   width: 100%;
 }
 
-/* Salutation & Date (Espacement généreux et aéré, aucun chevauchement avec l'en-tête) */
+/* Salutation & Date (Espacement gÃ©nÃ©reux et aÃ©rÃ©, aucun chevauchement avec l'en-tÃªte) */
 .dashboard-greeting-bar {
   display: flex;
   align-items: center;
@@ -817,7 +777,7 @@ body.show-proto-bar .sidebar {
   line-height: 1.4;
 }
 
-/* Bloc Date & Heure à droite : Carte aérée avec icône, détachée du header supérieur */
+/* Bloc Date & Heure Ã  droite : Carte aÃ©rÃ©e avec icÃ´ne, dÃ©tachÃ©e du header supÃ©rieur */
 .local-date-time {
   display: flex;
   align-items: center;
@@ -885,7 +845,7 @@ body.show-proto-bar .sidebar {
   box-shadow: var(--shadow-card);
 }
 
-/* Fonds pastel différenciés (Fidèle à AgriVision) */
+/* Fonds pastel diffÃ©renciÃ©s (FidÃ¨le Ã  AgriVision) */
 .stat-card-green {
   background-color: #F1F8EE;
   border-color: #E0EFE0;
@@ -980,7 +940,7 @@ body.show-proto-bar .sidebar {
   font-size: 12px;
 }
 
-/* Badges de tendance avec couleur selon jugement (Favorable vert, Défavorable rouge) */
+/* Badges de tendance avec couleur selon jugement (Favorable vert, DÃ©favorable rouge) */
 .trend-badge {
   display: inline-flex;
   align-items: center;
@@ -992,7 +952,7 @@ body.show-proto-bar .sidebar {
 }
 
 .trend-favorable {
-  background-color: #EAF4E6;
+  background-color: var(--couleur-principale-fond);
   color: var(--primary-700);
 }
 
@@ -1010,7 +970,7 @@ body.show-proto-bar .sidebar {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  background-color: #EAF4E6;
+  background-color: var(--couleur-principale-fond);
   color: var(--primary-700);
   font-weight: 700;
   padding: 2px 8px;
@@ -1029,8 +989,8 @@ body.show-proto-bar .sidebar {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  background-color: #FFF2D6;
-  color: #9E6519;
+  background-color: var(--alerte-fond);
+  color: var(--couleur-secondaire-foncee);
   font-weight: 700;
   padding: 2px 8px;
   border-radius: var(--radius-full);
@@ -1086,14 +1046,14 @@ body.show-proto-bar .sidebar {
   text-decoration: underline;
 }
 
-/* ==================== 6. GRILLE 1 : GRAPH BARRES & ÉCHÉANCES ==================== */
+/* ==================== 6. GRILLE 1 : GRAPH BARRES & Ã‰CHÃ‰ANCES ==================== */
 .main-dashboard-grid {
   display: grid;
   grid-template-columns: 2fr 1fr;
   gap: 24px;
 }
 
-/* Graphique Barres Recettes/Dépenses */
+/* Graphique Barres Recettes/DÃ©penses */
 .finance-chart-card {
   min-height: 380px;
 }
@@ -1200,7 +1160,7 @@ body.show-proto-bar .sidebar {
 }
 
 .bar-expense {
-  background: linear-gradient(180deg, #E57373 0%, #C62828 100%);
+  background: linear-gradient(180deg, #E57373 0%, var(--erreur) 100%);
 }
 
 .chart-col:hover .bar {
@@ -1316,7 +1276,7 @@ body.show-proto-bar .sidebar {
   text-decoration: underline;
 }
 
-/* ==================== ÉCHÉANCES (Upcoming Tasks) ==================== */
+/* ==================== Ã‰CHÃ‰ANCES (Upcoming Tasks) ==================== */
 .deadlines-card {
   min-height: 380px;
 }
@@ -1388,18 +1348,18 @@ body.show-proto-bar .sidebar {
   white-space: nowrap;
 }
 
-.badge-warning { background-color: #FFF2D6; color: #9E6519; }
-.badge-success { background-color: #EAF4E6; color: var(--primary-700); }
-.badge-info    { background-color: #EEF5FD; color: #1E6FD9; }
-.badge-neutral { background-color: #F0F3EF; color: var(--text-muted); }
+.badge-warning { background-color: var(--alerte-fond); color: var(--couleur-secondaire-foncee); }
+.badge-success { background-color: var(--couleur-principale-fond); color: var(--primary-700); }
+.badge-info    { background-color: var(--info-fond); color: var(--info); }
+.badge-neutral { background-color: var(--bordure-claire); color: var(--text-muted); }
 .deadline-badge.badge-urgent-pulse {
-  background-color: #FFF1F0;
-  color: #CF1322;
-  border: 1px solid #FFA39E;
+  background-color: var(--erreur-fond-alt);
+  color: var(--erreur-vif);
+  border: 1px solid var(--erreur-bordure);
   animation: pulseUrgent 2s infinite ease-in-out;
 }
 
-/* ==================== 7. GRILLE 2 : TABLEAU CYCLES & MÉTÉO ==================== */
+/* ==================== 7. GRILLE 2 : TABLEAU CYCLES & MÃ‰TÃ‰O ==================== */
 .secondary-dashboard-grid {
   display: grid;
   grid-template-columns: 2fr 1fr;
@@ -1440,7 +1400,7 @@ body.show-proto-bar .sidebar {
 }
 
 .data-table tr:hover td {
-  background-color: #FBFDFB;
+  background-color: var(--surface-alt);
 }
 
 .data-table tr:last-child td {
@@ -1495,18 +1455,18 @@ body.show-proto-bar .sidebar {
 }
 
 .state-harvest {
-  background-color: #FFF2D6;
-  color: #9E6519;
+  background-color: var(--alerte-fond);
+  color: var(--couleur-secondaire-foncee);
 }
 
 .state-growing {
-  background-color: #EAF4E6;
+  background-color: var(--couleur-principale-fond);
   color: var(--primary-700);
 }
 
 .state-new {
-  background-color: #EEF5FD;
-  color: #1E6FD9;
+  background-color: var(--info-fond);
+  color: var(--info);
 }
 
 .badge-dot {
@@ -1515,9 +1475,9 @@ body.show-proto-bar .sidebar {
   border-radius: 50%;
 }
 
-.dot-orange { background-color: #C8862A; }
-.dot-green  { background-color: #2E7D32; }
-.dot-blue   { background-color: #1E6FD9; }
+.dot-orange { background-color: var(--couleur-secondaire); }
+.dot-green  { background-color: var(--couleur-principale-claire); }
+.dot-blue   { background-color: var(--info); }
 
 .btn-table-action {
   background: transparent;
@@ -1537,7 +1497,7 @@ body.show-proto-bar .sidebar {
   text-align: right;
 }
 
-/* ==================== MÉTÉO AGRICOLE RÉELLE ==================== */
+/* ==================== MÃ‰TÃ‰O AGRICOLE RÃ‰ELLE ==================== */
 .weather-card {
   min-height: 330px;
   display: flex;
@@ -1596,7 +1556,7 @@ body.show-proto-bar .sidebar {
   color: var(--primary-700);
 }
 
-/* Prévision mini 4 jours */
+/* PrÃ©vision mini 4 jours */
 .forecast-mini-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -2037,7 +1997,7 @@ body.show-proto-bar .sidebar {
 .toast-message { font-size: 12.5px; color: var(--text-muted); margin-top: 2px; }
 .toast-close-btn { background: transparent; border: none; font-size: 18px; color: var(--text-dim); cursor: pointer; }
 
-/* ==================== 10. SIMULATEUR MOBILE ANDROID (Spécification Section 2) ==================== */
+/* ==================== 10. SIMULATEUR MOBILE ANDROID (SpÃ©cification Section 2) ==================== */
 .viewport-wrapper.mode-mobile {
   display: flex;
   align-items: center;
@@ -2106,7 +2066,7 @@ body.show-proto-bar .sidebar {
   margin: 8px auto 2px;
 }
 
-/* Style de l'application en vue Mobile Réorganisée (Spec Section 2) */
+/* Style de l'application en vue Mobile RÃ©organisÃ©e (Spec Section 2) */
 .mobile-app-root {
   display: flex;
   flex-direction: column;
@@ -2149,10 +2109,10 @@ body.show-proto-bar .sidebar {
   gap: 16px;
 }
 
-/* Ordre mobile spécifique selon spec 2:
-   1. Météo en 1er (consultée chaque matin)
+/* Ordre mobile spÃ©cifique selon spec 2:
+   1. MÃ©tÃ©o en 1er (consultÃ©e chaque matin)
    2. Indicateurs en grille 2x2
-   3. Échéances
+   3. Ã‰chÃ©ances
    4. Cycles en liste de cartes
    5. Graphique finances
 */
@@ -2245,7 +2205,7 @@ body.show-proto-bar .sidebar {
   color: var(--text-muted);
 }
 
-/* En-tête mobile avec bouton hamburger à gauche */
+/* En-tÃªte mobile avec bouton hamburger Ã  gauche */
 .mobile-header-left {
   display: flex;
   align-items: center;
@@ -2285,7 +2245,7 @@ body.show-proto-bar .sidebar {
   height: 32px;
 }
 
-/* TIROIR LATÉRAL GAUCHE MOBILE (DRAWER) */
+/* TIROIR LATÃ‰RAL GAUCHE MOBILE (DRAWER) */
 .mobile-drawer-overlay {
   position: fixed;
   inset: 0;
@@ -2355,7 +2315,7 @@ body.show-proto-bar .sidebar {
 
 .mobile-drawer-profile-card {
   padding: 14px 16px;
-  background: linear-gradient(145deg, #FBFDFB 0%, #EAF4E6 100%);
+  background: linear-gradient(145deg, var(--surface-alt) 0%, var(--couleur-principale-fond) 100%);
   border-bottom: 1px solid var(--border-color);
   display: flex;
   align-items: center;
@@ -2473,7 +2433,7 @@ body.drawer-open {
   transform: scale(0.92);
 }
 
-/* ==================== 11. ÉTATS UI (SKELETON, EMPTY, ERROR) ==================== */
+/* ==================== 11. Ã‰TATS UI (SKELETON, EMPTY, ERROR) ==================== */
 
 /* Skeleton Loading */
 .state-loading .stat-number,
@@ -2484,7 +2444,7 @@ body.drawer-open {
 .state-loading .deadline-item {
   color: transparent !important;
   border-color: transparent !important;
-  background: linear-gradient(90deg, #E6EAE3 25%, #F0F3EF 50%, #E6EAE3 75%) !important;
+  background: linear-gradient(90deg, var(--bordure) 25%, var(--bordure-claire) 50%, var(--bordure) 75%) !important;
   background-size: 200% 100% !important;
   animation: skeletonShimmer 1.5s infinite !important;
   border-radius: 4px;
@@ -2608,7 +2568,7 @@ body.drawer-open {
   }
 }
 
-/* ==================== ASSURANCE VISIBILITÉ DU TIROIR MOBILE (DRAWER) ==================== */
+/* ==================== ASSURANCE VISIBILITÃ‰ DU TIROIR MOBILE (DRAWER) ==================== */
 .mobile-drawer-header .brand-text {
   display: flex !important;
   flex-direction: column !important;
@@ -2656,7 +2616,7 @@ body.drawer-open {
   display: inline-block !important;
 }
 
-/* ==================== ÉCRAN DE CHARGEMENT INITIAL (SPLASH SCREEN AVEC LOGO) ==================== */
+/* ==================== Ã‰CRAN DE CHARGEMENT INITIAL (SPLASH SCREEN AVEC LOGO) ==================== */
 .app-loading-screen {
   position: fixed;
   inset: 0;
@@ -2664,7 +2624,7 @@ body.drawer-open {
   height: 100vh;
   height: 100dvh;
   z-index: 99999;
-  background: var(--background, #F6F8F4);
+  background: var(--background, var(--fond));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2700,7 +2660,7 @@ body.drawer-open {
 .loading-spinner-fill {
   width: 40%;
   height: 100%;
-  background: linear-gradient(90deg, #1E5E2A, #34A853);
+  background: linear-gradient(90deg, var(--couleur-principale), #34A853);
   border-radius: 99px;
   animation: loadingIndeterminate 1.2s infinite ease-in-out;
 }
@@ -2723,7 +2683,7 @@ body.drawer-open {
   width: 100vw;
   height: 100vh;
   min-height: 100vh;
-  background: linear-gradient(145deg, #0E3615 0%, #174D20 40%, #1E5E2A 100%);
+  background: linear-gradient(145deg, var(--couleur-principale-foncee) 0%, #174D20 40%, var(--couleur-principale) 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2765,7 +2725,7 @@ body.drawer-open {
 
 .portal-tabs {
   display: flex;
-  background: #F0F4EE;
+  background: var(--surface-neutre);
   padding: 4px;
   border-radius: 12px;
   margin-bottom: 22px;
@@ -2823,7 +2783,7 @@ body.drawer-open {
   align-items: center;
   border: 1.5px solid var(--border-color);
   border-radius: 10px;
-  background: #FAFDF9;
+  background: var(--surface-douce);
   overflow: hidden;
   transition: border-color var(--transition-fast);
 }
@@ -2838,7 +2798,7 @@ body.drawer-open {
   font-size: 13px;
   font-weight: 700;
   color: var(--primary-700);
-  background: #F0F4EE;
+  background: var(--surface-neutre);
   border-right: 1px solid var(--border-color);
   white-space: nowrap;
 }
@@ -2849,7 +2809,7 @@ body.drawer-open {
   font-size: 14.5px;
   border: 1.5px solid var(--border-color);
   border-radius: 10px;
-  background: #FAFDF9;
+  background: var(--surface-douce);
   color: var(--text-main);
   transition: border-color var(--transition-fast);
   outline: none;
@@ -2873,7 +2833,7 @@ body.drawer-open {
   font-size: 15px;
   font-weight: 700;
   color: #FFFFFF;
-  background: linear-gradient(135deg, #1E5E2A 0%, #2E7D32 100%);
+  background: linear-gradient(135deg, var(--couleur-principale) 0%, var(--couleur-principale-claire) 100%);
   border: none;
   border-radius: 12px;
   cursor: pointer;
@@ -2887,7 +2847,7 @@ body.drawer-open {
 }
 
 .portal-btn-submit:hover {
-  background: linear-gradient(135deg, #174D20 0%, #1E5E2A 100%);
+  background: linear-gradient(135deg, #174D20 0%, var(--couleur-principale) 100%);
   box-shadow: 0 6px 18px rgba(30, 94, 42, 0.45);
 }
 
@@ -2954,7 +2914,7 @@ body.drawer-open {
   flex-shrink: 0;
 }
 
-/* Séparateur élégant "ou avec votre email" */
+/* SÃ©parateur Ã©lÃ©gant "ou avec votre email" */
 .portal-divider {
   display: flex;
   align-items: center;
@@ -2977,7 +2937,7 @@ body.drawer-open {
   color: #6B7280;
 }
 
-/* Dialogue Modal Complétion Profil / Onboarding */
+/* Dialogue Modal ComplÃ©tion Profil / Onboarding */
 .onboarding-modal-dialog {
   max-width: 520px;
   max-height: 92vh;
@@ -3052,8 +3012,8 @@ body.drawer-open {
 }
 
 .discount-tag {
-  background-color: #FFF2D6;
-  color: #9E6519;
+  background-color: var(--alerte-fond);
+  color: var(--couleur-secondaire-foncee);
   font-size: 11px;
   font-weight: 800;
   padding: 2px 7px;
@@ -3115,7 +3075,7 @@ body.drawer-open {
 }
 
 .pricing-ribbon.ribbon-gold {
-  background: linear-gradient(90deg, #9E6519, #C8862A);
+  background: linear-gradient(90deg, var(--couleur-secondaire-foncee), var(--couleur-secondaire));
   color: #FFFFFF;
 }
 
@@ -3161,7 +3121,7 @@ body.drawer-open {
   font-weight: 600;
 }
 
-/* Liste des fonctionnalités */
+/* Liste des fonctionnalitÃ©s */
 .pricing-features {
   list-style: none;
   display: flex;
@@ -3225,7 +3185,7 @@ body.drawer-open {
 }
 
 .btn-plan-gold {
-  background: linear-gradient(90deg, #B7791F, #C8862A);
+  background: linear-gradient(90deg, var(--alerte), var(--couleur-secondaire));
   color: #FFFFFF;
   box-shadow: 0 4px 10px rgba(200, 134, 42, 0.3);
 }
@@ -3240,7 +3200,7 @@ body.drawer-open {
 }
 
 .checkout-plan-recap {
-  background: linear-gradient(145deg, #FBFDFB 0%, #EAF4E6 100%);
+  background: linear-gradient(145deg, var(--surface-alt) 0%, var(--couleur-principale-fond) 100%);
   border: 1px solid #D5E5D1;
   border-radius: var(--radius-sm);
   padding: 14px 16px;
@@ -3313,7 +3273,7 @@ body.drawer-open {
 }
 
 .operator-orange {
-  background-color: #FF6600;
+  background-color: var(--operateur-orange);
   color: #FFFFFF;
 }
 
@@ -3323,7 +3283,7 @@ body.drawer-open {
 }
 
 .operator-card {
-  background-color: #2E7D32;
+  background-color: var(--couleur-principale-claire);
   color: #FFFFFF;
 }
 
@@ -3363,12 +3323,12 @@ body.drawer-open {
 }
 
 .ussd-instruction-box {
-  background-color: #FFF9E6;
+  background-color: var(--alerte-fond-pale);
   border: 1px solid #F5E0A0;
   border-radius: var(--radius-sm);
   padding: 10px 14px;
   font-size: 12px;
-  color: #784F11;
+  color: var(--alerte-texte);
   display: flex;
   align-items: center;
   gap: 10px;
@@ -3376,7 +3336,7 @@ body.drawer-open {
 }
 
 .user-badge-pro {
-  background: linear-gradient(90deg, #1E5E2A, #2E7D32);
+  background: linear-gradient(90deg, var(--couleur-principale), var(--couleur-principale-claire));
   color: #FFFFFF;
   font-size: 10.5px;
   font-weight: 800;
@@ -3393,7 +3353,7 @@ body.drawer-open {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: linear-gradient(135deg, #FFF9E6 0%, #FBF3D5 100%);
+  background: linear-gradient(135deg, var(--alerte-fond-pale) 0%, #FBF3D5 100%);
   border: 1px solid #E6CA85;
   color: #8C5311;
   font-size: 12px;
@@ -3443,7 +3403,7 @@ body.drawer-open {
 }
 
 /* ==========================================================================
-   13. MODALE LUXE — ENCAISSEMENT & VENTES DE RÉCOLTE (Dribbble / Fintech Grade)
+   13. MODALE LUXE â€” ENCAISSEMENT & VENTES DE RÃ‰COLTE (Dribbble / Fintech Grade)
    ========================================================================== */
 .modal-dialog-luxury {
   max-width: 620px;
@@ -3505,7 +3465,7 @@ body.drawer-open {
 .luxury-modal-title {
   font-size: 19px;
   font-weight: 800;
-  color: #0E3615;
+  color: var(--couleur-principale-foncee);
   letter-spacing: -0.3px;
   margin: 2px 0 0;
 }
@@ -3524,7 +3484,7 @@ body.drawer-open {
   gap: 18px;
 }
 
-/* Zone héro du montant */
+/* Zone hÃ©ro du montant */
 .hero-amount-card {
   background: linear-gradient(180deg, #F9FAF7 0%, #F1F6EE 100%);
   border: 1.5px solid #D6E3D2;
@@ -3566,7 +3526,7 @@ body.drawer-open {
   font-family: var(--font-sans);
   font-size: 28px;
   font-weight: 800;
-  color: #0E3615;
+  color: var(--couleur-principale-foncee);
   background: transparent;
   border: none;
   outline: none;
@@ -3583,7 +3543,7 @@ body.drawer-open {
   right: 0;
   font-size: 13px;
   font-weight: 800;
-  color: #1E5E2A;
+  color: var(--couleur-principale);
   background: #E4EFE2;
   border: 1px solid #C4DCC1;
   padding: 6px 12px;
@@ -3645,12 +3605,12 @@ body.drawer-open {
   color: var(--primary-700);
 }
 
-/* Sélecteur de type : Cycle enregistré vs Produit libre */
+/* SÃ©lecteur de type : Cycle enregistrÃ© vs Produit libre */
 .cycle-toggle-bar {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
-  background: #F0F4EE;
+  background: var(--surface-neutre);
   padding: 4px;
   border-radius: 10px;
   margin-bottom: 10px;
@@ -3679,7 +3639,7 @@ body.drawer-open {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
 }
 
-/* Boîte de saisie manuelle personnalisée (animée) */
+/* BoÃ®te de saisie manuelle personnalisÃ©e (animÃ©e) */
 .custom-crop-card {
   background: #FAFBF9;
   border: 1.5px dashed #A3C99E;
@@ -3716,13 +3676,13 @@ body.drawer-open {
 }
 
 .crop-tag-btn:hover {
-  background: #EAF4E6;
+  background: var(--couleur-principale-fond);
   border-color: var(--primary-500);
   color: var(--primary-700);
   transform: translateY(-1px);
 }
 
-/* Sélecteur de paiement visuel */
+/* SÃ©lecteur de paiement visuel */
 .payment-methods-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -3760,7 +3720,7 @@ body.drawer-open {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #F0F4EE;
+  background: var(--surface-neutre);
   border-radius: 8px;
   flex-shrink: 0;
 }
@@ -3828,7 +3788,7 @@ body.drawer-open {
   font-weight: 700;
 }
 
-/* Carte déclencheur de date personnalisée */
+/* Carte dÃ©clencheur de date personnalisÃ©e */
 .date-picker-trigger-card {
   display: flex;
   align-items: center;
@@ -3880,7 +3840,7 @@ body.drawer-open {
   font-size: 11px;
   font-weight: 700;
   background: #E3EFE0;
-  color: #1E5E2A;
+  color: var(--couleur-principale);
   padding: 2px 8px;
   border-radius: 6px;
 }
@@ -3937,7 +3897,7 @@ body.drawer-open {
 .cal-month-title {
   font-size: 13.5px;
   font-weight: 800;
-  color: #0E3615;
+  color: var(--couleur-principale-foncee);
 }
 
 .cal-weekdays {
@@ -4015,9 +3975,9 @@ body.drawer-open {
   background: var(--primary-50);
 }
 
-/* Bouton Encaisser Ultra-Qualité */
+/* Bouton Encaisser Ultra-QualitÃ© */
 .btn-submit-luxury {
-  background: linear-gradient(135deg, #1E5E2A 0%, #15451E 100%) !important;
+  background: linear-gradient(135deg, var(--couleur-principale) 0%, #15451E 100%) !important;
   padding: 12px 24px !important;
   font-size: 14px !important;
   border-radius: 10px !important;
@@ -4103,7 +4063,7 @@ body.drawer-open {
 
 .auth-tabs-bar {
   display: flex;
-  background: #F0F4EE;
+  background: var(--surface-neutre);
   padding: 4px;
   border-radius: 12px;
   margin-bottom: 12px;
@@ -4199,7 +4159,7 @@ body.drawer-open {
 .demo-quick-switch {
   margin-top: 10px;
   padding-top: 12px;
-  border-top: 1px dashed #DCE6D9;
+  border-top: 1px dashed var(--bordure-forte);
 }
 
 .demo-divider {
@@ -4262,9 +4222,9 @@ body.drawer-open {
   text-align: center;
   gap: 4px;
   padding: 8px 4px;
-  border: 1.5px solid #DCE6D9;
+  border: 1.5px solid var(--bordure-forte);
   border-radius: 9px;
-  background: #FAFDF9;
+  background: var(--surface-douce);
   transition: all var(--transition-fast);
   height: 100%;
 }
@@ -4300,8 +4260,8 @@ body.drawer-open {
   font-size: 11px !important;
   font-weight: 700 !important;
   background: #FFFFFF !important;
-  border: 1.5px solid #1E5E2A !important;
-  color: #1E5E2A !important;
+  border: 1.5px solid var(--couleur-principale) !important;
+  color: var(--couleur-principale) !important;
   border-radius: var(--radius-sm) !important;
   cursor: pointer;
   white-space: nowrap;
@@ -4313,8 +4273,8 @@ body.drawer-open {
   padding: 5px 9px !important;
   font-size: 11px !important;
   font-weight: 700 !important;
-  background: #1E5E2A !important;
-  border: 1.5px solid #1E5E2A !important;
+  background: var(--couleur-principale) !important;
+  border: 1.5px solid var(--couleur-principale) !important;
   color: #FFFFFF !important;
   border-radius: var(--radius-sm) !important;
   cursor: pointer;
@@ -4393,7 +4353,7 @@ body.drawer-open {
   padding: 12px 14px;
   border-radius: 12px;
   border: 1.5px solid var(--border-color);
-  background: #FAFDF9;
+  background: var(--surface-douce);
   cursor: pointer;
   text-align: left;
   transition: all var(--transition-fast);
@@ -4410,7 +4370,7 @@ body.drawer-open {
 
 .sheet-expense-btn:hover {
   background: #F1F8EE;
-  border-color: #2E7D32;
+  border-color: var(--couleur-principale-claire);
 }
 
 .sheet-revenue-btn {
@@ -4420,7 +4380,7 @@ body.drawer-open {
 
 .sheet-revenue-btn:hover {
   background: #E6F4E3;
-  border-color: #1E5E2A;
+  border-color: var(--couleur-principale);
 }
 
 .sheet-icon {
@@ -4464,7 +4424,7 @@ body.drawer-open {
   gap: 8px;
   margin-bottom: 6px;
   font-size: 12px;
-  color: #784F11;
+  color: var(--alerte-texte);
 }
 
 .sms-banner-header strong {
@@ -4473,7 +4433,7 @@ body.drawer-open {
 
 .sms-time {
   font-size: 10.5px;
-  color: #9E6519;
+  color: var(--couleur-secondaire-foncee);
   background: rgba(200, 134, 42, 0.15);
   padding: 1px 6px;
   border-radius: 99px;
@@ -4490,7 +4450,7 @@ body.drawer-open {
   font-family: var(--font-mono);
   font-size: 16px;
   letter-spacing: 3px;
-  background: #1E5E2A;
+  background: var(--couleur-principale);
   color: #FFFFFF;
   padding: 2px 8px;
   border-radius: 6px;
@@ -4513,7 +4473,7 @@ body.drawer-open {
   padding: 10px 14px !important;
   border: 2px solid var(--primary-700) !important;
   border-radius: 10px !important;
-  background: #FAFDF9 !important;
+  background: var(--surface-douce) !important;
 }
 
 .otp-resend-row {
@@ -4540,10 +4500,10 @@ body.drawer-open {
 }
 
 /* ==========================================================================
-   15. SYSTÈME RESPONSIVE FLUIDE (MOBILE & BUREAU NATIFS)
+   15. SYSTÃˆME RESPONSIVE FLUIDE (MOBILE & BUREAU NATIFS)
    ========================================================================== */
 
-/* ÉCRANS MOBILES ET TABLETTES (< 1024px) */
+/* Ã‰CRANS MOBILES ET TABLETTES (< 1024px) */
 @media screen and (max-width: 1023px) {
   /* 1. Masquage strict du bandeau et des artifices de simulation */
   .prototype-control-bar {
@@ -4555,7 +4515,7 @@ body.drawer-open {
     display: none !important;
   }
 
-  /* 2. Affichage natif plein écran du contenu mobile sans cadre */
+  /* 2. Affichage natif plein Ã©cran du contenu mobile sans cadre */
   .viewport-wrapper:not(.hidden) {
     min-height: 100vh !important;
     width: 100% !important;
@@ -4602,7 +4562,7 @@ body.drawer-open {
     padding-bottom: 40px !important;
   }
 
-  /* 3. Tiroir latéral (Drawer) mobile plein écran ou fluide */
+  /* 3. Tiroir latÃ©ral (Drawer) mobile plein Ã©cran ou fluide */
   .mobile-drawer {
     width: min(320px, 85vw) !important;
     height: 100vh !important;
@@ -4646,7 +4606,7 @@ body.drawer-open {
   }
 }
 
-/* ÉCRANS BUREAU (>= 1024px) */
+/* Ã‰CRANS BUREAU (>= 1024px) */
 @media screen and (min-width: 1024px) {
   .viewport-wrapper.mode-desktop #desktopAppShell {
     display: grid !important;
@@ -4720,13 +4680,13 @@ body.drawer-open {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: #EAF4E6;
-  color: #1E5E2A;
+  background: var(--couleur-principale-fond);
+  color: var(--couleur-principale);
   font-size: 12px;
   font-weight: 700;
   padding: 6px 14px;
   border-radius: var(--radius-full);
-  border: 1px solid #D2E7CB;
+  border: 1px solid var(--couleur-principale-bordure);
 }
 
 .page-header-actions-group {
@@ -4753,7 +4713,7 @@ body.drawer-open {
   box-shadow: 0 6px 18px rgba(30, 94, 42, 0.35);
 }
 
-/* 14.1 FILTRE BAR (TYPES & RÉGIONS) */
+/* 14.1 FILTRE BAR (TYPES & RÃ‰GIONS) */
 .financements-filter-bar {
   display: flex;
   align-items: center;
@@ -4958,11 +4918,11 @@ body.drawer-open {
   gap: 6px;
   font-size: 11px;
   font-weight: 700;
-  background: #EAF4E6;
+  background: var(--couleur-principale-fond);
   color: var(--primary-700);
   padding: 3px 10px;
   border-radius: var(--radius-full);
-  border: 1px solid #D2E7CB;
+  border: 1px solid var(--couleur-principale-bordure);
   white-space: nowrap;
 }
 
@@ -4972,7 +4932,7 @@ body.drawer-open {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #2E7D32;
+  background: var(--couleur-principale-claire);
 }
 
 .fin-card-desc {
@@ -5009,11 +4969,11 @@ body.drawer-open {
   gap: 4px;
   font-size: 11px;
   font-weight: 800;
-  background: #FFF1F0;
-  color: #CF1322;
+  background: var(--erreur-fond-alt);
+  color: var(--erreur-vif);
   padding: 2px 8px;
   border-radius: 99px;
-  border: 1px solid #FFA39E;
+  border: 1px solid var(--erreur-bordure);
   animation: pulseUrgent 2s infinite ease-in-out;
 }
 
@@ -5039,11 +4999,11 @@ body.drawer-open {
 }
 
 .fin-card-link-btn:hover {
-  background: #EAF4E6;
+  background: var(--couleur-principale-fond);
   color: var(--primary-900);
 }
 
-/* 14.3 ÉTAT VIDE */
+/* 14.3 Ã‰TAT VIDE */
 .financements-empty-state {
   text-align: center;
   padding: 48px 24px;
@@ -5090,8 +5050,8 @@ body.drawer-open {
 
 /* 14.4 ESPACE ADMINISTRATION DES FINANCEMENTS */
 .admin-pending-alert-banner {
-  background: linear-gradient(135deg, #FFF9E6 0%, #FFF3CC 100%);
-  border: 1px solid #F5D380;
+  background: linear-gradient(135deg, var(--alerte-fond-pale) 0%, #FFF3CC 100%);
+  border: 1px solid var(--couleur-secondaire-bordure);
   border-radius: 14px;
   padding: 14px 18px;
   display: flex;
@@ -5128,7 +5088,7 @@ body.drawer-open {
 }
 
 .btn-filter-pending-quick {
-  background: #C8862A;
+  background: var(--couleur-secondaire);
   color: #FFFFFF;
   border: none;
   padding: 8px 14px;
@@ -5191,7 +5151,7 @@ body.drawer-open {
   border-radius: 99px;
 }
 
-.tab-badge.badge-amber { background: #FEF3D6; color: #925807; }
+.tab-badge.badge-amber { background: var(--alerte-fond); color: #925807; }
 .tab-badge.badge-green { background: #E6F4EA; color: #137333; }
 .tab-badge.badge-gray { background: #EEEEEE; color: #616161; }
 .tab-badge.badge-neutral { background: #E8ECE5; color: #425247; }
@@ -5222,12 +5182,12 @@ body.drawer-open {
 }
 
 .admin-fin-item.status-en_attente {
-  border-left: 5px solid #C8862A;
+  border-left: 5px solid var(--couleur-secondaire);
   background: #FFFCF5;
 }
 
 .admin-fin-item.status-publie {
-  border-left: 5px solid #2E7D32;
+  border-left: 5px solid var(--couleur-principale-claire);
 }
 
 .admin-fin-item.status-expire {
@@ -5258,7 +5218,7 @@ body.drawer-open {
   border-radius: 6px;
 }
 
-.admin-status-pill.en_attente { background: #FEF3D6; color: #8A4F00; }
+.admin-status-pill.en_attente { background: var(--alerte-fond); color: var(--alerte-fonce); }
 .admin-status-pill.publie { background: #E6F4EA; color: #137333; }
 .admin-status-pill.expire { background: #EEEEEE; color: #616161; }
 
@@ -5299,13 +5259,13 @@ body.drawer-open {
 }
 
 .btn-admin-publish {
-  background: #2E7D32;
+  background: var(--couleur-principale-claire);
   color: #FFFFFF;
-  border: 1px solid #1E5E2A;
+  border: 1px solid var(--couleur-principale);
 }
 
 .btn-admin-publish:hover {
-  background: #1E5E2A;
+  background: var(--couleur-principale);
 }
 
 .btn-admin-edit {
@@ -5319,9 +5279,9 @@ body.drawer-open {
 }
 
 .btn-admin-withdraw {
-  background: #FFF1F0;
-  color: #CF1322;
-  border: 1px solid #FFA39E;
+  background: var(--erreur-fond-alt);
+  color: var(--erreur-vif);
+  border: 1px solid var(--erreur-bordure);
 }
 
 .btn-admin-withdraw:hover {
@@ -5343,7 +5303,7 @@ body.drawer-open {
 .form-row .flex-1 { flex: 1; }
 .form-row .flex-2 { flex: 2; }
 
-/* 14.6 MODALE DÉTAILS DU FINANCEMENT (UTILISATEUR) */
+/* 14.6 MODALE DÃ‰TAILS DU FINANCEMENT (UTILISATEUR) */
 .modal-dialog-financement-details {
   max-width: 640px;
   max-height: 92vh;
@@ -5354,8 +5314,8 @@ body.drawer-open {
   font-size: 11px;
   font-weight: 800;
   text-transform: uppercase;
-  background: #EAF4E6;
-  color: #1E5E2A;
+  background: var(--couleur-principale-fond);
+  color: var(--couleur-principale);
   padding: 4px 10px;
   border-radius: 6px;
 }
@@ -5394,7 +5354,7 @@ body.drawer-open {
 
 .fin-detail-hero-box {
   background: linear-gradient(135deg, #F4F9F2 0%, #E8F4E5 100%);
-  border: 1px solid #D2E7CB;
+  border: 1px solid var(--couleur-principale-bordure);
   border-radius: 14px;
   padding: 14px 18px;
   display: flex;
@@ -5421,7 +5381,7 @@ body.drawer-open {
 
 .fin-hero-divider {
   width: 1px;
-  background: #D2E7CB;
+  background: var(--couleur-principale-bordure);
   align-self: stretch;
 }
 
@@ -5451,7 +5411,7 @@ body.drawer-open {
   }
   .fin-hero-col-deadline {
     min-width: 0;
-    border-top: 1px solid #D2E7CB;
+    border-top: 1px solid var(--couleur-principale-bordure);
     padding-top: 10px;
   }
 }
@@ -5459,11 +5419,11 @@ body.drawer-open {
 .fin-hero-badge {
   font-size: 11px;
   font-weight: 800;
-  background: #FFF1F0;
-  color: #CF1322;
+  background: var(--erreur-fond-alt);
+  color: var(--erreur-vif);
   padding: 2px 8px;
   border-radius: 99px;
-  border: 1px solid #FFA39E;
+  border: 1px solid var(--erreur-bordure);
   display: inline-block;
   margin-top: 2px;
 }
@@ -5610,7 +5570,7 @@ body.drawer-open {
 }
 
 /* ============================================================
-   SECTION 16 : MÉTÉO AGRICOLE RÉELLE (OPEN-METEO) & ALERTES
+   SECTION 16 : MÃ‰TÃ‰O AGRICOLE RÃ‰ELLE (OPEN-METEO) & ALERTES
    ============================================================ */
 
 .weather-alert-banner {
@@ -5636,22 +5596,22 @@ body.drawer-open {
 }
 
 .weather-alert-banner.alert-warning {
-  background: linear-gradient(135deg, #FFF9E6 0%, #FFF3CC 100%);
-  border: 1.5px solid #F5D380;
-  color: #8A4F00;
+  background: linear-gradient(135deg, var(--alerte-fond-pale) 0%, #FFF3CC 100%);
+  border: 1.5px solid var(--couleur-secondaire-bordure);
+  color: var(--alerte-fonce);
 }
 
 .weather-alert-banner.alert-danger {
-  background: linear-gradient(135deg, #FFF1F0 0%, #FFE6E5 100%);
-  border: 1.5px solid #FFA39E;
-  color: #CF1322;
+  background: linear-gradient(135deg, var(--erreur-fond-alt) 0%, #FFE6E5 100%);
+  border: 1.5px solid var(--erreur-bordure);
+  color: var(--erreur-vif);
 }
 
 .weather-alert-banner.hidden {
   display: none !important;
 }
 
-/* Page Météo Header & Controls */
+/* Page MÃ©tÃ©o Header & Controls */
 .meteo-controls-bar {
   display: flex;
   align-items: center;
@@ -5697,7 +5657,7 @@ body.drawer-open {
   border-color: var(--primary-300);
 }
 
-/* Météo Hero Card (Current weather) */
+/* MÃ©tÃ©o Hero Card (Current weather) */
 .meteo-hero-card {
   background: linear-gradient(135deg, #FFFFFF 0%, #F5F9F3 100%);
   border: 1px solid #D7E5D4;
@@ -5741,7 +5701,7 @@ body.drawer-open {
   font-size: 13.5px;
   font-weight: 700;
   color: var(--primary-700);
-  background: #EAF4E6;
+  background: var(--couleur-principale-fond);
   padding: 4px 12px;
   border-radius: 99px;
   margin-top: 4px;
@@ -5816,7 +5776,7 @@ body.drawer-open {
 
 .meteo-day-card.today {
   border: 2px solid var(--primary-600);
-  background: #FAFDF9;
+  background: var(--surface-douce);
 }
 
 .meteo-day-header {
@@ -5864,7 +5824,7 @@ body.drawer-open {
   font-size: 11px;
   font-weight: 700;
   color: var(--primary-700);
-  background: #EAF4E6;
+  background: var(--couleur-principale-fond);
   padding: 2px 6px;
   border-radius: 6px;
   width: 100%;
@@ -5872,7 +5832,7 @@ body.drawer-open {
 
 .meteo-day-rain.has-rain {
   background: #E1F0FF;
-  color: #0A66C2;
+  color: var(--operateur-moov);
 }
 
 .meteo-day-wind {
@@ -5894,8 +5854,8 @@ body.drawer-open {
 
 .badge-agri-recom.recom-green,
 .badge-agri-recom.recom-ok {
-  background: #EAF4E6;
-  color: #1E5E2A;
+  background: var(--couleur-principale-fond);
+  color: var(--couleur-principale);
   border: 1px solid #C8E2C3;
 }
 
@@ -5911,9 +5871,9 @@ body.drawer-open {
   border: 1px solid #F8C8C8;
 }
 
-.badge-agri-recom.recom-heat { background: #FFF3D6; color: #8A4F00; }
-.badge-agri-recom.recom-rain { background: #FFF1F0; color: #CF1322; }
-.badge-agri-recom.recom-wind { background: #F0F4EE; color: #4A5750; }
+.badge-agri-recom.recom-heat { background: #FFF3D6; color: var(--alerte-fonce); }
+.badge-agri-recom.recom-rain { background: var(--erreur-fond-alt); color: var(--erreur-vif); }
+.badge-agri-recom.recom-wind { background: var(--surface-neutre); color: #4A5750; }
 
 /* Responsive adjustments */
 @media screen and (max-width: 1023px) {
@@ -5931,12 +5891,12 @@ body.drawer-open {
   }
 }
 
-/* ==================== ENCADRÉ « CE QUE ÇA VEUT DIRE POUR VOUS » ==================== */
+/* ==================== ENCADRÃ‰ Â« CE QUE Ã‡A VEUT DIRE POUR VOUS Â» ==================== */
 .weather-interpretation-box {
   border-radius: 14px;
   padding: 14px 16px;
   margin: 14px 0;
-  border: 1px solid #DCE6D9;
+  border: 1px solid var(--bordure-forte);
   background: #FFFFFF;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
   transition: all var(--transition-fast);
@@ -5980,7 +5940,7 @@ body.drawer-open {
 }
 
 .wi-status-light.light-green {
-  background-color: #2E7D32;
+  background-color: var(--couleur-principale-claire);
   box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.25);
 }
 
@@ -5990,7 +5950,7 @@ body.drawer-open {
 }
 
 .wi-status-light.light-red {
-  background-color: #C62828;
+  background-color: var(--erreur);
   box-shadow: 0 0 0 3px rgba(198, 40, 40, 0.25);
 }
 
@@ -6012,15 +5972,15 @@ body.drawer-open {
   border-radius: 20px;
   font-size: 11.5px;
   font-weight: 700;
-  color: #1E5E2A;
+  color: var(--couleur-principale);
   cursor: pointer;
   box-shadow: 0 1px 3px rgba(0,0,0,0.04);
   transition: all var(--transition-fast);
 }
 
 .wi-listen-btn:hover {
-  background: #EAF4E6;
-  border-color: #1E5E2A;
+  background: var(--couleur-principale-fond);
+  border-color: var(--couleur-principale);
   transform: translateY(-1px);
 }
 
@@ -6045,7 +6005,7 @@ body.drawer-open {
   margin-bottom: 10px;
 }
 
-.level-green .wi-headline { color: #1E5E2A; }
+.level-green .wi-headline { color: var(--couleur-principale); }
 .level-orange .wi-headline { color: #B25E09; }
 .level-red .wi-headline { color: #9B1C1C; }
 
@@ -6145,12 +6105,12 @@ body.drawer-open {
 }
 
 .cat-maraichage { background: #E6F4EA; color: #137333; }
-.cat-cereales { background: #FEF3D6; color: #8A4F00; }
+.cat-cereales { background: var(--alerte-fond); color: var(--alerte-fonce); }
 .cat-elevage { background: #FCE8E6; color: #C5221F; }
 .cat-irrigation { background: #E8F0FE; color: #1967D2; }
-.cat-sol { background: #EAF4E6; color: #1E5E2A; }
+.cat-sol { background: var(--couleur-principale-fond); color: var(--couleur-principale); }
 .cat-maladies { background: #FDE8E8; color: #9B1C1C; }
-.cat-recolte { background: #FFF4E5; color: #B25E00; }
+.cat-recolte { background: var(--operateur-orange-fond); color: #B25E00; }
 
 .conseil-badge-season {
   font-size: 11px;
@@ -6183,7 +6143,7 @@ body.drawer-open {
 .conseil-cultures-tag {
   font-size: 11.5px;
   color: var(--primary-800);
-  background: #EAF4E6;
+  background: var(--couleur-principale-fond);
   border: 1px solid #D2E7CC;
   padding: 2px 8px;
   border-radius: 6px;
@@ -6218,7 +6178,7 @@ body.drawer-open {
   text-decoration: underline;
 }
 
-/* Modale Lecture Complète & Écouter */
+/* Modale Lecture ComplÃ¨te & Ã‰couter */
 .modal-dialog-conseil-details {
   max-width: 680px;
   max-height: 92vh;
@@ -6229,8 +6189,8 @@ body.drawer-open {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: #EAF4E6;
-  color: #1E5E2A;
+  background: var(--couleur-principale-fond);
+  color: var(--couleur-principale);
   border: 1px solid #C4DFC0;
   border-radius: 8px;
   padding: 7px 14px;
@@ -6246,7 +6206,7 @@ body.drawer-open {
 
 .btn-listen-conseil.speaking {
   background: #FEECEB;
-  color: #C62828;
+  color: var(--erreur);
   border-color: #F8B4B0;
   animation: pulse-speaking 1.5s infinite;
 }
@@ -6273,7 +6233,7 @@ body.drawer-open {
 }
 
 /* ==========================================================================
-   14. MODÈLES DE CULTURES & PRÉVISIONS AUTOMATIQUES DE RÉCOLTE
+   14. MODÃˆLES DE CULTURES & PRÃ‰VISIONS AUTOMATIQUES DE RÃ‰COLTE
    ========================================================================== */
 .crop-forecast-card {
   background: #F4F8F3;
@@ -6300,15 +6260,15 @@ body.drawer-open {
 .crop-forecast-title {
   font-size: 13.5px;
   font-weight: 800;
-  color: #1E5E2A;
+  color: var(--couleur-principale);
 }
 
 .btn-listen-crop {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: #EAF4E6;
-  color: #1E5E2A;
+  background: var(--couleur-principale-fond);
+  color: var(--couleur-principale);
   border: 1px solid #C4DFC0;
   border-radius: 8px;
   padding: 6px 12px;
@@ -6324,7 +6284,7 @@ body.drawer-open {
 
 .btn-listen-crop.speaking {
   background: #FEECEB;
-  color: #C62828;
+  color: var(--erreur);
   border-color: #F8B4B0;
   animation: pulse-speaking 1.5s infinite;
 }
@@ -6335,7 +6295,7 @@ body.drawer-open {
   gap: 10px;
   font-size: 13px;
   margin-bottom: 8px;
-  color: #1E2822;
+  color: var(--texte-sombre);
   line-height: 1.45;
 }
 
@@ -6353,19 +6313,19 @@ body.drawer-open {
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: #5D6C63;
+  color: var(--texte-secondaire);
   font-weight: 700;
   margin-bottom: 2px;
 }
 
 .forecast-val {
   font-size: 13.5px;
-  color: #1E2822;
+  color: var(--texte-sombre);
 }
 
 .forecast-warning-tag {
   display: inline-block;
-  background: #FFF9E6;
+  background: var(--alerte-fond-pale);
   border: 1px solid #FFE58F;
   color: #874D00;
   padding: 6px 10px;
@@ -6395,7 +6355,7 @@ body.drawer-open {
 
 .forecast-advice-title {
   font-size: 12px;
-  color: #1E5E2A;
+  color: var(--couleur-principale);
   display: block;
   margin-bottom: 2px;
 }
@@ -6420,7 +6380,7 @@ body.drawer-open {
 }
 
 .forecast-source-link {
-  color: #1E5E2A;
+  color: var(--couleur-principale);
   text-decoration: underline;
   margin-left: 6px;
   font-weight: 500;
@@ -6429,11 +6389,11 @@ body.drawer-open {
   transition: opacity 0.2s ease;
 }
 .forecast-source-link:hover {
-  color: #0E3615;
+  color: var(--couleur-principale-foncee);
   opacity: 0.8;
 }
 
-/* Modèles Admin Cards */
+/* ModÃ¨les Admin Cards */
 .modele-mode-badge {
   font-size: 11px;
   font-weight: 700;
@@ -6444,17 +6404,17 @@ body.drawer-open {
   gap: 4px;
 }
 .modele-mode-pepiniere {
-  background: #EAF4E6;
-  color: #1E5E2A;
+  background: var(--couleur-principale-fond);
+  color: var(--couleur-principale);
   border: 1px solid #C4DFC0;
 }
 .modele-mode-semis {
-  background: #FFF4E5;
+  background: var(--operateur-orange-fond);
   color: #B25E00;
-  border: 1px solid #FFE0B2;
+  border: 1px solid var(--operateur-orange-bordure);
 }
 
-/* Cartes des parcelles déclarées */
+/* Cartes des parcelles dÃ©clarÃ©es */
 .parcel-card {
   background: #FFFFFF;
   border: 1px solid #E2E8F0;
@@ -6480,13 +6440,13 @@ body.drawer-open {
 .parcel-card-name {
   font-size: 15px;
   font-weight: 800;
-  color: #1E2822;
+  color: var(--texte-sombre);
   margin: 0;
 }
 .parcel-card-badge {
   font-size: 11.5px;
   font-weight: 700;
-  background: #EAF4E6;
+  background: var(--couleur-principale-fond);
   color: var(--primary-700);
   padding: 3px 8px;
   border-radius: 6px;
@@ -6494,7 +6454,7 @@ body.drawer-open {
 }
 .parcel-card-meta {
   font-size: 12.5px;
-  color: #5D6C63;
+  color: var(--texte-secondaire);
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -6509,7 +6469,7 @@ body.drawer-open {
 }
 .btn-edit-parcel {
   font-size: 12px;
-  color: #1E5E2A;
+  color: var(--couleur-principale);
   background: none;
   border: 1px solid #D5E0D5;
   cursor: pointer;
@@ -6521,11 +6481,11 @@ body.drawer-open {
   gap: 4px;
 }
 .btn-edit-parcel:hover {
-  background: #EAF4E6;
+  background: var(--couleur-principale-fond);
 }
 .btn-delete-parcel {
   font-size: 12px;
-  color: #C62828;
+  color: var(--erreur);
   background: none;
   border: 1px solid #FCDAD7;
   cursor: pointer;
@@ -6540,7 +6500,7 @@ body.drawer-open {
   background: #FEECEB;
 }
 
-/* Sections régionales dans Conseils et Financements */
+/* Sections rÃ©gionales dans Conseils et Financements */
 .region-section-divider {
   grid-column: 1 / -1;
   display: flex;
@@ -6560,7 +6520,7 @@ body.drawer-open {
 .region-section-title {
   font-size: 15px;
   font-weight: 800;
-  color: #1E2822;
+  color: var(--texte-sombre);
   margin: 0;
   display: flex;
   align-items: center;
@@ -6596,13 +6556,13 @@ body.drawer-open {
   gap: 6px;
   font-size: 13.5px;
   font-weight: 800;
-  color: #1E2822;
+  color: var(--texte-sombre);
 }
 .btn-listen-parcel-balance {
   font-size: 11.5px;
   font-weight: 700;
-  color: #1E5E2A;
-  background: #EAF4E6;
+  color: var(--couleur-principale);
+  background: var(--couleur-principale-fond);
   border: 1px solid #C5E1BE;
   border-radius: 14px;
   padding: 3px 10px;
@@ -6616,13 +6576,13 @@ body.drawer-open {
   background: #D8ECCE;
 }
 .btn-listen-parcel-balance.speaking {
-  background: #C62828;
+  background: var(--erreur);
   color: #FFFFFF;
   border-color: #B71C1C;
 }
 .parcel-balance-empty {
   font-size: 12.5px;
-  color: #5D6C63;
+  color: var(--texte-secondaire);
   line-height: 1.45;
   margin: 0;
   font-style: italic;
@@ -6643,14 +6603,14 @@ body.drawer-open {
   display: block;
   font-size: 10.5px;
   text-transform: uppercase;
-  color: #5D6C63;
+  color: var(--texte-secondaire);
   font-weight: 700;
   margin-bottom: 2px;
 }
 .parcel-balance-metric-val {
   font-size: 12.5px;
   font-weight: 800;
-  color: #1E2822;
+  color: var(--texte-sombre);
   word-break: break-word;
 }
 .parcel-balance-gain-badge {
@@ -6668,8 +6628,8 @@ body.drawer-open {
 }
 .parcel-balance-gain-badge.gain-negative {
   background: #FFF3E0;
-  color: #C8862A;
-  border: 1px solid #FFE0B2;
+  color: var(--couleur-secondaire);
+  border: 1px solid var(--operateur-orange-bordure);
 }
 .parcel-balance-gain-badge.gain-neutral {
   background: #ECEFF1;
@@ -6685,7 +6645,7 @@ body.drawer-open {
   font-size: 11px;
   text-transform: uppercase;
   font-weight: 800;
-  color: #5D6C63;
+  color: var(--texte-secondaire);
   margin-bottom: 6px;
 }
 .parcel-crop-detail-card {
@@ -6699,15 +6659,256 @@ body.drawer-open {
 }
 .parcel-crop-detail-title {
   font-weight: 700;
-  color: #1E2822;
+  color: var(--texte-sombre);
   margin-bottom: 2px;
 }
 .parcel-crop-detail-stats {
-  color: #5D6C63;
+  color: var(--texte-secondaire);
   font-size: 11.5px;
 }
 
-/* RÈGLE ABSOLUE DE SÉCURITÉ D'AFFICHAGE */
+/* ========================================================
+   MODULE NOTIFICATIONS SAHÉLO-TECH
+   ======================================================== */
+.notification-badge-count {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  background-color: #D32F2F;
+  color: #FFFFFF;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1;
+  padding: 2px 5px;
+  border-radius: 10px;
+  border: 1.5px solid #FFFFFF;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  pointer-events: none;
+  min-width: 16px;
+  text-align: center;
+}
+
+.notifications-list-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 8px 0 32px;
+}
+
+.notif-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px 18px;
+  border-radius: 12px;
+  background: #FFFFFF;
+  border: 1px solid #E6EAE3;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  position: relative;
+  text-decoration: none;
+  color: inherit;
+}
+
+.notif-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  border-color: #2E7D32;
+}
+
+.notif-card.unread {
+  background: #FFFFFF;
+  border-left: 4px solid #1E5E2A;
+}
+
+.notif-card.unread.type-date_limite {
+  border-left-color: #C8862A;
+}
+
+.notif-card.unread.type-meteo {
+  border-left-color: #E65100;
+}
+
+.notif-card.unread.type-conseil {
+  border-left-color: #0A66C2;
+}
+
+.notif-card.read {
+  background: #F8FAF6;
+  opacity: 0.88;
+  border-left: 4px solid transparent;
+}
+
+.notif-card.read:hover {
+  opacity: 1;
+}
+
+.notif-icon-box {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+  background: #F0F4EC;
+}
+
+.notif-icon-box.type-financement {
+  background: #E8F5E9;
+  color: #1E5E2A;
+}
+
+.notif-icon-box.type-date_limite {
+  background: #FFF3E0;
+  color: #C8862A;
+}
+
+.notif-icon-box.type-conseil {
+  background: #E3F2FD;
+  color: #0A66C2;
+}
+
+.notif-icon-box.type-meteo {
+  background: #FBE9E7;
+  color: #D84315;
+}
+
+.notif-icon-box.type-info {
+  background: #F3E5F5;
+  color: #7B1FA2;
+}
+
+.notif-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.notif-header-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.notif-title {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: #141A15;
+  margin: 0;
+}
+
+.notif-time {
+  font-size: 11.5px;
+  color: #6B776D;
+  white-space: nowrap;
+}
+
+.notif-message {
+  font-size: 13px;
+  color: #4A554C;
+  line-height: 1.45;
+  margin: 0 0 6px;
+}
+
+.notif-footer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.notif-badge-tag {
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: #ECEFEA;
+  color: #4A554C;
+}
+
+.notif-unread-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #1E5E2A;
+  display: inline-block;
+}
+
+.notif-empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  background: #FFFFFF;
+  border-radius: 16px;
+  border: 1px dashed #D5DDD0;
+}
+
+.notif-empty-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+  display: inline-block;
+  opacity: 0.7;
+}
+
+.notif-empty-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: #141A15;
+  margin: 0 0 6px;
+}
+
+.notif-empty-sub {
+  font-size: 13px;
+  color: #6B776D;
+  max-width: 420px;
+  margin: 0 auto;
+  line-height: 1.5;
+}
+
+/* Interrupteur Toggle iOS Sahélo-Tech */
+.notif-ios-switch {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 38px;
+  height: 22px;
+  background-color: #D2D8CE;
+  border-radius: 20px;
+  position: relative;
+  outline: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  flex-shrink: 0;
+  margin: 0;
+}
+
+.notif-ios-switch::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  background-color: #FFFFFF;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.notif-ios-switch:checked {
+  background-color: #1E5E2A;
+}
+
+.notif-ios-switch:checked::after {
+  transform: translateX(16px);
+}
+
+/* RÃˆGLE ABSOLUE DE SÃ‰CURITÃ‰ D'AFFICHAGE */
 #viewportContainer.hidden,
 .viewport-wrapper.hidden,
 .hidden {

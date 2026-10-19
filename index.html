@@ -11,7 +11,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
   
-  <link rel="stylesheet" href="styles/main.css?v=20261018.2">
+  <link rel="stylesheet" href="styles/theme.css?v=20261019.20">
+  <link rel="stylesheet" href="styles/main.css?v=20261019.20">
 </head>
 <body class="theme-light">
   <!-- BANDEAU DISCRET ADMIN (Visible uniquement en mode Admin) -->
@@ -475,10 +476,10 @@
               <input type="text" id="globalSearchInput" placeholder="Rechercher…" class="search-field" autocomplete="off">
             </div>
 
-            <!-- Notifications cloche avec pastille rouge -->
-            <button class="icon-btn" id="btnNotifications" aria-label="Notifications (2 non lues)" title="2 nouvelles alertes">
+            <!-- Notifications cloche dynamique -->
+            <button class="icon-btn" id="btnNotifications" aria-label="Notifications" title="Notifications" style="position: relative;">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-              <span class="notification-badge-dot"></span>
+              <span class="notification-badge-count hidden" id="notifBadgeCount"></span>
             </button>
 
             <!-- Profil Utilisateur & Compte (Avatar bonhomme + Nom + Chevron intégrés - PRIORITAIRE) -->
@@ -1468,6 +1469,35 @@
             </div>
           </div>
         </div>
+
+        <!-- PAGE NOTIFICATIONS -->
+        <div class="dashboard-body hidden" id="pageNotifications">
+          <div class="page-view-header">
+            <div class="page-view-title-group">
+              <div class="page-breadcrumb">
+                <a href="#dashboard" class="breadcrumb-back-link">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="15 18 9 12 15 6"/></svg>
+                  <span>Tableau de bord</span>
+                </a>
+                <span class="breadcrumb-sep">/</span>
+                <span class="breadcrumb-current">Notifications</span>
+              </div>
+              <h1 class="page-main-title">🔔 Notifications</h1>
+              <p class="page-subtitle">Suivez en temps réel les opportunités de financements, les échéances, les conseils du jour et les vigilances météo.</p>
+            </div>
+            <div class="page-header-actions-group">
+              <button type="button" class="btn-secondary" id="btnMarkAllNotifsRead" title="Marquer toutes les notifications comme lues">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                <span>Tout marquer comme lu</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Conteneur des notifications réelles -->
+          <div class="notifications-list-wrapper" id="notificationsListContainer">
+            <!-- Rendu dynamique par JavaScript -->
+          </div>
+        </div>
       </main>
 
     </div>
@@ -1502,6 +1532,51 @@
             <strong id="modalAccountName" style="font-size: 15px; display: block; color: var(--text-main);">Exploitant</strong>
             <span id="modalAccountRole" style="font-size: 12px; color: var(--primary-700); font-weight: 600; display: block;">Maraîcher & Céréalier</span>
             <span id="modalAccountEmail" style="font-size: 11.5px; color: var(--text-muted);">connecté</span>
+          </div>
+        </div>
+
+        <!-- PRÉFÉRENCES : MES NOTIFICATIONS -->
+        <div class="notif-prefs-card" style="background: #FFFFFF; border: 1px solid #E6EAE3; border-radius: 12px; padding: 14px 16px; margin-bottom: 16px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; border-bottom: 1px solid #F0F3EE; padding-bottom: 8px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 16px;">🔔</span>
+              <strong style="font-size: 13.5px; color: var(--text-main);">Mes notifications</strong>
+            </div>
+            <span style="font-size: 11px; color: var(--text-muted);">Préférences</span>
+          </div>
+
+          <div class="notif-toggles-grid" style="display: flex; flex-direction: column; gap: 10px;">
+            <label class="notif-switch-row" style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none;">
+              <div>
+                <strong style="font-size: 12.5px; display: block; color: var(--text-main);">🌱 Nouvelles opportunités</strong>
+                <span style="font-size: 11px; color: var(--text-muted);">Financements & subventions publiés</span>
+              </div>
+              <input type="checkbox" id="prefNotifFinancement" class="notif-ios-switch" checked>
+            </label>
+
+            <label class="notif-switch-row" style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none;">
+              <div>
+                <strong style="font-size: 12.5px; display: block; color: var(--text-main);">⏳ Dates limites</strong>
+                <span style="font-size: 11px; color: var(--text-muted);">Alertes à J-3 et veille de clôture</span>
+              </div>
+              <input type="checkbox" id="prefNotifDateLimite" class="notif-ios-switch" checked>
+            </label>
+
+            <label class="notif-switch-row" style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none;">
+              <div>
+                <strong style="font-size: 12.5px; display: block; color: var(--text-main);">💡 Conseil du jour</strong>
+                <span style="font-size: 11px; color: var(--text-muted);">Guides & astuces agronomiques</span>
+              </div>
+              <input type="checkbox" id="prefNotifConseil" class="notif-ios-switch" checked>
+            </label>
+
+            <label class="notif-switch-row" style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none;">
+              <div>
+                <strong style="font-size: 12.5px; display: block; color: var(--text-main);">🌦️ Alertes météo</strong>
+                <span style="font-size: 11px; color: var(--text-muted);">Vigilance forte chaleur, vent et pluie</span>
+              </div>
+              <input type="checkbox" id="prefNotifMeteo" class="notif-ios-switch" checked>
+            </label>
           </div>
         </div>
 
@@ -2688,6 +2763,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <!-- SCRIPT APPLICATION -->
-  <script src="scripts/app.js?v=20261019.15"></script>
+  <script src="scripts/app.js?v=20261019.20"></script>
 </body>
 </html>

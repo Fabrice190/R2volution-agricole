@@ -71,6 +71,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const pageAdminModeles = document.getElementById('pageAdminModeles');
   const pageParcelles = document.getElementById('pageParcelles');
   const pageMeteo = document.getElementById('pageMeteo');
+  const pageNotifications = document.getElementById('pageNotifications');
+  const btnNotifications = document.getElementById('btnNotifications');
+  const btnMarkAllNotifsRead = document.getElementById('btnMarkAllNotifsRead');
+  const notificationsListContainer = document.getElementById('notificationsListContainer');
+  const notifBadgeCount = document.getElementById('notifBadgeCount');
   const dashboardContent = document.getElementById('dashboardContent');
   const modalManageFinancement = document.getElementById('modalManageFinancement');
   const modalFinancementDetails = document.getElementById('modalFinancementDetails');
@@ -1625,9 +1630,9 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="mobile-header-actions">
           <button class="btn-mobile-expense-pill" id="btnMobileAddExpense" title="Ajouter une dépense">+ Dépense</button>
           <button class="btn-mobile-revenue-pill" id="btnMobileAddRevenue" title="Enregistrer une vente">+ Vente</button>
-          <button class="icon-btn mobile-icon-btn" id="btnMobileNotif" aria-label="Notifications" style="width: 30px; height: 30px;">
+          <button class="icon-btn mobile-icon-btn" id="btnMobileNotif" aria-label="Notifications" style="width: 30px; height: 30px; position: relative;">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/></svg>
-            <span class="notification-badge-dot"></span>
+            <span class="notification-badge-count hidden" id="mobileNotifBadgeCount"></span>
           </button>
           <img src="${data.avatar}" alt="Avatar" class="mobile-user-avatar" id="btnMobileAvatarOpenDrawer" style="cursor: pointer; width: 30px; height: 30px;">
         </div>
@@ -1640,7 +1645,8 @@ document.addEventListener('DOMContentLoaded', () => {
           (currentRoutePage === 'admin-conseils' ? getMobileAdminConseilsHtml() :
           (currentRoutePage === 'admin-modeles' ? getMobileAdminModelesHtml() :
           (currentRoutePage === 'parcelles' ? getMobileParcellesHtml() :
-          (currentRoutePage === 'meteo' ? getMobileMeteoHtml() : `
+          (currentRoutePage === 'meteo' ? getMobileMeteoHtml() :
+          (currentRoutePage === 'notifications' ? getMobileNotificationsHtml() : `
         <!-- Salutation -->
         <div>
           <h2 class="mobile-greeting">Bonjour, ${data.name.split(' ')[0]} ${isPro ? '<span class="user-badge-pro" style="font-size: 10px; vertical-align: middle;">⭐ PRO</span>' : '<span class="greeting-emoji">🌱</span>'}</h2>
@@ -1724,7 +1730,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <span>mai</span><span>juin</span><span>juil</span><span>août</span><span>sept</span><span style="font-weight: 700; color: #1E5E2A;">oct</span>
           </div>
         </div>
-        `))))))}
+        `))))))) }
       </div>
 
       <!-- BOUTON D'ACTION FLOTTANT (+) MOBILE -->
@@ -1822,6 +1828,35 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
+    // Cloche notifications mobile
+    const btnMobNotif = document.getElementById('btnMobileNotif');
+    if (btnMobNotif) {
+      btnMobNotif.addEventListener('click', () => {
+        window.location.hash = 'notifications';
+        navigateToPage('notifications');
+      });
+    }
+
+    // Tout lire mobile
+    const btnMobileMarkAllRead = document.getElementById('btnMobileMarkAllRead');
+    if (btnMobileMarkAllRead) {
+      btnMobileMarkAllRead.addEventListener('click', markAllNotificationsAsRead);
+    }
+
+    // Cartes notifications mobile
+    document.querySelectorAll('.mobile-notif-card').forEach(card => {
+      card.addEventListener('click', async () => {
+        const notifId = card.getAttribute('data-notif-id');
+        const lien = card.getAttribute('data-lien') || '#dashboard';
+        await markNotificationAsRead(notifId);
+        const targetRoute = lien.replace(/^#/, '');
+        if (targetRoute) {
+          window.location.hash = targetRoute;
+          navigateToPage(targetRoute);
+        }
+      });
+    });
+
     const btnMobExp = document.getElementById('btnMobileAddExpense');
     if (btnMobExp) {
       btnMobExp.addEventListener('click', () => {
@@ -1842,7 +1877,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const href = link.getAttribute('href');
         if (href && href.startsWith('#')) {
           const target = href.replace(/^#/, '');
-          if (target === 'opportunites' || target === 'admin-financements' || target === 'conseils' || target === 'admin-conseils' || target === 'admin-modeles' || target === 'parcelles' || target === 'cycles' || target === 'dashboard' || target === 'meteo') {
+          if (target === 'opportunites' || target === 'admin-financements' || target === 'conseils' || target === 'admin-conseils' || target === 'admin-modeles' || target === 'parcelles' || target === 'cycles' || target === 'dashboard' || target === 'meteo' || target === 'notifications') {
             e.preventDefault();
             closeMobileDrawer();
             const routeTarget = (target === 'cycles') ? 'parcelles' : target;
@@ -3788,6 +3823,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (pageAdminModeles) pageAdminModeles.classList.toggle('hidden', page !== 'admin-modeles');
     if (pageParcelles) pageParcelles.classList.toggle('hidden', page !== 'parcelles');
     if (pageMeteo) pageMeteo.classList.toggle('hidden', page !== 'meteo');
+    if (pageNotifications) pageNotifications.classList.toggle('hidden', page !== 'notifications');
     if (dashboardContent) dashboardContent.classList.toggle('hidden', page !== 'dashboard');
 
     document.querySelectorAll('.sidebar-nav .nav-item').forEach(item => {
@@ -3821,6 +3857,8 @@ document.addEventListener('DOMContentLoaded', () => {
       } else {
         loadAndRenderWeather();
       }
+    } else if (page === 'notifications') {
+      renderNotificationsPage();
     }
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -3842,6 +3880,8 @@ document.addEventListener('DOMContentLoaded', () => {
       navigateToPage('parcelles');
     } else if (hash === 'meteo' || hash === 'meteo-details') {
       navigateToPage('meteo');
+    } else if (hash === 'notifications') {
+      navigateToPage('notifications');
     } else if (hash === 'dashboard' || hash === '') {
       navigateToPage('dashboard');
     }
@@ -3855,7 +3895,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const href = link.getAttribute('href');
       if (href && href.startsWith('#')) {
         const page = href.replace(/^#/, '');
-        if (page === 'opportunites' || page === 'admin-financements' || page === 'conseils' || page === 'admin-conseils' || page === 'admin-modeles' || page === 'parcelles' || page === 'cycles' || page === 'dashboard' || page === 'meteo') {
+        if (page === 'opportunites' || page === 'admin-financements' || page === 'conseils' || page === 'admin-conseils' || page === 'admin-modeles' || page === 'parcelles' || page === 'cycles' || page === 'dashboard' || page === 'meteo' || page === 'notifications') {
           e.preventDefault();
           const routeTarget = (page === 'cycles') ? 'parcelles' : page;
           window.location.hash = routeTarget;
@@ -4548,6 +4588,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         closeManageFinancementModal();
         await fetchFinancements();
+        if (typeof fetchNotifications === 'function') fetchNotifications().catch(() => {});
       } catch (err) {
         showToast('⚠️ Erreur', err.message || 'Impossible d\'enregistrer le financement.');
       } finally {
@@ -5241,6 +5282,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         closeManageConseilModal();
         await fetchConseils();
+        if (typeof fetchNotifications === 'function') fetchNotifications().catch(() => {});
       } catch (err) {
         console.error('Erreur enregistrement conseil :', err);
         showToast('Erreur', err.message || 'Impossible d\'enregistrer le conseil.', 'error');
@@ -7243,6 +7285,10 @@ document.addEventListener('DOMContentLoaded', () => {
       modalAccountEmail.textContent = currentData.phone || (currentAuthUser ? currentAuthUser.email : 'Compte connecté');
     }
 
+    if (typeof loadUserNotifPrefs === 'function') {
+      loadUserNotifPrefs();
+    }
+
     modalAuth.classList.remove('hidden');
   }
 
@@ -7878,14 +7924,10 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
       try {
-        const redirectUrl = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-          ? window.location.origin
-          : 'https://r2volution-agricole.vercel.app';
-
         const { error } = await supabaseClient.auth.signInWithOAuth({
           provider: 'google',
           options: {
-            redirectTo: redirectUrl
+            redirectTo: window.location.origin
           }
         });
         if (error) {
@@ -8038,6 +8080,423 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // ==========================================
+  // MODULE NOTIFICATIONS AUTOMATIQUES SUPABASE
+  // ==========================================
+  let currentNotifications = [];
+  let currentReadNotifIds = new Set();
+  let currentNotifPrefs = { financement: true, date_limite: true, conseil: true, meteo: true, info: true };
+
+  function loadUserNotifPrefs() {
+    const profileKey = currentAuthUser ? currentAuthUser.id : (currentProfileKey || 'default');
+    try {
+      const stored = localStorage.getItem('revolution_notif_prefs_' + profileKey);
+      if (stored) {
+        currentNotifPrefs = Object.assign({ financement: true, date_limite: true, conseil: true, meteo: true, info: true }, JSON.parse(stored));
+      } else {
+        currentNotifPrefs = { financement: true, date_limite: true, conseil: true, meteo: true, info: true };
+      }
+    } catch (e) {
+      currentNotifPrefs = { financement: true, date_limite: true, conseil: true, meteo: true, info: true };
+    }
+    syncNotifPrefCheckboxes();
+  }
+
+  function saveUserNotifPrefs() {
+    const profileKey = currentAuthUser ? currentAuthUser.id : (currentProfileKey || 'default');
+    try {
+      localStorage.setItem('revolution_notif_prefs_' + profileKey, JSON.stringify(currentNotifPrefs));
+    } catch (e) {}
+  }
+
+  function syncNotifPrefCheckboxes() {
+    const chkFin = document.getElementById('prefNotifFinancement');
+    const chkDate = document.getElementById('prefNotifDateLimite');
+    const chkCons = document.getElementById('prefNotifConseil');
+    const chkMet = document.getElementById('prefNotifMeteo');
+
+    if (chkFin) chkFin.checked = currentNotifPrefs.financement !== false;
+    if (chkDate) chkDate.checked = currentNotifPrefs.date_limite !== false;
+    if (chkCons) chkCons.checked = currentNotifPrefs.conseil !== false;
+    if (chkMet) chkMet.checked = currentNotifPrefs.meteo !== false;
+  }
+
+  ['prefNotifFinancement', 'prefNotifDateLimite', 'prefNotifConseil', 'prefNotifMeteo'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.addEventListener('change', () => {
+        const keyMap = {
+          prefNotifFinancement: 'financement',
+          prefNotifDateLimite: 'date_limite',
+          prefNotifConseil: 'conseil',
+          prefNotifMeteo: 'meteo'
+        };
+        const prefKey = keyMap[id];
+        if (prefKey) {
+          currentNotifPrefs[prefKey] = el.checked;
+          saveUserNotifPrefs();
+          updateNotificationBadges();
+          if (currentRoutePage === 'notifications') {
+            renderNotificationsPage();
+          }
+        }
+      });
+    }
+  });
+
+  function getFilteredNotifications() {
+    return (currentNotifications || []).filter(n => {
+      if (n.type === 'financement' && currentNotifPrefs.financement === false) return false;
+      if (n.type === 'date_limite' && currentNotifPrefs.date_limite === false) return false;
+      if (n.type === 'conseil' && currentNotifPrefs.conseil === false) return false;
+      if (n.type === 'meteo' && currentNotifPrefs.meteo === false) return false;
+      return true;
+    });
+  }
+
+  function formatRelativeTime(dateInput) {
+    if (!dateInput) return '';
+    try {
+      const d = new Date(dateInput);
+      const now = new Date();
+      const diffSec = Math.floor((now - d) / 1000);
+
+      if (diffSec < 60) return "À l'instant";
+      const diffMin = Math.floor(diffSec / 60);
+      if (diffMin < 60) return `Il y a ${diffMin} min`;
+      const diffHours = Math.floor(diffMin / 60);
+      if (diffHours < 24) return `Il y a ${diffHours} h`;
+      const diffDays = Math.floor(diffHours / 24);
+      if (diffDays === 1) return "Hier";
+      if (diffDays < 7) return `Il y a ${diffDays} j`;
+
+      return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+    } catch (e) {
+      return '';
+    }
+  }
+
+  function updateNotificationBadges() {
+    const filtered = getFilteredNotifications();
+    const unreadCount = filtered.filter(n => !currentReadNotifIds.has(n.id)).length;
+
+    const notifBadge = document.getElementById('notifBadgeCount');
+    if (notifBadge) {
+      if (unreadCount > 0) {
+        notifBadge.textContent = unreadCount > 9 ? '9+' : unreadCount;
+        notifBadge.classList.remove('hidden');
+      } else {
+        notifBadge.classList.add('hidden');
+      }
+    }
+
+    const mobileNotifBadge = document.getElementById('mobileNotifBadgeCount');
+    if (mobileNotifBadge) {
+      if (unreadCount > 0) {
+        mobileNotifBadge.textContent = unreadCount > 9 ? '9+' : unreadCount;
+        mobileNotifBadge.classList.remove('hidden');
+      } else {
+        mobileNotifBadge.classList.add('hidden');
+      }
+    }
+  }
+
+  async function checkAndGenerateWeatherAlert() {
+    if (!cachedWeatherResult) return;
+    try {
+      const current = cachedWeatherResult.current;
+      const todayDaily = cachedWeatherResult.daily?.[0];
+      const tomorrowDaily = cachedWeatherResult.daily?.[1];
+
+      const alertsToday = computeWeatherAlerts(current, todayDaily);
+      const alertsTomorrow = tomorrowDaily ? computeWeatherAlerts(null, tomorrowDaily) : [];
+      const allAlerts = [...alertsToday, ...alertsTomorrow];
+
+      if (allAlerts.length === 0) return;
+
+      const topAlert = allAlerts[0];
+      const todayStr = (new Date()).toISOString().slice(0, 10);
+
+      const alreadyExists = currentNotifications.some(n => 
+        n.type === 'meteo' && 
+        n.created_at && 
+        n.created_at.slice(0, 10) === todayStr
+      );
+
+      if (!alreadyExists) {
+        const notifTitle = `Alerte météo : ${topAlert.level}`;
+        const notifMsg = `${topAlert.icon} ${topAlert.message}`;
+
+        const userId = currentAuthUser?.id || (currentProfileKey !== 'invite' ? currentProfileKey : null);
+        if (userId && supabaseClient) {
+          const { data, error } = await supabaseClient.from('notifications').insert({
+            type: 'meteo',
+            titre: notifTitle,
+            message: notifMsg,
+            lien: '#meteo',
+            profile_id: userId
+          }).select().single();
+
+          if (!error && data) {
+            currentNotifications.unshift(data);
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('⚠️ checkAndGenerateWeatherAlert :', e);
+    }
+  }
+
+  async function fetchNotifications() {
+    if (!supabaseClient) return;
+
+    try {
+      const { data: notifs, error } = await supabaseClient
+        .from('notifications')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.warn('⚠️ Erreur fetchNotifications :', error);
+        return;
+      }
+
+      currentNotifications = notifs || [];
+
+      const userId = currentAuthUser?.id || (currentProfileKey !== 'invite' ? currentProfileKey : null);
+      if (userId) {
+        const { data: lues, error: luesErr } = await supabaseClient
+          .from('notifications_lues')
+          .select('notification_id')
+          .eq('profile_id', userId);
+
+        if (!luesErr && lues) {
+          currentReadNotifIds = new Set(lues.map(l => l.notification_id));
+        }
+      } else {
+        currentReadNotifIds = new Set();
+      }
+
+      loadUserNotifPrefs();
+      await checkAndGenerateWeatherAlert();
+      updateNotificationBadges();
+
+      if (currentRoutePage === 'notifications') {
+        renderNotificationsPage();
+      }
+    } catch (err) {
+      console.error('Erreur chargement notifications :', err);
+    }
+  }
+
+  async function markNotificationAsRead(notifId) {
+    if (!notifId || currentReadNotifIds.has(notifId)) return;
+
+    currentReadNotifIds.add(notifId);
+    updateNotificationBadges();
+    if (currentRoutePage === 'notifications') {
+      renderNotificationsPage();
+    }
+
+    const userId = currentAuthUser?.id || (currentProfileKey !== 'invite' ? currentProfileKey : null);
+    if (userId && supabaseClient) {
+      try {
+        await supabaseClient.from('notifications_lues').upsert({
+          profile_id: userId,
+          notification_id: notifId,
+          lu_le: new Date().toISOString()
+        });
+      } catch (e) {
+        console.warn('⚠️ Erreur marquage notif lue :', e);
+      }
+    }
+  }
+
+  async function markAllNotificationsAsRead() {
+    const filtered = getFilteredNotifications();
+    const unread = filtered.filter(n => !currentReadNotifIds.has(n.id));
+
+    if (unread.length === 0) {
+      showToast('Notifications', 'Toutes vos notifications sont déjà lues.');
+      return;
+    }
+
+    unread.forEach(n => currentReadNotifIds.add(n.id));
+    updateNotificationBadges();
+    if (currentRoutePage === 'notifications') {
+      renderNotificationsPage();
+    }
+    showToast('Tout marqué comme lu', `${unread.length} notification(s) marquée(s) comme lue(s).`);
+
+    const userId = currentAuthUser?.id || (currentProfileKey !== 'invite' ? currentProfileKey : null);
+    if (userId && supabaseClient) {
+      try {
+        const rows = unread.map(n => ({
+          profile_id: userId,
+          notification_id: n.id,
+          lu_le: new Date().toISOString()
+        }));
+        await supabaseClient.from('notifications_lues').upsert(rows);
+      } catch (e) {
+        console.warn('⚠️ Erreur markAllNotificationsAsRead Supabase :', e);
+      }
+    }
+  }
+
+  function renderNotificationsPage() {
+    const container = document.getElementById('notificationsListContainer');
+    if (!container) return;
+
+    const filtered = getFilteredNotifications();
+
+    if (filtered.length === 0) {
+      container.innerHTML = `
+        <div class="notif-empty-state">
+          <div class="notif-empty-icon">🔔</div>
+          <h3 class="notif-empty-title">Aucune notification pour le moment</h3>
+          <p class="notif-empty-sub">Vous recevrez ici les nouvelles subventions ministérielles, les échéances de dépôt, les conseils de saison et les alertes météo en direct.</p>
+        </div>
+      `;
+      return;
+    }
+
+    const iconsByType = {
+      financement: '🌱',
+      date_limite: '⏳',
+      conseil: '💡',
+      meteo: '🌦️',
+      info: '📢'
+    };
+
+    const labelsByType = {
+      financement: 'Opportunité',
+      date_limite: 'Échéance',
+      conseil: 'Conseil',
+      meteo: 'Météo',
+      info: 'Info'
+    };
+
+    container.innerHTML = filtered.map(notif => {
+      const isRead = currentReadNotifIds.has(notif.id);
+      const icon = iconsByType[notif.type] || '🔔';
+      const tag = labelsByType[notif.type] || notif.type;
+      const timeStr = formatRelativeTime(notif.created_at);
+
+      return `
+        <div class="notif-card ${isRead ? 'read' : 'unread'} type-${notif.type}" data-notif-id="${notif.id}" data-lien="${notif.lien || '#dashboard'}">
+          <div class="notif-icon-box type-${notif.type}">
+            ${icon}
+          </div>
+          <div class="notif-body">
+            <div class="notif-header-line">
+              <h4 class="notif-title">${escapeHtml(notif.titre)}</h4>
+              <span class="notif-time">${timeStr}</span>
+            </div>
+            <p class="notif-message">${escapeHtml(notif.message)}</p>
+            <div class="notif-footer">
+              <span class="notif-badge-tag">${tag}</span>
+              ${!isRead ? '<span class="notif-unread-dot" title="Non lu"></span>' : ''}
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    container.querySelectorAll('.notif-card').forEach(card => {
+      card.addEventListener('click', async () => {
+        const notifId = card.getAttribute('data-notif-id');
+        const lien = card.getAttribute('data-lien') || '#dashboard';
+
+        await markNotificationAsRead(notifId);
+
+        const targetRoute = lien.replace(/^#/, '');
+        if (targetRoute) {
+          window.location.hash = targetRoute;
+          navigateToPage(targetRoute);
+        }
+      });
+    });
+  }
+
+  function getMobileNotificationsHtml() {
+    const filtered = getFilteredNotifications();
+    const iconsByType = {
+      financement: '🌱',
+      date_limite: '⏳',
+      conseil: '💡',
+      meteo: '🌦️',
+      info: '📢'
+    };
+
+    const labelsByType = {
+      financement: 'Opportunité',
+      date_limite: 'Échéance',
+      conseil: 'Conseil',
+      meteo: 'Météo',
+      info: 'Info'
+    };
+
+    return `
+      <div style="padding: 12px 14px 40px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
+          <div>
+            <h2 style="font-size: 18px; font-weight: 800; color: var(--primary-900); margin: 0;">🔔 Notifications</h2>
+            <span style="font-size: 11.5px; color: var(--text-dim);">Alertes & Opportunités réelles</span>
+          </div>
+          <button type="button" class="btn-secondary" id="btnMobileMarkAllRead" style="font-size: 11.5px; padding: 6px 10px;">
+            Tout lire
+          </button>
+        </div>
+
+        ${filtered.length === 0 ? `
+          <div class="notif-empty-state" style="padding: 40px 16px;">
+            <div class="notif-empty-icon" style="font-size: 36px;">🔔</div>
+            <h3 class="notif-empty-title" style="font-size: 15px;">Aucune notification</h3>
+            <p class="notif-empty-sub" style="font-size: 12px;">Vos alertes de financements, météo et conseils apparaîtront ici.</p>
+          </div>
+        ` : `
+          <div style="display: flex; flex-direction: column; gap: 10px;">
+            ${filtered.map(notif => {
+              const isRead = currentReadNotifIds.has(notif.id);
+              const icon = iconsByType[notif.type] || '🔔';
+              const tag = labelsByType[notif.type] || notif.type;
+              const timeStr = formatRelativeTime(notif.created_at);
+              return `
+                <div class="notif-card ${isRead ? 'read' : 'unread'} type-${notif.type} mobile-notif-card" data-notif-id="${notif.id}" data-lien="${notif.lien || '#dashboard'}" style="padding: 12px 14px;">
+                  <div class="notif-icon-box type-${notif.type}" style="width: 36px; height: 36px; font-size: 17px;">
+                    ${icon}
+                  </div>
+                  <div class="notif-body">
+                    <div class="notif-header-line">
+                      <h4 class="notif-title" style="font-size: 13.5px;">${escapeHtml(notif.titre)}</h4>
+                      <span class="notif-time" style="font-size: 10.5px;">${timeStr}</span>
+                    </div>
+                    <p class="notif-message" style="font-size: 12px; margin-bottom: 4px;">${escapeHtml(notif.message)}</p>
+                    <div class="notif-footer">
+                      <span class="notif-badge-tag" style="font-size: 9.5px;">${tag}</span>
+                      ${!isRead ? '<span class="notif-unread-dot"></span>' : ''}
+                    </div>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        `}
+      </div>
+    `;
+  }
+
+  if (btnNotifications) {
+    btnNotifications.addEventListener('click', () => {
+      window.location.hash = 'notifications';
+      navigateToPage('notifications');
+    });
+  }
+
+  if (btnMarkAllNotifsRead) {
+    btnMarkAllNotifsRead.addEventListener('click', markAllNotificationsAsRead);
+  }
+
   // 8. INITIALISATION AU CHARGEMENT DE LA PAGE
   async function initAppAuth() {
     const loadingScreen = document.getElementById('appLoadingScreen');
@@ -8062,12 +8521,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
 
-      // Charger les financements, conseils, modèles, régions et météo en tâche de fond dès le démarrage
+      // Charger les financements, conseils, modèles, régions, météo et notifications en tâche de fond dès le démarrage
       fetchFinancements().catch(() => {});
       fetchConseils().catch(() => {});
       fetchModelesCultures().catch(() => {});
       fetchRegions().catch(() => {});
       loadAndRenderWeather().catch(() => {});
+      fetchNotifications().catch(() => {});
 
       if (sessionUser) {
         await checkUserProfileAndProceed(sessionUser);
@@ -8075,6 +8535,7 @@ document.addEventListener('DOMContentLoaded', () => {
         await fetchConseils();
         await fetchModelesCultures();
         await fetchRegions();
+        await fetchNotifications();
         await fetchUserParcels(currentProfileKey);
         handleRoute();
       } else {
