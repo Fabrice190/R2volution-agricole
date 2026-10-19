@@ -513,7 +513,18 @@ Depuis la version 2.9, l'application est entièrement Full Stack connectée au p
   - Bouton « 🔊 Écouter » lisant le bilan complet en français pour les exploitants peu lettrés (sans abréviation : strictly « francs CFA »).
   - Modales d'ajout de dépense et de vente proposant le rattachement facultatif à une culture (`crop_cycle_id`).
 
+### R. Lien Culture ↔ Modèle & Choix « Autre Culture » (v5.6)
+- **Lien Culture ↔ Modèle (Point 1)** :
+  - Colonne `modele_id` (uuid, nullable, clé étrangère vers `public.modeles_cultures(id) ON DELETE SET NULL`) dans `public.crop_cycles`.
+  - Lors de l'enregistrement d'une culture avec un modèle agronomique sélectionné, l'identifiant du modèle est persisté dans `modele_id`.
+  - Conservation intégrale des règles RLS et données existantes.
+- **Choix « Autre culture (pas dans la liste) » (Point 2)** :
+  - Ajout en dernière position du sélecteur de modèle de l'option « ✏️ Autre culture (pas dans la liste) ».
+  - Si cette option est choisie : `modele_id` reste nul (`null`), le producteur saisit librement le nom de sa culture et choisit sa catégorie.
+  - Affichage clair et pédagogique : *« Nous ne connaissons pas encore la durée de cette culture. Indiquez vous-même la date de récolte prévue. »*, lisible à voix haute via « 🔊 Écouter ».
+  - Dans l'espace administrateur « Gérer les modèles de cultures », une section *« 📋 Cultures déclarées par les producteurs »* recense les cultures saisies librement avec le nombre de producteurs distincts, et un bouton d'action directe *« ➕ Créer modèle »* pour pré-remplir la création du modèle agronomique correspondant.
+
 ---
 
-*Fin du document de spécification système — Version 5.5 • Révolution Agricole Burkina Faso.*
+*Fin du document de spécification système — Version 5.6 • Révolution Agricole Burkina Faso.*
 

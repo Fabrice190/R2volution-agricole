@@ -5835,11 +5835,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const modeleSelect = document.getElementById('cropCycleModeleSelect');
     if (modeleSelect) {
       const activeModeles = (cachedModelesCultures || []).filter(m => m.actif);
-      modeleSelect.innerHTML = '<option value="">-- Aucun modèle (saisie libre manuelle) --</option>' +
+      modeleSelect.innerHTML = '<option value="">-- Choisir un modèle --</option>' +
         activeModeles.map(m => {
           const label = m.variete && m.variete.trim() ? `${m.nom_culture} – ${m.variete.trim()}` : m.nom_culture;
           return `<option value="${m.id}">${escapeHtml(label)}</option>`;
-        }).join('');
+        }).join('') +
+        '<option value="autre_culture">✏️ Autre culture (pas dans la liste)</option>';
 
       if (preselectedModelId) {
         modeleSelect.value = preselectedModelId;
@@ -6000,7 +6001,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const harvestDate = document.getElementById('cropCycleHarvestDate')?.value || null;
     let parcelId = document.getElementById('cropCycleParcelSelect')?.value;
     const rawModelId = document.getElementById('cropCycleModeleSelect')?.value;
-    const modeleId = (rawModelId && rawModelId.trim() !== '') ? rawModelId.trim() : null;
+    const modeleId = (rawModelId && rawModelId.trim() !== '' && rawModelId !== 'autre_culture') ? rawModelId.trim() : null;
 
     if (!cropName) {
       alert('Veuillez renseigner le nom de la culture.');
@@ -6309,7 +6310,106 @@ document.addEventListener('DOMContentLoaded', () => {
     }).join('');
   }
 
+  let cachedDeclaredCrops = [];
+
+  async function fetchAndRenderDeclaredCrops() {
+    const listEl = document.getElementById('declaredCropsList');
+    const badgeEl = document.getElementById('declaredCropsCountBadge');
+    if (!listEl) return;
+
+    if (!supabaseClient) {
+      listEl.innerHTML = '<p style="font-size: 13px; color: #6E7C74; margin: 8px 0;">Connexion non disponible.</p>';
+      return;
+    }
+
+    try {
+      const { data, error } = await supabaseClient
+        .from('crop_cycles')
+        .select('crop_name, profile_id')
+        .is('modele_id', null);
+
+      if (error) {
+        console.warn('Cultures déclarées :', error);
+        listEl.innerHTML = '<p style="font-size: 13px; color: #718096; margin: 8px 0;">Aucune culture déclarée disponible ou accès restreint.</p>';
+        return;
+      }
+
+      const map = new Map();
+      (data || []).forEach(row => {
+        const rawName = (row.crop_name || '').trim();
+        if (!rawName) return;
+        const key = rawName.toLowerCase();
+        if (!map.has(key)) {
+          map.set(key, {
+            displayName: rawName,
+            producers: new Set()
+          });
+        }
+        if (row.profile_id) {
+          map.get(key).producers.add(row.profile_id);
+        }
+      });
+
+      const items = Array.from(map.values()).map(entry => ({
+        name: entry.displayName,
+        count: entry.producers.size || 1
+      }));
+
+      items.sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+      cachedDeclaredCrops = items;
+
+      if (badgeEl) {
+        badgeEl.textContent = items.length;
+      }
+
+      if (items.length === 0) {
+        listEl.innerHTML = `
+          <div style="padding: 12px 14px; background: #F8FAF7; border-radius: 8px; color: #5D6C63; font-size: 13px; text-align: center;">
+            ✨ Aucune culture déclarée sans modèle pour le moment.
+          </div>
+        `;
+        return;
+      }
+
+      listEl.innerHTML = `
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; margin-top: 10px;">
+          ${items.map(item => `
+            <div style="display: flex; align-items: center; justify-content: space-between; background: #F9FBFA; border: 1px solid #E1EBE2; border-radius: 8px; padding: 10px 14px;">
+              <div>
+                <strong style="display: block; font-size: 14px; color: #1E2822;">🌱 ${escapeHtml(item.name)}</strong>
+                <span style="font-size: 11.5px; color: #5D6C63;">
+                  👥 ${item.count} producteur${item.count > 1 ? 's' : ''}
+                </span>
+              </div>
+              <button type="button" class="btn-table-action" onclick="window.openAddModeleWithName('${escapeHtml(item.name.replace(/'/g, "\\'"))}')" style="font-size: 11.5px; padding: 4px 10px; cursor: pointer; color: #1E5E2A; font-weight: 700; border-color: #B8D8B2;">
+                ➕ Créer modèle
+              </button>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    } catch (err) {
+      console.error('Erreur fetchAndRenderDeclaredCrops :', err);
+      listEl.innerHTML = '<p style="font-size: 13px; color: #E53E3E; margin: 8px 0;">Erreur lors du chargement des cultures déclarées.</p>';
+    }
+  }
+
+  function openAddModeleWithName(cropName) {
+    openManageModeleModal();
+    const nomInput = document.getElementById('modeleNomCulture');
+    if (nomInput && cropName) {
+      nomInput.value = cropName;
+      nomInput.focus();
+    }
+  }
+
+  window.openAddModeleWithName = openAddModeleWithName;
+  window.openManageModeleModal = openManageModeleModal;
+  window.toggleModeleActive = toggleModeleActive;
+  window.deleteCropCycle = deleteCropCycle;
+
   function renderAdminModeles() {
+    fetchAndRenderDeclaredCrops();
     const listEl = document.getElementById('adminModelesList');
     const emptyEl = document.getElementById('adminModelesEmpty');
     const bAll = document.getElementById('badgeModeleCountAll');
@@ -6608,6 +6708,29 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
         `).join('')}
       </div>
+
+      ${cachedDeclaredCrops && cachedDeclaredCrops.length > 0 ? `
+        <div style="margin-top: 16px; background: #FFFFFF; border: 1px solid #E1EBE2; border-radius: 12px; padding: 14px 16px;">
+          <h3 style="font-size: 14px; font-weight: 800; color: #1E2822; margin: 0 0 4px; display: flex; align-items: center; justify-content: space-between;">
+            <span>📋 Cultures déclarées par les producteurs</span>
+            <span class="nav-pill-count" style="background: #EAF4E6; color: #1E5E2A;">${cachedDeclaredCrops.length}</span>
+          </h3>
+          <p style="font-size: 11.5px; color: #5D6C63; margin: 0 0 10px;">Cultures saisies librement sans modèle.</p>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            ${cachedDeclaredCrops.map(item => `
+              <div style="display: flex; align-items: center; justify-content: space-between; background: #F9FBFA; border: 1px solid #E1EBE2; border-radius: 8px; padding: 8px 12px;">
+                <div>
+                  <strong style="display: block; font-size: 13px; color: #1E2822;">🌱 ${escapeHtml(item.name)}</strong>
+                  <span style="font-size: 11px; color: #5D6C63;">👥 ${item.count} producteur${item.count > 1 ? 's' : ''}</span>
+                </div>
+                <button type="button" class="btn-table-action" onclick="openAddModeleWithName('${escapeHtml(item.name.replace(/'/g, "\\'"))}')" style="font-size: 11px; padding: 4px 8px; cursor: pointer; color: #1E5E2A; font-weight: 700; border-color: #B8D8B2;">
+                  ➕ Créer
+                </button>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      ` : ''}
     `;
   }
 
@@ -6796,6 +6919,32 @@ document.addEventListener('DOMContentLoaded', () => {
         if (dateLabel) dateLabel.textContent = 'Date de semis';
         return;
       }
+      if (modelId === 'autre_culture') {
+        const nameInput = document.getElementById('cropCycleName');
+        const harvestInput = document.getElementById('cropCycleHarvestDate');
+        const forecastBox = document.getElementById('cropCycleForecastBox');
+        const repiqRow = document.getElementById('cropForecastRepiquageRow');
+        const harvestText = document.getElementById('cropForecastHarvestText');
+        const adviceBox = document.getElementById('cropForecastAdviceBox');
+        const sourceBox = document.getElementById('cropForecastSourceBox');
+        const dateLabel = document.getElementById('cropCyclePlantingDateLabel');
+
+        if (dateLabel) dateLabel.textContent = 'Date de semis';
+        if (repiqRow) repiqRow.classList.add('hidden');
+        if (adviceBox) adviceBox.classList.add('hidden');
+        if (sourceBox) sourceBox.classList.add('hidden');
+        if (harvestInput) harvestInput.value = '';
+        if (nameInput) {
+          nameInput.value = '';
+          nameInput.placeholder = 'Tapez le nom de votre culture...';
+          nameInput.focus();
+        }
+        if (harvestText) {
+          harvestText.innerHTML = `<span class="forecast-warning-tag" style="display: block; color: #8D5B15; background: #FFF8E1; padding: 8px 12px; border-radius: 6px; font-weight: 600; font-size: 13px; line-height: 1.45;">Nous ne connaissons pas encore la durée de cette culture. Indiquez vous-même la date de récolte prévue.</span>`;
+        }
+        if (forecastBox) forecastBox.classList.remove('hidden');
+        return;
+      }
       const model = cachedModelesCultures.find(m => String(m.id) === String(modelId));
       if (model) {
         applySelectedModelToForm(model);
@@ -6807,7 +6956,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (cropCyclePlantingDate) {
     cropCyclePlantingDate.addEventListener('input', () => {
       const modelId = document.getElementById('cropCycleModeleSelect')?.value;
-      if (modelId) {
+      if (modelId && modelId !== 'autre_culture') {
         const model = cachedModelesCultures.find(m => String(m.id) === String(modelId));
         if (model) updateCropCycleCalculations(model);
       }
