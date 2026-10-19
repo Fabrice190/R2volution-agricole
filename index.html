@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
   
-  <link rel="stylesheet" href="styles/main.css?v=20261019.2">
+  <link rel="stylesheet" href="styles/main.css?v=20261018.2">
 </head>
 <body class="theme-light">
   <!-- BANDEAU DISCRET ADMIN (Visible uniquement en mode Admin) -->
@@ -1257,10 +1257,7 @@
               <h2 class="fin-main-title">🌾 Mes Parcelles & Cultures</h2>
               <p class="fin-subtitle">Suivez vos cultures en cours, vos parcelles et les dates prévues de repiquage et de récolte.</p>
             </div>
-            <div class="page-header-actions-group" style="display: flex; gap: 8px; flex-wrap: wrap;">
-              <button type="button" class="btn-secondary" id="btnOpenAddParcelPage" style="display: inline-flex; align-items: center; gap: 6px; cursor: pointer;">
-                <span>📍 + Ajouter une parcelle</span>
-              </button>
+            <div class="page-header-actions-group">
               <button type="button" class="btn-primary" id="btnOpenAddCropCyclePage">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                 <span>+ Ajouter une culture</span>
@@ -1276,7 +1273,7 @@
               <span class="comparison-text">Suivi actif</span>
             </div>
             <div class="stat-card" style="border-left: 4px solid #C8862A;">
-              <span class="stat-label">PARCELLES DÉCLARÉES</span>
+              <span class="stat-label">PARCELLES CONNECTÉES</span>
               <strong class="stat-value" id="parcellesTotalArea">0</strong>
               <span class="comparison-text" id="parcellesTotalAreaSub">Superficie déclarée</span>
             </div>
@@ -1284,28 +1281,6 @@
               <span class="stat-label">PROCHAINE RÉCOLTE</span>
               <strong class="stat-value" id="parcellesNextHarvest" style="font-size: 15px; font-weight: 800;">--</strong>
               <span class="comparison-text">Date prévisionnelle</span>
-            </div>
-          </div>
-
-          <!-- Section des Parcelles Déclarées -->
-          <div class="parcelles-section" style="margin-bottom: 24px; background: #FFF; border: 1px solid #E6EAE3; border-radius: 12px; padding: 16px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-              <h3 style="font-size: 15px; font-weight: 700; color: #1E2822; margin: 0; display: flex; align-items: center; gap: 6px;">
-                <span>📍 Vos Parcelles</span>
-                <span id="parcellesCountBadge" class="nav-pill-count" style="margin-left: 4px;">0</span>
-              </h3>
-              <button type="button" id="btnQuickAddParcelSection" style="font-size: 12.5px; font-weight: 700; color: #1E5E2A; background: none; border: none; cursor: pointer; text-decoration: underline;">
-                + Nouvelle parcelle
-              </button>
-            </div>
-            <div id="parcellesCardsGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px;">
-              <!-- Injecté dynamiquement par JavaScript -->
-            </div>
-            <div id="parcellesEmptyNotice" class="hidden" style="text-align: center; padding: 18px; background: #FAFBF9; border-radius: 8px; border: 1.5px dashed #D5E0D5;">
-              <p style="margin: 0 0 8px; font-size: 13.5px; color: #5D6C63; font-weight: 600;">Vous n'avez pas encore de parcelle. Ajoutez votre première parcelle.</p>
-              <button type="button" class="btn-primary" id="btnEmptyNoticeAddParcel" style="font-size: 12.5px; padding: 6px 14px; cursor: pointer;">
-                + Ajouter ma première parcelle
-              </button>
             </div>
           </div>
 
@@ -2344,58 +2319,6 @@
     </div>
   </div>
 
-  <!-- ==================== MODALE AJOUTER UNE PARCELLE ==================== -->
-  <div class="modal-backdrop hidden" id="modalAddParcel">
-    <div class="modal-dialog modal-dialog-financement">
-      <div class="modal-header">
-        <div class="modal-title-wrap">
-          <span class="modal-icon bg-green">📍</span>
-          <div>
-            <h3 class="modal-title">Ajouter une parcelle</h3>
-            <p class="modal-subtitle">Enregistrez une parcelle pour y suivre vos cycles culturaux et récoltes.</p>
-          </div>
-        </div>
-        <button class="modal-close-btn" id="btnCloseAddParcel">&times;</button>
-      </div>
-
-      <form id="formAddParcel" class="modal-form" autocomplete="off">
-        <div class="form-group">
-          <label for="parcelName">Nom ou identifiant de la parcelle <span class="required">*</span></label>
-          <input type="text" id="parcelName" class="form-input" placeholder="Ex: Bas-fond, Parcelle Nord, Champ du barrage..." required>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group flex-1">
-            <label for="parcelArea">Superficie (en hectares) <span class="required">*</span></label>
-            <input type="number" id="parcelArea" class="form-input" placeholder="Ex: 1.0" step="0.01" min="0.01" required>
-          </div>
-          <div class="form-group flex-1">
-            <label for="parcelIrrigation">Système d'irrigation <span class="required">*</span></label>
-            <select id="parcelIrrigation" class="form-select" required>
-              <option value="Irrigué (Goutte-à-goutte)" selected>Goutte-à-goutte</option>
-              <option value="Irrigué (Californien / Tuyaux)">Californien / Tuyaux</option>
-              <option value="Irrigué (Puits / Motopompe)">Puits / Motopompe</option>
-              <option value="Pluviale / Sans irrigation">Pluviale (Saison des pluies)</option>
-              <option value="Autre système">Autre système</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label for="parcelLocation">Localisation ou village <small style="color: var(--text-muted);">(facultatif)</small></label>
-          <input type="text" id="parcelLocation" class="form-input" placeholder="Ex: Koudougou secteur 4, Ramongo, Vallée du Kou...">
-        </div>
-
-        <div class="modal-footer">
-          <button type="button" class="btn-secondary" id="btnCancelAddParcel">Annuler</button>
-          <button type="submit" class="btn-primary" id="btnSubmitAddParcel">
-            <span id="btnSubmitAddParcelText">Enregistrer la parcelle</span>
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-
   <!-- ==================== MODALE AJOUTER UNE CULTURE (AVEC MODÈLES) ==================== -->
   <div class="modal-backdrop hidden" id="modalAddCropCycle">
     <div class="modal-dialog modal-dialog-financement">
@@ -2425,24 +2348,8 @@
         </div>
 
         <!-- 2. Parcelle de rattachement -->
-        <div class="form-group" id="cropCycleParcelGroup">
-          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
-            <label for="cropCycleParcelSelect" style="margin-bottom: 0;">Parcelle de rattachement <span class="required">*</span></label>
-            <button type="button" id="btnOpenAddParcelFromCropModal" style="font-size: 12px; color: #1E5E2A; font-weight: 700; background: none; border: none; cursor: pointer; text-decoration: underline;">
-              + Nouvelle parcelle
-            </button>
-          </div>
-
-          <!-- Message si l'utilisateur n'a aucune parcelle -->
-          <div id="cropModalNoParcelNotice" class="hidden" style="background: #FFF8E1; border: 1.5px dashed #C8862A; border-radius: 8px; padding: 12px 14px; text-align: center; margin-bottom: 8px;">
-            <p style="margin: 0 0 8px; font-size: 13px; color: #8D5B15; font-weight: 600;">
-              Vous n'avez pas encore de parcelle. Ajoutez votre première parcelle.
-            </p>
-            <button type="button" class="btn-primary" id="btnCropModalCreateFirstParcel" style="font-size: 12px; padding: 6px 14px; margin: 0 auto; display: inline-flex; cursor: pointer;">
-              📍 Ajouter ma première parcelle
-            </button>
-          </div>
-
+        <div class="form-group">
+          <label for="cropCycleParcelSelect">Parcelle de rattachement <span class="required">*</span></label>
           <select id="cropCycleParcelSelect" class="form-select" required>
             <!-- Rempli dynamiquement avec les parcelles de l'utilisateur -->
           </select>
@@ -2458,9 +2365,8 @@
             <select id="cropCycleCategory" class="form-select" required>
               <option value="maraîchage" selected>Maraîchage</option>
               <option value="céréales">Céréales</option>
-              <option value="légumineuses">Légumineuses</option>
-              <option value="oléagineux">Oléagineux</option>
               <option value="élevage">Élevage</option>
+              <option value="légumineuses">Légumineuses</option>
               <option value="tubercules">Tubercules</option>
               <option value="arboriculture">Arboriculture</option>
               <option value="autre">Autre</option>
@@ -2496,7 +2402,7 @@
             <span class="forecast-bullet">🌱</span>
             <div class="forecast-text-wrap">
               <span class="forecast-label">Période de repiquage :</span>
-              <strong class="forecast-val" id="cropForecastRepiquageText">Repiquage prévu : calcul en cours...</strong>
+              <strong class="forecast-val" id="cropForecastRepiquageText">Repiquage prévu entre le ... et le ...</strong>
             </div>
           </div>
 
@@ -2505,7 +2411,7 @@
             <span class="forecast-bullet">🌾</span>
             <div class="forecast-text-wrap">
               <span class="forecast-label">Période de récolte :</span>
-              <strong class="forecast-val" id="cropForecastHarvestText">Récolte prévue : calcul en cours...</strong>
+              <strong class="forecast-val" id="cropForecastHarvestText">Récolte prévue entre le ... et le ...</strong>
             </div>
           </div>
 
@@ -2652,6 +2558,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <!-- SCRIPT APPLICATION -->
-  <script src="scripts/app.js?v=20261019.7"></script>
+  <script src="scripts/app.js?v=20261018.2"></script>
 </body>
 </html>
