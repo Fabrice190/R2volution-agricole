@@ -489,7 +489,19 @@ Depuis la version 2.9, l'application est entièrement Full Stack connectée au p
   - Création et modification de modèles dans la modale `#modalManageModele` (saisie des durées min/max, conseil court et source).
   - Action d'activation / désactivation en 1 clic (`toggleModeleActive`).
 
+### S. Persistance & Sécurité RLS des Parcelles et Cultures (v5.5)
+- **Authentification stricte des insertions Supabase** :
+  - Les ajouts dans `public.parcels` et `public.crop_cycles` passent désormais impérativement par le client Supabase de l'utilisateur connecté via sa session active (`await supabaseClient.auth.getUser()`).
+  - Le `profile_id` est garanti être exactement `user.id` (`auth.uid()::text`), respectant sans exception la règle RLS `is_profile_owner_or_admin(profile_id)`.
+  - Si l'utilisateur n'a pas de session active ou si l'insertion échoue dans Supabase, aucun enregistrement local fictif (`parcel_...` ou `cycle_...`) n'est inventé ; un toast d'erreur clair est affiché : *« La parcelle n'a pas été enregistrée. Vérifiez votre connexion et réessayez. »* ou *« La culture n'a pas été enregistrée. Vérifiez votre connexion et réessayez. »*.
+- **Conformité stricte du schéma `public.crop_cycles`** :
+  - Colonnes insérées : `profile_id`, `parcel_id` (UUID valide vérifié), `crop_name`, `category`, `code`, `planting_date`, `estimated_harvest_date` (`null` si vide au lieu de chaîne vide `""`), `status`.
+  - Élimination des erreurs 400 causées par des cast UUID invalides ou des formats de dates vides.
+- **Restauration et persistance des données réelles** :
+  - Les fonctions de synchronisation (`fetchUserParcels` et `syncCropCyclesFromSupabase`) utilisent l'identifiant réel de l'utilisateur connecté et filtrent tout identifiant local obsolète, garantissant la persistance des vraies parcelles et cultures après fermeture et réouverture.
+
 ---
 
-*Fin du document de spécification système — Version 5.4 • Révolution Agricole Burkina Faso.*
+*Fin du document de spécification système — Version 5.5 • Révolution Agricole Burkina Faso.*
+
 

@@ -22,6 +22,11 @@ document.addEventListener('DOMContentLoaded', () => {
   // ==========================================
   // PROFILS UTILISATEURS AUTHENTIFIÉS (RÉEL SUPABASE AUTH)
   // ==========================================
+  function isValidUUID(str) {
+    if (!str || typeof str !== 'string') return false;
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str.trim());
+  }
+
   const PROFILES_DATA = {};
 
   // État applicatif courant
@@ -74,6 +79,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const formAddCropCycle = document.getElementById('formAddCropCycle');
   const modalManageModele = document.getElementById('modalManageModele');
   const formManageModele = document.getElementById('formManageModele');
+  const modalAddParcel = document.getElementById('modalAddParcel');
+  const formAddParcel = document.getElementById('formAddParcel');
 
   // Sélecteurs DOM clés
   const roleSelector = document.getElementById('roleSelector');
@@ -2129,17 +2136,45 @@ document.addEventListener('DOMContentLoaded', () => {
   async function syncCropCyclesFromSupabase(profileId = currentProfileKey) {
     if (!supabaseClient) return;
 
+    let pId = (currentAuthUser && currentAuthUser.id) || (profileId && profileId !== 'guest' ? profileId : null);
+    try {
+      const { data: userData } = await supabaseClient.auth.getUser();
+      if (userData?.user?.id) {
+        pId = userData.user.id;
+      }
+    } catch (e) {}
+
+    if (!pId || pId === 'guest') return;
+
     try {
       const { data, error } = await supabaseClient
         .from('crop_cycles')
         .select('*, parcels(name, area_ha, irrigation_type)')
-        .eq('profile_id', profileId)
+        .eq('profile_id', pId)
         .order('planting_date', { ascending: true });
 
-      if (!error && PROFILES_DATA[profileId]) {
-        PROFILES_DATA[profileId].realCycles = data || [];
-        if (data && data.length > 0) {
-          PROFILES_DATA[profileId].tableRows = data.map(item => {
+      let effectiveCycles = [];
+      if (!error && Array.isArray(data)) {
+        effectiveCycles = data.filter(c => isValidUUID(c.id));
+        try {
+          localStorage.setItem(`revolution_crop_cycles_${pId}`, JSON.stringify(effectiveCycles));
+        } catch (e) {}
+      } else {
+        try {
+          const local = localStorage.getItem(`revolution_crop_cycles_${pId}`);
+          if (local) {
+            const parsed = JSON.parse(local);
+            if (Array.isArray(parsed)) {
+              effectiveCycles = parsed.filter(c => isValidUUID(c.id));
+            }
+          }
+        } catch (e) {}
+      }
+
+      if (PROFILES_DATA[profileId]) {
+        PROFILES_DATA[profileId].realCycles = effectiveCycles;
+        if (effectiveCycles && effectiveCycles.length > 0) {
+          PROFILES_DATA[profileId].tableRows = effectiveCycles.map(item => {
             let dotClass = 'dot-green';
             let statusClass = 'state-growing';
             if (item.status && item.status.includes('Récolte')) {
@@ -2168,7 +2203,7 @@ document.addEventListener('DOMContentLoaded', () => {
           });
 
           if (PROFILES_DATA[profileId].stats && PROFILES_DATA[profileId].stats[2]) {
-            PROFILES_DATA[profileId].stats[2].value = String(data.length);
+            PROFILES_DATA[profileId].stats[2].value = String(effectiveCycles.length);
           }
         } else {
           PROFILES_DATA[profileId].tableRows = [];
@@ -5133,23 +5168,56 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   async function fetchUserParcels(profileId = currentProfileKey) {
-    if (!supabaseClient || !profileId) return [];
-    try {
-      const { data, error } = await supabaseClient
-        .from('parcels')
-        .select('*')
-        .eq('profile_id', profileId)
-        .order('created_at', { ascending: true });
-
-      if (!error && data) {
-        cachedUserParcels = data;
-        return data;
-      }
-      return [];
-    } catch (err) {
-      console.warn('⚠️ Erreur fetchUserParcels :', err);
+    let pId = (currentAuthUser && currentAuthUser.id) || (profileId && profileId !== 'guest' ? profileId : null);
+    if (supabaseClient) {
+      try {
+        const { data: userData } = await supabaseClient.auth.getUser();
+        if (userData?.user?.id) {
+          pId = userData.user.id;
+        }
+      } catch (e) {}
+    }
+    if (!pId || pId === 'guest') {
+      cachedUserParcels = [];
       return [];
     }
+
+    try {
+      if (supabaseClient) {
+        const { data, error } = await supabaseClient
+          .from('parcels')
+          .select('*')
+          .eq('profile_id', pId)
+          .order('created_at', { ascending: true });
+
+        if (!error && Array.isArray(data)) {
+          const valid = data.filter(p => isValidUUID(p.id));
+          cachedUserParcels = valid;
+          try {
+            localStorage.setItem(`revolution_parcels_${pId}`, JSON.stringify(valid));
+          } catch (e) {}
+          return valid;
+        }
+      }
+    } catch (err) {
+      console.warn('⚠️ Erreur fetchUserParcels Supabase :', err);
+    }
+
+    // Repli cache local UNIQUEMENT si panne réseau
+    try {
+      const local = localStorage.getItem(`revolution_parcels_${pId}`);
+      if (local) {
+        const parsed = JSON.parse(local);
+        if (Array.isArray(parsed)) {
+          const valid = parsed.filter(p => isValidUUID(p.id));
+          cachedUserParcels = valid;
+          return valid;
+        }
+      }
+    } catch (e) {}
+
+    cachedUserParcels = [];
+    return [];
   }
 
   function updateModelesUI() {
@@ -5223,10 +5291,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const baseDate = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
 
     // 1. Pépinière & Repiquage
-    if (model.mode_depart === 'pepiniere' && model.pepiniere_jours_min && model.pepiniere_jours_max) {
+    if (model.mode_depart === 'pepiniere' && model.pepiniere_jours_min != null && model.pepiniere_jours_min > 0) {
       const repiqMin = addDaysToDate(baseDate, model.pepiniere_jours_min);
-      const repiqMax = addDaysToDate(baseDate, model.pepiniere_jours_max);
-      repiqText.textContent = `Repiquage prévu entre le ${formatDateEnToutesLettres(repiqMin)} et le ${formatDateEnToutesLettres(repiqMax)}`;
+      const repiqMax = model.pepiniere_jours_max ? addDaysToDate(baseDate, model.pepiniere_jours_max) : repiqMin;
+      const repiqMinFormatted = formatDateEnToutesLettres(repiqMin);
+      const repiqMaxFormatted = formatDateEnToutesLettres(repiqMax);
+      const isSameRepiq = !model.pepiniere_jours_max || 
+                          repiqMin.getTime() === repiqMax.getTime() || 
+                          repiqMinFormatted === repiqMaxFormatted || 
+                          Number(model.pepiniere_jours_min) === Number(model.pepiniere_jours_max);
+
+      if (isSameRepiq) {
+        repiqText.innerHTML = `Repiquage prévu vers le <strong>${repiqMinFormatted}</strong>`;
+      } else {
+        repiqText.innerHTML = `Repiquage prévu entre le <strong>${repiqMinFormatted}</strong> et le <strong>${repiqMaxFormatted}</strong>`;
+      }
       repiqRow.classList.remove('hidden');
     } else {
       repiqRow.classList.add('hidden');
@@ -5236,9 +5315,19 @@ document.addEventListener('DOMContentLoaded', () => {
     if (model.recolte_jours_min != null && model.recolte_jours_min > 0) {
       const harvestMin = addDaysToDate(baseDate, model.recolte_jours_min);
       const harvestMax = model.recolte_jours_max ? addDaysToDate(baseDate, model.recolte_jours_max) : harvestMin;
+      const harvestMinFormatted = formatDateEnToutesLettres(harvestMin);
+      const harvestMaxFormatted = formatDateEnToutesLettres(harvestMax);
+      const isSameHarvest = !model.recolte_jours_max || 
+                            harvestMin.getTime() === harvestMax.getTime() || 
+                            harvestMinFormatted === harvestMaxFormatted || 
+                            Number(model.recolte_jours_min) === Number(model.recolte_jours_max);
       
       harvestInput.value = formatDateForInput(harvestMin);
-      harvestText.innerHTML = `Récolte prévue entre le <strong>${formatDateEnToutesLettres(harvestMin)}</strong> et le <strong>${formatDateEnToutesLettres(harvestMax)}</strong>`;
+      if (isSameHarvest) {
+        harvestText.innerHTML = `Récolte prévue vers le <strong>${harvestMinFormatted}</strong>`;
+      } else {
+        harvestText.innerHTML = `Récolte prévue entre le <strong>${harvestMinFormatted}</strong> et le <strong>${harvestMaxFormatted}</strong>`;
+      }
     } else {
       // Si recolte_jours est vide : ne rien calculer et afficher le message officiel
       harvestInput.value = '';
@@ -5278,7 +5367,35 @@ document.addEventListener('DOMContentLoaded', () => {
       nameInput.value = model.variete ? `${model.nom_culture} (${model.variete})` : model.nom_culture;
     }
     if (catInput) {
-      catInput.value = model.categorie || 'maraîchage';
+      if (model.categorie) {
+        const cleanNorm = (str) => (str || '')
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .toLowerCase()
+          .trim();
+
+        const targetNorm = cleanNorm(model.categorie);
+        let matched = false;
+
+        for (let i = 0; i < catInput.options.length; i++) {
+          const opt = catInput.options[i];
+          if (cleanNorm(opt.value) === targetNorm || cleanNorm(opt.text) === targetNorm) {
+            catInput.selectedIndex = i;
+            matched = true;
+            break;
+          }
+        }
+
+        if (!matched) {
+          const opt = document.createElement('option');
+          opt.value = model.categorie.toLowerCase();
+          opt.textContent = model.categorie.charAt(0).toUpperCase() + model.categorie.slice(1);
+          catInput.appendChild(opt);
+          catInput.value = opt.value;
+        }
+      } else {
+        catInput.value = 'maraîchage';
+      }
     }
     if (dateLabel) {
       dateLabel.textContent = (model.mode_depart === 'pepiniere') ? 'Date de semis en pépinière' : 'Date de semis';
@@ -5312,13 +5429,20 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const parcelSelect = document.getElementById('cropCycleParcelSelect');
+    const noParcelNotice = document.getElementById('cropModalNoParcelNotice');
     if (parcelSelect) {
       if (cachedUserParcels && cachedUserParcels.length > 0) {
+        if (noParcelNotice) noParcelNotice.classList.add('hidden');
+        parcelSelect.style.display = '';
+        parcelSelect.required = true;
         parcelSelect.innerHTML = cachedUserParcels.map(p =>
-          `<option value="${p.id}">${p.name} (${p.area_ha || 1} ha) • ${p.irrigation_type || 'Irrigué'}</option>`
+          `<option value="${p.id}">${escapeHtml(p.name)} (${parseFloat(p.area_ha) || 1} ha) • ${escapeHtml(p.irrigation_type || 'Irrigué')}</option>`
         ).join('');
       } else {
-        parcelSelect.innerHTML = '<option value="new_default">Parcelle 1 (1,0 ha - Irrigué)</option>';
+        if (noParcelNotice) noParcelNotice.classList.remove('hidden');
+        parcelSelect.style.display = 'none';
+        parcelSelect.required = false;
+        parcelSelect.innerHTML = '<option value="">-- Aucune parcelle disponible --</option>';
       }
     }
 
@@ -5440,22 +5564,38 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   async function handleSaveCropCycle(e) {
-    e.preventDefault();
-    if (!supabaseClient) return;
-
+    if (e && typeof e.preventDefault === 'function') e.preventDefault();
     const btnSubmit = document.getElementById('btnSaveCropCycle');
     const btnText = document.getElementById('btnSaveCropCycleText');
-    const profileId = currentProfileKey;
 
-    if (!profileId) {
-      showToast('Erreur', 'Veuillez vous connecter pour enregistrer une culture.');
+    if (!supabaseClient) {
+      showToast('Erreur', "La connexion à Supabase n'est pas disponible.");
       return;
     }
 
+    // 1 & 2 : L'insertion DOIT impérativement passer par le client Supabase avec session active et profile_id = user.id
+    let user = null;
+    try {
+      const { data: userData, error: userAuthErr } = await supabaseClient.auth.getUser();
+      if (!userAuthErr && userData?.user?.id) {
+        user = userData.user;
+      }
+    } catch (eAuth) {
+      console.warn('⚠️ Erreur auth.getUser() :', eAuth);
+    }
+
+    if (!user || !user.id) {
+      showToast('Connexion requise', "La culture n'a pas été enregistrée. Vérifiez votre connexion et réessayez.");
+      return;
+    }
+
+    const profileId = user.id;
+
     const cropName = document.getElementById('cropCycleName')?.value?.trim();
-    const category = document.getElementById('cropCycleCategory')?.value;
-    const plantingDate = document.getElementById('cropCyclePlantingDate')?.value;
-    const harvestDate = document.getElementById('cropCycleHarvestDate')?.value || null;
+    const category = document.getElementById('cropCycleCategory')?.value?.trim() || 'maraîchage';
+    const plantingDate = document.getElementById('cropCyclePlantingDate')?.value?.trim();
+    const rawHarvestDate = document.getElementById('cropCycleHarvestDate')?.value?.trim();
+    const harvestDate = rawHarvestDate ? rawHarvestDate : null;
     let parcelId = document.getElementById('cropCycleParcelSelect')?.value;
 
     if (!cropName) {
@@ -5467,46 +5607,61 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
+    // Vérifier la validité de la parcelle
+    if (!parcelId || parcelId === 'new_default' || !isValidUUID(parcelId)) {
+      showToast('Parcelle requise', "Vous devez sélectionner une parcelle valide enregistrée. Ajoutez d'abord votre parcelle.");
+      openAddParcelModal();
+      return;
+    }
+
     try {
       if (btnSubmit) btnSubmit.disabled = true;
       if (btnText) btnText.textContent = 'Enregistrement...';
 
-      if (!parcelId || parcelId === 'new_default') {
-        const { data: newP, error: pErr } = await supabaseClient
-          .from('parcels')
-          .insert({
-            profile_id: profileId,
-            name: 'Parcelle 1',
-            area_ha: 1.0,
-            irrigation_type: 'Irrigué',
-            location: PROFILES_DATA[profileId]?.location || 'Koudougou'
-          })
-          .select('id')
-          .single();
-
-        if (pErr) throw pErr;
-        parcelId = newP.id;
-        await fetchUserParcels(profileId);
-      }
-
+      // 3. Colonnes STRICTEMENT vérifiées selon la table public.crop_cycles :
+      // (id, profile_id, parcel_id, crop_name, category, code, planting_date, estimated_harvest_date, status)
+      // AUCUNE autre colonne.
+      const cleanCode = cropName.toUpperCase().replace(/[^A-Z0-9]/g, '_').substring(0, 20);
       const payload = {
         profile_id: profileId,
         parcel_id: parcelId,
         crop_name: cropName,
-        category: category || 'maraîchage',
+        category: category,
+        code: cleanCode || null,
         planting_date: plantingDate,
         estimated_harvest_date: harvestDate,
         status: 'En végétation'
       };
 
-      const { error: cycleErr } = await supabaseClient
+      const { data: newCycle, error: cycleErr } = await supabaseClient
         .from('crop_cycles')
-        .insert(payload);
+        .insert(payload)
+        .select('*, parcels(name, area_ha, irrigation_type)')
+        .single();
 
-      if (cycleErr) throw cycleErr;
+      // 4. Si l'enregistrement échoue, afficher le message clair et NE PAS créer de culture locale fictive
+      if (cycleErr || !newCycle) {
+        console.error('❌ Échec insertion Supabase crop_cycles :', cycleErr);
+        showToast('Erreur', "La culture n'a pas été enregistrée. Vérifiez votre connexion et réessayez.");
+        return;
+      }
+
+      // Enregistrement réussi dans Supabase
+      if (PROFILES_DATA[profileId]) {
+        if (!PROFILES_DATA[profileId].realCycles) PROFILES_DATA[profileId].realCycles = [];
+        const existingIdx = PROFILES_DATA[profileId].realCycles.findIndex(c => c.id === newCycle.id);
+        if (existingIdx >= 0) {
+          PROFILES_DATA[profileId].realCycles[existingIdx] = newCycle;
+        } else {
+          PROFILES_DATA[profileId].realCycles.push(newCycle);
+        }
+        try {
+          localStorage.setItem(`revolution_crop_cycles_${profileId}`, JSON.stringify(PROFILES_DATA[profileId].realCycles));
+        } catch (e) {}
+      }
 
       showToast('Culture enregistrée', `${cropName} a été ajouté avec succès à vos parcelles.`);
-      modalAddCropCycle.classList.add('hidden');
+      if (modalAddCropCycle) modalAddCropCycle.classList.add('hidden');
 
       await syncCropCyclesFromSupabase(profileId);
       if (currentRoutePage === 'parcelles') {
@@ -5514,7 +5669,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     } catch (err) {
       console.error('Erreur handleSaveCropCycle :', err);
-      showToast('Erreur', err.message || 'Impossible d\'enregistrer la culture.');
+      showToast('Erreur', "La culture n'a pas été enregistrée. Vérifiez votre connexion et réessayez.");
     } finally {
       if (btnSubmit) btnSubmit.disabled = false;
       if (btnText) btnText.textContent = 'Enregistrer la culture';
@@ -5524,22 +5679,224 @@ document.addEventListener('DOMContentLoaded', () => {
   async function deleteCropCycle(cycleId) {
     if (!confirm('Voulez-vous vraiment retirer cette culture de votre suivi ?')) return;
     if (!supabaseClient) return;
+
+    let user = null;
+    try {
+      const { data: userData } = await supabaseClient.auth.getUser();
+      if (userData?.user?.id) user = userData.user;
+    } catch (e) {}
+
+    if (!user || !user.id) {
+      showToast('Erreur', 'Veuillez vous connecter pour gérer vos cultures.');
+      return;
+    }
+
     try {
       const { error } = await supabaseClient
         .from('crop_cycles')
         .delete()
-        .eq('id', cycleId);
+        .eq('id', cycleId)
+        .eq('profile_id', user.id);
 
-      if (!error) {
-        showToast('Culture retirée', 'La culture a été retirée avec succès.');
-        await syncCropCyclesFromSupabase(currentProfileKey);
+      if (error) {
+        console.error('Erreur deleteCropCycle Supabase :', error);
+        showToast('Erreur', "La culture n'a pas pu être retirée.");
+        return;
+      }
+
+      if (PROFILES_DATA[user.id] && PROFILES_DATA[user.id].realCycles) {
+        PROFILES_DATA[user.id].realCycles = PROFILES_DATA[user.id].realCycles.filter(c => c.id !== cycleId);
+        try {
+          localStorage.setItem(`revolution_crop_cycles_${user.id}`, JSON.stringify(PROFILES_DATA[user.id].realCycles));
+        } catch (e) {}
+      }
+
+      showToast('Culture retirée', 'La culture a été retirée avec succès.');
+      await syncCropCyclesFromSupabase(user.id);
+      if (currentRoutePage === 'parcelles') {
         renderParcellesPage();
-      } else {
-        showToast('Erreur', error.message || 'Impossible de retirer la culture.');
       }
     } catch (err) {
       console.error('Erreur deleteCropCycle :', err);
+      showToast('Erreur', err.message || 'Impossible de retirer la culture.');
     }
+  }
+
+  // ==========================================
+  // GESTION DES PARCELLES (SUPABASE PUBLIC.PARCELS)
+  // ==========================================
+  function openAddParcelModal() {
+    if (!modalAddParcel) return;
+    if (formAddParcel) formAddParcel.reset();
+    const areaInput = document.getElementById('parcelArea');
+    if (areaInput) areaInput.value = '1.0';
+    modalAddParcel.classList.remove('hidden');
+  }
+
+  function closeAddParcelModal() {
+    if (modalAddParcel) modalAddParcel.classList.add('hidden');
+  }
+
+  async function handleSaveParcel(e) {
+    if (e && typeof e.preventDefault === 'function') e.preventDefault();
+    const btnSubmit = document.getElementById('btnSubmitAddParcel');
+    const btnText = document.getElementById('btnSubmitAddParcelText');
+
+    if (!supabaseClient) {
+      showToast('Erreur', "La connexion à Supabase n'est pas disponible.");
+      return;
+    }
+
+    // 1 & 2 : L'insertion DOIT passer par le client Supabase de l'utilisateur connecté avec son jeton, et profile_id = user.id
+    let user = null;
+    try {
+      const { data: userData, error: userAuthErr } = await supabaseClient.auth.getUser();
+      if (!userAuthErr && userData?.user?.id) {
+        user = userData.user;
+      }
+    } catch (eAuth) {
+      console.warn('⚠️ Erreur auth.getUser() :', eAuth);
+    }
+
+    if (!user || !user.id) {
+      showToast('Connexion requise', "La parcelle n'a pas été enregistrée. Vérifiez votre connexion et réessayez.");
+      return;
+    }
+
+    const profileId = user.id;
+
+    const nameInput = document.getElementById('parcelName');
+    const areaInput = document.getElementById('parcelArea');
+    const irrigationInput = document.getElementById('parcelIrrigation');
+    const locationInput = document.getElementById('parcelLocation');
+
+    const name = nameInput?.value?.trim();
+    const area = parseFloat(areaInput?.value) || 1.0;
+    const irrigation = irrigationInput?.value || 'Irrigué (Goutte-à-goutte)';
+    const loc = locationInput?.value?.trim() || (PROFILES_DATA[profileId]?.location || 'Koudougou').replace(/^📍\s*/, '');
+
+    if (!name) {
+      alert('Veuillez renseigner un nom pour la parcelle.');
+      return;
+    }
+
+    try {
+      if (btnSubmit) btnSubmit.disabled = true;
+      if (btnText) btnText.textContent = 'Enregistrement...';
+
+      const { data: newParcel, error: parcelErr } = await supabaseClient
+        .from('parcels')
+        .insert({
+          profile_id: profileId,
+          name: name,
+          area_ha: area,
+          irrigation_type: irrigation,
+          location: loc
+        })
+        .select('*')
+        .single();
+
+      // 4. Si l'enregistrement échoue, afficher le message d'erreur clair et NE PAS créer de parcelle locale fictive
+      if (parcelErr || !newParcel) {
+        console.error('❌ Échec insertion Supabase parcels :', parcelErr);
+        showToast('Erreur', "La parcelle n'a pas été enregistrée. Vérifiez votre connexion et réessayez.");
+        return;
+      }
+
+      // Enregistrement réussi dans Supabase
+      if (!cachedUserParcels) cachedUserParcels = [];
+      const existingIdx = cachedUserParcels.findIndex(p => p.id === newParcel.id);
+      if (existingIdx >= 0) {
+        cachedUserParcels[existingIdx] = newParcel;
+      } else {
+        cachedUserParcels.push(newParcel);
+      }
+
+      try {
+        localStorage.setItem(`revolution_parcels_${profileId}`, JSON.stringify(cachedUserParcels));
+      } catch (e) {}
+
+      showToast('Parcelle enregistrée', `La parcelle « ${name} » (${area} ha) a été enregistrée avec succès.`);
+      closeAddParcelModal();
+
+      // Si la modale culture est ouverte, rafraîchir le sélecteur et pré-sélectionner la nouvelle parcelle
+      if (modalAddCropCycle && !modalAddCropCycle.classList.contains('hidden')) {
+        const parcelSelect = document.getElementById('cropCycleParcelSelect');
+        const noParcelNotice = document.getElementById('cropModalNoParcelNotice');
+        if (parcelSelect) {
+          if (noParcelNotice) noParcelNotice.classList.add('hidden');
+          parcelSelect.style.display = '';
+          parcelSelect.required = true;
+          parcelSelect.innerHTML = (cachedUserParcels || []).map(p =>
+            `<option value="${p.id}">${escapeHtml(p.name)} (${parseFloat(p.area_ha) || 1} ha) • ${escapeHtml(p.irrigation_type || 'Irrigué')}</option>`
+          ).join('');
+          parcelSelect.value = newParcel.id;
+        }
+      }
+
+      await fetchUserParcels(profileId);
+      if (currentRoutePage === 'parcelles') {
+        renderParcellesPage();
+      }
+    } catch (err) {
+      console.error('Erreur handleSaveParcel :', err);
+      showToast('Erreur', "La parcelle n'a pas été enregistrée. Vérifiez votre connexion et réessayez.");
+    } finally {
+      if (btnSubmit) btnSubmit.disabled = false;
+      if (btnText) btnText.textContent = 'Enregistrer la parcelle';
+    }
+  }
+
+  async function deleteParcel(parcelId) {
+    if (!confirm('Voulez-vous vraiment supprimer cette parcelle ?')) return;
+    if (!supabaseClient) return;
+
+    let user = null;
+    try {
+      const { data: userData } = await supabaseClient.auth.getUser();
+      if (userData?.user?.id) user = userData.user;
+    } catch (e) {}
+
+    if (!user || !user.id) {
+      showToast('Erreur', 'Veuillez vous connecter pour gérer vos parcelles.');
+      return;
+    }
+
+    try {
+      const { error } = await supabaseClient
+        .from('parcels')
+        .delete()
+        .eq('id', parcelId)
+        .eq('profile_id', user.id);
+
+      if (error) {
+        console.error('Erreur deleteParcel Supabase :', error);
+        showToast('Erreur', "La parcelle n'a pas pu être supprimée.");
+        return;
+      }
+
+      if (cachedUserParcels) {
+        cachedUserParcels = cachedUserParcels.filter(p => p.id !== parcelId);
+        try {
+          localStorage.setItem(`revolution_parcels_${user.id}`, JSON.stringify(cachedUserParcels));
+        } catch (e) {}
+      }
+
+      showToast('Parcelle supprimée', 'La parcelle a été supprimée avec succès.');
+      await fetchUserParcels(user.id);
+      await syncCropCyclesFromSupabase(user.id);
+      if (currentRoutePage === 'parcelles') {
+        renderParcellesPage();
+      }
+    } catch (err) {
+      console.error('Erreur deleteParcel :', err);
+      showToast('Erreur', err.message || 'Impossible de supprimer la parcelle.');
+    }
+  }
+
+  // Synchronisation désactivée pour éviter l'injection de données locales ou de doublons
+  async function syncLocalStorageParcelsAndCropsToSupabase(profileId) {
+    return;
   }
 
   function renderParcellesPage() {
@@ -5549,12 +5906,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const nextHarvestEl = document.getElementById('parcellesNextHarvest');
     const cropsListEl = document.getElementById('parcellesCropsList');
     const emptyStateEl = document.getElementById('parcellesEmptyState');
+    const parcellesCardsGridEl = document.getElementById('parcellesCardsGrid');
+    const parcellesEmptyNoticeEl = document.getElementById('parcellesEmptyNotice');
+    const parcellesCountBadgeEl = document.getElementById('parcellesCountBadge');
 
     const profileData = PROFILES_DATA[currentProfileKey] || {};
     const cycles = profileData.realCycles || [];
     const parcels = cachedUserParcels || [];
 
     if (cropsCountEl) cropsCountEl.textContent = cycles.length;
+    if (parcellesCountBadgeEl) parcellesCountBadgeEl.textContent = parcels.length;
 
     let totalHa = 0;
     if (parcels.length > 0) {
@@ -5562,6 +5923,33 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (totalAreaEl) totalAreaEl.textContent = `${totalHa.toFixed(1)} ha`;
     if (totalAreaSubEl) totalAreaSubEl.textContent = `${parcels.length} parcelle${parcels.length > 1 ? 's' : ''}`;
+
+    // Rendu des parcelles déclarées
+    if (parcellesCardsGridEl) {
+      if (parcels.length === 0) {
+        parcellesCardsGridEl.innerHTML = '';
+        if (parcellesEmptyNoticeEl) parcellesEmptyNoticeEl.classList.remove('hidden');
+      } else {
+        if (parcellesEmptyNoticeEl) parcellesEmptyNoticeEl.classList.add('hidden');
+        parcellesCardsGridEl.innerHTML = parcels.map(p => `
+          <div class="parcel-card">
+            <div class="parcel-card-header">
+              <h4 class="parcel-card-name">📍 ${escapeHtml(p.name)}</h4>
+              <span class="parcel-card-badge">${parseFloat(p.area_ha) || 1} ha</span>
+            </div>
+            <div class="parcel-card-meta">
+              <span>💧 ${escapeHtml(p.irrigation_type || 'Irrigué')}</span>
+              ${p.location ? `<span>📌 ${escapeHtml(p.location)}</span>` : ''}
+            </div>
+            <div class="parcel-card-actions">
+              <button type="button" class="btn-delete-parcel" onclick="deleteParcel('${p.id}')">
+                🗑️ Supprimer
+              </button>
+            </div>
+          </div>
+        `).join('');
+      }
+    }
 
     const upcoming = cycles
       .filter(c => c.estimated_harvest_date)
@@ -5598,10 +5986,10 @@ document.addEventListener('DOMContentLoaded', () => {
             <div>
               <div class="admin-fin-meta-row">
                 <span class="fin-badge-type">${cycle.category || 'Culture'}</span>
-                <span class="fin-badge-region">📍 ${pInfo}</span>
+                <span class="fin-badge-region">📍 ${escapeHtml(pInfo)}</span>
                 <span class="fin-badge-status badge-status-publie">${cycle.status || 'En végétation'}</span>
               </div>
-              <h3 class="admin-fin-title" style="margin-top: 4px;">🌱 ${cycle.crop_name}</h3>
+              <h3 class="admin-fin-title" style="margin-top: 4px;">🌱 ${escapeHtml(cycle.crop_name)}</h3>
             </div>
           </div>
 
@@ -5931,6 +6319,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function getMobileParcellesHtml() {
     const profileData = PROFILES_DATA[currentProfileKey] || {};
     const cycles = profileData.realCycles || [];
+    const parcels = cachedUserParcels || [];
 
     return `
       <div style="margin-bottom: 12px;">
@@ -5938,12 +6327,15 @@ document.addEventListener('DOMContentLoaded', () => {
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
           <span>Tableau de bord</span>
         </a>
-        <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;">
           <div>
             <h2 style="font-size: 18px; font-weight: 800; color: #1E2822; margin: 0 0 2px;">🌾 Parcelles & Cultures</h2>
-            <p style="font-size: 11.5px; color: #5B6660; margin: 0;">${cycles.length} culture${cycles.length > 1 ? 's' : ''} en cours</p>
+            <p style="font-size: 11.5px; color: #5B6660; margin: 0;">${parcels.length} parcelle${parcels.length > 1 ? 's' : ''} • ${cycles.length} culture${cycles.length > 1 ? 's' : ''}</p>
           </div>
-          <button type="button" class="btn-primary" id="btnMobileOpenAddCrop" style="padding: 8px 12px; font-size: 12px; font-weight: 700; border-radius: 8px; cursor: pointer;">+ Ajouter</button>
+          <div style="display: flex; gap: 6px;">
+            <button type="button" class="btn-secondary" id="btnMobileOpenAddParcel" style="padding: 6px 10px; font-size: 11.5px; font-weight: 700; border-radius: 8px; cursor: pointer;">📍 + Parcelle</button>
+            <button type="button" class="btn-primary" id="btnMobileOpenAddCrop" style="padding: 6px 10px; font-size: 11.5px; font-weight: 700; border-radius: 8px; cursor: pointer;">🌱 + Culture</button>
+          </div>
         </div>
       </div>
 
@@ -5953,7 +6345,10 @@ document.addEventListener('DOMContentLoaded', () => {
             <div style="font-size: 28px; margin-bottom: 6px;">🌱</div>
             <strong style="font-size: 14px; color: #1E2822; display: block; margin-bottom: 4px;">Aucune culture en cours</strong>
             <p style="font-size: 12px; color: #5D6C63; margin: 0 0 12px;">Ajoutez votre première culture avec les modèles agronomiques.</p>
-            <button type="button" class="btn-primary" id="btnMobileEmptyAddCrop" style="margin: 0 auto; padding: 8px 16px; font-size: 12px;">+ Ajouter une culture</button>
+            <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
+              <button type="button" class="btn-secondary" id="btnMobileEmptyAddParcel" style="padding: 8px 14px; font-size: 12px; font-weight: 700;">📍 + Ajouter une parcelle</button>
+              <button type="button" class="btn-primary" id="btnMobileEmptyAddCrop" style="padding: 8px 14px; font-size: 12px; font-weight: 700;">🌱 + Ajouter une culture</button>
+            </div>
           </div>
         ` : cycles.map(c => `
           <div style="background: #fff; border: 1px solid #E2E8F0; border-radius: 12px; padding: 12px; margin-bottom: 10px; border-left: 4px solid #1E5E2A;">
@@ -5976,6 +6371,51 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Écouteurs Modèles de Cultures & Parcelles
+  const btnOpenAddParcelPage = document.getElementById('btnOpenAddParcelPage');
+  if (btnOpenAddParcelPage) {
+    btnOpenAddParcelPage.addEventListener('click', openAddParcelModal);
+  }
+
+  const btnQuickAddParcelSection = document.getElementById('btnQuickAddParcelSection');
+  if (btnQuickAddParcelSection) {
+    btnQuickAddParcelSection.addEventListener('click', openAddParcelModal);
+  }
+
+  const btnEmptyNoticeAddParcel = document.getElementById('btnEmptyNoticeAddParcel');
+  if (btnEmptyNoticeAddParcel) {
+    btnEmptyNoticeAddParcel.addEventListener('click', openAddParcelModal);
+  }
+
+  const btnOpenAddParcelFromCropModal = document.getElementById('btnOpenAddParcelFromCropModal');
+  if (btnOpenAddParcelFromCropModal) {
+    btnOpenAddParcelFromCropModal.addEventListener('click', openAddParcelModal);
+  }
+
+  const btnCropModalCreateFirstParcel = document.getElementById('btnCropModalCreateFirstParcel');
+  if (btnCropModalCreateFirstParcel) {
+    btnCropModalCreateFirstParcel.addEventListener('click', openAddParcelModal);
+  }
+
+  const btnCloseAddParcel = document.getElementById('btnCloseAddParcel');
+  if (btnCloseAddParcel) {
+    btnCloseAddParcel.addEventListener('click', closeAddParcelModal);
+  }
+
+  const btnCancelAddParcel = document.getElementById('btnCancelAddParcel');
+  if (btnCancelAddParcel) {
+    btnCancelAddParcel.addEventListener('click', closeAddParcelModal);
+  }
+
+  if (modalAddParcel) {
+    modalAddParcel.addEventListener('click', (e) => {
+      if (e.target === modalAddParcel) closeAddParcelModal();
+    });
+  }
+
+  if (formAddParcel) {
+    formAddParcel.addEventListener('submit', handleSaveParcel);
+  }
+
   const btnOpenAddCropCyclePage = document.getElementById('btnOpenAddCropCyclePage');
   if (btnOpenAddCropCyclePage) {
     btnOpenAddCropCyclePage.addEventListener('click', () => openAddCropCycleModal());
@@ -6089,7 +6529,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Mobile écouteurs délégués pour parcelles et modèles
   document.addEventListener('click', (e) => {
-    if (e.target.closest('#btnMobileOpenAddCrop') || e.target.closest('#btnMobileEmptyAddCrop')) {
+    if (e.target.closest('#btnMobileOpenAddParcel') || e.target.closest('#btnMobileEmptyAddParcel')) {
+      openAddParcelModal();
+    } else if (e.target.closest('#btnMobileOpenAddCrop') || e.target.closest('#btnMobileEmptyAddCrop')) {
       openAddCropCycleModal();
     } else if (e.target.closest('#btnMobileOpenAddModele')) {
       openManageModeleModal();
@@ -6701,6 +7143,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Rendu complet avec salutation personnalisée ("Bonjour, Fabrice 🌱")
     renderProfile(pKey);
+    await syncLocalStorageParcelsAndCropsToSupabase(pKey);
     await syncFinancialsFromSupabase(pKey);
     await syncCropCyclesFromSupabase(pKey);
     await syncSubscriptionStatusFromSupabase(pKey);
@@ -6723,6 +7166,9 @@ document.addEventListener('DOMContentLoaded', () => {
   window.filterOpenFinancementsForUsers = filterOpenFinancementsForUsers;
   window.fetchModelesCultures = fetchModelesCultures;
   window.fetchUserParcels = fetchUserParcels;
+  window.openAddParcelModal = openAddParcelModal;
+  window.closeAddParcelModal = closeAddParcelModal;
+  window.deleteParcel = deleteParcel;
   window.openAddCropCycleModal = openAddCropCycleModal;
   window.openManageModeleModal = openManageModeleModal;
   window.toggleModeleActive = toggleModeleActive;

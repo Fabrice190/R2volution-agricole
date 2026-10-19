@@ -6454,6 +6454,74 @@ body.drawer-open {
   border: 1px solid #FFE0B2;
 }
 
+/* Cartes des parcelles déclarées */
+.parcel-card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 8px;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  border-left: 3.5px solid var(--primary-600);
+}
+.parcel-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+.parcel-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 6px;
+}
+.parcel-card-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1E2822;
+  margin: 0;
+}
+.parcel-card-badge {
+  font-size: 11px;
+  font-weight: 700;
+  background: #EAF4E6;
+  color: var(--primary-700);
+  padding: 2px 7px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+.parcel-card-meta {
+  font-size: 12px;
+  color: #5D6C63;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.parcel-card-actions {
+  display: flex;
+  justify-content: flex-end;
+  border-top: 1px solid #F0F4EF;
+  padding-top: 6px;
+  margin-top: 2px;
+}
+.btn-delete-parcel {
+  font-size: 11px;
+  color: #C62828;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 3px 6px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+.btn-delete-parcel:hover {
+  background: #FEECEB;
+}
+
 /* RÈGLE ABSOLUE DE SÉCURITÉ D'AFFICHAGE */
 #viewportContainer.hidden,
 .viewport-wrapper.hidden,
