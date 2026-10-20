@@ -11,8 +11,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
   
-  <link rel="stylesheet" href="styles/theme.css?v=20261019.20">
-  <link rel="stylesheet" href="styles/main.css?v=20261019.20">
+  <link rel="stylesheet" href="styles/theme.css?v=20261020.1">
+  <link rel="stylesheet" href="styles/main.css?v=20261020.1">
 </head>
 <body class="theme-light">
   <!-- BANDEAU DISCRET ADMIN (Visible uniquement en mode Admin) -->
@@ -382,6 +382,13 @@
               </span>
               <span class="nav-label">Gérer les modèles</span>
               <span class="nav-badge-neutral" id="navAdminModelesBadge">3</span>
+            </a>
+            <a href="#admin-materiels" class="nav-item" data-page="admin-materiels" id="navLinkAdminMateriels">
+              <span class="nav-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+              </span>
+              <span class="nav-label">Gérer le matériel</span>
+              <span class="nav-badge-neutral hidden" id="navAdminMaterielsBadge">0</span>
             </a>
             <a href="#admin-queue" class="nav-item" data-page="admin-queue">
               <span class="nav-icon">
@@ -1254,6 +1261,112 @@
             <div id="declaredCropsList">
               <!-- Injecté dynamiquement par JavaScript -->
             </div>
+          </div>
+        </div>
+
+        <!-- ==================== PAGE UTILISATEUR : MATÉRIEL & SERVICES ==================== -->
+        <div class="dashboard-body hidden" id="pageMaterielServices">
+          <div class="page-view-header">
+            <div class="page-view-title-group">
+              <div class="page-breadcrumb">
+                <a href="#dashboard" class="breadcrumb-back-link">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+                  <span>Tableau de bord</span>
+                </a>
+                <span class="bullet-sep">•</span>
+                <span>Équipements & Services</span>
+              </div>
+              <h1 class="page-main-title">🚜 Matériel & Services Agricoles</h1>
+              <p class="page-subtitle">Pompes solaires, forages, irrigation goutte-à-goutte, kits maraîchers et techniciens certifiés au Burkina Faso.</p>
+            </div>
+            <div class="page-header-meta-badge" id="userMaterielsCountBadge">
+              <span class="pulse-dot-green"></span>
+              <span id="userMaterielsCountText">Chargement...</span>
+            </div>
+          </div>
+
+          <!-- Barre de filtres & Recherche -->
+          <div class="materiels-filter-section">
+            <div class="materiels-search-bar" style="margin-bottom: 12px; position: relative;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="position: absolute; left: 14px; top: 12px; color: #7C8781;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" id="searchMaterielsInput" placeholder="Rechercher une motopompe, panneau solaire, technicien, ville..." class="form-input" style="padding-left: 40px;">
+            </div>
+
+            <!-- Filtres par catégorie -->
+            <div class="filter-types-scroll" id="filterMaterielCategoryContainer">
+              <button type="button" class="type-filter-chip active" data-cat="all">Toutes les catégories</button>
+              <button type="button" class="type-filter-chip" data-cat="pompes-forages">💧 Pompes & Forages</button>
+              <button type="button" class="type-filter-chip" data-cat="energie-solaire">☀️ Énergie Solaire</button>
+              <button type="button" class="type-filter-chip" data-cat="irrigation">🌱 Irrigation</button>
+              <button type="button" class="type-filter-chip" data-cat="kits-maraichage">🥬 Kits Maraîchage</button>
+              <button type="button" class="type-filter-chip" data-cat="outils-accessoires">🔧 Outils & Accessoires</button>
+              <button type="button" class="type-filter-chip" data-cat="intrants">📦 Intrants certifiés</button>
+              <button type="button" class="type-filter-chip" data-cat="services">🛠️ Services & Réparations</button>
+            </div>
+
+            <!-- Filtres par type d'offre -->
+            <div class="materiels-subfilters" style="margin-top: 10px; display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 12px; font-weight: 700; color: var(--text-muted);">Type :</span>
+              <div class="type-offre-pills" id="filterMaterielTypeOffreContainer" style="display: flex; gap: 6px; flex-wrap: wrap;">
+                <button type="button" class="type-offre-pill active" data-type="all">Tous</button>
+                <button type="button" class="type-offre-pill" data-type="vente">🏷️ Vente</button>
+                <button type="button" class="type-offre-pill" data-type="location">⏱️ Location</button>
+                <button type="button" class="type-offre-pill" data-type="installation">⚡ Installation</button>
+                <button type="button" class="type-offre-pill" data-type="reparation">🧰 Réparation</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Grille des matériels -->
+          <div class="materiels-cards-grid" id="materielsGrid">
+            <!-- Injecté dynamiquement par JavaScript -->
+          </div>
+
+          <!-- État vide -->
+          <div class="financements-empty-state hidden" id="materielsEmptyState">
+            <div class="empty-state-icon">🚜</div>
+            <h3>Aucun matériel ne correspond à vos critères</h3>
+            <p>Essayez de modifier votre recherche ou de sélectionner une autre catégorie.</p>
+            <button type="button" class="btn-reset-filters" id="btnResetMaterielFilters">Afficher tout le matériel</button>
+          </div>
+        </div>
+
+        <!-- ==================== PAGE ADMINISTRATION : GÉRER LE MATÉRIEL ==================== -->
+        <div class="dashboard-body hidden" id="pageAdminMateriels">
+          <div class="page-view-header">
+            <div class="page-view-title-group">
+              <div class="page-breadcrumb">
+                <a href="#dashboard" class="breadcrumb-back-link">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+                  <span>Tableau de bord</span>
+                </a>
+                <span class="bullet-sep">•</span>
+                <span>Administration</span>
+              </div>
+              <h1 class="page-main-title">🛡️ Gérer le matériel & services</h1>
+              <p class="page-subtitle">Ajoutez de nouveaux produits, validez les offres fournisseurs et gérez la visibilité sur la plateforme.</p>
+            </div>
+            <div class="page-header-actions-group">
+              <button type="button" class="btn-primary" id="btnOpenAddMaterielModal">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                <span>+ Ajouter un produit</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Filtres statut et catégorie admin -->
+          <div class="admin-materiels-filters-bar" style="margin-bottom: 18px;">
+            <div class="filter-types-scroll" id="adminFilterMaterielStatus">
+              <button type="button" class="type-filter-chip active" data-status="all">Tous</button>
+              <button type="button" class="type-filter-chip" data-status="publie">Publiés</button>
+              <button type="button" class="type-filter-chip" data-status="en_attente">En attente</button>
+              <button type="button" class="type-filter-chip" data-status="retire">Retirés</button>
+            </div>
+          </div>
+
+          <!-- Liste des produits admin -->
+          <div class="admin-materiels-list" id="adminMaterielsList">
+            <!-- Injecté dynamiquement par JavaScript -->
           </div>
         </div>
 
@@ -2255,6 +2368,22 @@
           <div class="fin-conditions-box" id="finDetailConditions"></div>
         </div>
 
+        <!-- ENCADRÉ SYNERGIE : LE MATÉRIEL DONT VOUS AVEZ BESOIN -->
+        <div class="fin-materiel-synergy-card hidden" id="finDetailMaterielSynergy" style="margin-top: 14px; background: #F4FAF2; border: 1.5px solid #C8E6C9; border-radius: 12px; padding: 14px 16px;">
+          <div style="display: flex; align-items: flex-start; gap: 12px;">
+            <span style="font-size: 24px; line-height: 1;">🛠️</span>
+            <div style="flex: 1;">
+              <strong style="font-size: 13.5px; color: var(--primary-900); display: block; margin-bottom: 2px;">Le matériel dont vous avez besoin</strong>
+              <p style="font-size: 12px; color: #4A554C; margin: 0 0 10px; line-height: 1.4;" id="finDetailMaterielSynergyDesc">
+                Cette subvention couvre l'achat de pompes, forages ou panneaux solaires. Trouvez des équipements vérifiés auprès de fournisseurs certifiés au Burkina Faso.
+              </p>
+              <button type="button" class="btn-secondary" id="btnGoToMaterielFromFin" style="font-size: 12px; padding: 6px 12px; background: #FFFFFF; border-color: #2E7D32; color: #1E5E2A; font-weight: 700;">
+                <span id="btnGoToMaterielText">Voir les pompes & forages disponibles →</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
         <div class="fin-detail-meta-grid">
           <div class="fin-meta-item" id="finDetailContactRow">
             <span class="fin-meta-icon">📞</span>
@@ -2437,6 +2566,238 @@
 
       <div class="modal-footer">
         <button type="button" class="btn-secondary" id="btnCloseConseilDetailsBottom">Fermer la lecture</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODALE GESTION MATÉRIEL & SERVICES (ADMIN) ==================== -->
+  <div class="modal-backdrop hidden" id="modalManageMateriel">
+    <div class="modal-dialog modal-dialog-financement">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <span class="modal-icon bg-green">🚜</span>
+          <div>
+            <h3 class="modal-title" id="manageMaterielModalTitle">Ajouter un produit ou service</h3>
+            <p class="modal-subtitle">Offres d'équipements, forages, énergie solaire et prestations agropastorales.</p>
+          </div>
+        </div>
+        <button class="modal-close-btn" id="btnCloseManageMateriel">&times;</button>
+      </div>
+
+      <form id="formManageMateriel" class="modal-form" autocomplete="off">
+        <input type="hidden" id="materielId" value="">
+
+        <div class="form-row">
+          <div class="form-group flex-2">
+            <label for="materielNom">Nom du matériel / service <span class="required">*</span></label>
+            <input type="text" id="materielNom" class="form-input" placeholder="Ex: Kit Motopompe Solaire 3'' 500W immergée" required>
+          </div>
+          <div class="form-group flex-1">
+            <label for="materielCategorie">Catégorie <span class="required">*</span></label>
+            <select id="materielCategorie" class="form-select" required>
+              <option value="pompes-forages">💧 Pompes et forages</option>
+              <option value="energie-solaire">☀️ Énergie solaire</option>
+              <option value="irrigation">🌱 Irrigation goutte-à-goutte</option>
+              <option value="kits-maraichage">🥬 Kits de maraîchage</option>
+              <option value="outils-accessoires">🔧 Outils et accessoires</option>
+              <option value="intrants">📦 Intrants certifiés</option>
+              <option value="services">🛠️ Services & Réparations</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label for="materielTypeOffre">Type d'offre <span class="required">*</span></label>
+            <select id="materielTypeOffre" class="form-select" required>
+              <option value="vente">🏷️ Vente directe</option>
+              <option value="location">⏱️ Location</option>
+              <option value="installation">⚡ Installation / Clé en main</option>
+              <option value="reparation">🧰 Réparation & Maintenance</option>
+            </select>
+          </div>
+          <div class="form-group flex-1">
+            <label for="materielPrix">Prix numérique (F CFA) <small style="color: var(--text-muted);">(facultatif)</small></label>
+            <input type="number" id="materielPrix" class="form-input" placeholder="Ex: 750000" min="0" step="1000">
+          </div>
+          <div class="form-group flex-1">
+            <label for="materielUnite">Unité / Durée <small style="color: var(--text-muted);">(facultatif)</small></label>
+            <input type="text" id="materielUnite" class="form-input" placeholder="Ex: par pièce, par jour, forfait">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="materielPrixTexte">Texte du prix affiché</label>
+          <input type="text" id="materielPrixTexte" class="form-input" placeholder="Ex: À partir de 750 000 F CFA ou Prix sur demande">
+          <small class="form-hint">Si laissé vide, sera généré automatiquement à partir du prix et de l'unité.</small>
+        </div>
+
+        <div class="form-group">
+          <label for="materielDescription">Description (3 à 5 phrases simples) <span class="required">*</span></label>
+          <textarea id="materielDescription" class="form-textarea" rows="3" placeholder="Présentation claire du matériel, son utilité pour le producteur, et les garanties incluses..." required></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="materielCaracteristiques">Caractéristiques techniques</label>
+          <textarea id="materielCaracteristiques" class="form-textarea" rows="2" placeholder="Ex: Débit 3 m³/h, 2 panneaux 300 W monocristallins, profondeur max 45 m, câble 30 m inclus..."></textarea>
+        </div>
+
+        <!-- Section Photos avec Upload & Compression -->
+        <div class="form-group">
+          <label>Photos du produit (1 à 4 photos)</label>
+          <div class="photo-upload-zone" id="materielPhotoUploadZone" style="border: 2px dashed #C8D8C5; border-radius: 12px; padding: 16px; text-align: center; background: #FAFBF9; margin-bottom: 8px;">
+            <input type="file" id="materielPhotoInput" accept="image/*" multiple style="display: none;">
+            <button type="button" class="btn-secondary" id="btnTriggerMaterielPhoto" style="font-size: 13px;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              <span>Choisir des photos (Galerie ou Caméra)</span>
+            </button>
+            <span style="display: block; font-size: 11px; color: #7C8781; margin-top: 6px;">Format JPG, PNG ou WebP. Compression automatique mobile.</span>
+          </div>
+          <!-- Conteneur d'aperçu des photos sélectionnées/existantes -->
+          <div class="photo-previews-grid" id="materielPhotoPreviews" style="display: flex; gap: 10px; flex-wrap: wrap;"></div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label for="materielFournisseurNom">Nom du fournisseur / entreprise <span class="required">*</span></label>
+            <input type="text" id="materielFournisseurNom" class="form-input" placeholder="Ex: Sahel Solaire & Forages SARL" required>
+          </div>
+          <div class="form-group flex-1">
+            <label for="materielFournisseurWhatsapp">WhatsApp du fournisseur <span class="required">*</span></label>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <span style="background: #F0F4EE; border: 1px solid #D5E5D1; border-radius: 8px; padding: 10px 12px; font-size: 13px; font-weight: 700; color: #1E5E2A;">🇧🇫 +226</span>
+              <input type="tel" id="materielFournisseurWhatsapp" class="form-input" placeholder="70 12 34 56" required style="flex: 1;">
+            </div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label for="materielFournisseurVille">Ville du fournisseur <span class="required">*</span></label>
+            <input type="text" id="materielFournisseurVille" class="form-input" placeholder="Ex: Ouagadougou, Bobo-Dioulasso, Koudougou" required>
+          </div>
+          <div class="form-group flex-1">
+            <label for="materielRegionsLivraison">Régions de livraison</label>
+            <input type="text" id="materielRegionsLivraison" class="form-input" placeholder="Ex: Tout le Burkina Faso ou Centre-Ouest et Centre">
+          </div>
+        </div>
+
+        <div class="form-row" style="background: #F9FAF8; padding: 12px 14px; border-radius: 10px; border: 1px solid #E6EAE3; margin-top: 6px;">
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; flex: 1;">
+            <input type="checkbox" id="materielMisEnAvant" class="notif-ios-switch">
+            <span style="font-size: 12px; font-weight: 700; color: var(--text-main);">⭐ Mettre en avant</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; flex: 1;">
+            <input type="checkbox" id="materielBadgeCertifie" class="notif-ios-switch" checked>
+            <span style="font-size: 12px; font-weight: 700; color: var(--text-main);">🛡️ Fournisseur certifié</span>
+          </label>
+        </div>
+
+        <div class="form-row" style="margin-top: 10px;">
+          <div class="form-group flex-1">
+            <label for="materielStatut">Statut de publication</label>
+            <select id="materielStatut" class="form-select">
+              <option value="publie" selected>Publié (visible des utilisateurs)</option>
+              <option value="en_attente">En attente de validation</option>
+              <option value="retire">Retiré (archivé)</option>
+            </select>
+          </div>
+          <div class="form-group flex-1" style="display: flex; align-items: flex-end;">
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin-bottom: 8px;">
+              <input type="checkbox" id="materielDisponible" checked style="width: 18px; height: 18px; accent-color: var(--primary-700);">
+              <span style="font-size: 13px; font-weight: 600;">Stock disponible</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" id="btnCancelManageMateriel">Annuler</button>
+          <button type="submit" class="btn-primary" id="btnSaveMateriel">
+            <span id="btnSaveMaterielText">Enregistrer le produit</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== MODALE DÉTAILS MATÉRIEL & SERVICES (UTILISATEUR) ==================== -->
+  <div class="modal-backdrop hidden" id="modalMaterielDetails">
+    <div class="modal-dialog modal-dialog-materiel-details" style="max-width: 680px;">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <span class="fin-detail-type-badge" id="matDetailBadgeType">Vente</span>
+          <span class="fin-detail-region-badge" id="matDetailBadgeCertifie">🛡️ Fournisseur certifié</span>
+        </div>
+        <button class="modal-close-btn" id="btnCloseMaterielDetails">&times;</button>
+      </div>
+
+      <div class="fin-detail-body" style="padding: 16px 20px;">
+        <!-- Carrousel de photos -->
+        <div class="materiel-carousel-container" id="matDetailCarousel">
+          <div class="materiel-carousel-main" style="position: relative; border-radius: 12px; overflow: hidden; background: #0E1A12; height: 260px; display: flex; align-items: center; justify-content: center;">
+            <img src="" alt="Photo matériel" id="matDetailMainPhoto" style="width: 100%; height: 100%; object-fit: contain;">
+            <button type="button" class="carousel-arrow carousel-prev hidden" id="matCarouselPrev" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 36px; height: 36px; border-radius: 50%; background: rgba(0,0,0,0.6); color: #FFF; border: none; font-size: 18px; cursor: pointer;">&lt;</button>
+            <button type="button" class="carousel-arrow carousel-next hidden" id="matCarouselNext" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); width: 36px; height: 36px; border-radius: 50%; background: rgba(0,0,0,0.6); color: #FFF; border: none; font-size: 18px; cursor: pointer;">&gt;</button>
+            <span class="carousel-counter hidden" id="matCarouselCounter" style="position: absolute; bottom: 10px; right: 12px; background: rgba(0,0,0,0.6); color: #FFF; font-size: 11px; padding: 2px 8px; border-radius: 10px;">1 / 1</span>
+          </div>
+          <div class="materiel-carousel-thumbs" id="matDetailThumbs" style="display: flex; gap: 8px; margin-top: 8px; overflow-x: auto; padding-bottom: 4px;"></div>
+        </div>
+
+        <div style="margin-top: 14px;">
+          <span class="materiel-category-tag" id="matDetailCategoryTag" style="font-size: 11.5px; font-weight: 700; color: #1E5E2A; background: #EAF4E6; padding: 3px 8px; border-radius: 4px;">💧 Pompes & Forages</span>
+          <h2 class="fin-detail-title" id="matDetailNom" style="margin: 6px 0 8px; font-size: 20px;">Nom du produit</h2>
+          
+          <div class="materiel-price-box" style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 14px;">
+            <strong class="materiel-price-val" id="matDetailPrix" style="font-size: 24px; color: var(--primary-700); font-family: 'JetBrains Mono', monospace; font-weight: 800;">750 000 F CFA</strong>
+            <span class="materiel-price-unit" id="matDetailUnite" style="font-size: 13px; color: var(--text-muted);">/ pièce</span>
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div class="fin-detail-section" style="margin-bottom: 14px;">
+          <h4 class="fin-section-title" style="font-size: 13.5px; font-weight: 700; color: var(--text-main); margin-bottom: 6px;">Description</h4>
+          <p class="fin-section-desc" id="matDetailDescription" style="font-size: 13.5px; line-height: 1.55; color: #3C4740; margin: 0;"></p>
+        </div>
+
+        <!-- Caractéristiques techniques -->
+        <div class="fin-detail-section" id="matDetailCaractSection" style="margin-bottom: 14px;">
+          <h4 class="fin-section-title" style="font-size: 13.5px; font-weight: 700; color: var(--text-main); margin-bottom: 6px;">⚙️ Caractéristiques techniques</h4>
+          <div id="matDetailCaracteristiques" style="background: #F8FAF6; border: 1px solid #E6EAE3; border-radius: 10px; padding: 12px 14px; font-size: 12.5px; line-height: 1.5; color: #2A362E;"></div>
+        </div>
+
+        <!-- Fournisseur & Disponibilité -->
+        <div class="fin-detail-meta-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-bottom: 16px;">
+          <div class="fin-meta-item">
+            <span class="fin-meta-icon">🏢</span>
+            <div>
+              <span class="fin-meta-label">Fournisseur</span>
+              <strong class="fin-meta-val" id="matDetailFournisseur">Sahel Forages</strong>
+            </div>
+          </div>
+          <div class="fin-meta-item">
+            <span class="fin-meta-icon">📍</span>
+            <div>
+              <span class="fin-meta-label">Localisation & Livraison</span>
+              <strong class="fin-meta-val" id="matDetailVille">Ouagadougou</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Deux gros boutons d'action d'urgence -->
+        <div class="materiel-contact-actions" style="display: flex; gap: 10px; flex-direction: column;">
+          <a href="#" target="_blank" rel="noopener" class="btn-whatsapp-large" id="btnMatWhatsappOrder" style="display: flex; align-items: center; justify-content: center; gap: 10px; background: #25D366; color: #FFFFFF; font-weight: 800; font-size: 15px; padding: 14px; border-radius: 12px; text-decoration: none; box-shadow: 0 4px 12px rgba(37, 211, 102, 0.3);">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.664-.698c.969.584 1.961.947 2.796.947 3.179 0 5.767-2.587 5.767-5.766.001-3.187-2.575-5.77-5.767-5.774zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86.173.086.275.072.376-.044.101-.116.433-.506.549-.68.116-.173.231-.145.39-.086s1.011.477 1.184.564.289.13.332.202c.045.072.045.419-.099.824z"/></svg>
+            <span>Commander sur WhatsApp</span>
+          </a>
+          <a href="#" class="btn-call-large" id="btnMatPhoneCall" style="display: flex; align-items: center; justify-content: center; gap: 10px; background: #FFFFFF; color: var(--text-main); font-weight: 700; font-size: 14px; padding: 12px; border-radius: 12px; text-decoration: none; border: 1.5px solid #D5E0D5;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            <span id="matDetailPhoneText">Appeler le fournisseur</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="modal-footer" style="padding: 12px 20px;">
+        <button type="button" class="btn-secondary" id="btnCloseMaterielDetailsBottom" style="width: 100%;">Fermer la fiche</button>
       </div>
     </div>
   </div>
@@ -2763,6 +3124,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <!-- SCRIPT APPLICATION -->
-  <script src="scripts/app.js?v=20261019.20"></script>
+  <script src="scripts/app.js?v=20261020.1"></script>
 </body>
 </html>

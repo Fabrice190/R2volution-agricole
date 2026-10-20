@@ -64,6 +64,23 @@ document.addEventListener('DOMContentLoaded', () => {
   const formAddParcel = document.getElementById('formAddParcel');
   const parcelRegionSelect = document.getElementById('parcelRegionSelect');
 
+  // Variables d'état et sélecteurs DOM pour Matériel & Services
+  let cachedMateriels = [];
+  let userSelectedMaterielCategory = 'all';
+  let userSelectedMaterielTypeOffre = 'all';
+  let userMaterielSearchQuery = '';
+  let adminMaterielActiveStatusTab = 'all';
+  let currentEditingMaterielId = null;
+  let currentDetailMaterielPhotos = [];
+  let currentDetailPhotoIndex = 0;
+  let pendingMaterielPhotos = [];
+
+  const pageMaterielServices = document.getElementById('pageMaterielServices');
+  const pageAdminMateriels = document.getElementById('pageAdminMateriels');
+  const modalManageMateriel = document.getElementById('modalManageMateriel');
+  const modalMaterielDetails = document.getElementById('modalMaterielDetails');
+  const formManageMateriel = document.getElementById('formManageMateriel');
+
   const pageFinancements = document.getElementById('pageFinancements');
   const pageAdminFinancements = document.getElementById('pageAdminFinancements');
   const pageConseils = document.getElementById('pageConseils');
@@ -1564,6 +1581,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     return `<span class="nav-badge-neutral" id="mobileDrawerModelesBadge" style="display:none;"></span>`;
                   }
                 })()}
+              <a href="#admin-materiels" class="nav-item mobile-drawer-link" data-page="admin-materiels">
+                <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></span>
+                <span class="nav-label">Gérer le matériel</span>
+                ${(() => {
+                  try {
+                    const count = (cachedMateriels || []).filter(m => m.statut === 'en_attente').length;
+                    return `<span class="nav-badge-amber" id="mobileDrawerMaterielsBadge">${count}</span>`;
+                  } catch (e) {
+                    return `<span class="nav-badge-amber" id="mobileDrawerMaterielsBadge" style="display:none;"></span>`;
+                  }
+                })()}
               </a>
               <a href="#admin-queue" class="nav-item mobile-drawer-link">
                 <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></span>
@@ -1644,6 +1672,8 @@ document.addEventListener('DOMContentLoaded', () => {
           (currentRoutePage === 'conseils' ? getMobileConseilsHtml() :
           (currentRoutePage === 'admin-conseils' ? getMobileAdminConseilsHtml() :
           (currentRoutePage === 'admin-modeles' ? getMobileAdminModelesHtml() :
+          (currentRoutePage === 'materiel-services' ? getMobileMaterielsHtml() :
+          (currentRoutePage === 'admin-materiels' ? getMobileAdminMaterielsHtml() :
           (currentRoutePage === 'parcelles' ? getMobileParcellesHtml() :
           (currentRoutePage === 'meteo' ? getMobileMeteoHtml() :
           (currentRoutePage === 'notifications' ? getMobileNotificationsHtml() : `
@@ -1877,7 +1907,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const href = link.getAttribute('href');
         if (href && href.startsWith('#')) {
           const target = href.replace(/^#/, '');
-          if (target === 'opportunites' || target === 'admin-financements' || target === 'conseils' || target === 'admin-conseils' || target === 'admin-modeles' || target === 'parcelles' || target === 'cycles' || target === 'dashboard' || target === 'meteo' || target === 'notifications') {
+          if (target === 'opportunites' || target === 'admin-financements' || target === 'conseils' || target === 'admin-conseils' || target === 'admin-modeles' || target === 'parcelles' || target === 'cycles' || target === 'dashboard' || target === 'meteo' || target === 'notifications' || target === 'materiel-services' || target === 'admin-materiels') {
             e.preventDefault();
             closeMobileDrawer();
             const routeTarget = (target === 'cycles') ? 'parcelles' : target;
@@ -3821,6 +3851,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (pageConseils) pageConseils.classList.toggle('hidden', page !== 'conseils');
     if (pageAdminConseils) pageAdminConseils.classList.toggle('hidden', page !== 'admin-conseils');
     if (pageAdminModeles) pageAdminModeles.classList.toggle('hidden', page !== 'admin-modeles');
+    if (pageMaterielServices) pageMaterielServices.classList.toggle('hidden', page !== 'materiel-services');
+    if (pageAdminMateriels) pageAdminMateriels.classList.toggle('hidden', page !== 'admin-materiels');
     if (pageParcelles) pageParcelles.classList.toggle('hidden', page !== 'parcelles');
     if (pageMeteo) pageMeteo.classList.toggle('hidden', page !== 'meteo');
     if (pageNotifications) pageNotifications.classList.toggle('hidden', page !== 'notifications');
@@ -3849,6 +3881,10 @@ document.addEventListener('DOMContentLoaded', () => {
       renderAdminConseils();
     } else if (page === 'admin-modeles') {
       renderAdminModeles();
+    } else if (page === 'materiel-services') {
+      renderUserMateriels();
+    } else if (page === 'admin-materiels') {
+      renderAdminMateriels();
     } else if (page === 'parcelles') {
       renderParcellesPage();
     } else if (page === 'meteo') {
@@ -3876,6 +3912,10 @@ document.addEventListener('DOMContentLoaded', () => {
       navigateToPage('admin-conseils');
     } else if (hash === 'admin-modeles') {
       navigateToPage('admin-modeles');
+    } else if (hash === 'materiel-services') {
+      navigateToPage('materiel-services');
+    } else if (hash === 'admin-materiels') {
+      navigateToPage('admin-materiels');
     } else if (hash === 'parcelles' || hash === 'cycles' || hash === 'tous-les-cycles') {
       navigateToPage('parcelles');
     } else if (hash === 'meteo' || hash === 'meteo-details') {
@@ -3895,7 +3935,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const href = link.getAttribute('href');
       if (href && href.startsWith('#')) {
         const page = href.replace(/^#/, '');
-        if (page === 'opportunites' || page === 'admin-financements' || page === 'conseils' || page === 'admin-conseils' || page === 'admin-modeles' || page === 'parcelles' || page === 'cycles' || page === 'dashboard' || page === 'meteo' || page === 'notifications') {
+        if (page === 'opportunites' || page === 'admin-financements' || page === 'conseils' || page === 'admin-conseils' || page === 'admin-modeles' || page === 'parcelles' || page === 'cycles' || page === 'dashboard' || page === 'meteo' || page === 'notifications' || page === 'materiel-services' || page === 'admin-materiels') {
           e.preventDefault();
           const routeTarget = (page === 'cycles') ? 'parcelles' : page;
           window.location.hash = routeTarget;
@@ -4443,6 +4483,40 @@ document.addEventListener('DOMContentLoaded', () => {
       } else {
         btnApply.innerHTML = '<span>Postuler en ligne</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>';
         btnApply.setAttribute('target', '_blank');
+    // Synergie Matériel : Le matériel dont vous avez besoin
+    const synergyCard = document.getElementById('finDetailMaterielSynergy');
+    const btnGoMateriel = document.getElementById('btnGoToMaterielFromFin');
+    const synergyDesc = document.getElementById('finDetailMaterielSynergyDesc');
+    const btnGoMaterielText = document.getElementById('btnGoToMaterielText');
+
+    if (synergyCard) {
+      const contentText = `${item.titre || ''} ${item.description_courte || ''} ${item.conditions_eligibilite || ''} ${item.public_vise || ''}`.toLowerCase();
+      const mentionsIrrigation = contentText.includes('pompe') || contentText.includes('forage') || contentText.includes('irrigation') || contentText.includes('motopompe') || contentText.includes('goutte-à-goutte') || contentText.includes('bassin');
+      const mentionsSolar = contentText.includes('solaire') || contentText.includes('panneau') || contentText.includes('photovolta');
+      const mentionsGeneralEquip = contentText.includes('matériel') || contentText.includes('equipement') || contentText.includes('équipement') || contentText.includes('intrant') || contentText.includes('motoculteur') || contentText.includes('tracteur');
+
+      if (mentionsIrrigation || mentionsSolar || mentionsGeneralEquip) {
+        synergyCard.classList.remove('hidden');
+        if (mentionsSolar) {
+          if (synergyDesc) synergyDesc.textContent = 'Cette opportunité soutient les investissements solaires et forages. Retrouvez les kits de pompage solaire et techniciens agréés au Burkina Faso.';
+          if (btnGoMaterielText) btnGoMaterielText.textContent = 'Voir l\'énergie solaire & pompes disponibles →';
+        } else if (mentionsIrrigation) {
+          if (synergyDesc) synergyDesc.textContent = 'Cette subvention couvre l\'achat de motopompes, forages ou systèmes d\'irrigation. Trouvez des équipements vérifiés auprès de fournisseurs certifiés au Burkina Faso.';
+          if (btnGoMaterielText) btnGoMaterielText.textContent = 'Voir les pompes & forages disponibles →';
+        } else {
+          if (synergyDesc) synergyDesc.textContent = 'Équipez votre exploitation avec du matériel agricole certifié (pompes, kits de maraîchage, intrants vérifiés) éligible aux financements.';
+          if (btnGoMaterielText) btnGoMaterielText.textContent = 'Voir le matériel & services disponibles →';
+        }
+        if (btnGoMateriel) {
+          btnGoMateriel.onclick = (e) => {
+            e.preventDefault();
+            closeFinancementDetailsModal();
+            window.location.hash = 'materiel-services';
+            navigateToPage('materiel-services');
+          };
+        }
+      } else {
+        synergyCard.classList.add('hidden');
       }
     }
 
@@ -8497,6 +8571,1063 @@ document.addEventListener('DOMContentLoaded', () => {
     btnMarkAllNotifsRead.addEventListener('click', markAllNotificationsAsRead);
   }
 
+  // ==========================================
+  // MODULE MATÉRIEL & SERVICES (CONNECTÉ SUPABASE)
+  // ==========================================
+
+  const MATERIEL_CATEGORIES_META = {
+    'pompes-forages': { label: 'Pompes & Forages', icon: '💧' },
+    'energie-solaire': { label: 'Énergie Solaire', icon: '☀️' },
+    'irrigation': { label: 'Irrigation', icon: '🌱' },
+    'kits-maraichage': { label: 'Kits Maraîchage', icon: '🥬' },
+    'outils-accessoires': { label: 'Outils & Accessoires', icon: '🔧' },
+    'intrants': { label: 'Intrants certifiés', icon: '📦' },
+    'services': { label: 'Services & Réparations', icon: '🛠️' }
+  };
+
+  const MATERIEL_TYPES_META = {
+    vente: { label: 'Vente', icon: '🏷️' },
+    location: { label: 'Location', icon: '⏱️' },
+    installation: { label: 'Installation', icon: '⚡' },
+    reparation: { label: 'Réparation', icon: '🧰' }
+  };
+
+  // Compression d'image côté client via Canvas (JPG 1200x1200 max, qualité 0.8)
+  async function compressImageFile(file, maxWidth = 1200, maxHeight = 1200, quality = 0.8) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onerror = reject;
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onerror = reject;
+        img.onload = () => {
+          let width = img.width;
+          let height = img.height;
+          if (width > maxWidth || height > maxHeight) {
+            if (width / height > maxWidth / maxHeight) {
+              height = Math.round((height * maxWidth) / width);
+              width = maxWidth;
+            } else {
+              width = Math.round((width * maxHeight) / height);
+              height = maxHeight;
+            }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          canvas.toBlob(
+            (blob) => {
+              if (blob) resolve(blob);
+              else reject(new Error('Erreur de compression d\'image'));
+            },
+            'image/jpeg',
+            quality
+          );
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // Upload d'une photo vers le bucket Storage 'materiels'
+  async function uploadMaterielPhoto(blob) {
+    if (!supabaseClient) throw new Error('Connexion Supabase non disponible');
+    const cleanName = `${Date.now()}_${Math.random().toString(36).substring(2, 9)}.jpg`;
+    const filePath = `photos/${cleanName}`;
+    const { error } = await supabaseClient.storage
+      .from('materiels')
+      .upload(filePath, blob, { contentType: 'image/jpeg', upsert: true });
+
+    if (error) throw error;
+    const { data: publicUrlData } = supabaseClient.storage
+      .from('materiels')
+      .getPublicUrl(filePath);
+
+    return publicUrlData.publicUrl;
+  }
+
+  // Récupération des matériels depuis Supabase
+  async function fetchMateriels() {
+    if (!supabaseClient) return;
+    try {
+      const { data, error } = await supabaseClient
+        .from('materiels')
+        .select('*')
+        .order('mis_en_avant', { ascending: false })
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.warn('⚠️ Erreur fetchMateriels Supabase :', error);
+        return;
+      }
+
+      cachedMateriels = data || [];
+      updateMaterielsCounters();
+      renderUserMateriels();
+      if (currentRoutePage === 'admin-materiels') {
+        renderAdminMateriels();
+      }
+      if (currentViewMode === 'mobile' || window.innerWidth < 1024) {
+        renderMobileView();
+      }
+    } catch (err) {
+      console.warn('⚠️ Erreur réseau fetchMateriels :', err);
+    }
+  }
+
+  // Mise à jour des compteurs et badges
+  function updateMaterielsCounters() {
+    const published = cachedMateriels.filter(m => m.statut === 'publie');
+    const pending = cachedMateriels.filter(m => m.statut === 'en_attente');
+
+    const countBadgeText = document.getElementById('userMaterielsCountText');
+    if (countBadgeText) {
+      countBadgeText.textContent = `${published.length} offre${published.length > 1 ? 's' : ''} disponible${published.length > 1 ? 's' : ''}`;
+    }
+
+    const navAdminBadge = document.getElementById('navAdminMaterielsBadge');
+    if (navAdminBadge) {
+      navAdminBadge.textContent = pending.length;
+      navAdminBadge.classList.toggle('hidden', pending.length === 0);
+    }
+
+    const drawerAdminBadge = document.getElementById('mobileDrawerMaterielsBadge');
+    if (drawerAdminBadge) {
+      drawerAdminBadge.textContent = pending.length;
+      drawerAdminBadge.style.display = pending.length > 0 ? 'inline-block' : 'none';
+    }
+  }
+
+  // Rendu de la grille des matériels pour les utilisateurs (Desktop)
+  function renderUserMateriels() {
+    const grid = document.getElementById('materielsGrid');
+    const emptyState = document.getElementById('materielsEmptyState');
+    if (!grid) return;
+
+    let list = cachedMateriels.filter(m => m.statut === 'publie');
+
+    // Filtre par catégorie
+    if (userSelectedMaterielCategory && userSelectedMaterielCategory !== 'all') {
+      list = list.filter(m => m.categorie === userSelectedMaterielCategory);
+    }
+
+    // Filtre par type d'offre
+    if (userSelectedMaterielTypeOffre && userSelectedMaterielTypeOffre !== 'all') {
+      list = list.filter(m => m.type_offre === userSelectedMaterielTypeOffre);
+    }
+
+    // Filtre par recherche textuelle
+    if (userMaterielSearchQuery && userMaterielSearchQuery.trim() !== '') {
+      const q = userMaterielSearchQuery.toLowerCase().trim();
+      list = list.filter(m => {
+        const nom = (m.nom || '').toLowerCase();
+        const desc = (m.description || '').toLowerCase();
+        const caract = (m.caracteristiques || '').toLowerCase();
+        const fn = (m.fournisseur_nom || '').toLowerCase();
+        const fv = (m.fournisseur_ville || '').toLowerCase();
+        return nom.includes(q) || desc.includes(q) || caract.includes(q) || fn.includes(q) || fv.includes(q);
+      });
+    }
+
+    if (list.length === 0) {
+      grid.innerHTML = '';
+      if (emptyState) emptyState.classList.remove('hidden');
+      return;
+    }
+
+    if (emptyState) emptyState.classList.add('hidden');
+
+    grid.innerHTML = list.map(item => {
+      const catMeta = MATERIEL_CATEGORIES_META[item.categorie] || { label: item.categorie || 'Matériel', icon: '🚜' };
+      const typeMeta = MATERIEL_TYPES_META[item.type_offre] || { label: item.type_offre || 'Offre', icon: '🏷️' };
+      const photos = Array.isArray(item.photos) ? item.photos : [];
+      const mainPhoto = photos.length > 0 ? photos[0] : '';
+
+      let priceDisplay = 'Prix sur demande';
+      if (item.prix_texte && item.prix_texte.trim() !== '') {
+        priceDisplay = escapeHtml(item.prix_texte);
+      } else if (item.prix !== null && item.prix !== undefined && !isNaN(Number(item.prix))) {
+        priceDisplay = `${new Intl.NumberFormat('fr-FR').format(Number(item.prix))} F CFA`;
+      }
+
+      return `
+        <div class="materiel-card" data-id="${item.id}">
+          <div class="materiel-card-image-wrap">
+            ${mainPhoto ? `
+              <img src="${mainPhoto}" alt="${escapeHtml(item.nom)}" class="materiel-card-img" loading="lazy">
+            ` : `
+              <div class="materiel-card-img-placeholder">${catMeta.icon}</div>
+            `}
+            ${item.mis_en_avant ? `
+              <span class="materiel-badge-pinned">⭐ Mis en avant</span>
+            ` : ''}
+            <span class="materiel-badge-type">${typeMeta.icon} ${typeMeta.label}</span>
+            ${photos.length > 1 ? `
+              <span class="materiel-badge-photo-count">📷 ${photos.length}</span>
+            ` : ''}
+          </div>
+          <div class="materiel-card-body">
+            <div class="materiel-card-cat-line">
+              <span class="materiel-card-cat">${catMeta.icon} ${catMeta.label}</span>
+              ${item.badge_certifie ? `
+                <span class="materiel-badge-cert">🛡️ Fournisseur certifié</span>
+              ` : ''}
+            </div>
+            <h3 class="materiel-card-title">${escapeHtml(item.nom)}</h3>
+            <p class="materiel-card-desc">${escapeHtml(item.description || '')}</p>
+            <div class="materiel-card-footer">
+              <div class="materiel-card-price-group">
+                <span class="materiel-card-price">${priceDisplay}</span>
+                ${item.unite ? `<span class="materiel-card-unit">${escapeHtml(item.unite)}</span>` : ''}
+              </div>
+              <span class="materiel-card-loc" title="${escapeHtml(item.fournisseur_ville || 'Burkina Faso')}">
+                📍 ${escapeHtml(item.fournisseur_ville || 'Burkina Faso')}
+              </span>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    grid.querySelectorAll('.materiel-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const id = card.getAttribute('data-id');
+        const item = cachedMateriels.find(m => String(m.id) === String(id));
+        if (item) openMaterielDetailsModal(item);
+      });
+    });
+  }
+
+  // Ouverture de la modale de détails d'un matériel (Utilisateur)
+  function openMaterielDetailsModal(item) {
+    if (!modalMaterielDetails) return;
+
+    const bType = document.getElementById('matDetailBadgeType');
+    const bCert = document.getElementById('matDetailBadgeCertifie');
+    const dCat = document.getElementById('matDetailCategoryTag');
+    const dNom = document.getElementById('matDetailNom');
+    const dPrix = document.getElementById('matDetailPrix');
+    const dUnite = document.getElementById('matDetailUnite');
+    const dDesc = document.getElementById('matDetailDescription');
+    const dCaract = document.getElementById('matDetailCaracteristiques');
+    const dCaractSec = document.getElementById('matDetailCaractSection');
+    const dFournisseur = document.getElementById('matDetailFournisseur');
+    const dVille = document.getElementById('matDetailVille');
+    const btnWa = document.getElementById('btnMatWhatsappOrder');
+    const btnPhone = document.getElementById('btnMatPhoneCall');
+    const phoneText = document.getElementById('matDetailPhoneText');
+
+    const catMeta = MATERIEL_CATEGORIES_META[item.categorie] || { label: item.categorie || 'Matériel', icon: '🚜' };
+    const typeMeta = MATERIEL_TYPES_META[item.type_offre] || { label: item.type_offre || 'Vente', icon: '🏷️' };
+
+    if (bType) bType.textContent = `${typeMeta.icon} ${typeMeta.label}`;
+    if (bCert) {
+      if (item.badge_certifie) {
+        bCert.textContent = '🛡️ Fournisseur certifié';
+        bCert.classList.remove('hidden');
+      } else {
+        bCert.classList.add('hidden');
+      }
+    }
+
+    if (dCat) dCat.textContent = `${catMeta.icon} ${catMeta.label}`;
+    if (dNom) dNom.textContent = item.nom;
+
+    let priceDisplay = 'Prix sur demande';
+    if (item.prix_texte && item.prix_texte.trim() !== '') {
+      priceDisplay = item.prix_texte;
+    } else if (item.prix !== null && item.prix !== undefined && !isNaN(Number(item.prix))) {
+      priceDisplay = `${new Intl.NumberFormat('fr-FR').format(Number(item.prix))} F CFA`;
+    }
+    if (dPrix) dPrix.textContent = priceDisplay;
+    if (dUnite) dUnite.textContent = item.unite ? `(${item.unite})` : '';
+
+    if (dDesc) dDesc.textContent = item.description || '';
+
+    if (dCaractSec && dCaract) {
+      if (item.caracteristiques && item.caracteristiques.trim() !== '') {
+        dCaract.textContent = item.caracteristiques;
+        dCaractSec.classList.remove('hidden');
+      } else {
+        dCaractSec.classList.add('hidden');
+      }
+    }
+
+    if (dFournisseur) dFournisseur.textContent = item.fournisseur_nom || 'Fournisseur vérifié';
+    if (dVille) {
+      const reg = item.regions_livraison ? ` • Livraison : ${item.regions_livraison}` : '';
+      dVille.textContent = `${item.fournisseur_ville || 'Burkina Faso'}${reg}`;
+    }
+
+    // Gestion du Carrousel de Photos
+    currentDetailMaterielPhotos = Array.isArray(item.photos) ? item.photos.filter(p => Boolean(p)) : [];
+    currentDetailPhotoIndex = 0;
+    renderDetailCarousel();
+
+    // Boutons Contact WhatsApp et Téléphone
+    const rawPhone = String(item.fournisseur_whatsapp || '').trim();
+    const cleanDigits = rawPhone.replace(/[^0-9]/g, '').replace(/^226/, '');
+
+    if (btnWa) {
+      const waMessage = `Bonjour ${item.fournisseur_nom || ''}, je vous contacte depuis Révolution Agricole concernant votre offre : « ${item.nom} » (${priceDisplay}). Est-elle toujours disponible ?`;
+      btnWa.href = `https://wa.me/226${cleanDigits}?text=${encodeURIComponent(waMessage)}`;
+    }
+
+    if (btnPhone) {
+      btnPhone.href = `tel:+226${cleanDigits}`;
+      if (phoneText) phoneText.textContent = `Appeler (+226 ${cleanDigits.replace(/(\d{2})(?=\d)/g, '$1 ')})`;
+    }
+
+    modalMaterielDetails.classList.remove('hidden');
+  }
+
+  function renderDetailCarousel() {
+    const mainImg = document.getElementById('matDetailMainPhoto');
+    const prevBtn = document.getElementById('matCarouselPrev');
+    const nextBtn = document.getElementById('matCarouselNext');
+    const counter = document.getElementById('matCarouselCounter');
+    const thumbs = document.getElementById('matDetailThumbs');
+
+    if (currentDetailMaterielPhotos.length === 0) {
+      if (mainImg) mainImg.src = 'https://images.unsplash.com/photo-1592417817098-8f3d6910985c?auto=format&fit=crop&w=800&q=80';
+      if (prevBtn) prevBtn.classList.add('hidden');
+      if (nextBtn) nextBtn.classList.add('hidden');
+      if (counter) counter.classList.add('hidden');
+      if (thumbs) thumbs.innerHTML = '';
+      return;
+    }
+
+    function showPhotoAtIndex(idx) {
+      currentDetailPhotoIndex = idx;
+      if (mainImg) mainImg.src = currentDetailMaterielPhotos[idx];
+      if (counter) counter.textContent = `${idx + 1} / ${currentDetailMaterielPhotos.length}`;
+
+      if (thumbs) {
+        thumbs.querySelectorAll('.carousel-thumb-btn').forEach((btn, i) => {
+          btn.classList.toggle('active', i === idx);
+        });
+      }
+    }
+
+    showPhotoAtIndex(0);
+
+    const hasMultiple = currentDetailMaterielPhotos.length > 1;
+    if (prevBtn) prevBtn.classList.toggle('hidden', !hasMultiple);
+    if (nextBtn) nextBtn.classList.toggle('hidden', !hasMultiple);
+    if (counter) counter.classList.toggle('hidden', !hasMultiple);
+
+    if (hasMultiple) {
+      if (prevBtn) {
+        prevBtn.onclick = (e) => {
+          e.stopPropagation();
+          const prevIdx = (currentDetailPhotoIndex - 1 + currentDetailMaterielPhotos.length) % currentDetailMaterielPhotos.length;
+          showPhotoAtIndex(prevIdx);
+        };
+      }
+      if (nextBtn) {
+        nextBtn.onclick = (e) => {
+          e.stopPropagation();
+          const nextIdx = (currentDetailPhotoIndex + 1) % currentDetailMaterielPhotos.length;
+          showPhotoAtIndex(nextIdx);
+        };
+      }
+
+      if (thumbs) {
+        thumbs.innerHTML = currentDetailMaterielPhotos.map((url, i) => `
+          <button type="button" class="carousel-thumb-btn ${i === 0 ? 'active' : ''}" data-idx="${i}">
+            <img src="${url}" alt="Aperçu ${i + 1}">
+          </button>
+        `).join('');
+
+        thumbs.querySelectorAll('.carousel-thumb-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const idx = parseInt(btn.getAttribute('data-idx'), 10);
+            showPhotoAtIndex(idx);
+          });
+        });
+      }
+    } else if (thumbs) {
+      thumbs.innerHTML = '';
+    }
+  }
+
+  function closeMaterielDetailsModal() {
+    if (modalMaterielDetails) modalMaterielDetails.classList.add('hidden');
+  }
+
+  // Rendu de la liste admin des matériels (Desktop)
+  function renderAdminMateriels() {
+    const listContainer = document.getElementById('adminMaterielsList');
+    if (!listContainer) return;
+
+    let list = cachedMateriels;
+    if (adminMaterielActiveStatusTab && adminMaterielActiveStatusTab !== 'all') {
+      list = list.filter(m => m.statut === adminMaterielActiveStatusTab);
+    }
+
+    if (list.length === 0) {
+      listContainer.innerHTML = `
+        <div class="financements-empty-state" style="padding: 30px;">
+          <div class="empty-state-icon">🚜</div>
+          <h3>Aucun produit trouvé</h3>
+          <p>Cliquez sur « + Ajouter un produit » pour enregistrer une offre de matériel ou service.</p>
+        </div>
+      `;
+      return;
+    }
+
+    listContainer.innerHTML = list.map(item => {
+      const photos = Array.isArray(item.photos) ? item.photos : [];
+      const thumb = photos.length > 0 ? photos[0] : '';
+      const catMeta = MATERIEL_CATEGORIES_META[item.categorie] || { label: item.categorie || 'Matériel', icon: '🚜' };
+      const typeMeta = MATERIEL_TYPES_META[item.type_offre] || { label: item.type_offre || 'Vente', icon: '🏷️' };
+
+      let priceDisplay = 'Prix sur demande';
+      if (item.prix_texte && item.prix_texte.trim() !== '') {
+        priceDisplay = item.prix_texte;
+      } else if (item.prix !== null && item.prix !== undefined && !isNaN(Number(item.prix))) {
+        priceDisplay = `${new Intl.NumberFormat('fr-FR').format(Number(item.prix))} F CFA`;
+      }
+
+      return `
+        <div class="admin-materiel-card status-${item.statut}" data-id="${item.id}">
+          ${thumb ? `
+            <img src="${thumb}" alt="${escapeHtml(item.nom)}" class="admin-materiel-thumb">
+          ` : `
+            <div class="admin-materiel-thumb">${catMeta.icon}</div>
+          `}
+          <div class="admin-materiel-info">
+            <div class="admin-materiel-header">
+              <span class="admin-status-pill ${item.statut}">
+                ${item.statut === 'en_attente' ? '⏳ En attente' : (item.statut === 'publie' ? '✅ Publié' : '📦 Retiré')}
+              </span>
+              <span class="fin-badge-type">${typeMeta.icon} ${typeMeta.label}</span>
+              <span style="font-size: 11.5px; color: var(--text-dim);">${catMeta.icon} ${catMeta.label}</span>
+              ${item.mis_en_avant ? '<span class="badge-urgent-pulse" style="font-size: 10px;">⭐ Mis en avant</span>' : ''}
+              ${item.badge_certifie ? '<span class="materiel-badge-cert" style="font-size: 10px;">🛡️ Certifié</span>' : ''}
+            </div>
+            <h4 class="admin-materiel-title">${escapeHtml(item.nom)}</h4>
+            <div class="admin-materiel-meta">
+              <span><strong>Prix :</strong> ${priceDisplay}</span>
+              <span>•</span>
+              <span><strong>Fournisseur :</strong> ${escapeHtml(item.fournisseur_nom)} (📍 ${escapeHtml(item.fournisseur_ville)})</span>
+              <span>•</span>
+              <span><strong>WhatsApp :</strong> +226 ${escapeHtml(item.fournisseur_whatsapp)}</span>
+            </div>
+          </div>
+          <div class="admin-materiel-actions">
+            ${item.statut !== 'publie' ? `
+              <button type="button" class="btn-admin-action btn-admin-publish btn-mat-publish" data-id="${item.id}" title="Publier immédiatement cette fiche">
+                ✅ Publier
+              </button>
+            ` : ''}
+            <button type="button" class="btn-admin-action btn-admin-edit btn-mat-edit" data-id="${item.id}" title="Modifier cette fiche">
+              ✏️ Modifier
+            </button>
+            ${item.statut !== 'retire' ? `
+              <button type="button" class="btn-admin-action btn-admin-withdraw btn-mat-withdraw" data-id="${item.id}" title="Retirer cette fiche du public">
+                🚫 Retirer
+              </button>
+            ` : ''}
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    listContainer.querySelectorAll('.btn-mat-publish').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const id = btn.getAttribute('data-id');
+        await updateMaterielStatus(id, 'publie');
+      });
+    });
+
+    listContainer.querySelectorAll('.btn-mat-withdraw').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const id = btn.getAttribute('data-id');
+        await updateMaterielStatus(id, 'retire');
+      });
+    });
+
+    listContainer.querySelectorAll('.btn-mat-edit').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const id = btn.getAttribute('data-id');
+        const item = cachedMateriels.find(m => String(m.id) === String(id));
+        if (item) openManageMaterielModal(item);
+      });
+    });
+  }
+
+  // Changement de statut d'un matériel (Publié, Retiré)
+  async function updateMaterielStatus(id, newStatus) {
+    if (!supabaseClient) return;
+    try {
+      const { error } = await supabaseClient
+        .from('materiels')
+        .update({ statut: newStatus, updated_at: new Date().toISOString() })
+        .eq('id', id);
+
+      if (error) {
+        showToast('⚠️ Erreur', error.message || 'Impossible de mettre à jour le statut.');
+        return;
+      }
+
+      const labels = {
+        publie: 'publié et visible de tous les producteurs !',
+        retire: 'retiré du catalogue (archivé).',
+        en_attente: 'remis en attente de validation.'
+      };
+      showToast('Statut mis à jour', `Le produit a été ${labels[newStatus] || newStatus}`);
+      await fetchMateriels();
+    } catch (e) {
+      showToast('Erreur', e.message);
+    }
+  }
+
+  // Modale d'ajout / modification de matériel (Admin)
+  function openManageMaterielModal(item = null) {
+    if (!modalManageMateriel) return;
+    currentEditingMaterielId = item ? item.id : null;
+    pendingMaterielPhotos = [];
+
+    const titleEl = document.getElementById('manageMaterielModalTitle');
+    const submitBtnText = document.getElementById('btnSaveMaterielText');
+    const idInput = document.getElementById('materielId');
+    const nomInput = document.getElementById('materielNom');
+    const catSelect = document.getElementById('materielCategorie');
+    const typeSelect = document.getElementById('materielTypeOffre');
+    const prixInput = document.getElementById('materielPrix');
+    const uniteInput = document.getElementById('materielUnite');
+    const prixTexteInput = document.getElementById('materielPrixTexte');
+    const descInput = document.getElementById('materielDescription');
+    const caractInput = document.getElementById('materielCaracteristiques');
+    const fnNomInput = document.getElementById('materielFournisseurNom');
+    const fnWaInput = document.getElementById('materielFournisseurWhatsapp');
+    const fnVilleInput = document.getElementById('materielFournisseurVille');
+    const regInput = document.getElementById('materielRegionsLivraison');
+    const misEnAvantChk = document.getElementById('materielMisEnAvant');
+    const badgeCertChk = document.getElementById('materielBadgeCertifie');
+    const statutSelect = document.getElementById('materielStatut');
+    const dispoChk = document.getElementById('materielDisponible');
+
+    if (item) {
+      if (titleEl) titleEl.textContent = 'Modifier le produit ou service';
+      if (submitBtnText) submitBtnText.textContent = 'Enregistrer les modifications';
+      if (idInput) idInput.value = item.id;
+      if (nomInput) nomInput.value = item.nom || '';
+      if (catSelect) catSelect.value = item.categorie || 'pompes-forages';
+      if (typeSelect) typeSelect.value = item.type_offre || 'vente';
+      if (prixInput) prixInput.value = item.prix !== null && item.prix !== undefined ? item.prix : '';
+      if (uniteInput) uniteInput.value = item.unite || '';
+      if (prixTexteInput) prixTexteInput.value = item.prix_texte || '';
+      if (descInput) descInput.value = item.description || '';
+      if (caractInput) caractInput.value = item.caracteristiques || '';
+      if (fnNomInput) fnNomInput.value = item.fournisseur_nom || '';
+      if (fnWaInput) fnWaInput.value = item.fournisseur_whatsapp || '';
+      if (fnVilleInput) fnVilleInput.value = item.fournisseur_ville || '';
+      if (regInput) regInput.value = item.regions_livraison || '';
+      if (misEnAvantChk) misEnAvantChk.checked = Boolean(item.mis_en_avant);
+      if (badgeCertChk) badgeCertChk.checked = item.badge_certifie !== false;
+      if (statutSelect) statutSelect.value = item.statut || 'publie';
+      if (dispoChk) dispoChk.checked = item.disponible !== false;
+
+      // Charger les photos existantes
+      if (Array.isArray(item.photos)) {
+        pendingMaterielPhotos = item.photos.map(url => ({
+          url: url,
+          previewUrl: url,
+          id: Math.random().toString(36).substring(2, 9)
+        }));
+      }
+    } else {
+      if (titleEl) titleEl.textContent = 'Ajouter un produit ou service';
+      if (submitBtnText) submitBtnText.textContent = 'Enregistrer le produit';
+      if (formManageMateriel) formManageMateriel.reset();
+      if (idInput) idInput.value = '';
+      if (catSelect) catSelect.value = 'pompes-forages';
+      if (typeSelect) typeSelect.value = 'vente';
+      if (statutSelect) statutSelect.value = 'publie';
+      if (badgeCertChk) badgeCertChk.checked = true;
+      if (dispoChk) dispoChk.checked = true;
+    }
+
+    renderPhotoPreviews();
+    modalManageMateriel.classList.remove('hidden');
+  }
+
+  function renderPhotoPreviews() {
+    const container = document.getElementById('materielPhotoPreviews');
+    if (!container) return;
+
+    container.innerHTML = pendingMaterielPhotos.map((p, idx) => `
+      <div class="materiel-photo-preview-item" data-id="${p.id}">
+        <img src="${p.previewUrl}" alt="Photo ${idx + 1}">
+        <button type="button" class="materiel-photo-preview-del" data-id="${p.id}" title="Supprimer cette photo">&times;</button>
+      </div>
+    `).join('');
+
+    container.querySelectorAll('.materiel-photo-preview-del').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const id = btn.getAttribute('data-id');
+        pendingMaterielPhotos = pendingMaterielPhotos.filter(p => p.id !== id);
+        renderPhotoPreviews();
+      });
+    });
+  }
+
+  function closeManageMaterielModal() {
+    if (modalManageMateriel) modalManageMateriel.classList.add('hidden');
+    pendingMaterielPhotos = [];
+    currentEditingMaterielId = null;
+  }
+
+  // Soumission du formulaire d'enregistrement de matériel
+  async function handleSaveMateriel(e) {
+    e.preventDefault();
+    if (!supabaseClient) {
+      showToast('⚠️ Erreur', 'Connexion Supabase non disponible.');
+      return;
+    }
+
+    const submitBtn = document.getElementById('btnSaveMateriel');
+    const submitBtnText = document.getElementById('btnSaveMaterielText');
+    const prevText = submitBtnText ? submitBtnText.textContent : 'Enregistrer';
+
+    try {
+      if (submitBtn) submitBtn.disabled = true;
+      if (submitBtnText) submitBtnText.textContent = 'Traitement des photos…';
+
+      // Traiter et uploader chaque nouvelle photo via Storage
+      const finalPhotoUrls = [];
+      for (const item of pendingMaterielPhotos) {
+        if (item.url) {
+          finalPhotoUrls.push(item.url);
+        } else if (item.file) {
+          // Compression Canvas
+          const compressedBlob = await compressImageFile(item.file);
+          // Upload vers bucket 'materiels'
+          const uploadedUrl = await uploadMaterielPhoto(compressedBlob);
+          finalPhotoUrls.push(uploadedUrl);
+        }
+      }
+
+      if (submitBtnText) submitBtnText.textContent = 'Enregistrement en base…';
+
+      const nom = document.getElementById('materielNom').value.trim();
+      const categorie = document.getElementById('materielCategorie').value;
+      const type_offre = document.getElementById('materielTypeOffre').value;
+      const rawPrix = document.getElementById('materielPrix').value.trim();
+      const prix = rawPrix !== '' ? Number(rawPrix) : null;
+      const unite = document.getElementById('materielUnite').value.trim() || null;
+      const rawPrixTexte = document.getElementById('materielPrixTexte').value.trim();
+      let prix_texte = rawPrixTexte;
+      if (!prix_texte && prix !== null) {
+        prix_texte = `${new Intl.NumberFormat('fr-FR').format(prix)} F CFA${unite ? ' / ' + unite : ''}`;
+      } else if (!prix_texte && prix === null) {
+        prix_texte = 'Prix sur demande';
+      }
+
+      const description = document.getElementById('materielDescription').value.trim();
+      const caracteristiques = document.getElementById('materielCaracteristiques').value.trim() || null;
+      const fournisseur_nom = document.getElementById('materielFournisseurNom').value.trim();
+      const rawWa = document.getElementById('materielFournisseurWhatsapp').value.trim();
+      const fournisseur_whatsapp = rawWa.replace(/[^0-9]/g, '').replace(/^226/, '');
+      const fournisseur_ville = document.getElementById('materielFournisseurVille').value.trim();
+      const regions_livraison = document.getElementById('materielRegionsLivraison').value.trim() || null;
+      const mis_en_avant = document.getElementById('materielMisEnAvant').checked;
+      const badge_certifie = document.getElementById('materielBadgeCertifie').checked;
+      const statut = document.getElementById('materielStatut').value;
+      const disponible = document.getElementById('materielDisponible').checked;
+
+      const payload = {
+        nom,
+        categorie,
+        type_offre,
+        prix,
+        prix_texte,
+        unite,
+        description,
+        caracteristiques,
+        fournisseur_nom,
+        fournisseur_whatsapp,
+        fournisseur_ville,
+        regions_livraison,
+        mis_en_avant,
+        badge_certifie,
+        statut,
+        disponible,
+        photos: finalPhotoUrls,
+        updated_at: new Date().toISOString()
+      };
+
+      if (currentEditingMaterielId) {
+        const { error } = await supabaseClient
+          .from('materiels')
+          .update(payload)
+          .eq('id', currentEditingMaterielId);
+
+        if (error) throw error;
+        showToast('Produit mis à jour', `« ${nom} » a été mis à jour avec succès.`);
+      } else {
+        payload.created_at = new Date().toISOString();
+        const { error } = await supabaseClient
+          .from('materiels')
+          .insert([payload]);
+
+        if (error) throw error;
+        showToast('Produit ajouté', `« ${nom} » a été enregistré dans le catalogue.`);
+      }
+
+      closeManageMaterielModal();
+      await fetchMateriels();
+    } catch (err) {
+      console.error('Erreur handleSaveMateriel :', err);
+      showToast('⚠️ Erreur', err.message || 'Impossible d\'enregistrer le produit.');
+    } finally {
+      if (submitBtn) submitBtn.disabled = false;
+      if (submitBtnText) submitBtnText.textContent = prevText;
+    }
+  }
+
+  // HTML pour mobile : Matériel & services utilisateur
+  function getMobileMaterielsHtml() {
+    let list = cachedMateriels.filter(m => m.statut === 'publie');
+    if (userSelectedMaterielCategory && userSelectedMaterielCategory !== 'all') {
+      list = list.filter(m => m.categorie === userSelectedMaterielCategory);
+    }
+    if (userSelectedMaterielTypeOffre && userSelectedMaterielTypeOffre !== 'all') {
+      list = list.filter(m => m.type_offre === userSelectedMaterielTypeOffre);
+    }
+
+    const categoriesList = [
+      { key: 'all', label: 'Toutes' },
+      { key: 'pompes-forages', label: '💧 Pompes' },
+      { key: 'energie-solaire', label: '☀️ Solaire' },
+      { key: 'irrigation', label: '🌱 Irrigation' },
+      { key: 'kits-maraichage', label: '🥬 Kits' },
+      { key: 'outils-accessoires', label: '🔧 Outils' },
+      { key: 'intrants', label: '📦 Intrants' },
+      { key: 'services', label: '🛠️ Services' }
+    ];
+
+    return `
+      <div style="margin-bottom: 14px;">
+        <a href="#dashboard" class="breadcrumb-back-link mobile-back-to-dashboard" style="font-size: 12px; margin-bottom: 8px; display: inline-flex; align-items: center; gap: 4px; color: #1E5E2A; font-weight: 700; text-decoration: none;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+          <span>Tableau de bord</span>
+        </a>
+        <h2 style="font-size: 20px; font-weight: 800; color: #1E2822; margin: 0 0 2px;">🚜 Matériel & Services</h2>
+        <p style="font-size: 12px; color: #5B6660; margin: 0;">${list.length} équipement${list.length > 1 ? 's' : ''} et service${list.length > 1 ? 's' : ''} vérifié${list.length > 1 ? 's' : ''}</p>
+      </div>
+
+      <!-- Puces de catégories horizontales -->
+      <div style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 12px; scrollbar-width: none;">
+        ${categoriesList.map(cat => `
+          <button type="button" class="mobile-materiel-cat-chip ${userSelectedMaterielCategory === cat.key ? 'active' : ''}" data-cat="${cat.key}" style="
+            padding: 6px 12px; border-radius: 99px; font-size: 11.5px; font-weight: 700; border: 1px solid ${userSelectedMaterielCategory === cat.key ? '#1E5E2A' : '#E0E5DC'};
+            background: ${userSelectedMaterielCategory === cat.key ? '#1E5E2A' : '#FFF'}; color: ${userSelectedMaterielCategory === cat.key ? '#FFF' : '#4A5750'}; white-space: nowrap; cursor: pointer;
+          ">${cat.label}</button>
+        `).join('')}
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        ${list.length === 0 ? `
+          <div style="text-align: center; padding: 32px 16px; background: #FFF; border-radius: 12px; border: 1px dashed #DDD;">
+            <p style="font-weight: 700; font-size: 14px; margin-bottom: 4px; color: #1E2822;">Aucun matériel disponible</p>
+            <p style="font-size: 12px; color: #7C8781; margin: 0;">Sélectionnez « Toutes » pour voir le catalogue complet.</p>
+          </div>
+        ` : list.map(item => {
+          const photos = Array.isArray(item.photos) ? item.photos : [];
+          const thumb = photos.length > 0 ? photos[0] : '';
+          const catMeta = MATERIEL_CATEGORIES_META[item.categorie] || { label: item.categorie || 'Matériel', icon: '🚜' };
+          const typeMeta = MATERIEL_TYPES_META[item.type_offre] || { label: item.type_offre || 'Vente', icon: '🏷️' };
+
+          let priceDisplay = 'Prix sur demande';
+          if (item.prix_texte && item.prix_texte.trim() !== '') {
+            priceDisplay = item.prix_texte;
+          } else if (item.prix !== null && item.prix !== undefined && !isNaN(Number(item.prix))) {
+            priceDisplay = `${new Intl.NumberFormat('fr-FR').format(Number(item.prix))} F CFA`;
+          }
+
+          return `
+            <div class="mobile-materiel-card" data-id="${item.id}" style="background: #FFF; border: 1px solid #E6EAE3; border-radius: 12px; padding: 12px; cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,0.03);">
+              <div style="display: flex; gap: 12px;">
+                ${thumb ? `
+                  <img src="${thumb}" alt="${escapeHtml(item.nom)}" style="width: 80px; height: 80px; border-radius: 8px; object-fit: cover; flex-shrink: 0; background: #F0F4EE;">
+                ` : `
+                  <div style="width: 80px; height: 80px; border-radius: 8px; background: #F0F4EE; display: flex; align-items: center; justify-content: center; font-size: 32px; flex-shrink: 0;">${catMeta.icon}</div>
+                `}
+                <div style="flex: 1; min-width: 0;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
+                    <span style="font-size: 10.5px; font-weight: 700; color: #1E5E2A;">${catMeta.icon} ${typeMeta.label}</span>
+                    ${item.badge_certifie ? '<span style="font-size: 9.5px; font-weight: 700; color: #1E5E2A; background: #EAF4E6; padding: 1px 5px; border-radius: 4px;">🛡️ Certifié</span>' : ''}
+                  </div>
+                  <h4 style="font-size: 13.5px; font-weight: 800; color: #141A15; margin: 2px 0 4px; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHtml(item.nom)}</h4>
+                  <div style="font-size: 13.5px; font-weight: 800; color: #1E5E2A; font-family: 'JetBrains Mono', monospace;">${priceDisplay}</div>
+                  <div style="font-size: 11px; color: #6B776D; margin-top: 2px;">📍 ${escapeHtml(item.fournisseur_ville || 'Burkina Faso')}</div>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+  }
+
+  // HTML pour mobile : Gérer le matériel (Admin)
+  function getMobileAdminMaterielsHtml() {
+    const pending = cachedMateriels.filter(m => m.statut === 'en_attente');
+    const published = cachedMateriels.filter(m => m.statut === 'publie');
+    const retired = cachedMateriels.filter(m => m.statut === 'retire');
+
+    let list = cachedMateriels;
+    if (adminMaterielActiveStatusTab === 'en_attente') list = pending;
+    else if (adminMaterielActiveStatusTab === 'publie') list = published;
+    else if (adminMaterielActiveStatusTab === 'retire') list = retired;
+
+    return `
+      <div style="margin-bottom: 14px;">
+        <a href="#dashboard" class="breadcrumb-back-link mobile-back-to-dashboard" style="font-size: 12px; margin-bottom: 8px; display: inline-flex; align-items: center; gap: 4px; color: #1E5E2A; font-weight: 700; text-decoration: none;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+          <span>Tableau de bord</span>
+        </a>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <h2 style="font-size: 18px; font-weight: 800; color: #1E2822; margin: 0 0 2px;">🛡️ Administration</h2>
+            <p style="font-size: 11.5px; color: #5B6660; margin: 0;">Gérer le matériel & services</p>
+          </div>
+          <button type="button" class="btn-primary" id="btnMobileOpenAddMateriel" style="padding: 8px 12px; font-size: 12px; font-weight: 700; border-radius: 8px; cursor: pointer;">+ Ajouter</button>
+        </div>
+      </div>
+
+      <!-- Onglets statuts admin mobile -->
+      <div style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 12px; scrollbar-width: none;">
+        <button type="button" class="mobile-admin-mat-tab" data-status="all" style="
+          padding: 6px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; border: 1px solid #DDD;
+          background: ${adminMaterielActiveStatusTab === 'all' ? '#E8ECE5' : '#FFF'}; color: #425247; cursor: pointer; white-space: nowrap;
+        ">Tous (${cachedMateriels.length})</button>
+        <button type="button" class="mobile-admin-mat-tab" data-status="publie" style="
+          padding: 6px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; border: 1px solid #DDD;
+          background: ${adminMaterielActiveStatusTab === 'publie' ? '#E6F4EA' : '#FFF'}; color: ${adminMaterielActiveStatusTab === 'publie' ? '#137333' : '#425247'}; cursor: pointer; white-space: nowrap;
+        ">Publiés (${published.length})</button>
+        <button type="button" class="mobile-admin-mat-tab" data-status="en_attente" style="
+          padding: 6px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; border: 1px solid #DDD;
+          background: ${adminMaterielActiveStatusTab === 'en_attente' ? '#FEF3D6' : '#FFF'}; color: ${adminMaterielActiveStatusTab === 'en_attente' ? '#8A4F00' : '#425247'}; cursor: pointer; white-space: nowrap;
+        ">En attente (${pending.length})</button>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        ${list.length === 0 ? `
+          <div style="text-align: center; padding: 24px; background: #FFF; border-radius: 12px; border: 1px dashed #DDD;">
+            <p style="font-weight: 700; font-size: 13px; margin: 0; color: #1E2822;">Aucun produit dans cet état</p>
+          </div>
+        ` : list.map(item => `
+          <div class="admin-fin-item status-${item.statut}" style="padding: 12px 14px; background: #FFF; border-radius: 12px;">
+            <div class="admin-fin-content">
+              <div class="admin-fin-header-row">
+                <span class="admin-status-pill ${item.statut}">
+                  ${item.statut === 'en_attente' ? '⏳ En attente' : (item.statut === 'publie' ? '✅ Publié' : '📦 Retiré')}
+                </span>
+                <span style="font-size: 11px; color: #1E5E2A; font-weight: 700;">${item.type_offre}</span>
+              </div>
+              <h4 class="admin-fin-title" style="font-size: 13.5px; margin: 4px 0;">${escapeHtml(item.nom)}</h4>
+              <div class="admin-fin-meta-row" style="font-size: 11px; color: #6C7A72;">
+                <span>${escapeHtml(item.fournisseur_nom)}</span>
+                <span>•</span>
+                <span>${escapeHtml(item.fournisseur_ville)}</span>
+              </div>
+            </div>
+            <div class="admin-actions-group" style="margin-top: 8px; display: flex; gap: 6px; width: 100%;">
+              <button type="button" class="btn-admin-action btn-admin-edit btn-mobile-mat-edit" data-id="${item.id}" style="flex: 1; justify-content: center;">✏️ Modifier</button>
+              ${item.statut !== 'publie' ? `
+                <button type="button" class="btn-admin-action btn-admin-publish btn-mobile-mat-publish" data-id="${item.id}" style="flex: 1; justify-content: center;">✅ Publier</button>
+              ` : ''}
+              ${item.statut !== 'retire' ? `
+                <button type="button" class="btn-admin-action btn-admin-archive btn-mobile-mat-withdraw" data-id="${item.id}" style="flex: 1; justify-content: center;">🚫 Retirer</button>
+              ` : ''}
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
+
+  // Écouteurs d'événements pour le matériel
+  const btnOpenAddMaterielModal = document.getElementById('btnOpenAddMaterielModal');
+  if (btnOpenAddMaterielModal) {
+    btnOpenAddMaterielModal.addEventListener('click', () => openManageMaterielModal());
+  }
+
+  const btnCloseManageMateriel = document.getElementById('btnCloseManageMateriel');
+  if (btnCloseManageMateriel) {
+    btnCloseManageMateriel.addEventListener('click', closeManageMaterielModal);
+  }
+
+  const btnCancelManageMateriel = document.getElementById('btnCancelManageMateriel');
+  if (btnCancelManageMateriel) {
+    btnCancelManageMateriel.addEventListener('click', closeManageMaterielModal);
+  }
+
+  if (formManageMateriel) {
+    formManageMateriel.addEventListener('submit', handleSaveMateriel);
+  }
+
+  const btnTriggerMaterielPhoto = document.getElementById('btnTriggerMaterielPhoto');
+  const materielPhotoInput = document.getElementById('materielPhotoInput');
+  if (btnTriggerMaterielPhoto && materielPhotoInput) {
+    btnTriggerMaterielPhoto.addEventListener('click', () => {
+      materielPhotoInput.click();
+    });
+    materielPhotoInput.addEventListener('change', (e) => {
+      const files = Array.from(e.target.files || []);
+      for (const file of files) {
+        if (pendingMaterielPhotos.length >= 4) {
+          showToast('Limite atteinte', 'Vous pouvez ajouter au maximum 4 photos par produit.');
+          break;
+        }
+        pendingMaterielPhotos.push({
+          file: file,
+          previewUrl: URL.createObjectURL(file),
+          id: Math.random().toString(36).substring(2, 9)
+        });
+      }
+      renderPhotoPreviews();
+      materielPhotoInput.value = '';
+    });
+  }
+
+  const btnCloseMaterielDetails = document.getElementById('btnCloseMaterielDetails');
+  if (btnCloseMaterielDetails) {
+    btnCloseMaterielDetails.addEventListener('click', closeMaterielDetailsModal);
+  }
+
+  const btnCloseMaterielDetailsBottom = document.getElementById('btnCloseMaterielDetailsBottom');
+  if (btnCloseMaterielDetailsBottom) {
+    btnCloseMaterielDetailsBottom.addEventListener('click', closeMaterielDetailsModal);
+  }
+
+  // Recherche textuelle
+  const searchMaterielsInput = document.getElementById('searchMaterielsInput');
+  if (searchMaterielsInput) {
+    searchMaterielsInput.addEventListener('input', (e) => {
+      userMaterielSearchQuery = e.target.value;
+      renderUserMateriels();
+    });
+  }
+
+  // Filtres par catégorie
+  const filterCatChips = document.querySelectorAll('#filterMaterielCategoryContainer .type-filter-chip');
+  filterCatChips.forEach(chip => {
+    chip.addEventListener('click', () => {
+      filterCatChips.forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      userSelectedMaterielCategory = chip.getAttribute('data-cat') || 'all';
+      renderUserMateriels();
+    });
+  });
+
+  // Filtres par type d'offre
+  const filterTypePills = document.querySelectorAll('#filterMaterielTypeOffreContainer .type-offre-pill');
+  filterTypePills.forEach(pill => {
+    pill.addEventListener('click', () => {
+      filterTypePills.forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      userSelectedMaterielTypeOffre = pill.getAttribute('data-type') || 'all';
+      renderUserMateriels();
+    });
+  });
+
+  // Bouton Réinitialiser les filtres
+  const btnResetMaterielFilters = document.getElementById('btnResetMaterielFilters');
+  if (btnResetMaterielFilters) {
+    btnResetMaterielFilters.addEventListener('click', () => {
+      userSelectedMaterielCategory = 'all';
+      userSelectedMaterielTypeOffre = 'all';
+      userMaterielSearchQuery = '';
+      if (searchMaterielsInput) searchMaterielsInput.value = '';
+      filterCatChips.forEach(c => c.classList.toggle('active', c.getAttribute('data-cat') === 'all'));
+      filterTypePills.forEach(p => p.classList.toggle('active', p.getAttribute('data-type') === 'all'));
+      renderUserMateriels();
+    });
+  }
+
+  // Filtres statut Admin
+  const adminFilterStatusChips = document.querySelectorAll('#adminFilterMaterielStatus .type-filter-chip');
+  adminFilterStatusChips.forEach(chip => {
+    chip.addEventListener('click', () => {
+      adminFilterStatusChips.forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      adminMaterielActiveStatusTab = chip.getAttribute('data-status') || 'all';
+      renderAdminMateriels();
+    });
+  });
+
+  // Écouteurs délégués pour les événements mobiles de Matériel & Services
+  document.addEventListener('click', async (e) => {
+    // Clic sur carte mobile de matériel
+    const mobMatCard = e.target.closest('.mobile-materiel-card');
+    if (mobMatCard) {
+      const id = mobMatCard.getAttribute('data-id');
+      const item = cachedMateriels.find(m => String(m.id) === String(id));
+      if (item) openMaterielDetailsModal(item);
+      return;
+    }
+
+    // Puce catégorie mobile
+    const mobCatChip = e.target.closest('.mobile-materiel-cat-chip');
+    if (mobCatChip) {
+      userSelectedMaterielCategory = mobCatChip.getAttribute('data-cat') || 'all';
+      renderMobileView();
+      return;
+    }
+
+    // Bouton mobile ajouter matériel
+    if (e.target.closest('#btnMobileOpenAddMateriel')) {
+      openManageMaterielModal();
+      return;
+    }
+
+    // Onglet statut admin mobile
+    const mobAdminTab = e.target.closest('.mobile-admin-mat-tab');
+    if (mobAdminTab) {
+      adminMaterielActiveStatusTab = mobAdminTab.getAttribute('data-status') || 'all';
+      renderMobileView();
+      return;
+    }
+
+    // Bouton modifier fiche admin mobile
+    const mobEditBtn = e.target.closest('.btn-mobile-mat-edit');
+    if (mobEditBtn) {
+      const id = mobEditBtn.getAttribute('data-id');
+      const item = cachedMateriels.find(m => String(m.id) === String(id));
+      if (item) openManageMaterielModal(item);
+      return;
+    }
+
+    // Bouton publier fiche admin mobile
+    const mobPubBtn = e.target.closest('.btn-mobile-mat-publish');
+    if (mobPubBtn) {
+      const id = mobPubBtn.getAttribute('data-id');
+      await updateMaterielStatus(id, 'publie');
+      return;
+    }
+
+    // Bouton retirer fiche admin mobile
+    const mobWithBtn = e.target.closest('.btn-mobile-mat-withdraw');
+    if (mobWithBtn) {
+      const id = mobWithBtn.getAttribute('data-id');
+      await updateMaterielStatus(id, 'retire');
+      return;
+    }
+  });
+
   // 8. INITIALISATION AU CHARGEMENT DE LA PAGE
   async function initAppAuth() {
     const loadingScreen = document.getElementById('appLoadingScreen');
@@ -8521,10 +9652,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
 
-      // Charger les financements, conseils, modèles, régions, météo et notifications en tâche de fond dès le démarrage
+      // Charger les financements, conseils, modèles, matériels, régions, météo et notifications en tâche de fond dès le démarrage
       fetchFinancements().catch(() => {});
       fetchConseils().catch(() => {});
       fetchModelesCultures().catch(() => {});
+      fetchMateriels().catch(() => {});
       fetchRegions().catch(() => {});
       loadAndRenderWeather().catch(() => {});
       fetchNotifications().catch(() => {});
@@ -8534,6 +9666,7 @@ document.addEventListener('DOMContentLoaded', () => {
         await fetchFinancements();
         await fetchConseils();
         await fetchModelesCultures();
+        await fetchMateriels();
         await fetchRegions();
         await fetchNotifications();
         await fetchUserParcels(currentProfileKey);
