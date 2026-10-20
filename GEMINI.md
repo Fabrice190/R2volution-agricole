@@ -529,8 +529,18 @@ Depuis la version 2.9, l'application est entièrement Full Stack connectée au p
   - Sélection des conseils publiés dont le champ `cultures` mentionne le nom de la culture ou du modèle du producteur (comparaison insensible aux majuscules et aux accents, par mot entier avec tolérance plurielle).
   - Principe de préservation intégrale : **aucun conseil n'est jamais masqué**, seul l'ordre d'affichage est optimisé pour placer en premier les conseils pertinents pour les cultures du producteur, suivi des sections territoriales « 📍 Pour votre région », « 🇧🇫 Tout le Burkina Faso », et « 🌍 Autres régions ».
 
+### S. Défilement Interne des Modales Mobile & Boutons d'Action Sticky (v5.8)
+- **Résolution du rognage de contenu sur Android (Chrome) & iPhone (WebKit/Safari)** :
+  1. *Défilement interne* : Boîtes de dialogue de modales configurées avec `max-height: 100dvh` (fallback `100vh`), `overflow-y: auto`, `-webkit-overflow-scrolling: touch`, `overscroll-behavior: contain` et `touch-action: pan-y` pour garantir la prise en compte du glissement tactile du doigt.
+  2. *Zéro blocage JavaScript* : Vérification qu'aucun gestionnaire tactile n'exécute de `preventDefault` sur les fenêtres modales.
+  3. *Marge de sécurité basse* : `padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 110px)` sur tous les conteneurs de contenu (`.fin-detail-body`, `.modal-body-content`, `.modal-form`, `.luxury-modal-body`, `.pricing-content`) afin que les textes longs ne soient jamais dissimulés sous les boutons fixes ou les barres d'adresse mobile.
+  4. *Boutons d'action sticky* : Poutres d'actions (notamment « Commander sur WhatsApp » et « Appeler le fournisseur ») épinglées en bas de fenêtre (`position: sticky; bottom: 0; z-index: 25;`) avec fond opaque protecteur (`background: var(--surface)`) et ombre portée ascendante pour rester 100% lisibles et accessibles.
+  5. *Blocage automatique du défilement arrière-plan* : Classe `modal-open` appliquée dynamiquement sur `body` et `html` (`overflow: hidden !important`) via un `MutationObserver` et retirée instantanément dès la fermeture de la dernière fenêtre.
+  6. *Application universelle* : Prise en charge identique sur l'ensemble des 20 modales de la plateforme (fiches matériel, financements, conseils, formulaires d'ajout/modification, dépenses, ventes, abonnements, authentification).
+
 ---
 
-*Fin du document de spécification système — Version 5.7 • Révolution Agricole Burkina Faso.*
+*Fin du document de spécification système — Version 5.8 • Révolution Agricole Burkina Faso.*
+
 
 

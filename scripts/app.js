@@ -9532,6 +9532,18 @@ document.addEventListener('DOMContentLoaded', () => {
     btnCloseMaterielDetailsBottom.addEventListener('click', closeMaterielDetailsModal);
   }
 
+  if (modalMaterielDetails) {
+    modalMaterielDetails.addEventListener('click', (e) => {
+      if (e.target === modalMaterielDetails) closeMaterielDetailsModal();
+    });
+  }
+
+  if (modalManageMateriel) {
+    modalManageMateriel.addEventListener('click', (e) => {
+      if (e.target === modalManageMateriel) closeManageMaterielModal();
+    });
+  }
+
   // Recherche textuelle
   const searchMaterielsInput = document.getElementById('searchMaterielsInput');
   if (searchMaterielsInput) {
@@ -9706,6 +9718,59 @@ document.addEventListener('DOMContentLoaded', () => {
       hideLoadingScreen();
     }
   }
+
+  // ==================== GESTION UNIVERSELLE DU VERROUILLAGE DU DÉFILEMENT (MODALES) ====================
+  function syncBodyModalScrollLock() {
+    try {
+      const openBackdrops = document.querySelectorAll('.modal-backdrop:not(.hidden)');
+      let hasOpenModal = false;
+      for (let i = 0; i < openBackdrops.length; i++) {
+        const el = openBackdrops[i];
+        const style = window.getComputedStyle(el);
+        if (style.display !== 'none' && style.visibility !== 'hidden') {
+          hasOpenModal = true;
+          break;
+        }
+      }
+
+      if (hasOpenModal) {
+        document.body.classList.add('modal-open');
+        document.documentElement.classList.add('modal-open');
+      } else {
+        document.body.classList.remove('modal-open');
+        document.documentElement.classList.remove('modal-open');
+      }
+    } catch (e) {
+      console.warn('Erreur syncBodyModalScrollLock :', e);
+    }
+  }
+
+  // Observer toutes les modales pour basculer le verrouillage du scroll arrière-plan
+  try {
+    const modalObserver = new MutationObserver(() => {
+      syncBodyModalScrollLock();
+    });
+    document.querySelectorAll('.modal-backdrop').forEach(modal => {
+      modalObserver.observe(modal, { attributes: true, attributeFilter: ['class', 'style'] });
+    });
+  } catch (e) {
+    console.warn('MutationObserver modales non supporté :', e);
+  }
+
+  // Fermeture au clic sur le fond (backdrop) pour toutes les modales si touché à l'extérieur
+  document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
+    backdrop.addEventListener('click', (e) => {
+      if (e.target === backdrop) {
+        const closeBtn = backdrop.querySelector('.modal-close-btn, #btnCloseManageMateriel, #btnCloseMaterielDetails, #btnCloseManageModele, #btnCloseCropModal, #btnCloseModalPricing, #btnCloseModalCheckout');
+        if (closeBtn) {
+          closeBtn.click();
+        } else {
+          backdrop.classList.add('hidden');
+        }
+        syncBodyModalScrollLock();
+      }
+    });
+  });
 
   updateDashboardDateTime();
   setInterval(updateDashboardDateTime, 10000);

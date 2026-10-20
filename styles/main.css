@@ -1734,34 +1734,60 @@ body.show-proto-bar .sidebar {
   font-size: 18px;
 }
 
+/* Bloque le défilement d'arrière-plan quand une modale est ouverte */
+body.modal-open,
+html.modal-open {
+  overflow: hidden !important;
+  overscroll-behavior: none !important;
+  touch-action: none !important;
+}
+
 /* ==================== 9. MODALES & TIROIRS ==================== */
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background-color: rgba(24, 32, 26, 0.65);
+  background-color: rgba(24, 32, 26, 0.68);
   backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   z-index: 2000;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 16px;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
+  overflow: hidden;
+  overscroll-behavior: contain;
+  touch-action: none;
   animation: fadeIn 200ms ease;
 }
 
-.modal-dialog {
-  background-color: var(--surface);
-  border-radius: var(--radius-md);
+.modal-dialog,
+.modal-dialog-materiel-details,
+.modal-dialog-financement-details,
+.modal-dialog-conseil-details,
+.modal-dialog-financement,
+.modal-dialog-luxury,
+.pricing-modal-dialog,
+.checkout-modal-dialog,
+.auth-modal-dialog,
+.onboarding-modal-dialog {
+  background-color: var(--surface, #FFFFFF);
+  border-radius: var(--radius-md, 16px);
   width: 100%;
-  max-width: 520px;
-  max-height: calc(100vh - 32px);
+  max-width: 580px;
+  max-height: 94vh;
+  max-height: 94dvh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
   margin: auto;
+  position: relative;
   animation: slideUp 250ms cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Défilement fluide interne & gestes tactiles */
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  overscroll-behavior: contain !important;
+  touch-action: pan-y !important;
 }
 
 @keyframes slideUp {
@@ -1769,13 +1795,51 @@ body.show-proto-bar .sidebar {
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-.modal-header {
-  padding: 20px 24px;
-  border-bottom: 1px solid var(--border-color);
+.modal-header,
+.luxury-modal-header {
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--border-color, #E6EAE3);
   display: flex;
   align-items: center;
   justify-content: space-between;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 30 !important;
+  background: var(--surface, #FFFFFF) !important;
+  flex-shrink: 0 !important;
 }
+
+.fin-detail-body,
+.modal-body-content,
+.modal-form,
+.luxury-modal-body,
+.pricing-modal-dialog .pricing-content,
+.checkout-modal-dialog .modal-form {
+  flex: 1 1 auto;
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 100px) !important;
+}
+
+.modal-footer,
+.fin-detail-footer,
+.luxury-modal-footer,
+.materiel-modal-footer {
+  position: sticky !important;
+  bottom: 0 !important;
+  z-index: 25 !important;
+  background: var(--surface, #FFFFFF) !important;
+  border-top: 1px solid var(--border-color, #E6EAE3) !important;
+  box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.08) !important;
+  padding: 12px 20px calc(env(safe-area-inset-bottom, 0px) + 12px) 20px !important;
+  flex-shrink: 0 !important;
+}
+
+.materiel-contact-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
 
 .modal-title-wrap {
   display: flex;
@@ -4673,13 +4737,68 @@ body.drawer-open {
     display: inline-block !important;
   }
 
-  /* 4. Modales responsives sur mobile */
+  /* 4. Modales responsives universelles sur mobile (Android Chrome & iOS Safari) */
+  .modal-backdrop {
+    padding: 0 !important;
+    align-items: flex-end !important;
+    overflow: hidden !important;
+  }
+
   .modal-dialog,
-  .auth-modal-dialog {
-    width: 95% !important;
-    max-width: 95% !important;
-    margin: 16px auto !important;
-    border-radius: 16px !important;
+  .modal-dialog-materiel-details,
+  .modal-dialog-financement-details,
+  .modal-dialog-conseil-details,
+  .modal-dialog-financement,
+  .modal-dialog-luxury,
+  .pricing-modal-dialog,
+  .checkout-modal-dialog,
+  .auth-modal-dialog,
+  .onboarding-modal-dialog {
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: 100vh !important;
+    max-height: 100dvh !important;
+    height: auto !important;
+    margin: 0 !important;
+    border-radius: 20px 20px 0 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    overscroll-behavior: contain !important;
+    touch-action: pan-y !important;
+  }
+
+  .fin-detail-body,
+  .modal-body-content,
+  .modal-form,
+  .luxury-modal-body,
+  .pricing-content {
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 110px) !important;
+  }
+
+  .materiel-modal-footer {
+    padding: 10px 16px calc(env(safe-area-inset-bottom, 0px) + 12px) 16px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+
+  .materiel-contact-actions {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+
+  .btn-whatsapp-large {
+    padding: 12px 14px !important;
+    font-size: 14.5px !important;
+  }
+
+  .btn-call-large {
+    padding: 11px 14px !important;
+    font-size: 13.5px !important;
   }
 }
 
