@@ -11,8 +11,61 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
   
-  <link rel="stylesheet" href="styles/theme.css?v=20261020.1">
-  <link rel="stylesheet" href="styles/main.css?v=20261020.1">
+  <link rel="stylesheet" href="styles/theme.css?v=20261020.2">
+  <link rel="stylesheet" href="styles/main.css?v=20261020.2">
+
+  <!-- PROTECTION DÉMARRAGE RÉSILIENTE SAFARI / IPHONE / WEBKIT -->
+  <script>
+    (function() {
+      var startupHandled = false;
+      function showStartupErrorFallback(err) {
+        if (startupHandled) return;
+        startupHandled = true;
+        console.error('[Révolution Agricole] Erreur ou blocage au démarrage détecté :', err);
+        var loader = document.getElementById('appLoadingScreen');
+        if (loader) {
+          loader.classList.add('hidden');
+          loader.style.display = 'none';
+        }
+        var errorScreen = document.getElementById('startupErrorFallback');
+        if (errorScreen) {
+          errorScreen.classList.remove('hidden');
+          errorScreen.style.display = 'flex';
+        }
+      }
+
+      // 1. Capture globale des erreurs de script au chargement (syntaxe, référence, etc.)
+      window.addEventListener('error', function(event) {
+        var loader = document.getElementById('appLoadingScreen');
+        if (loader && !loader.classList.contains('hidden') && loader.style.display !== 'none') {
+          showStartupErrorFallback(event.error || event.message);
+        }
+      });
+
+      // 2. Capture des rejets de promesses non interceptées au démarrage
+      window.addEventListener('unhandledrejection', function(event) {
+        var loader = document.getElementById('appLoadingScreen');
+        if (loader && !loader.classList.contains('hidden') && loader.style.display !== 'none') {
+          showStartupErrorFallback(event.reason);
+        }
+      });
+
+      // 3. Failsafe anti-blocage (timeout 5s) : si après 5s ni le portail ni le tableau de bord ne sont visibles
+      setTimeout(function() {
+        var loader = document.getElementById('appLoadingScreen');
+        var authPortal = document.getElementById('authPortalScreen');
+        var viewport = document.getElementById('viewportContainer');
+        var isAuthVisible = authPortal && !authPortal.classList.contains('hidden');
+        var isViewportVisible = viewport && !viewport.classList.contains('hidden');
+        if (loader && !loader.classList.contains('hidden') && loader.style.display !== 'none' && !isAuthVisible && !isViewportVisible) {
+          console.warn('[Révolution Agricole] Délai de démarrage dépassé (5s) -> Affichage écran de secours.');
+          showStartupErrorFallback('Timeout au démarrage');
+        }
+      }, 5000);
+
+      window.showStartupErrorFallback = showStartupErrorFallback;
+    })();
+  </script>
 </head>
 <body class="theme-light">
   <!-- BANDEAU DISCRET ADMIN (Visible uniquement en mode Admin) -->
@@ -42,6 +95,19 @@
       <div class="loading-spinner-bar">
         <div class="loading-spinner-fill"></div>
       </div>
+    </div>
+  </div>
+
+  <!-- ==================== ÉCRAN DE SECOURS EN CAS D'ERREUR AU DÉMARRAGE ==================== -->
+  <div id="startupErrorFallback" class="startup-error-screen hidden" style="display: none;">
+    <div class="startup-error-card" onclick="window.location.reload(true)" role="button" tabindex="0">
+      <div class="startup-error-icon">⚠️</div>
+      <h2 class="startup-error-title">Une erreur est survenue, touchez ici pour recharger</h2>
+      <p class="startup-error-subtitle">Touchez l'écran ou ce bouton pour relancer l'application</p>
+      <button type="button" class="startup-error-btn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+        <span>Recharger</span>
+      </button>
     </div>
   </div>
 
@@ -3124,6 +3190,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <!-- SCRIPT APPLICATION -->
-  <script src="scripts/app.js?v=20261020.1"></script>
+  <script src="scripts/app.js?v=20261020.2"></script>
 </body>
 </html>

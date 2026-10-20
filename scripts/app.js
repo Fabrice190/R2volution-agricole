@@ -1400,6 +1400,115 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const isPro = userSubscriptionStatus[currentProfileKey] || false;
 
+      let mobileBodyHtml = '';
+      if (currentRoutePage === 'opportunites') {
+        mobileBodyHtml = getMobileFinancementsHtml();
+      } else if (currentRoutePage === 'admin-financements') {
+        mobileBodyHtml = getMobileAdminFinancementsHtml();
+      } else if (currentRoutePage === 'conseils') {
+        mobileBodyHtml = getMobileConseilsHtml();
+      } else if (currentRoutePage === 'admin-conseils') {
+        mobileBodyHtml = getMobileAdminConseilsHtml();
+      } else if (currentRoutePage === 'admin-modeles') {
+        mobileBodyHtml = getMobileAdminModelesHtml();
+      } else if (currentRoutePage === 'materiel-services') {
+        mobileBodyHtml = getMobileMaterielsHtml();
+      } else if (currentRoutePage === 'admin-materiels') {
+        mobileBodyHtml = getMobileAdminMaterielsHtml();
+      } else if (currentRoutePage === 'parcelles') {
+        mobileBodyHtml = getMobileParcellesHtml();
+      } else if (currentRoutePage === 'meteo') {
+        mobileBodyHtml = getMobileMeteoHtml();
+      } else if (currentRoutePage === 'notifications') {
+        mobileBodyHtml = getMobileNotificationsHtml();
+      } else {
+        mobileBodyHtml = `
+        <!-- Salutation -->
+        <div>
+          <h2 class="mobile-greeting">Bonjour, ${data.name.split(' ')[0]} ${isPro ? '<span class="user-badge-pro" style="font-size: 10px; vertical-align: middle;">⭐ PRO</span>' : '<span class="greeting-emoji">🌱</span>'}</h2>
+          <p class="mobile-subdate">${(new Date()).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })} • ${data.location.split('(')[0]}</p>
+        </div>
+
+        <!-- 1. MÉTÉO EN PREMIER (Connectée Open-Meteo) -->
+        ${getMobileDashboardWeatherCardHtml()}
+
+        <!-- 2. INDICATEURS EN GRILLE 2x2 (Pas de défilement horizontal) -->
+        <div class="mobile-stat-grid">
+          ${data.stats.map(s => `
+            <div class="mobile-stat-card">
+              <span class="mobile-stat-title">${s.label}</span>
+              <div class="mobile-stat-val">${s.value} <small style="font-size: 10px;">${s.unit}</small></div>
+              <span class="mobile-stat-trend ${s.trendType === 'unfavorable' ? 'text-red' : 'text-green'}">
+                ${s.trendText || s.badge || 'Normal'}
+              </span>
+            </div>
+          `).join('')}
+        </div>
+
+        <!-- 3. ÉCHÉANCES : CE QUI EST URGENT -->
+        <div>
+          <div class="mobile-section-header">
+            <h4>Échéances urgentes</h4>
+            <a href="#toutes-echeances" class="card-link-action" id="linkMobileAllDeadlines">Voir tout</a>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;">
+            ${getDashboardDeadlines().slice(0, 3).map(d => `
+              <div class="deadline-item mobile-deadline-card" data-id="${d.id || ''}" data-type="${d.type}" style="padding: 10px; cursor: ${d.type === 'financement' ? 'pointer' : 'default'};">
+                <div class="deadline-icon-pill icon-${d.icon}" style="width: 32px; height: 32px;">
+                  <span style="font-size: 14px;">⏱</span>
+                </div>
+                <div class="deadline-info">
+                  <div class="deadline-title" style="font-size: 12.5px;">${d.title}</div>
+                  <div class="deadline-meta" style="font-size: 11px;">${d.meta}</div>
+                </div>
+                <div class="deadline-badge ${d.badgeClass}" style="font-size: 10px;">${d.badge}</div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <!-- 4. LE TABLEAU DEVIENT UNE LISTE DE CARTES -->
+        <div>
+          <div class="mobile-section-header">
+            <h4>${data.tableTitle}</h4>
+            <a href="#">Voir</a>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;">
+            ${data.tableRows.slice(0, 2).map(r => `
+              <div class="mobile-cycle-card">
+                <div class="mobile-cycle-info">
+                  <strong>${r.name}</strong>
+                  <span>${r.col2} • ${r.col4}</span>
+                </div>
+                <span class="badge-state ${r.statusClass}" style="font-size: 11px; padding: 2px 8px;">
+                  ${r.statusText}
+                </span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <!-- 5. GRAPHIQUE CHARGÉ LORSQU'IL DEVIENT VISIBLE -->
+        <div style="background: #FFF; border: 1px solid #E6EAE3; border-radius: 12px; padding: 14px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <strong style="font-size: 13px;">${data.chartTitle}</strong>
+            <span style="font-size: 11px; color: #1E5E2A; font-weight: 700;">${data.marginOct}</span>
+          </div>
+          <div style="display: flex; align-items: flex-end; justify-content: space-around; height: 80px; padding-top: 10px; border-bottom: 1px solid #EEE;">
+            <div style="width: 10px; height: 60%; background: #2E7D32; border-radius: 2px;"></div>
+            <div style="width: 10px; height: 75%; background: #2E7D32; border-radius: 2px;"></div>
+            <div style="width: 10px; height: 50%; background: #2E7D32; border-radius: 2px;"></div>
+            <div style="width: 10px; height: 80%; background: #2E7D32; border-radius: 2px;"></div>
+            <div style="width: 10px; height: 70%; background: #2E7D32; border-radius: 2px;"></div>
+            <div style="width: 10px; height: 90%; background: #1E5E2A; border-radius: 2px;"></div>
+          </div>
+          <div style="display: flex; justify-content: space-between; font-size: 10px; color: #7C8781; margin-top: 4px;">
+            <span>mai</span><span>juin</span><span>juil</span><span>août</span><span>sept</span><span style="font-weight: 700; color: #1E5E2A;">oct</span>
+          </div>
+        </div>
+        `;
+      }
+
       mobileAppMount.innerHTML = `
       <!-- TIROIR LATÉRAL GAUCHE MOBILE (DRAWER) -->
       <div class="mobile-drawer-overlay" id="mobileDrawerOverlay"></div>
@@ -1667,100 +1776,7 @@ document.addEventListener('DOMContentLoaded', () => {
       </header>
 
       <div class="mobile-body">
-        ${currentRoutePage === 'opportunites' ? getMobileFinancementsHtml() :
-          (currentRoutePage === 'admin-financements' ? getMobileAdminFinancementsHtml() :
-          (currentRoutePage === 'conseils' ? getMobileConseilsHtml() :
-          (currentRoutePage === 'admin-conseils' ? getMobileAdminConseilsHtml() :
-          (currentRoutePage === 'admin-modeles' ? getMobileAdminModelesHtml() :
-          (currentRoutePage === 'materiel-services' ? getMobileMaterielsHtml() :
-          (currentRoutePage === 'admin-materiels' ? getMobileAdminMaterielsHtml() :
-          (currentRoutePage === 'parcelles' ? getMobileParcellesHtml() :
-          (currentRoutePage === 'meteo' ? getMobileMeteoHtml() :
-          (currentRoutePage === 'notifications' ? getMobileNotificationsHtml() : `
-        <!-- Salutation -->
-        <div>
-          <h2 class="mobile-greeting">Bonjour, ${data.name.split(' ')[0]} ${isPro ? '<span class="user-badge-pro" style="font-size: 10px; vertical-align: middle;">⭐ PRO</span>' : '<span class="greeting-emoji">🌱</span>'}</h2>
-          <p class="mobile-subdate">${(new Date()).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })} • ${data.location.split('(')[0]}</p>
-        </div>
-
-        <!-- 1. MÉTÉO EN PREMIER (Connectée Open-Meteo) -->
-        ${getMobileDashboardWeatherCardHtml()}
-
-        <!-- 2. INDICATEURS EN GRILLE 2x2 (Pas de défilement horizontal) -->
-        <div class="mobile-stat-grid">
-          ${data.stats.map(s => `
-            <div class="mobile-stat-card">
-              <span class="mobile-stat-title">${s.label}</span>
-              <div class="mobile-stat-val">${s.value} <small style="font-size: 10px;">${s.unit}</small></div>
-              <span class="mobile-stat-trend ${s.trendType === 'unfavorable' ? 'text-red' : 'text-green'}">
-                ${s.trendText || s.badge || 'Normal'}
-              </span>
-            </div>
-          `).join('')}
-        </div>
-
-        <!-- 3. ÉCHÉANCES : CE QUI EST URGENT -->
-        <div>
-          <div class="mobile-section-header">
-            <h4>Échéances urgentes</h4>
-            <a href="#toutes-echeances" class="card-link-action" id="linkMobileAllDeadlines">Voir tout</a>
-          </div>
-          <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;">
-            ${getDashboardDeadlines().slice(0, 3).map(d => `
-              <div class="deadline-item mobile-deadline-card" data-id="${d.id || ''}" data-type="${d.type}" style="padding: 10px; cursor: ${d.type === 'financement' ? 'pointer' : 'default'};">
-                <div class="deadline-icon-pill icon-${d.icon}" style="width: 32px; height: 32px;">
-                  <span style="font-size: 14px;">⏱</span>
-                </div>
-                <div class="deadline-info">
-                  <div class="deadline-title" style="font-size: 12.5px;">${d.title}</div>
-                  <div class="deadline-meta" style="font-size: 11px;">${d.meta}</div>
-                </div>
-                <div class="deadline-badge ${d.badgeClass}" style="font-size: 10px;">${d.badge}</div>
-              </div>
-            `).join('')}
-          </div>
-        </div>
-
-        <!-- 4. LE TABLEAU DEVIENT UNE LISTE DE CARTES -->
-        <div>
-          <div class="mobile-section-header">
-            <h4>${data.tableTitle}</h4>
-            <a href="#">Voir</a>
-          </div>
-          <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;">
-            ${data.tableRows.slice(0, 2).map(r => `
-              <div class="mobile-cycle-card">
-                <div class="mobile-cycle-info">
-                  <strong>${r.name}</strong>
-                  <span>${r.col2} • ${r.col4}</span>
-                </div>
-                <span class="badge-state ${r.statusClass}" style="font-size: 11px; padding: 2px 8px;">
-                  ${r.statusText}
-                </span>
-              </div>
-            `).join('')}
-          </div>
-        </div>
-
-        <!-- 5. GRAPHIQUE CHARGÉ LORSQU'IL DEVIENT VISIBLE -->
-        <div style="background: #FFF; border: 1px solid #E6EAE3; border-radius: 12px; padding: 14px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-            <strong style="font-size: 13px;">${data.chartTitle}</strong>
-            <span style="font-size: 11px; color: #1E5E2A; font-weight: 700;">${data.marginOct}</span>
-          </div>
-          <div style="display: flex; align-items: flex-end; justify-content: space-around; height: 80px; padding-top: 10px; border-bottom: 1px solid #EEE;">
-            <div style="width: 10px; height: 60%; background: #2E7D32; border-radius: 2px;"></div>
-            <div style="width: 10px; height: 75%; background: #2E7D32; border-radius: 2px;"></div>
-            <div style="width: 10px; height: 50%; background: #2E7D32; border-radius: 2px;"></div>
-            <div style="width: 10px; height: 80%; background: #2E7D32; border-radius: 2px;"></div>
-            <div style="width: 10px; height: 70%; background: #2E7D32; border-radius: 2px;"></div>
-            <div style="width: 10px; height: 90%; background: #1E5E2A; border-radius: 2px;"></div>
-          </div>
-          <div style="display: flex; justify-content: space-between; font-size: 10px; color: #7C8781; margin-top: 4px;">
-            <span>mai</span><span>juin</span><span>juil</span><span>août</span><span>sept</span><span style="font-weight: 700; color: #1E5E2A;">oct</span>
-          </div>
-        </div>
-        `))))))) }
+        ${mobileBodyHtml}
       </div>
 
       <!-- BOUTON D'ACTION FLOTTANT (+) MOBILE -->
@@ -4483,6 +4499,9 @@ document.addEventListener('DOMContentLoaded', () => {
       } else {
         btnApply.innerHTML = '<span>Postuler en ligne</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>';
         btnApply.setAttribute('target', '_blank');
+      }
+    }
+
     // Synergie Matériel : Le matériel dont vous avez besoin
     const synergyCard = document.getElementById('finDetailMaterielSynergy');
     const btnGoMateriel = document.getElementById('btnGoToMaterielFromFin');
@@ -9680,6 +9699,9 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     } catch (err) {
       console.error('Erreur initAppAuth :', err);
+      if (typeof window.showStartupErrorFallback === 'function') {
+        window.showStartupErrorFallback(err);
+      }
     } finally {
       hideLoadingScreen();
     }
