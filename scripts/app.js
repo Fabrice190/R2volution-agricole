@@ -9848,9 +9848,14 @@ document.addEventListener('DOMContentLoaded', () => {
   // Téléversement d'une photo d'annonce vers le Storage Supabase 'annonces'
   async function uploadAnnoncePhoto(fileBlob, mimeType, extension) {
     if (!supabaseClient) throw new Error('Supabase non disponible');
+    const authSession = (await supabaseClient.auth.getSession())?.data?.session;
+    const userId = authSession?.user?.id || currentProfileKey;
+    if (!userId) {
+      throw new Error('Vous devez être connecté pour téléverser une photo.');
+    }
     const ext = extension || 'jpg';
     const cleanMime = mimeType || 'image/jpeg';
-    const fileName = `annonce_${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${ext}`;
+    const fileName = `${userId}/annonce_${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${ext}`;
 
     const { data, error } = await supabaseClient
       .storage
