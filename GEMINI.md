@@ -171,7 +171,16 @@ Ces directives constituent le socle inaltérable du projet. Tout modèle IA ou d
 ### Règle 3 : Protection & Accord Préalable Base de Données
 - **Ne jamais modifier les tables, les règles RLS ou les fonctions Supabase sans le demander d'abord et obtenir l'accord explicite de l'utilisateur**.
 
-### Règle 4 : Préservation Stricte des Corrections Acquises (Zéro Régression)
+### Règle 4 : Modifications de Base de Données Réelles dans Supabase
+- **Toute modification de base de données doit être faite réellement dans Supabase avec l'outil Supabase**, jamais seulement dans le code ou en `localStorage`. Aucune simulation ou persistance factice locale n'est tolérée pour les entités métier.
+
+### Règle 5 : Vérification & Preuve Supabase Avant Clôture
+- **Avant de dire qu'une tâche est terminée, vérifiez systématiquement dans Supabase que les tables, colonnes, règles RLS et espaces Storage demandés existent vraiment**, et affichez-les formellement à l'utilisateur comme preuve d'exécution.
+
+### Règle 6 : Transparence sur les Attentes d'Accord Utilisateur
+- **Si une étape attend l'accord de l'utilisateur, indiquez-le clairement et sans ambiguïté** au lieu d'annoncer prématurément que la tâche est terminée.
+
+### Règle 7 : Préservation Stricte des Corrections Acquises (Zéro Régression)
 - **Ne jamais annuler une correction déjà validée**.
 - Les fonctionnalités et corrections suivantes doivent être impérativement préservées :
   1. **Compteur "Opportunités disponibles"** : dénombre formellement les financements avec `statut = 'publie'` et (`date_limite` vide/nulle ou `date_limite >= aujourd'hui`).
@@ -179,34 +188,42 @@ Ces directives constituent le socle inaltérable du projet. Tout modèle IA ou d
   3. **Installation de l'application (PWA)** : Web App Manifest (`manifest.json`) + Service Worker (`sw.js`) pour le support hors-ligne et l'installation mobile/bureau.
   4. **Conseil du jour** : affichage dynamique du dernier conseil publié de la table `conseils` (avec bouton d'écoute audio par synthèse vocale).
 
-### Règle 5 : Respect Intégral de la Charte Graphique & Design
+### Règle 8 : Respect Intégral de la Charte Graphique & Design Sahélo-Tech
 - **Typographie** : `Plus Jakarta Sans` partout, y compris pour tous les montants.
 - **Palette** : vert `#1F5E3B`, vert clair `#E8F0EA`, ocre `#A85A1C` (SEULEMENT bouton principal), ocre clair `#F6EADF`, jaune soleil `#E0A526`, jaune clair `#FBF1D6`, fond crème `#FAF7F0`, cartes blanches bordure `#ECE6D9`, texte `#1A1A1A` et `#4A4A4A`, rouge `#C0392B` (alertes/suppressions).
 - **Icônes** : Lucide au trait, **aucun emoji**.
 - **Dimensions & Clic** : zones tactiles 44px minimum, montants complets avec espaces et zéro débordement sur 360px.
 
-### Règle 6 : Langage de l'Interface
+### Règle 9 : Langage de l'Interface
 - **Français simple, clair et percutant**, avec des phrases courtes, adapté à des exploitants agricoles qui lisent peu ou consultent leur téléphone rapidement sur le terrain.
 
-### Règle 7 : Protocole de Livraison & Validation en Ligne Obligatoire
+### Règle 10 : Contexte Territorial & Agronome Burkinabè
+- Lors de l'ajout d'exemples ou de nouvelles fonctionnalités, conservez la cohérence avec le Burkina Faso :
+  - *Villes et régions* : Koudougou (Boulkiemdé), Bobo-Dioulasso (Hauts-Bassins), Ouagadougou (Kadiogo), Ouahigouya (Yatenga), Dédougou (Boucle du Mouhoun).
+  - *Cultures fréquentes* : Tomate Mongal, Oignon Violet de Galmi, Chou Marché, Maïs pluvial, Gombo, Niébé, Sésame, Mangues Amélie.
+  - *Opérateurs de paiement* : Orange Money (`*144*4*6#`) et Moov Money Flooz (`*555*6#`), indicatif téléphonique `+226`.
+  - *Programmes publics réels* : PReCA (Projet de Résilience et de Compétitivité Agricole), Ministère de l'Agriculture.
+
+### Règle 11 : Tarifs d'Abonnement Officiels
+- Prix strictement fixés à **5 000 F CFA/mois** (Pro Producteur) et **10 000 F CFA/mois** (Business Coopérative), avec remise de -15% sur la formule 6 mois (`25 500 F` et `51 000 F CFA`).
+
+### Règle 12 : Préservation de l'Architecture Vanilla & Zéro Framework
+- Ne pas convertir le projet vers React, Vue, Next.js ou Vite. Conserver l'architecture Vanilla HTML/CSS/JS directe, ultra-rapide et autonome.
+- N'installez pas de dépendances npm inutiles.
+
+### Règle 13 : Portée des Variables JavaScript (Scope Safety)
+- Éviter formellement toute redéclaration d'identifiant `const` ou `let` dans la même portée globale pour prévenir tout `SyntaxError` paralysant le script.
+
+### Règle 14 : Gestion du Cache & Protocole de Livraison Obligatoire
 - **Après chaque travail réalisé, exécuter systématiquement la séquence suivante** :
-  1. Incrémenter la version du cache dans le Service Worker (`sw.js`) et les paramètres de version dans `index.html`.
+  1. Incrémenter la version du cache dans le Service Worker (`sw.js`) et les paramètres de version dans `index.html` (ex : `scripts/app.js?v=...`, `styles/main.css?v=...`).
   2. Effectuer le `git commit` et le `git push origin main`.
   3. Vérifier que le déploiement sur Vercel est bien **"Ready"**.
   4. **Prendre et afficher des captures d'écran réelles du site EN LIGNE (`https://r2volution-agricole.vercel.app`) avant de déclarer la tâche terminée**.
 
-### Règle 8 : Sécurité & Hygiène du Dépôt Git
+### Règle 15 : Sécurité & Hygiène du Dépôt Git
 - **Ne jamais envoyer le dossier `temp_chrome`, `chrome_profile`, ni aucun fichier temporaire sur GitHub**.
 - **Ne jamais commiter aucun mot de passe, clé secrète Supabase (service_role) ou token d'accès**.
-
-### Règle 9 : Préservation de l'Architecture Vanilla & Zéro Framework
-- Ne pas convertir le projet vers React, Vue, Next.js ou Vite. Conserver l'architecture Vanilla HTML/CSS/JS directe, ultra-rapide et autonome.
-
-### Règle 10 : Portée des Variables JavaScript (Scope Safety)
-- Éviter formellement toute redéclaration d'identifiant `const` ou `let` dans la même portée globale pour prévenir tout `SyntaxError` paralysant le script.
-
-### Règle 11 : Tarifs d'Abonnement Officiels
-- Prix strictement fixés à **5 000 F CFA/mois** (Pro Producteur) et **10 000 F CFA/mois** (Business Coopérative), avec remise de -15% sur la formule 6 mois (`25 500 F` et `51 000 F CFA`).
 
 ---
 
