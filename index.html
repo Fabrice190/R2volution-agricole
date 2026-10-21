@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
@@ -9,10 +9,13 @@
   <!-- Polices Google : Plus Jakarta Sans (géométrique, ultra-lisible, premium) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   
-  <link rel="stylesheet" href="styles/theme.css?v=20261021.1">
-  <link rel="stylesheet" href="styles/main.css?v=20261021.6">
+  <!-- Famille d'icônes au trait unique (Lucide CDN fixe) -->
+  <script src="https://unpkg.com/lucide@0.453.0/dist/umd/lucide.min.js"></script>
+
+  <link rel="stylesheet" href="styles/theme.css?v=20261021.2">
+  <link rel="stylesheet" href="styles/main.css?v=20261021.7">
 
   <!-- CONFIGURATION PWA (PROGRESSIVE WEB APP) -->
   <link rel="manifest" href="manifest.json">
@@ -88,7 +91,7 @@
   <!-- BANDEAU DISCRET ADMIN (Visible uniquement en mode Admin) -->
   <div id="adminNoticeBar" class="admin-notice-bar hidden">
     <div class="admin-notice-inner">
-      <span class="admin-icon">🛡️</span>
+      <span class="admin-icon">️</span>
       <span><strong>ESPACE ADMINISTRATION & MODÉRATION</strong> — Connecté avec privilèges élevés (RLS active, journal des actions audité).</span>
       <span class="admin-tag">SUPER-ADMIN</span>
     </div>
@@ -118,7 +121,7 @@
   <!-- ==================== ÉCRAN DE SECOURS EN CAS D'ERREUR AU DÉMARRAGE ==================== -->
   <div id="startupErrorFallback" class="startup-error-screen hidden" style="display: none;">
     <div class="startup-error-card" onclick="window.location.reload(true)" role="button" tabindex="0">
-      <div class="startup-error-icon">⚠️</div>
+      <div class="startup-error-icon">️</div>
       <h2 class="startup-error-title">Une erreur est survenue, touchez ici pour recharger</h2>
       <p class="startup-error-subtitle">Touchez l'écran ou ce bouton pour relancer l'application</p>
       <button type="button" class="startup-error-btn">
@@ -226,7 +229,7 @@
     <div class="modal-dialog onboarding-modal-dialog">
       <div class="modal-header" style="border-bottom: 1px solid #E6EAE3; padding-bottom: 14px;">
         <div class="modal-title-wrap">
-          <span class="modal-icon bg-green">🌱</span>
+          <span class="modal-icon bg-green"></span>
           <div>
             <h3 class="modal-title" style="font-size: 18px;">Complétez votre profil d'exploitant</h3>
             <p style="font-size: 12.5px; color: var(--text-muted); margin: 2px 0 0;">
@@ -247,7 +250,7 @@
         <div class="form-group">
           <label for="onboardingPhone">Numéro de téléphone (+226) <span class="required">*</span></label>
           <div class="phone-input-wrap">
-            <span class="country-prefix">🇧🇫 +226</span>
+            <span class="country-prefix"> +226</span>
             <input type="tel" id="onboardingPhone" class="form-input" placeholder="70 12 34 56" required pattern="[0-9 ]{8,14}">
           </div>
           <small class="form-hint">Nécessaire pour vos alertes agronomiques météo et transactions Mobile Money.</small>
@@ -275,7 +278,7 @@
             <label class="role-card-opt selected" id="optOnboardingProducer">
               <input type="radio" name="onboardingRole" value="producer" checked>
               <div class="role-card-inner">
-                <span class="role-card-icon">🌾</span>
+                <span class="role-card-icon"></span>
                 <strong>Producteur / Maraîcher</strong>
                 <small>Parcelles, cultures & marge</small>
               </div>
@@ -283,7 +286,7 @@
             <label class="role-card-opt" id="optOnboardingSupplier">
               <input type="radio" name="onboardingRole" value="supplier">
               <div class="role-card-inner">
-                <span class="role-card-icon">🚜</span>
+                <span class="role-card-icon"></span>
                 <strong>Fournisseur d'équipements</strong>
                 <small>Matériel, motopompes, intrants</small>
               </div>
@@ -291,7 +294,7 @@
             <label class="role-card-opt" id="optOnboardingBuyer">
               <input type="radio" name="onboardingRole" value="buyer">
               <div class="role-card-inner">
-                <span class="role-card-icon">💼</span>
+                <span class="role-card-icon"></span>
                 <strong>Acheteur / Grossiste</strong>
                 <small>Achat récoltes bord champ</small>
               </div>
@@ -544,7 +547,7 @@
 
           <!-- Carte Promotionnelle & Forfaits Pro -->
           <div class="sidebar-promo-card" id="sidebarPromoCard">
-            <div class="promo-badge-icon">🌾</div>
+            <div class="promo-badge-icon"></div>
             <div class="promo-text">
               <strong class="promo-title" id="promoCardTitle">Passer au Forfait Pro</strong>
               <p class="promo-desc" id="promoCardDesc">5 000 F CFA/mois • Marges illimitées, alertes SMS & rappels PReCA.</p>
@@ -567,7 +570,7 @@
             <p class="user-display-meta" id="userHeaderMeta">
               <span class="badge-activity">Maraîchère</span>
               <span class="bullet-sep">•</span>
-              <span class="user-location">📍 Koudougou (Boulkiemdé)</span>
+              <span class="user-location"> Koudougou (Boulkiemdé)</span>
             </p>
           </div>
 
@@ -620,7 +623,7 @@
           <!-- BANDEAU DE BIENVENUE & DATE (Fidèle à AgriVision : Salutation à gauche, Date/Heure à droite) -->
           <div class="dashboard-greeting-bar">
             <div class="greeting-left">
-              <h1 class="greeting-title" id="greetingTitle">Bonjour <span class="greeting-emoji">🌱</span></h1>
+              <h1 class="greeting-title" id="greetingTitle">Bonjour <span class="greeting-emoji"></span></h1>
               <p class="greeting-subtitle" id="greetingSubtitle">Voici l'essentiel pour votre activité aujourd'hui sur votre exploitation.</p>
             </div>
             <div class="greeting-right">
@@ -660,91 +663,132 @@
             </div>
           </div>
 
-          <!-- 4 CARTES D'INDICATEURS STATISTIQUES (Pastels différenciés fidèles à AgriVision) -->
-          <section class="stat-cards-grid" id="statCardsGrid">
-            
-            <!-- Carte 1 : Dépenses du mois (Pastel Vert Doux) -->
-            <div class="stat-card stat-card-green" id="statCard1">
-              <div class="stat-header">
-                <div class="stat-icon-wrapper">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-                </div>
-                <span class="stat-module-tag">Exploitation</span>
-              </div>
-              <div class="stat-label" id="statLabel1">Dépenses du mois</div>
-              <div class="stat-value-row">
-                <span class="stat-number tabular-numbers" id="statValue1">0 <small>F CFA</small></span>
-              </div>
-              <div class="stat-footer">
-                <span class="trend-badge trend-favorable hidden" id="statTrend1">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="18 15 12 9 6 15"/></svg>
-                  <span>0 dépense</span>
-                </span>
-                <span class="comparison-text" id="statComp1">Données réelles</span>
+          <!-- 1. GRANDE CARTE VERTE SAISON 2026 (Remplace Dépenses et Recettes du mois) -->
+          <section class="home-season-card" id="homeSeasonCard">
+            <div class="season-card-header">
+              <span class="season-tag">Saison 2026</span>
+              <span class="season-parcels-count" id="homeSeasonParcelsCount">0 parcelle</span>
+            </div>
+            <div class="season-margin-block">
+              <span class="season-margin-label" id="homeSeasonMarginLabel">Bénéfice de la saison</span>
+              <div class="season-margin-row" id="homeSeasonMarginBox">
+                <span class="season-amount" id="homeSeasonMarginValue">0</span>
+                <span class="season-currency">FCFA</span>
               </div>
             </div>
-
-            <!-- Carte 2 : Recettes du mois (Pastel Bleu Doux) -->
-            <div class="stat-card stat-card-blue" id="statCard2">
-              <div class="stat-header">
-                <div class="stat-icon-wrapper">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            <div class="season-subcards-grid">
+              <div class="season-subcard">
+                <span class="season-subcard-label">Dépenses</span>
+                <div class="season-subcard-val">
+                  <span id="homeSeasonExpenses">0</span> <small>FCFA</small>
                 </div>
-                <span class="stat-module-tag">Recettes</span>
               </div>
-              <div class="stat-label" id="statLabel2">Recettes du mois</div>
-              <div class="stat-value-row">
-                <span class="stat-number tabular-numbers" id="statValue2">0 <small>F CFA</small></span>
-              </div>
-              <div class="stat-footer">
-                <span class="trend-badge trend-favorable hidden" id="statTrend2">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="18 15 12 9 6 15"/></svg>
-                  <span>0 encaissement</span>
-                </span>
-                <span class="comparison-text" id="statComp2">Données réelles</span>
-              </div>
-            </div>
-
-            <!-- Carte 3 : Cycles en cours (Pastel Jaune / Ambre) -->
-            <div class="stat-card stat-card-yellow" id="statCard3">
-              <div class="stat-header">
-                <div class="stat-icon-wrapper">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m4.93 4.93 4.24 4.24"/><path d="m14.83 9.17 4.24-4.24"/><path d="m14.83 14.83 4.24 4.24"/><path d="m9.17 14.83-4.24 4.24"/></svg>
+              <div class="season-subcard">
+                <span class="season-subcard-label">Ventes</span>
+                <div class="season-subcard-val">
+                  <span id="homeSeasonRevenues">0</span> <small>FCFA</small>
                 </div>
-                <span class="stat-module-tag">Production</span>
-              </div>
-              <div class="stat-label" id="statLabel3">Cycles en cours</div>
-              <div class="stat-value-row">
-                <span class="stat-number tabular-numbers" id="statValue3">0 <small>actifs</small></span>
-              </div>
-              <div class="stat-footer">
-                <span class="status-pill status-pill-active hidden" id="statTrend3">
-                  <span class="dot-indicator"></span> En direct
-                </span>
-                <span class="comparison-text" id="statComp3">Parcelles connectées</span>
-              </div>
-            </div>
-
-            <!-- Carte 4 : Opportunités vérifiées (Pastel Violet / Lavande) -->
-            <div class="stat-card stat-card-purple" id="statCard4">
-              <div class="stat-header">
-                <div class="stat-icon-wrapper">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-                </div>
-                <span class="stat-module-tag">Financements</span>
-              </div>
-              <div class="stat-label" id="statLabel4">Opportunités ouvertes</div>
-              <div class="stat-value-row">
-                <span class="stat-number tabular-numbers" id="statValue4">-- <small>disponibles</small></span>
-              </div>
-              <div class="stat-footer">
-                <span class="urgent-pill hidden" id="statTrend4">
-                  <span class="clock-icon">⏳</span> 0 clôture urgente
-                </span>
-                <span class="comparison-text" id="statComp4">Financements actifs</span>
               </div>
             </div>
           </section>
+
+          <!-- 2. DEUX PETITES CARTES BLANCHES CÔTE À CÔTE -->
+          <section class="home-two-cards-grid">
+            <!-- Carte Cycles en cours -->
+            <a href="#parcelles" class="home-white-card" id="homeLinkCycles">
+              <div class="home-card-icon-pill">
+                <i data-lucide="sprout"></i>
+              </div>
+              <div class="home-card-meta">
+                <span class="home-card-title">Cycles en cours</span>
+                <strong class="home-card-value" id="homeStatCycles">0 <small>actifs</small></strong>
+              </div>
+            </a>
+
+            <!-- Carte Opportunités disponibles (compteur garanti = 7) -->
+            <a href="#opportunites" class="home-white-card" id="homeLinkOpportunites">
+              <div class="home-card-icon-pill">
+                <i data-lucide="award"></i>
+              </div>
+              <div class="home-card-meta">
+                <span class="home-card-title">Opportunités disponibles</span>
+                <strong class="home-card-value" id="homeStatOpport">7 <small>ouvertes</small></strong>
+              </div>
+            </a>
+          </section>
+
+          <!-- 3. MÉTÉO COURTE SUR UNE SEULE CARTE (Température, ville, phrase de conseil, demain) -->
+          <section class="home-weather-short-card" id="homeWeatherShortCard">
+            <div class="weather-short-top">
+              <div class="weather-short-temp-group">
+                <i data-lucide="cloud-sun" class="weather-short-icon"></i>
+                <div>
+                  <strong class="weather-short-temp" id="homeWeatherTemp">29 °C</strong>
+                  <span class="weather-short-city" id="homeWeatherCity">Koudougou</span>
+                </div>
+              </div>
+              <div class="weather-short-tomorrow" id="homeWeatherTomorrow">
+                <span class="tomorrow-label">Demain</span>
+                <strong class="tomorrow-val" id="homeWeatherTomorrowVal">31 °C • Ensoleillé</strong>
+              </div>
+            </div>
+            <p class="weather-short-advice" id="homeWeatherAdvice">
+              Temps sec et vent modéré : conditions propices aux travaux du sol et à l'irrigation du soir.
+            </p>
+          </section>
+
+          <!-- 4. CARTE CONSEIL DU JOUR AVEC BADGE JAUNE ET BOUTON ÉCOUTER -->
+          <section class="home-daily-advice-card" id="homeDailyAdviceCard">
+            <div class="advice-card-header">
+              <span class="badge-sun-yellow">Conseil du jour</span>
+              <button type="button" class="btn-listen-advice" id="btnListenHomeDailyAdvice" aria-label="Écouter le conseil agronomique">
+                <i data-lucide="volume-2"></i>
+                <span>Écouter</span>
+              </button>
+            </div>
+            <h3 class="advice-card-title" id="homeDailyAdviceTitle">Gestion de l'eau en maraîchage sahélien</h3>
+            <p class="advice-card-text" id="homeDailyAdviceText">
+              Privilégiez les arrosages matinaux (entre 6h et 8h) ou après 17h pour réduire l'évaporation de plus de 40 % et préserver vos réserves en motopompe.
+            </p>
+          </section>
+
+          <!-- 5. QUATRE RACCOURCIS EN ICÔNES CARRÉES ARRONDIES -->
+          <section class="home-shortcuts-grid">
+            <a href="#opportunites" class="shortcut-square-btn" data-nav="opportunites">
+              <div class="shortcut-icon-box">
+                <i data-lucide="landmark"></i>
+              </div>
+              <span class="shortcut-label">Financer</span>
+            </a>
+            <a href="#formations" class="shortcut-square-btn" data-nav="formations">
+              <div class="shortcut-icon-box">
+                <i data-lucide="graduation-cap"></i>
+              </div>
+              <span class="shortcut-label">Formations</span>
+            </a>
+            <a href="#materiel-services" class="shortcut-square-btn" data-nav="materiel-services">
+              <div class="shortcut-icon-box">
+                <i data-lucide="tractor"></i>
+              </div>
+              <span class="shortcut-label">Matériel</span>
+            </a>
+            <a href="#marche" class="shortcut-square-btn" data-nav="marche">
+              <div class="shortcut-icon-box">
+                <i data-lucide="store"></i>
+              </div>
+              <span class="shortcut-label">Marché</span>
+            </a>
+          </section>
+
+          <!-- Alias invisibles pour rétrocompatibilité parfaite avec le script existant -->
+          <div class="hidden" style="display:none !important;" aria-hidden="true">
+            <span id="statValue1">0</span>
+            <span id="statValue2">0</span>
+            <span id="statValue3">0</span>
+            <span id="statValue4">7</span>
+            <span id="statComp1"></span>
+            <span id="statComp2"></span>
+          </div>
 
           <!-- GRILLE PRINCIPALE (Ligne 1 : 2/3 Graphique Barres Dépenses/Recettes + 1/3 Échéances) -->
           <div class="main-dashboard-grid">
@@ -862,7 +906,7 @@
 
               <div class="deadlines-list" id="deadlinesList">
                 <div class="widget-empty-state" style="padding: 16px; text-align: center;">
-                  <span style="font-size: 20px;">✓</span>
+                  <span style="font-size: 20px;"></span>
                   <p style="font-size: 12px; color: #6C7A72; margin: 4px 0 0;">Chargement des opportunités…</p>
                 </div>
               </div>
@@ -904,7 +948,7 @@
                   <tbody>
                     <tr>
                       <td colspan="6" style="text-align: center; padding: 36px 16px; color: var(--text-muted);">
-                        <div style="font-size: 30px; margin-bottom: 6px;">🌱</div>
+                        <div style="font-size: 30px; margin-bottom: 6px;"></div>
                         <strong style="font-size: 14.5px; color: var(--text-dark); display: block; margin-bottom: 4px;">Aucun cycle ou culture en cours</strong>
                         <p style="font-size: 12.5px; margin: 0 0 14px; color: #5D6C63; max-width: 400px; margin-left: auto; margin-right: auto;">
                           Votre tableau de bord démarre à blanc. Enregistrez votre première culture avec les modèles agronomiques.
@@ -915,7 +959,7 @@
                             <span>+ Ajouter une culture</span>
                           </button>
                           <button type="button" class="btn-table-action" id="btnEmptyStateAddExpense" style="font-size: 12.5px; padding: 7px 14px;">
-                            <span>💸 + Dépense</span>
+                            <span> + Dépense</span>
                           </button>
                         </div>
                       </td>
@@ -929,7 +973,7 @@
             <section class="content-card weather-card" id="dashWeatherCard">
               <!-- Bandeau d'alerte météo dynamique (forte pluie, chaleur, vent) -->
               <div class="weather-alert-banner alert-warning hidden" id="dashWeatherAlertBanner">
-                <span class="alert-icon">⚠️</span>
+                <span class="alert-icon">️</span>
                 <span class="alert-text" id="dashWeatherAlertText"></span>
               </div>
 
@@ -950,7 +994,7 @@
               <div class="weather-current-row">
                 <div class="weather-visual">
                   <div class="weather-sun-cloud-icon" id="dashWeatherIconWrap">
-                    <span id="dashWeatherIcon">⛅</span>
+                    <span id="dashWeatherIcon"></span>
                   </div>
                   <div class="temp-display">
                     <span class="temp-big tabular-numbers" id="dashWeatherTemp">--°C</span>
@@ -960,17 +1004,17 @@
 
                 <div class="weather-quick-metrics">
                   <div class="metric-item">
-                    <span class="metric-icon">💧</span>
+                    <span class="metric-icon"></span>
                     <span class="metric-name">Pluie prob. :</span>
                     <strong class="metric-val text-green" id="dashWeatherMetricRain">-- %</strong>
                   </div>
                   <div class="metric-item">
-                    <span class="metric-icon">💨</span>
+                    <span class="metric-icon"></span>
                     <span class="metric-name">Vent :</span>
                     <strong class="metric-val" id="dashWeatherMetricWind">-- km/h</strong>
                   </div>
                   <div class="metric-item">
-                    <span class="metric-icon">🌡️</span>
+                    <span class="metric-icon">️</span>
                     <span class="metric-name">Humidité :</span>
                     <strong class="metric-val" id="dashWeatherMetricHumidity">-- %</strong>
                   </div>
@@ -1039,15 +1083,15 @@
               <h4 class="feature-card-title">Actions fréquentes</h4>
               <div class="shortcuts-buttons-stack">
                 <button class="shortcut-btn" id="btnShortcutExpense">
-                  <span class="shortcut-icon">💸</span>
+                  <span class="shortcut-icon"></span>
                   <span class="shortcut-text">Saisir une dépense (30s)</span>
                 </button>
                 <button class="shortcut-btn" id="btnShortcutListing">
-                  <span class="shortcut-icon">📢</span>
+                  <span class="shortcut-icon"></span>
                   <span class="shortcut-text">Publier une récolte sur le marché</span>
                 </button>
                 <button class="shortcut-btn" id="btnShortcutOpps">
-                  <span class="shortcut-icon">💼</span>
+                  <span class="shortcut-icon"></span>
                   <span class="shortcut-text">Consulter les subventions PReCA</span>
                 </button>
               </div>
@@ -1070,7 +1114,7 @@
                 <span class="bullet-sep">•</span>
                 <span>Opportunités & Financements</span>
               </div>
-              <h1 class="page-main-title">🌾 Financements & Subventions</h1>
+              <h1 class="page-main-title"> Financements & Subventions</h1>
               <p class="page-subtitle">Subventions, prêts bonifiés, appels à projets et concours vérifiés pour le secteur agropastoral au Burkina Faso.</p>
             </div>
             <div class="page-header-meta-badge" id="userFinancementsCountBadge">
@@ -1116,7 +1160,7 @@
 
           <!-- État vide -->
           <div class="financements-empty-state hidden" id="financementsEmptyState">
-            <div class="empty-state-icon">💼</div>
+            <div class="empty-state-icon"></div>
             <h3>Aucun financement disponible pour ces critères</h3>
             <p>Essayez de réinitialiser vos filtres ou de sélectionner une autre région.</p>
             <button type="button" class="btn-reset-filters" id="btnResetFinancementFilters">Afficher tous les financements</button>
@@ -1136,7 +1180,7 @@
                 <span class="bullet-sep">•</span>
                 <span>Administration</span>
               </div>
-              <h1 class="page-main-title">🛡️ Gérer les financements</h1>
+              <h1 class="page-main-title">️ Gérer les financements</h1>
               <p class="page-subtitle">Validez les opportunités soumises par l'agent IA, ajoutez de nouvelles offres ou retirez les fiches expirées.</p>
             </div>
             <div class="page-header-actions-group">
@@ -1186,7 +1230,7 @@
 
           <!-- État vide admin -->
           <div class="financements-empty-state hidden" id="adminFinancementsEmpty">
-            <div class="empty-state-icon">📂</div>
+            <div class="empty-state-icon"></div>
             <h3 id="adminEmptyTitle">Aucune fiche dans cette catégorie</h3>
             <p id="adminEmptySub">Cliquez sur « + Ajouter un financement » pour créer une nouvelle offre.</p>
           </div>
@@ -1206,7 +1250,7 @@
           <div class="fin-page-header">
             <div class="fin-page-title-group">
               <div class="fin-pill-tag">Fiches Techniques & Agroécologie Sahélienne</div>
-              <h2 class="fin-main-title">💡 Conseils & Bonnes Pratiques Agricoles</h2>
+              <h2 class="fin-main-title"> Conseils & Bonnes Pratiques Agricoles</h2>
               <p class="fin-subtitle" id="userConseilsSubtitle">Conseils pratiques vérifiés par des agronomes pour maximiser vos rendements au Burkina Faso.</p>
             </div>
             <div class="fin-header-counter-box">
@@ -1236,7 +1280,7 @@
 
           <!-- État vide utilisateur -->
           <div class="financements-empty-state hidden" id="userConseilsEmpty">
-            <div class="empty-state-icon">🌱</div>
+            <div class="empty-state-icon"></div>
             <h3>Aucun conseil dans cette catégorie</h3>
             <p>De nouvelles fiches techniques sont publiées régulièrement par nos agronomes partenaires.</p>
           </div>
@@ -1256,7 +1300,7 @@
                 <span class="bullet-sep">•</span>
                 <span>Administration</span>
               </div>
-              <h1 class="page-main-title">🛡️ Gérer les conseils agronomiques</h1>
+              <h1 class="page-main-title">️ Gérer les conseils agronomiques</h1>
               <p class="page-subtitle">Validez les fiches techniques soumises, modifiez les contenus ou publiez de nouveaux guides pratiques.</p>
             </div>
             <div class="page-header-actions-group">
@@ -1306,7 +1350,7 @@
 
           <!-- État vide admin -->
           <div class="financements-empty-state hidden" id="adminConseilsEmpty">
-            <div class="empty-state-icon">📂</div>
+            <div class="empty-state-icon"></div>
             <h3 id="adminConseilsEmptyTitle">Aucun conseil dans cette catégorie</h3>
             <p id="adminConseilsEmptySub">Cliquez sur « + Ajouter un conseil » pour rédiger une nouvelle fiche.</p>
           </div>
@@ -1326,7 +1370,7 @@
                 <span class="bullet-sep">•</span>
                 <span>Administration</span>
               </div>
-              <h1 class="page-main-title">🛡️ Gérer les modèles de cultures</h1>
+              <h1 class="page-main-title">️ Gérer les modèles de cultures</h1>
               <p class="page-subtitle">Configurez les durées de pépinière et de récolte de référence pour aider automatiquement les producteurs.</p>
             </div>
             <div class="page-header-actions-group">
@@ -1362,7 +1406,7 @@
 
           <!-- État vide admin -->
           <div class="financements-empty-state hidden" id="adminModelesEmpty">
-            <div class="empty-state-icon">🌾</div>
+            <div class="empty-state-icon"></div>
             <h3 id="adminModelesEmptyTitle">Aucun modèle de culture trouvé</h3>
             <p id="adminModelesEmptySub">Cliquez sur « + Ajouter un modèle » pour créer un nouveau modèle agronomique.</p>
           </div>
@@ -1372,7 +1416,7 @@
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px;">
               <div>
                 <h3 style="font-size: 15.5px; font-weight: 800; color: #1E2822; margin: 0 0 4px; display: flex; align-items: center; gap: 6px;">
-                  <span>📋 Cultures déclarées par les producteurs</span>
+                  <span> Cultures déclarées par les producteurs</span>
                   <span id="declaredCropsCountBadge" class="nav-pill-count" style="margin-left: 4px; background: #EAF4E6; color: #1E5E2A;">0</span>
                 </h3>
                 <p style="font-size: 12px; color: #5D6C63; margin: 0;">Cultures saisies librement par les producteurs sans modèle (pour identifier les prochains modèles à ajouter).</p>
@@ -1396,7 +1440,7 @@
                 <span class="bullet-sep">•</span>
                 <span>Équipements & Services</span>
               </div>
-              <h1 class="page-main-title">🚜 Matériel & Services Agricoles</h1>
+              <h1 class="page-main-title"> Matériel & Services Agricoles</h1>
               <p class="page-subtitle">Pompes solaires, forages, irrigation goutte-à-goutte, kits maraîchers et techniciens certifiés au Burkina Faso.</p>
             </div>
             <div class="page-header-meta-badge" id="userMaterielsCountBadge">
@@ -1415,13 +1459,13 @@
             <!-- Filtres par catégorie -->
             <div class="filter-types-scroll" id="filterMaterielCategoryContainer">
               <button type="button" class="type-filter-chip active" data-cat="all">Toutes les catégories</button>
-              <button type="button" class="type-filter-chip" data-cat="pompes-forages">💧 Pompes & Forages</button>
-              <button type="button" class="type-filter-chip" data-cat="energie-solaire">☀️ Énergie Solaire</button>
-              <button type="button" class="type-filter-chip" data-cat="irrigation">🌱 Irrigation</button>
-              <button type="button" class="type-filter-chip" data-cat="kits-maraichage">🥬 Kits Maraîchage</button>
-              <button type="button" class="type-filter-chip" data-cat="outils-accessoires">🔧 Outils & Accessoires</button>
-              <button type="button" class="type-filter-chip" data-cat="intrants">📦 Intrants certifiés</button>
-              <button type="button" class="type-filter-chip" data-cat="services">🛠️ Services & Réparations</button>
+              <button type="button" class="type-filter-chip" data-cat="pompes-forages"> Pompes & Forages</button>
+              <button type="button" class="type-filter-chip" data-cat="energie-solaire">️ Énergie Solaire</button>
+              <button type="button" class="type-filter-chip" data-cat="irrigation"> Irrigation</button>
+              <button type="button" class="type-filter-chip" data-cat="kits-maraichage"> Kits Maraîchage</button>
+              <button type="button" class="type-filter-chip" data-cat="outils-accessoires"> Outils & Accessoires</button>
+              <button type="button" class="type-filter-chip" data-cat="intrants"> Intrants certifiés</button>
+              <button type="button" class="type-filter-chip" data-cat="services">️ Services & Réparations</button>
             </div>
 
             <!-- Filtres par type d'offre -->
@@ -1429,10 +1473,10 @@
               <span style="font-size: 12px; font-weight: 700; color: var(--text-muted);">Type :</span>
               <div class="type-offre-pills" id="filterMaterielTypeOffreContainer" style="display: flex; gap: 6px; flex-wrap: wrap;">
                 <button type="button" class="type-offre-pill active" data-type="all">Tous</button>
-                <button type="button" class="type-offre-pill" data-type="vente">🏷️ Vente</button>
+                <button type="button" class="type-offre-pill" data-type="vente">️ Vente</button>
                 <button type="button" class="type-offre-pill" data-type="location">⏱️ Location</button>
-                <button type="button" class="type-offre-pill" data-type="installation">⚡ Installation</button>
-                <button type="button" class="type-offre-pill" data-type="reparation">🧰 Réparation</button>
+                <button type="button" class="type-offre-pill" data-type="installation"> Installation</button>
+                <button type="button" class="type-offre-pill" data-type="reparation"> Réparation</button>
               </div>
             </div>
           </div>
@@ -1444,7 +1488,7 @@
 
           <!-- État vide -->
           <div class="financements-empty-state hidden" id="materielsEmptyState">
-            <div class="empty-state-icon">🚜</div>
+            <div class="empty-state-icon"></div>
             <h3>Aucun matériel ne correspond à vos critères</h3>
             <p>Essayez de modifier votre recherche ou de sélectionner une autre catégorie.</p>
             <button type="button" class="btn-reset-filters" id="btnResetMaterielFilters">Afficher tout le matériel</button>
@@ -1463,7 +1507,7 @@
                 <span class="bullet-sep">•</span>
                 <span>Administration</span>
               </div>
-              <h1 class="page-main-title">🛡️ Gérer le matériel & services</h1>
+              <h1 class="page-main-title">️ Gérer le matériel & services</h1>
               <p class="page-subtitle">Ajoutez de nouveaux produits, validez les offres fournisseurs et gérez la visibilité sur la plateforme.</p>
             </div>
             <div class="page-header-actions-group">
@@ -1502,7 +1546,7 @@
                 <span class="bullet-sep">•</span>
                 <span>Marché agricole</span>
               </div>
-              <h1 class="page-main-title">🌾 Marché Agricole Burkinabè</h1>
+              <h1 class="page-main-title"> Marché Agricole Burkinabè</h1>
               <p class="page-subtitle">Achetez et vendez vos récoltes, céréales, légumes et bétail en direct bord champ.</p>
             </div>
             <div class="page-header-actions-group">
@@ -1516,12 +1560,12 @@
           <!-- Onglets principaux : À vendre vs On cherche -->
           <div class="marche-tabs-container">
             <button type="button" class="marche-main-tab active" data-type="vente" id="tabMarcheVente">
-              <span class="marche-tab-icon">🌾</span>
+              <span class="marche-tab-icon"></span>
               <span class="marche-tab-label">À vendre (Offres)</span>
               <span class="marche-tab-count" id="countMarcheVente">0</span>
             </button>
             <button type="button" class="marche-main-tab" data-type="achat" id="tabMarcheAchat">
-              <span class="marche-tab-icon">🔍</span>
+              <span class="marche-tab-icon"></span>
               <span class="marche-tab-label">On cherche (Achats)</span>
               <span class="marche-tab-count" id="countMarcheAchat">0</span>
             </button>
@@ -1538,17 +1582,17 @@
               <!-- Catégories de produits -->
               <div class="filter-types-scroll" id="filterAnnoncesCategoryContainer" style="flex: 1; min-width: 260px;">
                 <button type="button" class="type-filter-chip active" data-cat="all">Toutes catégories</button>
-                <button type="button" class="type-filter-chip" data-cat="cereales">🌽 Céréales</button>
-                <button type="button" class="type-filter-chip" data-cat="legumes">🍅 Légumes</button>
-                <button type="button" class="type-filter-chip" data-cat="fruits">🥭 Fruits</button>
-                <button type="button" class="type-filter-chip" data-cat="oleagineux">🥜 Oléagineux</button>
-                <button type="button" class="type-filter-chip" data-cat="betail-volaille">🐂 Bétail & Volaille</button>
-                <button type="button" class="type-filter-chip" data-cat="autres">📦 Autres</button>
+                <button type="button" class="type-filter-chip" data-cat="cereales"> Céréales</button>
+                <button type="button" class="type-filter-chip" data-cat="legumes"> Légumes</button>
+                <button type="button" class="type-filter-chip" data-cat="fruits"> Fruits</button>
+                <button type="button" class="type-filter-chip" data-cat="oleagineux"> Oléagineux</button>
+                <button type="button" class="type-filter-chip" data-cat="betail-volaille"> Bétail & Volaille</button>
+                <button type="button" class="type-filter-chip" data-cat="autres"> Autres</button>
               </div>
 
               <!-- Filtre par région -->
               <select id="filterAnnoncesRegionSelect" class="form-select" style="width: auto; min-width: 170px; font-size: 13px;">
-                <option value="all">📍 Toutes les régions</option>
+                <option value="all"> Toutes les régions</option>
                 <option value="Boucle du Mouhoun">Boucle du Mouhoun (Dédougou)</option>
                 <option value="Cascades">Cascades (Banfora)</option>
                 <option value="Centre">Centre (Ouagadougou)</option>
@@ -1573,7 +1617,7 @@
 
           <!-- État vide -->
           <div class="financements-empty-state hidden" id="marcheEmptyState">
-            <div class="empty-state-icon">🌾</div>
+            <div class="empty-state-icon"></div>
             <h3>Aucune annonce trouvée</h3>
             <p>Soyez le premier à publier une offre ou une demande d'achat dans cette catégorie !</p>
             <button type="button" class="btn-primary" id="btnEmptyPublishAnnonce" style="margin-top: 10px;">
@@ -1594,7 +1638,7 @@
                 <span class="bullet-sep">•</span>
                 <span>Mes annonces</span>
               </div>
-              <h1 class="page-main-title">📢 Mes Annonces Publiées</h1>
+              <h1 class="page-main-title"> Mes Annonces Publiées</h1>
               <p class="page-subtitle">Gérez vos offres et demandes sur le Marché agricole, marquez vos ventes et renouvelez leur visibilité.</p>
             </div>
             <div class="page-header-actions-group">
@@ -1609,10 +1653,10 @@
           <div class="admin-materiels-filters-bar" style="margin-bottom: 16px;">
             <div class="filter-types-scroll" id="filterMesAnnoncesStatusContainer">
               <button type="button" class="type-filter-chip active" data-status="all">Toutes mes annonces</button>
-              <button type="button" class="type-filter-chip" data-status="active">🟢 Actives</button>
-              <button type="button" class="type-filter-chip" data-status="vendue">✅ Vendues</button>
+              <button type="button" class="type-filter-chip" data-status="active"> Actives</button>
+              <button type="button" class="type-filter-chip" data-status="vendue"> Vendues</button>
               <button type="button" class="type-filter-chip" data-status="expiree">⏳ Expirées</button>
-              <button type="button" class="type-filter-chip" data-status="retiree">🚫 Retirées par modération</button>
+              <button type="button" class="type-filter-chip" data-status="retiree"> Retirées par modération</button>
             </div>
           </div>
 
@@ -1623,7 +1667,7 @@
 
           <!-- État vide -->
           <div class="financements-empty-state hidden" id="mesAnnoncesEmptyState">
-            <div class="empty-state-icon">📢</div>
+            <div class="empty-state-icon"></div>
             <h3>Vous n'avez pas encore publié d'annonce</h3>
             <p>Vendez vos récoltes au meilleur prix ou trouvez des produits directement auprès des producteurs.</p>
             <button type="button" class="btn-primary" id="btnEmptyMesAnnoncesPublish" style="margin-top: 10px;">
@@ -1644,7 +1688,7 @@
                 <span class="bullet-sep">•</span>
                 <span>Administration</span>
               </div>
-              <h1 class="page-main-title">🛡️ Files de Modération des Annonces</h1>
+              <h1 class="page-main-title">️ Files de Modération des Annonces</h1>
               <p class="page-subtitle">Examinez les signalements émis par les utilisateurs et retirez immédiatement les offres non conformes.</p>
             </div>
             <div class="page-header-meta-badge" id="adminSignalementsCountBadge">
@@ -1657,8 +1701,8 @@
           <div class="admin-materiels-filters-bar" style="margin-bottom: 16px;">
             <div class="filter-types-scroll" id="adminFilterSignalementsStatus">
               <button type="button" class="type-filter-chip active" data-status="en_attente">⏳ En attente</button>
-              <button type="button" class="type-filter-chip" data-status="traite">✅ Traités / Retirés</button>
-              <button type="button" class="type-filter-chip" data-status="ignore">👁️ Ignorés</button>
+              <button type="button" class="type-filter-chip" data-status="traite"> Traités / Retirés</button>
+              <button type="button" class="type-filter-chip" data-status="ignore">️ Ignorés</button>
               <button type="button" class="type-filter-chip" data-status="all">Tous</button>
             </div>
           </div>
@@ -1670,7 +1714,7 @@
 
           <!-- État vide -->
           <div class="financements-empty-state hidden" id="adminSignalementsEmptyState">
-            <div class="empty-state-icon">🛡️</div>
+            <div class="empty-state-icon">️</div>
             <h3>Aucun signalement dans cette file</h3>
             <p>Toutes les annonces signalées ont été examinées et traitées avec succès.</p>
           </div>
@@ -1690,12 +1734,12 @@
                 <span class="bullet-sep">•</span>
                 <span>Mon exploitation</span>
               </div>
-              <h1 class="page-main-title">📊 Synthèse de l'Exploitation</h1>
+              <h1 class="page-main-title"> Synthèse de l'Exploitation</h1>
               <p class="page-subtitle">Vue d'ensemble consolidée de vos parcelles, cultures actives, rentabilité globale et calendrier des échéances.</p>
             </div>
             <div class="page-header-actions-group">
               <button type="button" class="btn-secondary" id="btnSyntheseGoToFinances">
-                <span>💰 Finances & Marges →</span>
+                <span> Finances & Marges →</span>
               </button>
             </div>
           </div>
@@ -1728,7 +1772,7 @@
           <div style="background: #FFFFFF; border: 1.5px solid #E2E8DE; border-radius: 14px; padding: 20px; margin-bottom: 24px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
               <h3 style="font-size: 16px; font-weight: 800; color: #1E2822; margin: 0; display: flex; align-items: center; gap: 8px;">
-                <span>📅 Prochaines Échéances de l'Exploitation</span>
+                <span> Prochaines Échéances de l'Exploitation</span>
                 <span class="nav-pill-count" id="syntheseEcheancesCount">0</span>
               </h3>
               <span style="font-size: 12px; color: #7C8781;">Repiquages, récoltes et travaux agricoles</span>
@@ -1756,12 +1800,12 @@
           <div class="fin-page-header">
             <div class="fin-page-title-group">
               <div class="fin-pill-tag">Gestion & Suivi Agronomique</div>
-              <h2 class="fin-main-title">🌾 Mes Parcelles & Cultures</h2>
+              <h2 class="fin-main-title"> Mes Parcelles & Cultures</h2>
               <p class="fin-subtitle">Suivez vos cultures en cours, vos parcelles et les dates prévues de repiquage et de récolte.</p>
             </div>
             <div class="page-header-actions-group">
               <button type="button" class="btn-secondary" id="btnOpenAddParcelPage" style="margin-right: 8px;">
-                <span>📍 + Ajouter une parcelle</span>
+                <span> + Ajouter une parcelle</span>
               </button>
               <button type="button" class="btn-primary" id="btnOpenAddCropCyclePage">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -1793,7 +1837,7 @@
           <div style="margin-bottom: 28px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
               <h3 style="font-size: 16px; font-weight: 800; color: #1E2822; margin: 0; display: flex; align-items: center; gap: 6px;">
-                <span>📍 Vos Parcelles</span>
+                <span> Vos Parcelles</span>
                 <span id="parcellesCountBadge" class="nav-pill-count" style="margin-left: 4px;">0</span>
               </h3>
               <button type="button" id="btnQuickAddParcelSection" style="font-size: 13px; font-weight: 700; color: #1E5E2A; background: none; border: none; cursor: pointer; text-decoration: underline;">
@@ -1806,14 +1850,14 @@
             <div id="parcellesEmptyNotice" class="hidden" style="text-align: center; padding: 20px; background: #FAFBF9; border-radius: 10px; border: 1.5px dashed #D5E0D5;">
               <p style="margin: 0 0 10px; font-size: 13.5px; color: #5D6C63; font-weight: 600;">Vous n'avez pas encore de parcelle. Ajoutez votre première parcelle.</p>
               <button type="button" class="btn-primary" id="btnEmptyNoticeAddParcel" style="font-size: 13px; padding: 8px 16px; cursor: pointer;">
-                📍 + Ajouter ma première parcelle
+                 + Ajouter ma première parcelle
               </button>
             </div>
           </div>
 
           <!-- Titre des cultures -->
           <div style="margin-bottom: 10px;">
-            <h3 style="font-size: 16px; font-weight: 800; color: #1E2822; margin: 0;">🌱 Vos Cultures en cours</h3>
+            <h3 style="font-size: 16px; font-weight: 800; color: #1E2822; margin: 0;"> Vos Cultures en cours</h3>
           </div>
 
           <!-- Liste / Tableau des cultures enregistrées -->
@@ -1823,7 +1867,7 @@
 
           <!-- État vide si aucune culture -->
           <div class="financements-empty-state hidden" id="parcellesEmptyState">
-            <div class="empty-state-icon">🌱</div>
+            <div class="empty-state-icon"></div>
             <h3>Aucune culture enregistrée pour le moment</h3>
             <p>Ajoutez votre première culture avec nos modèles agronomiques pour obtenir immédiatement votre date de récolte prévue.</p>
             <button type="button" class="btn-primary" id="btnEmptyStateAddCrop" style="margin: 12px auto 0; display: inline-flex;">
@@ -1846,7 +1890,7 @@
                 <span class="bullet-sep">•</span>
                 <span>Mon exploitation</span>
               </div>
-              <h1 class="page-main-title">🌱 Cycles Culturaux</h1>
+              <h1 class="page-main-title"> Cycles Culturaux</h1>
               <p class="page-subtitle">Suivez vos cultures du semis à la récolte avec frise chronologique, prévisions agronomiques et rappels de tâches.</p>
             </div>
             <div class="page-header-actions-group">
@@ -1861,11 +1905,11 @@
           <div class="admin-materiels-filters-bar" style="margin-bottom: 16px;">
             <div class="filter-types-scroll" id="filterCyclesStatusContainer">
               <button type="button" class="type-filter-chip active" data-status="all">Tous les cycles</button>
-              <button type="button" class="type-filter-chip" data-status="pepiniere">🌱 En pépinière</button>
-              <button type="button" class="type-filter-chip" data-status="croissance">🌿 En croissance</button>
+              <button type="button" class="type-filter-chip" data-status="pepiniere"> En pépinière</button>
+              <button type="button" class="type-filter-chip" data-status="croissance"> En croissance</button>
               <button type="button" class="type-filter-chip" data-status="recolte_proche">⏳ Récolte proche (&lt;15j)</button>
-              <button type="button" class="type-filter-chip" data-status="recolte">🌾 À récolter</button>
-              <button type="button" class="type-filter-chip" data-status="termine">✅ Terminés</button>
+              <button type="button" class="type-filter-chip" data-status="recolte"> À récolter</button>
+              <button type="button" class="type-filter-chip" data-status="termine"> Terminés</button>
             </div>
           </div>
 
@@ -1876,7 +1920,7 @@
 
           <!-- État vide si aucun cycle -->
           <div class="financements-empty-state hidden" id="cyclesEmptyState">
-            <div class="empty-state-icon">🌱</div>
+            <div class="empty-state-icon"></div>
             <h3>Aucun cycle cultural pour le moment</h3>
             <p>Démarrez un cycle en 3 clics simples : choisissez votre parcelle, sélectionnez la culture parmi les modèles INERA et saisissez la date de semis.</p>
             <button type="button" class="btn-primary" id="btnEmptyStateAddCycle" style="margin: 12px auto 0; display: inline-flex;">
@@ -1899,18 +1943,18 @@
                 <span class="bullet-sep">•</span>
                 <span>Mon exploitation</span>
               </div>
-              <h1 class="page-main-title">💰 Finances & Marges Nettes</h1>
+              <h1 class="page-main-title"> Finances & Marges Nettes</h1>
               <p class="page-subtitle">Suivez vos dépenses et recettes réelles, visualisez la rentabilité exacte de chaque cycle et téléchargez votre compte d'exploitation.</p>
             </div>
             <div class="page-header-actions-group">
               <button type="button" class="btn-secondary" id="btnOpenExportCompteExploitation" style="border-color: #C8862A; color: #8A4F00; font-weight: 800;">
-                <span>📄 Compte d'exploitation PDF</span>
+                <span> Compte d'exploitation PDF</span>
               </button>
               <button type="button" class="btn-secondary" id="btnFinancesAddExpense">
-                <span>💸 + Dépense</span>
+                <span> + Dépense</span>
               </button>
               <button type="button" class="btn-primary" id="btnFinancesAddRevenue">
-                <span>🌾 + Vente récolte</span>
+                <span> + Vente récolte</span>
               </button>
             </div>
           </div>
@@ -1938,7 +1982,7 @@
           <div class="six-months-chart-container">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
               <div>
-                <h3 style="font-size: 16px; font-weight: 800; color: #1E2822; margin: 0 0 2px;">📈 Évolution sur les 6 Derniers Mois</h3>
+                <h3 style="font-size: 16px; font-weight: 800; color: #1E2822; margin: 0 0 2px;"> Évolution sur les 6 Derniers Mois</h3>
                 <p style="font-size: 12px; color: #7C8781; margin: 0;">Comparatif Recettes (vert) vs Dépenses (ocre) par mois</p>
               </div>
               <div style="display: flex; gap: 14px; font-size: 12px; font-weight: 700;">
@@ -1959,7 +2003,7 @@
 
           <!-- Titre Rentabilité par Cycle -->
           <div style="margin-bottom: 12px;">
-            <h3 style="font-size: 16px; font-weight: 800; color: #1E2822; margin: 0;">🌾 Marge et Rentabilité Détaillée par Cycle</h3>
+            <h3 style="font-size: 16px; font-weight: 800; color: #1E2822; margin: 0;"> Marge et Rentabilité Détaillée par Cycle</h3>
           </div>
 
           <!-- Liste des fiches de marge par cycle -->
@@ -1976,13 +2020,13 @@
           <div class="finances-transactions-section" style="margin-top: 24px; background: #FFFFFF; border-radius: 14px; border: 1px solid #E2E8F0; padding: 20px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
               <div>
-                <h3 style="font-size: 16px; font-weight: 800; color: #1E2822; margin: 0 0 2px;">📋 Historique des Dépenses & Ventes</h3>
+                <h3 style="font-size: 16px; font-weight: 800; color: #1E2822; margin: 0 0 2px;"> Historique des Dépenses & Ventes</h3>
                 <p style="font-size: 12px; color: #7C8781; margin: 0;">Consultez, modifiez ou supprimez vos charges et recettes réelles</p>
               </div>
               <div class="finances-filter-pills" style="display: flex; gap: 8px;">
                 <button type="button" class="fin-tab-filter active" data-filter="all" id="filterTransAll">Toutes (<span id="countTransAll">0</span>)</button>
-                <button type="button" class="fin-tab-filter" data-filter="expenses" id="filterTransExp">💸 Dépenses (<span id="countTransExp">0</span>)</button>
-                <button type="button" class="fin-tab-filter" data-filter="revenues" id="filterTransRev">🌾 Ventes (<span id="countTransRev">0</span>)</button>
+                <button type="button" class="fin-tab-filter" data-filter="expenses" id="filterTransExp"> Dépenses (<span id="countTransExp">0</span>)</button>
+                <button type="button" class="fin-tab-filter" data-filter="revenues" id="filterTransRev"> Ventes (<span id="countTransRev">0</span>)</button>
               </div>
             </div>
             
@@ -2009,7 +2053,7 @@
           <div class="fin-page-header">
             <div class="fin-page-title-group">
               <div class="fin-pill-tag">Open-Meteo • Données Agronomiques Gratuites & Réelles</div>
-              <h2 class="fin-main-title">🌦️ Météo Agricole & Prévisions 7 Jours</h2>
+              <h2 class="fin-main-title">️ Météo Agricole & Prévisions 7 Jours</h2>
               <p class="fin-subtitle" id="meteoPageLocationSub">Commune de Koudougou • Région Centre-Ouest • Fuseau Ouagadougou</p>
             </div>
             <div class="meteo-controls-bar">
@@ -2033,7 +2077,7 @@
 
           <!-- Bandeau d'alerte météo dynamique de la page météo -->
           <div class="weather-alert-banner alert-warning hidden" id="meteoPageAlertBanner">
-            <span class="alert-icon">⚠️</span>
+            <span class="alert-icon">️</span>
             <span class="alert-text" id="meteoPageAlertText"></span>
           </div>
 
@@ -2041,7 +2085,7 @@
           <div class="meteo-hero-card">
             <div class="meteo-hero-top">
               <div class="meteo-hero-main">
-                <div class="meteo-big-icon" id="meteoHeroIcon">☀️</div>
+                <div class="meteo-big-icon" id="meteoHeroIcon">️</div>
                 <div>
                   <div class="meteo-big-temp" id="meteoHeroTemp">--°C</div>
                   <span class="meteo-condition-badge" id="meteoHeroDesc">Chargement…</span>
@@ -2056,22 +2100,22 @@
             <!-- Grille de 4 métriques clés -->
             <div class="meteo-hero-metrics-grid">
               <div class="meteo-metric-box">
-                <span class="meteo-metric-label">🌡️ Température max / min</span>
+                <span class="meteo-metric-label">️ Température max / min</span>
                 <span class="meteo-metric-val" id="meteoMetricTempRange">--° / --°</span>
                 <span class="meteo-metric-sub">Variation aujourd'hui</span>
               </div>
               <div class="meteo-metric-box">
-                <span class="meteo-metric-label">💧 Humidité relative</span>
+                <span class="meteo-metric-label"> Humidité relative</span>
                 <span class="meteo-metric-val" id="meteoMetricHumidity">-- %</span>
                 <span class="meteo-metric-sub">Taux d'évapotranspiration</span>
               </div>
               <div class="meteo-metric-box">
-                <span class="meteo-metric-label">💨 Vent & Rafales</span>
+                <span class="meteo-metric-label"> Vent & Rafales</span>
                 <span class="meteo-metric-val" id="meteoMetricWind">Vent -- km/h • Rafales -- km/h</span>
                 <span class="meteo-metric-sub" id="meteoMetricGusts">Direction : --</span>
               </div>
               <div class="meteo-metric-box">
-                <span class="meteo-metric-label">🌧️ Précipitations</span>
+                <span class="meteo-metric-label">️ Précipitations</span>
                 <span class="meteo-metric-val" id="meteoMetricRain">-- mm</span>
                 <span class="meteo-metric-sub" id="meteoMetricRainProb">Probabilité : -- %</span>
               </div>
@@ -2085,7 +2129,7 @@
 
           <!-- Prévisions détaillées 7 Jours -->
           <div style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
-            <h3 style="font-size: 16px; font-weight: 800; color: var(--primary-900); margin: 0;">📅 Prévisions Agronomiques sur 7 Jours</h3>
+            <h3 style="font-size: 16px; font-weight: 800; color: var(--primary-900); margin: 0;"> Prévisions Agronomiques sur 7 Jours</h3>
             <span style="font-size: 12px; color: var(--text-dim);">Heure locale Ouagadougou</span>
           </div>
 
@@ -2100,18 +2144,18 @@
 
           <!-- Section Recommandations Agronomiques Sahéliennes -->
           <div style="background: #FFFFFF; border: 1px solid var(--border-light); border-radius: 14px; padding: 18px 20px; margin-top: 10px;">
-            <h4 style="font-size: 14px; font-weight: 800; color: var(--primary-900); margin: 0 0 10px;">💡 Conseils agronomiques selon les conditions réelles</h4>
+            <h4 style="font-size: 14px; font-weight: 800; color: var(--primary-900); margin: 0 0 10px;"> Conseils agronomiques selon les conditions réelles</h4>
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; font-size: 12.5px; color: var(--text-muted); line-height: 1.5;">
               <div style="background: #F9FAF8; border-radius: 10px; padding: 12px; border-left: 4px solid #1E5E2A;">
-                <strong style="color: var(--text-main); display: block; margin-bottom: 4px;">🍅 Cultures maraîchères (Tomate, Chou, Oignon)</strong>
+                <strong style="color: var(--text-main); display: block; margin-bottom: 4px;"> Cultures maraîchères (Tomate, Chou, Oignon)</strong>
                 Arrosez de préférence avant 8h ou après 17h pour limiter la perte d'eau par évapotranspiration lorsque les températures dépassent 35°C.
               </div>
               <div style="background: #F9FAF8; border-radius: 10px; padding: 12px; border-left: 4px solid #C8862A;">
-                <strong style="color: var(--text-main); display: block; margin-bottom: 4px;">💨 Traitements & Pulvérisations</strong>
+                <strong style="color: var(--text-main); display: block; margin-bottom: 4px;"> Traitements & Pulvérisations</strong>
                 Ne procédez à aucune pulvérisation foliaire lorsque les rafales de vent excèdent 20 km/h pour éviter la dérive des produits.
               </div>
               <div style="background: #F9FAF8; border-radius: 10px; padding: 12px; border-left: 4px solid #0A66C2;">
-                <strong style="color: var(--text-main); display: block; margin-bottom: 4px;">🌧️ Gestion des pluies et de l'irrigation</strong>
+                <strong style="color: var(--text-main); display: block; margin-bottom: 4px;">️ Gestion des pluies et de l'irrigation</strong>
                 En cas de pluie annoncée (> 15 mm), suspendez les tours d'irrigation pour économiser le carburant des motopompes et éviter l'asphyxie racinaire.
               </div>
             </div>
@@ -2130,7 +2174,7 @@
                 <span class="breadcrumb-sep">/</span>
                 <span class="breadcrumb-current">Notifications</span>
               </div>
-              <h1 class="page-main-title">🔔 Notifications</h1>
+              <h1 class="page-main-title"> Notifications</h1>
               <p class="page-subtitle">Suivez en temps réel les opportunités de financements, les échéances, les conseils du jour et les vigilances météo.</p>
             </div>
             <div class="page-header-actions-group">
@@ -2187,7 +2231,7 @@
         <div class="notif-prefs-card" style="background: #FFFFFF; border: 1px solid #E6EAE3; border-radius: 12px; padding: 14px 16px; margin-bottom: 16px;">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; border-bottom: 1px solid #F0F3EE; padding-bottom: 8px;">
             <div style="display: flex; align-items: center; gap: 8px;">
-              <span style="font-size: 16px;">🔔</span>
+              <span style="font-size: 16px;"></span>
               <strong style="font-size: 13.5px; color: var(--text-main);">Mes notifications</strong>
             </div>
             <span style="font-size: 11px; color: var(--text-muted);">Préférences</span>
@@ -2196,7 +2240,7 @@
           <div class="notif-toggles-grid" style="display: flex; flex-direction: column; gap: 10px;">
             <label class="notif-switch-row" style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none;">
               <div>
-                <strong style="font-size: 12.5px; display: block; color: var(--text-main);">🌱 Nouvelles opportunités</strong>
+                <strong style="font-size: 12.5px; display: block; color: var(--text-main);"> Nouvelles opportunités</strong>
                 <span style="font-size: 11px; color: var(--text-muted);">Financements & subventions publiés</span>
               </div>
               <input type="checkbox" id="prefNotifFinancement" class="notif-ios-switch" checked>
@@ -2212,7 +2256,7 @@
 
             <label class="notif-switch-row" style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none;">
               <div>
-                <strong style="font-size: 12.5px; display: block; color: var(--text-main);">💡 Conseil du jour</strong>
+                <strong style="font-size: 12.5px; display: block; color: var(--text-main);"> Conseil du jour</strong>
                 <span style="font-size: 11px; color: var(--text-muted);">Guides & astuces agronomiques</span>
               </div>
               <input type="checkbox" id="prefNotifConseil" class="notif-ios-switch" checked>
@@ -2220,7 +2264,7 @@
 
             <label class="notif-switch-row" style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none;">
               <div>
-                <strong style="font-size: 12.5px; display: block; color: var(--text-main);">🌦️ Alertes météo</strong>
+                <strong style="font-size: 12.5px; display: block; color: var(--text-main);">️ Alertes météo</strong>
                 <span style="font-size: 11px; color: var(--text-muted);">Vigilance forte chaleur, vent et pluie</span>
               </div>
               <input type="checkbox" id="prefNotifMeteo" class="notif-ios-switch" checked>
@@ -2228,7 +2272,7 @@
 
             <label class="notif-switch-row" style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none;">
               <div>
-                <strong style="font-size: 12.5px; display: block; color: var(--text-main);">🌾 Rappels de mes cultures</strong>
+                <strong style="font-size: 12.5px; display: block; color: var(--text-main);"> Rappels de mes cultures</strong>
                 <span style="font-size: 11px; color: var(--text-muted);">Veille de repiquage, récoltes et travaux</span>
               </div>
               <input type="checkbox" id="prefNotifCultures" class="notif-ios-switch" checked>
@@ -2256,7 +2300,7 @@
     <div class="modal-dialog">
       <div class="modal-header">
         <div class="modal-title-wrap">
-          <span class="modal-icon bg-green">💸</span>
+          <span class="modal-icon bg-green"></span>
           <h3 class="modal-title" id="expenseModalTitle">Enregistrer une dépense</h3>
         </div>
         <button class="modal-close-btn" id="btnCloseModalExpense">&times;</button>
@@ -2357,7 +2401,7 @@
 
           <!-- Impact direct en temps réel sur la marge -->
           <div class="margin-live-indicator" id="revenueLiveImpactBanner">
-            <span class="indicator-icon">📈</span>
+            <span class="indicator-icon"></span>
             <div class="indicator-text">
               Impact direct : Recettes du mois portées à <strong id="livePreviewNewRev">570 000 F CFA</strong> • Nouvelle marge nette : <strong id="livePreviewNewMargin" class="text-green">+385 000 F CFA</strong>
             </div>
@@ -2384,7 +2428,7 @@
           <div id="cycleSelectWrapper">
             <select id="revenueCycle" class="form-select">
               <option value="">-- Aucune culture spécifique (Vente hors parcelle) --</option>
-              <option value="custom">✏️ + Vente libre / Saisie personnalisée...</option>
+              <option value="custom">️ + Vente libre / Saisie personnalisée...</option>
             </select>
           </div>
 
@@ -2399,14 +2443,14 @@
             <div class="form-group" style="margin-bottom: 0;">
               <span class="form-hint" style="margin-bottom: 4px; display: block;">Suggestions rapides :</span>
               <div class="custom-crop-tags">
-                <button type="button" class="crop-tag-btn" data-name="🌶️ Piment vert frais">🌶️ Piment</button>
-                <button type="button" class="crop-tag-btn" data-name="🌽 Maïs doux">🌽 Maïs</button>
-                <button type="button" class="crop-tag-btn" data-name="🥭 Mangues Amélie">🥭 Mangues</button>
-                <button type="button" class="crop-tag-btn" data-name="🥬 Gombo frais">🥬 Gombo</button>
-                <button type="button" class="crop-tag-btn" data-name="🥜 Arachides de saison">🥜 Arachides</button>
-                <button type="button" class="crop-tag-btn" data-name="🍉 Pastèque sucrée">🍉 Pastèque</button>
-                <button type="button" class="crop-tag-btn" data-name="🍆 Aubergine locale">🍆 Aubergines</button>
-                <button type="button" class="crop-tag-btn" data-name="🌿 Moringa séché">🌿 Moringa</button>
+                <button type="button" class="crop-tag-btn" data-name="️ Piment vert frais">️ Piment</button>
+                <button type="button" class="crop-tag-btn" data-name=" Maïs doux"> Maïs</button>
+                <button type="button" class="crop-tag-btn" data-name=" Mangues Amélie"> Mangues</button>
+                <button type="button" class="crop-tag-btn" data-name=" Gombo frais"> Gombo</button>
+                <button type="button" class="crop-tag-btn" data-name=" Arachides de saison"> Arachides</button>
+                <button type="button" class="crop-tag-btn" data-name=" Pastèque sucrée"> Pastèque</button>
+                <button type="button" class="crop-tag-btn" data-name=" Aubergine locale"> Aubergines</button>
+                <button type="button" class="crop-tag-btn" data-name=" Moringa séché"> Moringa</button>
               </div>
             </div>
 
@@ -2428,28 +2472,28 @@
           <input type="hidden" id="revenuePaymentVal" value="cash">
           <div class="payment-methods-grid">
             <div class="pay-card-option selected" data-method="cash">
-              <span class="pay-card-icon">💵</span>
+              <span class="pay-card-icon"></span>
               <div class="pay-card-text">
                 <span class="pay-card-title">Espèces au marché</span>
                 <span class="pay-card-sub">Paiement cash direct</span>
               </div>
             </div>
             <div class="pay-card-option" data-method="orange">
-              <span class="pay-card-icon">🟠</span>
+              <span class="pay-card-icon"></span>
               <div class="pay-card-text">
                 <span class="pay-card-title">Orange Money</span>
                 <span class="pay-card-sub">Push / Dépôt (+226)</span>
               </div>
             </div>
             <div class="pay-card-option" data-method="moov">
-              <span class="pay-card-icon">🔵</span>
+              <span class="pay-card-icon"></span>
               <div class="pay-card-text">
                 <span class="pay-card-title">Moov Money</span>
                 <span class="pay-card-sub">Flooz Burkina</span>
               </div>
             </div>
             <div class="pay-card-option" data-method="virement">
-              <span class="pay-card-icon">🏦</span>
+              <span class="pay-card-icon"></span>
               <div class="pay-card-text">
                 <span class="pay-card-title">Virement / IMF</span>
                 <span class="pay-card-sub">Compte coopérative</span>
@@ -2465,10 +2509,10 @@
           <div class="custom-date-container">
             <!-- Puces de raccourcis temporels -->
             <div class="date-quick-chips">
-              <button type="button" class="date-chip-btn active" data-date="2026-10-16">🟢 Aujourd'hui (16 oct.)</button>
+              <button type="button" class="date-chip-btn active" data-date="2026-10-16"> Aujourd'hui (16 oct.)</button>
               <button type="button" class="date-chip-btn" data-date="2026-10-15">Hier (15 oct.)</button>
               <button type="button" class="date-chip-btn" data-date="2026-10-14">Avant-hier (14 oct.)</button>
-              <button type="button" class="date-chip-btn" id="btnToggleCalPopover">📅 Calendrier complet ▾</button>
+              <button type="button" class="date-chip-btn" id="btnToggleCalPopover"> Calendrier complet ▾</button>
             </div>
 
             <!-- Déclencheur visuel élégant (Remplace l'input date natif) -->
@@ -2633,13 +2677,13 @@
               <span class="price-period">F CFA /mois</span>
             </div>
             <ul class="pricing-features">
-              <li><span class="feature-check">✓</span><span>Météo locale 3 jours (Koudougou, Bobo...)</span></li>
-              <li><span class="feature-check">✓</span><span>1 cycle cultural suivi</span></li>
-              <li><span class="feature-check">✓</span><span>3 consultations contacts/j</span></li>
-              <li><span class="feature-check">✓</span><span>Conseils agronomiques essentiels</span></li>
-              <li class="feature-disabled"><span class="feature-cross">✕</span><span>Alertes SMS météo & ravageurs</span></li>
-              <li class="feature-disabled"><span class="feature-cross">✕</span><span>Calcul de marge nette instantané</span></li>
-              <li class="feature-disabled"><span class="feature-cross">✕</span><span>Export compte d'exploitation banques/IMF</span></li>
+              <li><span class="feature-check"></span><span>Météo locale 3 jours (Koudougou, Bobo...)</span></li>
+              <li><span class="feature-check"></span><span>1 cycle cultural suivi</span></li>
+              <li><span class="feature-check"></span><span>3 consultations contacts/j</span></li>
+              <li><span class="feature-check"></span><span>Conseils agronomiques essentiels</span></li>
+              <li class="feature-disabled"><span class="feature-cross"></span><span>Alertes SMS météo & ravageurs</span></li>
+              <li class="feature-disabled"><span class="feature-cross"></span><span>Calcul de marge nette instantané</span></li>
+              <li class="feature-disabled"><span class="feature-cross"></span><span>Export compte d'exploitation banques/IMF</span></li>
             </ul>
             <button type="button" class="btn-plan-action btn-plan-outline" disabled>Plan actuel (Gratuit)</button>
           </div>
@@ -2656,12 +2700,12 @@
               <span class="price-period" id="displayPeriodPro">F CFA /mois</span>
             </div>
             <ul class="pricing-features">
-              <li><span class="feature-check">✓</span><span class="feature-bold">Parcelles et cycles illimités</span></li>
-              <li><span class="feature-check">✓</span><span class="feature-bold">Calcul de marge en direct (30s)</span></li>
-              <li><span class="feature-check">✓</span><span class="feature-bold">Alertes SMS météo & alertes ravageurs</span></li>
-              <li><span class="feature-check">✓</span><span>Rappels de clôture appels à projets (PReCA)</span></li>
-              <li><span class="feature-check">✓</span><span>Export PDF compte de résultat certifié</span></li>
-              <li><span class="feature-check">✓</span><span>Assistance agronomique WhatsApp 7j/7</span></li>
+              <li><span class="feature-check"></span><span class="feature-bold">Parcelles et cycles illimités</span></li>
+              <li><span class="feature-check"></span><span class="feature-bold">Calcul de marge en direct (30s)</span></li>
+              <li><span class="feature-check"></span><span class="feature-bold">Alertes SMS météo & alertes ravageurs</span></li>
+              <li><span class="feature-check"></span><span>Rappels de clôture appels à projets (PReCA)</span></li>
+              <li><span class="feature-check"></span><span>Export PDF compte de résultat certifié</span></li>
+              <li><span class="feature-check"></span><span>Assistance agronomique WhatsApp 7j/7</span></li>
             </ul>
             <button type="button" class="btn-plan-action btn-plan-primary btn-select-plan" data-plan="pro" data-price="5000" data-name="Pro Producteur">
               Choisir Pro Producteur (5 000 F)
@@ -2670,7 +2714,7 @@
 
           <!-- 3. Business & Coopératives (10 000 F CFA) -->
           <div class="pricing-card card-premium">
-            <span class="pricing-ribbon ribbon-gold">🌾 FOURNISSEURS & COOPÉRATIVES</span>
+            <span class="pricing-ribbon ribbon-gold"> FOURNISSEURS & COOPÉRATIVES</span>
             <div class="pricing-tier-top">
               <span class="pricing-tier-title">Business & Coop</span>
               <p class="pricing-tier-subtitle">Pour fournisseurs d'intrants, acheteurs et groupements agricoles.</p>
@@ -2680,12 +2724,12 @@
               <span class="price-period" id="displayPeriodBiz">F CFA /mois</span>
             </div>
             <ul class="pricing-features">
-              <li><span class="feature-check gold">✓</span><span class="feature-bold">Tout le forfait Pro Producteur inclus</span></li>
-              <li><span class="feature-check gold">✓</span><span class="feature-bold">Top annonces sur le Marché agricole</span></li>
-              <li><span class="feature-check gold">✓</span><span class="feature-bold">Badge officiel Fournisseur Certifié</span></li>
-              <li><span class="feature-check gold">✓</span><span>Bouton WhatsApp direct sur vos fiches</span></li>
-              <li><span class="feature-check gold">✓</span><span>Statistiques hebdomadaires (vues & contacts)</span></li>
-              <li><span class="feature-check gold">✓</span><span>Multi-accès (jusqu'à 5 membres d'équipe)</span></li>
+              <li><span class="feature-check gold"></span><span class="feature-bold">Tout le forfait Pro Producteur inclus</span></li>
+              <li><span class="feature-check gold"></span><span class="feature-bold">Top annonces sur le Marché agricole</span></li>
+              <li><span class="feature-check gold"></span><span class="feature-bold">Badge officiel Fournisseur Certifié</span></li>
+              <li><span class="feature-check gold"></span><span>Bouton WhatsApp direct sur vos fiches</span></li>
+              <li><span class="feature-check gold"></span><span>Statistiques hebdomadaires (vues & contacts)</span></li>
+              <li><span class="feature-check gold"></span><span>Multi-accès (jusqu'à 5 membres d'équipe)</span></li>
             </ul>
             <button type="button" class="btn-plan-action btn-plan-gold btn-select-plan" data-plan="biz" data-price="10000" data-name="Business & Coopératives">
               Choisir Business (10 000 F)
@@ -2694,7 +2738,7 @@
         </div>
 
         <div class="pricing-guarantee-note">
-          <span>🔒 Paiement sécurisé via Mobile Money (Orange Money & Moov Money Burkina Faso). Sans engagement, reconduction flexible.</span>
+          <span> Paiement sécurisé via Mobile Money (Orange Money & Moov Money Burkina Faso). Sans engagement, reconduction flexible.</span>
         </div>
       </div>
     </div>
@@ -2705,7 +2749,7 @@
     <div class="modal-dialog checkout-modal-dialog">
       <div class="modal-header">
         <div class="modal-title-wrap">
-          <span class="modal-icon bg-green">📱</span>
+          <span class="modal-icon bg-green"></span>
           <h3 class="modal-title">Règlement Mobile Money</h3>
         </div>
         <button class="modal-close-btn" id="btnCloseModalCheckout">&times;</button>
@@ -2756,7 +2800,7 @@
             </label>
             <div style="display: flex; gap: 8px; align-items: center;">
               <span style="background: #F0F4EE; border: 1px solid #D5E5D1; border-radius: 8px; padding: 10px 12px; font-size: 13px; font-weight: 700; color: #1E5E2A;">
-                🇧🇫 +226
+                 +226
               </span>
               <input type="tel" id="checkoutPhone" class="form-input" placeholder="70 12 34 56" required pattern="[0-9]{8}" value="76 45 89 12" style="flex: 1;">
             </div>
@@ -2787,7 +2831,7 @@
     <div class="modal-dialog modal-dialog-financement">
       <div class="modal-header">
         <div class="modal-title-wrap">
-          <span class="modal-icon bg-green">💼</span>
+          <span class="modal-icon bg-green"></span>
           <div>
             <h3 class="modal-title" id="manageFinancementModalTitle">Ajouter un financement</h3>
             <p class="modal-subtitle">Renseignez les détails de l'opportunité agropastorale.</p>
@@ -2897,7 +2941,7 @@
       <div class="modal-header">
         <div class="modal-title-wrap">
           <span class="fin-detail-type-badge" id="finDetailTypeBadge">Subvention</span>
-          <span class="fin-detail-region-badge" id="finDetailRegionBadge">📍 Tout le Burkina</span>
+          <span class="fin-detail-region-badge" id="finDetailRegionBadge"> Tout le Burkina</span>
         </div>
         <button class="modal-close-btn" id="btnCloseFinancementDetails">&times;</button>
       </div>
@@ -2926,19 +2970,19 @@
         </div>
 
         <div class="fin-detail-section">
-          <h4 class="fin-section-title">🎯 Public visé</h4>
+          <h4 class="fin-section-title"> Public visé</h4>
           <p class="fin-section-text" id="finDetailPublicVise"></p>
         </div>
 
         <div class="fin-detail-section">
-          <h4 class="fin-section-title">📋 Conditions d'éligibilité</h4>
+          <h4 class="fin-section-title"> Conditions d'éligibilité</h4>
           <div class="fin-conditions-box" id="finDetailConditions"></div>
         </div>
 
         <!-- ENCADRÉ SYNERGIE : LE MATÉRIEL DONT VOUS AVEZ BESOIN -->
         <div class="fin-materiel-synergy-card hidden" id="finDetailMaterielSynergy" style="margin-top: 14px; background: #F4FAF2; border: 1.5px solid #C8E6C9; border-radius: 12px; padding: 14px 16px;">
           <div style="display: flex; align-items: flex-start; gap: 12px;">
-            <span style="font-size: 24px; line-height: 1;">🛠️</span>
+            <span style="font-size: 24px; line-height: 1;">️</span>
             <div style="flex: 1;">
               <strong style="font-size: 13.5px; color: var(--primary-900); display: block; margin-bottom: 2px;">Le matériel dont vous avez besoin</strong>
               <p style="font-size: 12px; color: #4A554C; margin: 0 0 10px; line-height: 1.4;" id="finDetailMaterielSynergyDesc">
@@ -2953,14 +2997,14 @@
 
         <div class="fin-detail-meta-grid">
           <div class="fin-meta-item" id="finDetailContactRow">
-            <span class="fin-meta-icon">📞</span>
+            <span class="fin-meta-icon"></span>
             <div>
               <span class="fin-meta-label">Contact</span>
               <strong class="fin-meta-val" id="finDetailContact"></strong>
             </div>
           </div>
           <div class="fin-meta-item" id="finDetailSourceRow">
-            <span class="fin-meta-icon">🔗</span>
+            <span class="fin-meta-icon"></span>
             <div>
               <span class="fin-meta-label">Source officielle</span>
               <a href="#" target="_blank" rel="noopener" class="fin-meta-link" id="finDetailSource">Consulter l'annonce ↗</a>
@@ -2984,7 +3028,7 @@
     <div class="modal-dialog modal-dialog-financement">
       <div class="modal-header">
         <div class="modal-title-wrap">
-          <span class="modal-icon bg-green">💡</span>
+          <span class="modal-icon bg-green"></span>
           <div>
             <h3 class="modal-title" id="manageConseilModalTitle">Ajouter un conseil agronomique</h3>
             <p class="modal-subtitle">Renseignez la fiche technique et les bonnes pratiques associées.</p>
@@ -3095,12 +3139,12 @@
             <h2 class="fin-detail-title" id="conseilDetailTitle">Titre du conseil</h2>
           </div>
           <button type="button" class="btn-listen-conseil" id="btnListenConseil" title="Écouter le conseil à voix haute">
-            🔊 <span>Écouter le conseil</span>
+             <span>Écouter le conseil</span>
           </button>
         </div>
 
         <div id="conseilDetailCulturesTag" class="conseil-cultures-tag">
-          🌱 Cultures : <span id="conseilDetailCultures">oignon, échalote</span>
+           Cultures : <span id="conseilDetailCultures">oignon, échalote</span>
         </div>
 
         <div class="fin-detail-section">
@@ -3109,20 +3153,20 @@
         </div>
 
         <div class="fin-detail-section">
-          <h4 class="fin-section-title">📋 Guide pratique & Étapes recommandées</h4>
+          <h4 class="fin-section-title"> Guide pratique & Étapes recommandées</h4>
           <div class="conseil-detail-content-box" id="conseilDetailContent"></div>
         </div>
 
         <div class="fin-detail-meta-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
           <div class="fin-meta-item">
-            <span class="fin-meta-icon">📍</span>
+            <span class="fin-meta-icon"></span>
             <div>
               <span class="fin-meta-label">Régions recommandées</span>
               <strong class="fin-meta-val" id="conseilDetailRegions">Tout le Burkina Faso</strong>
             </div>
           </div>
           <div class="fin-meta-item">
-            <span class="fin-meta-icon">📅</span>
+            <span class="fin-meta-icon"></span>
             <div>
               <span class="fin-meta-label">Date de publication</span>
               <strong class="fin-meta-val" id="conseilDetailDate">18 octobre 2026</strong>
@@ -3142,7 +3186,7 @@
     <div class="modal-dialog modal-dialog-financement">
       <div class="modal-header">
         <div class="modal-title-wrap">
-          <span class="modal-icon bg-green">🚜</span>
+          <span class="modal-icon bg-green"></span>
           <div>
             <h3 class="modal-title" id="manageMaterielModalTitle">Ajouter un produit ou service</h3>
             <p class="modal-subtitle">Offres d'équipements, forages, énergie solaire et prestations agropastorales.</p>
@@ -3162,13 +3206,13 @@
           <div class="form-group flex-1">
             <label for="materielCategorie">Catégorie <span class="required">*</span></label>
             <select id="materielCategorie" class="form-select" required>
-              <option value="pompes-forages">💧 Pompes et forages</option>
-              <option value="energie-solaire">☀️ Énergie solaire</option>
-              <option value="irrigation">🌱 Irrigation goutte-à-goutte</option>
-              <option value="kits-maraichage">🥬 Kits de maraîchage</option>
-              <option value="outils-accessoires">🔧 Outils et accessoires</option>
-              <option value="intrants">📦 Intrants certifiés</option>
-              <option value="services">🛠️ Services & Réparations</option>
+              <option value="pompes-forages"> Pompes et forages</option>
+              <option value="energie-solaire">️ Énergie solaire</option>
+              <option value="irrigation"> Irrigation goutte-à-goutte</option>
+              <option value="kits-maraichage"> Kits de maraîchage</option>
+              <option value="outils-accessoires"> Outils et accessoires</option>
+              <option value="intrants"> Intrants certifiés</option>
+              <option value="services">️ Services & Réparations</option>
             </select>
           </div>
         </div>
@@ -3177,10 +3221,10 @@
           <div class="form-group flex-1">
             <label for="materielTypeOffre">Type d'offre <span class="required">*</span></label>
             <select id="materielTypeOffre" class="form-select" required>
-              <option value="vente">🏷️ Vente directe</option>
+              <option value="vente">️ Vente directe</option>
               <option value="location">⏱️ Location</option>
-              <option value="installation">⚡ Installation / Clé en main</option>
-              <option value="reparation">🧰 Réparation & Maintenance</option>
+              <option value="installation"> Installation / Clé en main</option>
+              <option value="reparation"> Réparation & Maintenance</option>
             </select>
           </div>
           <div class="form-group flex-1">
@@ -3232,7 +3276,7 @@
           <div class="form-group flex-1">
             <label for="materielFournisseurWhatsapp">WhatsApp du fournisseur <span class="required">*</span></label>
             <div style="display: flex; gap: 8px; align-items: center;">
-              <span style="background: #F0F4EE; border: 1px solid #D5E5D1; border-radius: 8px; padding: 10px 12px; font-size: 13px; font-weight: 700; color: #1E5E2A;">🇧🇫 +226</span>
+              <span style="background: #F0F4EE; border: 1px solid #D5E5D1; border-radius: 8px; padding: 10px 12px; font-size: 13px; font-weight: 700; color: #1E5E2A;"> +226</span>
               <input type="tel" id="materielFournisseurWhatsapp" class="form-input" placeholder="70 12 34 56" required style="flex: 1;">
             </div>
           </div>
@@ -3256,7 +3300,7 @@
           </label>
           <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; flex: 1;">
             <input type="checkbox" id="materielBadgeCertifie" class="notif-ios-switch" checked>
-            <span style="font-size: 12px; font-weight: 700; color: var(--text-main);">🛡️ Fournisseur certifié</span>
+            <span style="font-size: 12px; font-weight: 700; color: var(--text-main);">️ Fournisseur certifié</span>
           </label>
         </div>
 
@@ -3288,84 +3332,104 @@
   </div>
 
   <!-- ==================== MODALE DÉTAILS MATÉRIEL & SERVICES (UTILISATEUR) ==================== -->
+  <!-- ==================== MODALE DÉTAILS MATÉRIEL & SERVICES (UTILISATEUR) ==================== -->
   <div class="modal-backdrop hidden" id="modalMaterielDetails">
-    <div class="modal-dialog modal-dialog-materiel-details" style="max-width: 680px;">
-      <div class="modal-header">
-        <div class="modal-title-wrap">
-          <span class="fin-detail-type-badge" id="matDetailBadgeType">Vente</span>
-          <span class="fin-detail-region-badge" id="matDetailBadgeCertifie">🛡️ Fournisseur certifié</span>
-        </div>
-        <button class="modal-close-btn" id="btnCloseMaterielDetails">&times;</button>
+    <div class="modal-dialog modal-dialog-fiche-premium" style="max-width: 680px; padding: 0; overflow: hidden; border-radius: 20px; border: 1px solid var(--bordure-carte); background: #FAF7F0;">
+      
+      <!-- 1. Grande photo en haut (330px, recadrée proprement) -->
+      <div class="fiche-hero-photo-wrap" style="position: relative; height: 330px; width: 100%; background: #152218; overflow: hidden;">
+        <img src="" alt="Photo matériel" id="matDetailMainPhoto" style="width: 100%; height: 330px; object-fit: cover; display: block;">
+        <button type="button" class="carousel-arrow carousel-prev hidden" id="matCarouselPrev" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; border-radius: 50%; background: rgba(0,0,0,0.55); color: #FFF; border: none; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 3;">&lt;</button>
+        <button type="button" class="carousel-arrow carousel-next hidden" id="matCarouselNext" style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; border-radius: 50%; background: rgba(0,0,0,0.55); color: #FFF; border: none; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 3;">&gt;</button>
+        <span class="carousel-counter hidden" id="matCarouselCounter" style="position: absolute; bottom: 34px; right: 16px; background: rgba(0,0,0,0.65); color: #FFF; font-size: 12px; padding: 3px 10px; border-radius: 999px; z-index: 3;">1 / 1</span>
+        
+        <!-- Bouton fermer rond en haut à droite sur la photo -->
+        <button class="modal-close-round-btn" id="btnCloseMaterielDetails" aria-label="Fermer" style="position: absolute; top: 16px; right: 16px; width: 44px; height: 44px; border-radius: 50%; background: rgba(0,0,0,0.55); color: #FFF; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 4;">
+          <i data-lucide="x"></i>
+        </button>
       </div>
 
-      <div class="fin-detail-body" style="padding: 16px 20px;">
-        <!-- Carrousel de photos -->
-        <div class="materiel-carousel-container" id="matDetailCarousel">
-          <div class="materiel-carousel-main" style="position: relative; border-radius: 12px; overflow: hidden; background: #0E1A12; height: 260px; display: flex; align-items: center; justify-content: center;">
-            <img src="" alt="Photo matériel" id="matDetailMainPhoto" style="width: 100%; height: 100%; object-fit: contain;">
-            <button type="button" class="carousel-arrow carousel-prev hidden" id="matCarouselPrev" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 36px; height: 36px; border-radius: 50%; background: rgba(0,0,0,0.6); color: #FFF; border: none; font-size: 18px; cursor: pointer;">&lt;</button>
-            <button type="button" class="carousel-arrow carousel-next hidden" id="matCarouselNext" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); width: 36px; height: 36px; border-radius: 50%; background: rgba(0,0,0,0.6); color: #FFF; border: none; font-size: 18px; cursor: pointer;">&gt;</button>
-            <span class="carousel-counter hidden" id="matCarouselCounter" style="position: absolute; bottom: 10px; right: 12px; background: rgba(0,0,0,0.6); color: #FFF; font-size: 11px; padding: 2px 8px; border-radius: 10px;">1 / 1</span>
-          </div>
-          <div class="materiel-carousel-thumbs" id="matDetailThumbs" style="display: flex; gap: 8px; margin-top: 8px; overflow-x: auto; padding-bottom: 4px;"></div>
+      <!-- 2. Le contenu remonte dessus avec des coins arrondis 20px -->
+      <div class="fiche-overlay-body" style="position: relative; margin-top: -24px; border-radius: 20px 20px 0 0; background: #FFFFFF; padding: 22px 20px 96px; z-index: 2; box-shadow: 0 -4px 16px rgba(0,0,0,0.06); max-height: calc(88vh - 200px); overflow-y: auto;">
+        
+        <!-- Badges d'état -->
+        <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px;">
+          <span class="badge-tag-pill badge-primary-light" id="matDetailBadgeType">Vente</span>
+          <span class="badge-tag-pill badge-sun-yellow" id="matDetailBadgeCertifie">Fournisseur certifié</span>
+          <span class="badge-tag-pill" id="matDetailCategoryTag">Pompes & Forages</span>
         </div>
 
-        <div style="margin-top: 14px;">
-          <span class="materiel-category-tag" id="matDetailCategoryTag" style="font-size: 11.5px; font-weight: 700; color: #1E5E2A; background: #EAF4E6; padding: 3px 8px; border-radius: 4px;">💧 Pompes & Forages</span>
-          <h2 class="fin-detail-title" id="matDetailNom" style="margin: 6px 0 8px; font-size: 20px;">Nom du produit</h2>
-          
-          <div class="materiel-price-box" style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 14px;">
-            <strong class="materiel-price-val" id="matDetailPrix" style="font-size: 24px; color: var(--primary-700); font-family: 'JetBrains Mono', monospace; font-weight: 800;">750 000 F CFA</strong>
-            <span class="materiel-price-unit" id="matDetailUnite" style="font-size: 13px; color: var(--text-muted);">/ pièce</span>
+        <!-- Titre -->
+        <h2 class="fiche-title" id="matDetailNom" style="font-size: 24px; font-weight: 800; color: #1A1A1A; margin: 4px 0 8px; line-height: 1.25;">Nom du produit</h2>
+
+        <!-- Prix sur demande en ocre -->
+        <div class="fiche-price-row" style="margin-bottom: 16px;">
+          <strong class="fiche-price-val" id="matDetailPrix" style="font-size: 26px; font-weight: 800; color: var(--ocre);">Prix sur demande</strong>
+          <span class="fiche-price-unit" id="matDetailUnite" style="font-size: 14px; color: #4A4A4A; font-weight: 600; margin-left: 6px;"></span>
+        </div>
+
+        <!-- 3 petites cases d'infos -->
+        <div class="fiche-three-boxes-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px;">
+          <div class="fiche-info-box" style="background: #FAF7F0; border: 1px solid #ECE6D9; border-radius: 14px; padding: 10px; text-align: center;">
+            <span style="font-size: 11.5px; color: #4A4A4A; display: block; margin-bottom: 2px;">État</span>
+            <strong style="font-size: 13px; color: #1A1A1A;" id="matDetailBoxEtat">Neuf garanti</strong>
           </div>
+          <div class="fiche-info-box" style="background: #FAF7F0; border: 1px solid #ECE6D9; border-radius: 14px; padding: 10px; text-align: center;">
+            <span style="font-size: 11.5px; color: #4A4A4A; display: block; margin-bottom: 2px;">Disponibilité</span>
+            <strong style="font-size: 13px; color: #1F5E3B;" id="matDetailBoxDispo">En stock</strong>
+          </div>
+          <div class="fiche-info-box" style="background: #FAF7F0; border: 1px solid #ECE6D9; border-radius: 14px; padding: 10px; text-align: center;">
+            <span style="font-size: 11.5px; color: #4A4A4A; display: block; margin-bottom: 2px;">Livraison</span>
+            <strong style="font-size: 13px; color: #1A1A1A;" id="matDetailBoxLivraison">Sous 48h</strong>
+          </div>
+        </div>
+
+        <!-- Carte Vendeur -->
+        <div class="fiche-seller-card" style="background: #FFFFFF; border: 1px solid #ECE6D9; border-radius: 16px; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 20px;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 44px; height: 44px; border-radius: 50%; background: #E8F0EA; color: #1F5E3B; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+              <i data-lucide="shield-check"></i>
+            </div>
+            <div>
+              <span style="font-size: 11.5px; color: #4A4A4A; display: block;">Vendeur vérifié</span>
+              <strong style="font-size: 15px; color: #1A1A1A;" id="matDetailFournisseur">Sahel Forages</strong>
+              <div style="font-size: 12.5px; color: #4A4A4A;" id="matDetailVille">Ouagadougou</div>
+            </div>
+          </div>
+          <span style="background: #E8F0EA; color: #1F5E3B; font-size: 11.5px; font-weight: 700; padding: 4px 10px; border-radius: 999px;">Certifié</span>
         </div>
 
         <!-- Description -->
-        <div class="fin-detail-section" style="margin-bottom: 14px;">
-          <h4 class="fin-section-title" style="font-size: 13.5px; font-weight: 700; color: var(--text-main); margin-bottom: 6px;">Description</h4>
-          <p class="fin-section-desc" id="matDetailDescription" style="font-size: 13.5px; line-height: 1.55; color: #3C4740; margin: 0;"></p>
+        <div style="margin-bottom: 18px;">
+          <h4 style="font-size: 16px; font-weight: 700; color: #1A1A1A; margin-bottom: 6px;">Description</h4>
+          <p id="matDetailDescription" style="font-size: 14.5px; line-height: 1.55; color: #4A4A4A; margin: 0;"></p>
         </div>
 
         <!-- Caractéristiques techniques -->
-        <div class="fin-detail-section" id="matDetailCaractSection" style="margin-bottom: 14px;">
-          <h4 class="fin-section-title" style="font-size: 13.5px; font-weight: 700; color: var(--text-main); margin-bottom: 6px;">⚙️ Caractéristiques techniques</h4>
-          <div id="matDetailCaracteristiques" style="background: #F8FAF6; border: 1px solid #E6EAE3; border-radius: 10px; padding: 12px 14px; font-size: 12.5px; line-height: 1.5; color: #2A362E;"></div>
+        <div id="matDetailCaractSection" style="margin-bottom: 18px;">
+          <h4 style="font-size: 16px; font-weight: 700; color: #1A1A1A; margin-bottom: 6px;">Caractéristiques techniques</h4>
+          <div id="matDetailCaracteristiques" style="background: #FAF7F0; border: 1px solid #ECE6D9; border-radius: 14px; padding: 14px; font-size: 13.5px; line-height: 1.55; color: #1A1A1A;"></div>
         </div>
 
-        <!-- Fournisseur & Disponibilité -->
-        <div class="fin-detail-meta-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-bottom: 16px;">
-          <div class="fin-meta-item">
-            <span class="fin-meta-icon">🏢</span>
-            <div>
-              <span class="fin-meta-label">Fournisseur</span>
-              <strong class="fin-meta-val" id="matDetailFournisseur">Sahel Forages</strong>
-            </div>
-          </div>
-          <div class="fin-meta-item">
-            <span class="fin-meta-icon">📍</span>
-            <div>
-              <span class="fin-meta-label">Localisation & Livraison</span>
-              <strong class="fin-meta-val" id="matDetailVille">Ouagadougou</strong>
-            </div>
-          </div>
-        </div>
-
+        <!-- Miniatures -->
+        <div class="materiel-carousel-thumbs" id="matDetailThumbs" style="display: flex; gap: 8px; margin-top: 12px; overflow-x: auto; padding-bottom: 4px;"></div>
       </div>
 
-      <!-- PIED DE MODALE COLLÉ EN BAS (ACTIONS WHATSAPP & APPEL TOUJOURS VISIBLES) -->
-      <div class="modal-footer materiel-modal-footer">
-        <div class="materiel-contact-actions">
-          <a href="#" target="_blank" rel="noopener" class="btn-whatsapp-large" id="btnMatWhatsappOrder" style="display: flex; align-items: center; justify-content: center; gap: 10px; background: #25D366; color: #FFFFFF; font-weight: 800; font-size: 15px; padding: 13px; border-radius: 12px; text-decoration: none; box-shadow: 0 4px 12px rgba(37, 211, 102, 0.3);">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.664-.698c.969.584 1.961.947 2.796.947 3.179 0 5.767-2.587 5.767-5.766.001-3.187-2.575-5.77-5.767-5.774zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86.173.086.275.072.376-.044.101-.116.433-.506.549-.68.116-.173.231-.145.39-.086s1.011.477 1.184.564.289.13.332.202c.045.072.045.419-.099.824z"/></svg>
-            <span>Commander sur WhatsApp</span>
-          </a>
-          <a href="#" class="btn-call-large" id="btnMatPhoneCall" style="display: flex; align-items: center; justify-content: center; gap: 10px; background: #FFFFFF; color: var(--text-main); font-weight: 700; font-size: 14px; padding: 11px; border-radius: 12px; text-decoration: none; border: 1.5px solid #D5E0D5;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-            <span id="matDetailPhoneText">Appeler le fournisseur</span>
-          </a>
-        </div>
-        <button type="button" class="btn-secondary" id="btnCloseMaterielDetailsBottom" style="width: 100%;">Fermer la fiche</button>
+      <!-- 3. Barre fixe en bas (Appeler avec contour vert + gros bouton ocre "Demander le prix" WhatsApp) -->
+      <div class="fiche-bottom-fixed-bar" style="position: absolute; bottom: 0; left: 0; right: 0; background: #FFFFFF; border-top: 1px solid #ECE6D9; padding: 12px 18px; display: flex; gap: 10px; z-index: 10; box-shadow: 0 -4px 12px rgba(0,0,0,0.05);">
+        <!-- Bouton Appeler (contour vert 1.5px, fond blanc, texte vert) -->
+        <a href="#" class="btn-fiche-call" id="btnMatPhoneCall" style="flex: 1; height: 52px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: #FFFFFF; color: #1F5E3B; border: 1.5px solid #1F5E3B; border-radius: 14px; font-weight: 700; font-size: 14px; text-decoration: none; cursor: pointer;">
+          <i data-lucide="phone"></i>
+          <span id="matDetailPhoneText">Appeler</span>
+        </a>
+
+        <!-- Gros bouton ocre "Demander le prix" qui ouvre WhatsApp -->
+        <a href="#" target="_blank" rel="noopener" class="btn-fiche-whatsapp" id="btnMatWhatsappOrder" style="flex: 2; height: 52px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 10px; background: #A85A1C; color: #FFFFFF; border: none; border-radius: 14px; font-weight: 800; font-size: 15px; text-decoration: none; cursor: pointer; box-shadow: 0 4px 12px rgba(168, 90, 28, 0.25);">
+          <i data-lucide="message-circle"></i>
+          <span>Demander le prix</span>
+        </a>
       </div>
+
     </div>
   </div>
 
@@ -3374,7 +3438,7 @@
     <div class="modal-dialog modal-dialog-financement">
       <div class="modal-header">
         <div class="modal-title-wrap">
-          <span class="modal-icon bg-green">📍</span>
+          <span class="modal-icon bg-green"></span>
           <div>
             <h3 class="modal-title" id="addParcelModalTitle">Ajouter une parcelle</h3>
             <p class="modal-subtitle">Enregistrez votre parcelle et sa région pour adapter vos conseils et opportunités.</p>
@@ -3409,7 +3473,7 @@
           <div class="form-group flex-1">
             <label for="parcelArea">Superficie (en hectares) <span class="required">*</span></label>
             <input type="number" id="parcelArea" class="form-input" placeholder="Ex: 1.0" step="0.01" min="0.01" required>
-            <small class="form-hint" style="color: #4A5750; font-size: 11px; margin-top: 4px; display: block;">💡 1 hectare = un carré de 100 pas sur 100 pas</small>
+            <small class="form-hint" style="color: #4A5750; font-size: 11px; margin-top: 4px; display: block;"> 1 hectare = un carré de 100 pas sur 100 pas</small>
           </div>
           <div class="form-group flex-1">
             <label for="parcelIrrigation">Type d'irrigation <span class="required">*</span></label>
@@ -3438,7 +3502,7 @@
     <div class="modal-dialog modal-dialog-financement">
       <div class="modal-header">
         <div class="modal-title-wrap">
-          <span class="modal-icon bg-green">🌱</span>
+          <span class="modal-icon bg-green"></span>
           <div>
             <h3 class="modal-title">Ajouter une culture</h3>
             <p class="modal-subtitle">Enregistrez une culture sur vos parcelles avec estimation automatique de la récolte.</p>
@@ -3451,14 +3515,14 @@
         <!-- 1. Choix du modèle (facultatif) -->
         <div class="form-group" style="background: #F4F8F3; padding: 14px; border-radius: 10px; border: 1.5px solid #D5E4D2; margin-bottom: 16px;">
           <label for="cropCycleModeleSelect" style="font-weight: 700; color: #1E5E2A; display: flex; align-items: center; justify-content: space-between;">
-            <span>🌱 Choisir un modèle de culture <span style="font-size: 11.5px; font-weight: 500; color: #4F6456;">(facultatif)</span></span>
+            <span> Choisir un modèle de culture <span style="font-size: 11.5px; font-weight: 500; color: #4F6456;">(facultatif)</span></span>
             <span style="font-size: 11px; background: #E1EFE0; color: #1E5E2A; padding: 2px 8px; border-radius: 12px; font-weight: 700;">Recommandé</span>
           </label>
           <p style="font-size: 12px; color: #4F6456; margin: 4px 0 8px;">Sélectionnez un modèle pour préremplir la culture et calculer automatiquement la date de récolte.</p>
           <select id="cropCycleModeleSelect" class="form-select" style="background: #fff; font-weight: 600;">
             <option value="">-- Choisir un modèle --</option>
             <!-- Rempli dynamiquement depuis modeles_cultures (actif = true) -->
-            <option value="autre_culture">✏️ Autre culture (pas dans la liste)</option>
+            <option value="autre_culture">️ Autre culture (pas dans la liste)</option>
           </select>
         </div>
 
@@ -3475,7 +3539,7 @@
               Vous n'avez pas encore de parcelle. Ajoutez votre première parcelle.
             </p>
             <button type="button" class="btn-primary" id="btnCropModalCreateFirstParcel" style="font-size: 12px; padding: 6px 14px; margin: 0 auto; display: inline-flex; cursor: pointer;">
-              📍 Ajouter ma première parcelle
+               Ajouter ma première parcelle
             </button>
           </div>
           <select id="cropCycleParcelSelect" class="form-select" required>
@@ -3520,17 +3584,17 @@
         <div class="crop-forecast-card hidden" id="cropCycleForecastBox">
           <div class="crop-forecast-header">
             <div style="display: flex; align-items: center; gap: 8px;">
-              <span class="crop-forecast-icon">📅</span>
+              <span class="crop-forecast-icon"></span>
               <strong class="crop-forecast-title" id="cropForecastTitle">Prévisions agronomiques</strong>
             </div>
             <button type="button" class="btn-listen-crop" id="btnListenCropForecast" title="Écouter les prévisions à voix haute">
-              🔊 <span>Écouter</span>
+               <span>Écouter</span>
             </button>
           </div>
 
           <!-- Ligne Repiquage (si pépinière) -->
           <div class="crop-forecast-row hidden" id="cropForecastRepiquageRow">
-            <span class="forecast-bullet">🌱</span>
+            <span class="forecast-bullet"></span>
             <div class="forecast-text-wrap">
               <span class="forecast-label">Période de repiquage :</span>
               <strong class="forecast-val" id="cropForecastRepiquageText">Repiquage prévu entre le ... et le ...</strong>
@@ -3539,7 +3603,7 @@
 
           <!-- Ligne Récolte -->
           <div class="crop-forecast-row" id="cropForecastHarvestRow">
-            <span class="forecast-bullet">🌾</span>
+            <span class="forecast-bullet"></span>
             <div class="forecast-text-wrap">
               <span class="forecast-label">Période de récolte :</span>
               <strong class="forecast-val" id="cropForecastHarvestText">Récolte prévue entre le ... et le ...</strong>
@@ -3548,7 +3612,7 @@
 
           <!-- Conseil court -->
           <div class="crop-forecast-advice hidden" id="cropForecastAdviceBox">
-            <span class="forecast-advice-icon">💡</span>
+            <span class="forecast-advice-icon"></span>
             <div class="forecast-advice-content">
               <strong class="forecast-advice-title">À savoir :</strong>
               <p class="forecast-advice-text" id="cropForecastAdviceText"></p>
@@ -3577,7 +3641,7 @@
     <div class="modal-dialog modal-dialog-financement">
       <div class="modal-header">
         <div class="modal-title-wrap">
-          <span class="modal-icon bg-green">🌱</span>
+          <span class="modal-icon bg-green"></span>
           <div>
             <h3 class="modal-title" id="manageModeleModalTitle">Ajouter un modèle de culture</h3>
             <p class="modal-subtitle">Paramétrez les caractéristiques agronomiques et durées de référence.</p>
@@ -3683,7 +3747,7 @@
     <div class="modal-dialog modal-dialog-financement" style="max-width: 620px;">
       <div class="modal-header">
         <div class="modal-title-wrap">
-          <span class="modal-icon bg-green">📢</span>
+          <span class="modal-icon bg-green"></span>
           <div>
             <h3 class="modal-title" id="publishAnnonceModalTitle">Publier une annonce</h3>
             <p class="modal-subtitle" id="publishAnnonceModalSubtitle">Étape 1 sur 2 : Que proposez-vous ?</p>
@@ -3716,14 +3780,14 @@
             <label style="font-weight: 700; color: var(--text-main); margin-bottom: 8px; display: block;">Votre intention <span class="required">*</span></label>
             <div class="annonce-type-toggle-grid">
               <button type="button" class="btn-type-toggle active" data-type="vente" id="btnTypeVente">
-                <span class="toggle-icon">🌾</span>
+                <span class="toggle-icon"></span>
                 <div class="toggle-text">
                   <strong>Je vends</strong>
                   <small>J'ai une récolte ou du bétail disponible</small>
                 </div>
               </button>
               <button type="button" class="btn-type-toggle" data-type="achat" id="btnTypeAchat">
-                <span class="toggle-icon">🔍</span>
+                <span class="toggle-icon"></span>
                 <div class="toggle-text">
                   <strong>Je cherche</strong>
                   <small>J'achète des produits bord champ</small>
@@ -3739,15 +3803,15 @@
             
             <!-- Puces de suggestion en 1 clic -->
             <div class="quick-chips-row" style="margin-top: 8px; display: flex; gap: 6px; flex-wrap: wrap;">
-              <button type="button" class="quick-chip-btn" data-val="Oignon Violet de Galmi" data-cat="legumes">🧅 Oignon</button>
-              <button type="button" class="quick-chip-btn" data-val="Maïs blanc pluvial" data-cat="cereales">🌽 Maïs</button>
-              <button type="button" class="quick-chip-btn" data-val="Tomate Mongal" data-cat="legumes">🍅 Tomate</button>
-              <button type="button" class="quick-chip-btn" data-val="Sésame blanc" data-cat="oleagineux">🌿 Sésame</button>
-              <button type="button" class="quick-chip-btn" data-val="Arachide décortiquée" data-cat="oleagineux">🥜 Arachide</button>
-              <button type="button" class="quick-chip-btn" data-val="Niébé (haricot)" data-cat="legumes">🫘 Niébé</button>
-              <button type="button" class="quick-chip-btn" data-val="Mangues fraîches" data-cat="fruits">🥭 Mangues</button>
-              <button type="button" class="quick-chip-btn" data-val="Bovins d'élevage" data-cat="betail-volaille">🐂 Bovins</button>
-              <button type="button" class="quick-chip-btn" data-val="Poulets locaux" data-cat="betail-volaille">🐔 Volaille</button>
+              <button type="button" class="quick-chip-btn" data-val="Oignon Violet de Galmi" data-cat="legumes"> Oignon</button>
+              <button type="button" class="quick-chip-btn" data-val="Maïs blanc pluvial" data-cat="cereales"> Maïs</button>
+              <button type="button" class="quick-chip-btn" data-val="Tomate Mongal" data-cat="legumes"> Tomate</button>
+              <button type="button" class="quick-chip-btn" data-val="Sésame blanc" data-cat="oleagineux"> Sésame</button>
+              <button type="button" class="quick-chip-btn" data-val="Arachide décortiquée" data-cat="oleagineux"> Arachide</button>
+              <button type="button" class="quick-chip-btn" data-val="Niébé (haricot)" data-cat="legumes"> Niébé</button>
+              <button type="button" class="quick-chip-btn" data-val="Mangues fraîches" data-cat="fruits"> Mangues</button>
+              <button type="button" class="quick-chip-btn" data-val="Bovins d'élevage" data-cat="betail-volaille"> Bovins</button>
+              <button type="button" class="quick-chip-btn" data-val="Poulets locaux" data-cat="betail-volaille"> Volaille</button>
             </div>
           </div>
 
@@ -3756,12 +3820,12 @@
             <div class="form-group flex-1">
               <label for="annonceCategorie">Catégorie <span class="required">*</span></label>
               <select id="annonceCategorie" class="form-select" required>
-                <option value="cereales">🌽 Céréales (Maïs, Mil, Sorgho, Riz)</option>
-                <option value="legumes" selected>🍅 Légumes & Maraîchage (Oignon, Tomate, Gombo)</option>
-                <option value="fruits">🥭 Fruits (Mangues, Papayes, Pastèques)</option>
-                <option value="oleagineux">🥜 Oléagineux (Sésame, Arachide, Soja)</option>
-                <option value="betail-volaille">🐂 Bétail & Volaille (Bovins, Ovins, Caprins, Poulets)</option>
-                <option value="autres">📦 Autres produits du terroir</option>
+                <option value="cereales"> Céréales (Maïs, Mil, Sorgho, Riz)</option>
+                <option value="legumes" selected> Légumes & Maraîchage (Oignon, Tomate, Gombo)</option>
+                <option value="fruits"> Fruits (Mangues, Papayes, Pastèques)</option>
+                <option value="oleagineux"> Oléagineux (Sésame, Arachide, Soja)</option>
+                <option value="betail-volaille"> Bétail & Volaille (Bovins, Ovins, Caprins, Poulets)</option>
+                <option value="autres"> Autres produits du terroir</option>
               </select>
             </div>
           </div>
@@ -3892,84 +3956,104 @@
 
   <!-- ==================== MODALE DÉTAIL D'ANNONCE (UTILISATEUR) ==================== -->
   <div class="modal-backdrop hidden" id="modalAnnonceDetails">
-    <div class="modal-dialog modal-dialog-materiel-details" style="max-width: 640px;">
-      <div class="modal-header">
-        <div class="modal-title-wrap">
-          <span class="fin-detail-type-badge" id="annonceDetailTypeBadge">🌾 À vendre</span>
-          <span class="fin-detail-region-badge" id="annonceDetailRegionBadge">📍 Koudougou</span>
-        </div>
-        <button class="modal-close-btn" id="btnCloseAnnonceDetails">&times;</button>
+    <div class="modal-dialog modal-dialog-fiche-premium" style="max-width: 680px; padding: 0; overflow: hidden; border-radius: 20px; border: 1px solid var(--bordure-carte); background: #FAF7F0;">
+      
+      <!-- Grande photo en haut (330px, recadrée proprement) -->
+      <div class="fiche-hero-photo-wrap" style="position: relative; height: 330px; width: 100%; background: #152218; overflow: hidden;">
+        <img src="" alt="Photo annonce" id="annonceDetailMainPhoto" style="width: 100%; height: 330px; object-fit: cover; display: block;">
+        <button type="button" class="carousel-arrow carousel-prev hidden" id="annonceCarouselPrev" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; border-radius: 50%; background: rgba(0,0,0,0.55); color: #FFF; border: none; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 3;">&lt;</button>
+        <button type="button" class="carousel-arrow carousel-next hidden" id="annonceCarouselNext" style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; border-radius: 50%; background: rgba(0,0,0,0.55); color: #FFF; border: none; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 3;">&gt;</button>
+        <span class="carousel-counter hidden" id="annonceCarouselCounter" style="position: absolute; bottom: 34px; right: 16px; background: rgba(0,0,0,0.65); color: #FFF; font-size: 12px; padding: 3px 10px; border-radius: 999px; z-index: 3;">1 / 1</span>
+        
+        <!-- Bouton fermer rond en haut à droite -->
+        <button class="modal-close-round-btn" id="btnCloseAnnonceDetails" aria-label="Fermer" style="position: absolute; top: 16px; right: 16px; width: 44px; height: 44px; border-radius: 50%; background: rgba(0,0,0,0.55); color: #FFF; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 4;">
+          <i data-lucide="x"></i>
+        </button>
       </div>
 
-      <div class="fin-detail-body" style="padding: 16px 20px;">
-        <!-- Galerie de photos -->
-        <div class="materiel-carousel-container" id="annonceDetailPhotoContainer">
-          <div class="materiel-carousel-main" style="position: relative; border-radius: 12px; overflow: hidden; background: #0E1A12; height: 260px; display: flex; align-items: center; justify-content: center;">
-            <img src="" alt="Photo annonce" id="annonceDetailMainPhoto" style="width: 100%; height: 100%; object-fit: contain;">
-            <button type="button" class="carousel-arrow carousel-prev hidden" id="annonceCarouselPrev" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 36px; height: 36px; border-radius: 50%; background: rgba(0,0,0,0.6); color: #FFF; border: none; font-size: 18px; cursor: pointer;">&lt;</button>
-            <button type="button" class="carousel-arrow carousel-next hidden" id="annonceCarouselNext" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); width: 36px; height: 36px; border-radius: 50%; background: rgba(0,0,0,0.6); color: #FFF; border: none; font-size: 18px; cursor: pointer;">&gt;</button>
-            <span class="carousel-counter hidden" id="annonceCarouselCounter" style="position: absolute; bottom: 10px; right: 12px; background: rgba(0,0,0,0.6); color: #FFF; font-size: 11px; padding: 2px 8px; border-radius: 10px;">1 / 1</span>
-          </div>
-          <div class="materiel-carousel-thumbs" id="annonceDetailThumbs" style="display: flex; gap: 8px; margin-top: 8px; overflow-x: auto; padding-bottom: 4px;"></div>
+      <!-- Le contenu remonte dessus avec des coins arrondis 20px -->
+      <div class="fiche-overlay-body" style="position: relative; margin-top: -24px; border-radius: 20px 20px 0 0; background: #FFFFFF; padding: 22px 20px 96px; z-index: 2; box-shadow: 0 -4px 16px rgba(0,0,0,0.06); max-height: calc(88vh - 200px); overflow-y: auto;">
+        
+        <!-- Badges d'état -->
+        <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px;">
+          <span class="badge-tag-pill badge-primary-light" id="annonceDetailTypeBadge">À vendre</span>
+          <span class="badge-tag-pill" id="annonceDetailRegionBadge">Koudougou</span>
+          <span class="badge-tag-pill" id="annonceDetailCategoryTag">Céréales</span>
+          <span id="annonceDetailDateRel" style="font-size: 12px; color: #4A4A4A; align-self: center; margin-left: auto;">Publiée récemment</span>
         </div>
 
-        <div style="margin-top: 14px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-            <span class="materiel-category-tag" id="annonceDetailCategoryTag" style="font-size: 11.5px; font-weight: 700; color: #1E5E2A; background: #EAF4E6; padding: 3px 8px; border-radius: 4px;">🌽 Céréales</span>
-            <span id="annonceDetailDateRel" style="font-size: 12px; color: var(--text-muted);">Publiée récemment</span>
-          </div>
+        <!-- Titre de l'annonce -->
+        <h2 class="fiche-title" id="annonceDetailProduit" style="font-size: 24px; font-weight: 800; color: #1A1A1A; margin: 4px 0 8px; line-height: 1.25;">Produit agricole</h2>
 
-          <h2 class="fin-detail-title" id="annonceDetailProduit" style="margin: 4px 0 8px; font-size: 21px;">Produit agricole</h2>
+        <!-- Prix en ocre -->
+        <div class="fiche-price-row" style="margin-bottom: 16px; display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;">
+          <strong class="fiche-price-val" id="annonceDetailPrix" style="font-size: 26px; font-weight: 800; color: var(--ocre);">25 000 F CFA</strong>
+          <span id="annonceDetailQuantiteBadge" style="font-size: 13.5px; font-weight: 700; background: #E8F0EA; color: #1F5E3B; padding: 4px 12px; border-radius: 999px;">Quantité : 50 sacs de 100 kg</span>
+        </div>
 
-          <div style="display: flex; align-items: baseline; gap: 10px; margin-bottom: 12px; flex-wrap: wrap;">
-            <strong id="annonceDetailPrix" style="font-size: 24px; color: var(--primary-700); font-family: 'JetBrains Mono', monospace; font-weight: 800;">25 000 F CFA</strong>
-            <span id="annonceDetailQuantiteBadge" style="font-size: 13.5px; font-weight: 700; background: #F0F4EE; padding: 3px 10px; border-radius: 20px; color: #2E4032;">Quantité : 50 sacs de 100 kg</span>
+        <!-- 3 petites cases d'infos -->
+        <div class="fiche-three-boxes-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px;">
+          <div class="fiche-info-box" style="background: #FAF7F0; border: 1px solid #ECE6D9; border-radius: 14px; padding: 10px; text-align: center;">
+            <span style="font-size: 11.5px; color: #4A4A4A; display: block; margin-bottom: 2px;">Origine</span>
+            <strong style="font-size: 13px; color: #1A1A1A;">Bord champ</strong>
           </div>
+          <div class="fiche-info-box" style="background: #FAF7F0; border: 1px solid #ECE6D9; border-radius: 14px; padding: 10px; text-align: center;">
+            <span style="font-size: 11.5px; color: #4A4A4A; display: block; margin-bottom: 2px;">Qualité</span>
+            <strong style="font-size: 13px; color: #1F5E3B;">Trié & Séché</strong>
+          </div>
+          <div class="fiche-info-box" style="background: #FAF7F0; border: 1px solid #ECE6D9; border-radius: 14px; padding: 10px; text-align: center;">
+            <span style="font-size: 11.5px; color: #4A4A4A; display: block; margin-bottom: 2px;">Chargement</span>
+            <strong style="font-size: 13px; color: #1A1A1A;">Immédiat</strong>
+          </div>
+        </div>
+
+        <!-- Carte Vendeur / Producteur -->
+        <div class="fiche-seller-card" style="background: #FFFFFF; border: 1px solid #ECE6D9; border-radius: 16px; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 20px;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 44px; height: 44px; border-radius: 50%; background: #E8F0EA; color: #1F5E3B; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+              <i data-lucide="user-check"></i>
+            </div>
+            <div>
+              <span style="font-size: 11.5px; color: #4A4A4A; display: block;">Annonceur vérifié</span>
+              <strong style="font-size: 15px; color: #1A1A1A;" id="annonceDetailAuteur">Producteur vérifié</strong>
+              <div style="font-size: 12.5px; color: #4A4A4A;" id="annonceDetailLocation">Koudougou (Centre-Ouest)</div>
+            </div>
+          </div>
+          <span style="background: #E8F0EA; color: #1F5E3B; font-size: 11.5px; font-weight: 700; padding: 4px 10px; border-radius: 999px;">Vérifié</span>
         </div>
 
         <!-- Description -->
-        <div class="fin-detail-section" style="margin-bottom: 14px;">
-          <h4 class="fin-section-title" style="font-size: 13px; font-weight: 700; color: var(--text-main); margin-bottom: 4px;">Description de l'annonce</h4>
-          <p id="annonceDetailDescription" style="font-size: 13.5px; line-height: 1.55; color: #3C4740; margin: 0; white-space: pre-wrap;"></p>
+        <div style="margin-bottom: 18px;">
+          <h4 style="font-size: 16px; font-weight: 700; color: #1A1A1A; margin-bottom: 6px;">Description de l'annonce</h4>
+          <p id="annonceDetailDescription" style="font-size: 14.5px; line-height: 1.55; color: #4A4A4A; margin: 0; white-space: pre-wrap;"></p>
         </div>
 
-        <!-- Auteur & Localisation -->
-        <div class="fin-detail-meta-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-bottom: 16px;">
-          <div class="fin-meta-item">
-            <span class="fin-meta-icon">👤</span>
-            <div>
-              <span class="fin-meta-label">Annonceur</span>
-              <strong class="fin-meta-val" id="annonceDetailAuteur">Producteur vérifié</strong>
-            </div>
-          </div>
-          <div class="fin-meta-item">
-            <span class="fin-meta-icon">📍</span>
-            <div>
-              <span class="fin-meta-label">Localisation</span>
-              <strong class="fin-meta-val" id="annonceDetailLocation">Koudougou (Centre-Ouest)</strong>
-            </div>
-          </div>
-        </div>
+        <!-- Miniatures -->
+        <div class="materiel-carousel-thumbs" id="annonceDetailThumbs" style="display: flex; gap: 8px; margin-top: 12px; overflow-x: auto; padding-bottom: 4px;"></div>
 
-        <!-- Boutons d'action WhatsApp & Appel -->
-        <div class="materiel-contact-bar" style="margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border-light); display: flex; gap: 10px; flex-wrap: wrap;">
-          <a href="#" target="_blank" rel="noopener" class="btn-primary" id="btnAnnonceWhatsapp" style="flex: 2; min-width: 190px; background: #25D366; border-color: #25D366; justify-content: center;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.312.045-.698.077-1.111-.061-.264-.087-.585-.195-1.008-.38-1.785-.783-2.951-2.588-3.04-2.707-.089-.12-1.071-1.425-1.071-2.717 0-1.293.677-1.929.917-2.193.24-.265.525-.332.7-.332.175 0 .349.002.5.01.161.008.375-.061.587.45.22.531.751 1.834.816 1.968.066.134.11.291.022.468-.088.177-.133.288-.264.441-.132.155-.277.345-.395.464-.133.133-.272.278-.117.545.155.266.688 1.137 1.477 1.839 1.015.903 1.871 1.183 2.138 1.316.266.133.421.111.576-.067.156-.178.665-.774.843-1.04.177-.266.355-.221.598-.133.244.089 1.551.731 1.817.864.267.133.444.199.51.31.067.111.067.643-.077 1.048z"/></svg>
-            <span>Contacter sur WhatsApp</span>
-          </a>
-          <a href="#" class="btn-secondary" id="btnAnnonceCall" style="flex: 1; min-width: 120px; justify-content: center;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-            <span>Appeler</span>
-          </a>
-        </div>
-
-        <!-- Lien de signalement -->
-        <div style="text-align: center; margin-top: 14px;">
-          <button type="button" id="btnOpenSignalerAnnonce" style="background: none; border: none; font-size: 12px; color: #C53030; text-decoration: underline; cursor: pointer;">
-            🚩 Signaler cette annonce (arnaque, faux prix, contenu non conforme)
+        <!-- Lien de signalement discret -->
+        <div style="text-align: center; margin-top: 20px;">
+          <button type="button" id="btnOpenSignalerAnnonce" style="background: none; border: none; font-size: 12px; color: var(--rouge-alerte); text-decoration: underline; cursor: pointer;">
+            Signaler cette annonce (non conforme, prix incorrect)
           </button>
         </div>
       </div>
+
+      <!-- Barre fixe en bas (Appeler avec contour vert + gros bouton ocre WhatsApp) -->
+      <div class="fiche-bottom-fixed-bar" style="position: absolute; bottom: 0; left: 0; right: 0; background: #FFFFFF; border-top: 1px solid #ECE6D9; padding: 12px 18px; display: flex; gap: 10px; z-index: 10; box-shadow: 0 -4px 12px rgba(0,0,0,0.05);">
+        <!-- Bouton Appeler (contour vert 1.5px, fond blanc, texte vert) -->
+        <a href="#" class="btn-fiche-call" id="btnAnnonceCall" style="flex: 1; height: 52px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: #FFFFFF; color: #1F5E3B; border: 1.5px solid #1F5E3B; border-radius: 14px; font-weight: 700; font-size: 14px; text-decoration: none; cursor: pointer;">
+          <i data-lucide="phone"></i>
+          <span>Appeler</span>
+        </a>
+
+        <!-- Gros bouton ocre "Demander le prix" qui ouvre WhatsApp -->
+        <a href="#" target="_blank" rel="noopener" class="btn-fiche-whatsapp" id="btnAnnonceWhatsapp" style="flex: 2; height: 52px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 10px; background: #A85A1C; color: #FFFFFF; border: none; border-radius: 14px; font-weight: 800; font-size: 15px; text-decoration: none; cursor: pointer; box-shadow: 0 4px 12px rgba(168, 90, 28, 0.25);">
+          <i data-lucide="message-circle"></i>
+          <span>Demander le prix</span>
+        </a>
+      </div>
+
     </div>
   </div>
 
@@ -3978,7 +4062,7 @@
     <div class="modal-dialog" style="max-width: 440px;">
       <div class="modal-header">
         <div class="modal-title-wrap">
-          <span class="modal-icon" style="background: #FFF1F0; color: #C53030;">🚩</span>
+          <span class="modal-icon" style="background: #FFF1F0; color: #C53030;"></span>
           <div>
             <h3 class="modal-title" style="color: #C53030;">Signaler une annonce</h3>
             <p class="modal-subtitle">Aidez-nous à protéger le Marché agricole des fraudes.</p>
@@ -3995,15 +4079,15 @@
           <div style="display: flex; flex-direction: column; gap: 8px;">
             <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 6px 10px; background: #F8FAF6; border-radius: 6px;">
               <input type="radio" name="motifSignalement" value="arnaque" checked style="accent-color: #C53030;">
-              <span style="font-size: 13px; font-weight: 600;">⚠️ Arnaque ou tentative d'escroquerie</span>
+              <span style="font-size: 13px; font-weight: 600;">️ Arnaque ou tentative d'escroquerie</span>
             </label>
             <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 6px 10px; background: #F8FAF6; border-radius: 6px;">
               <input type="radio" name="motifSignalement" value="faux prix" style="accent-color: #C53030;">
-              <span style="font-size: 13px; font-weight: 600;">🏷️ Faux prix ou prix trompeur</span>
+              <span style="font-size: 13px; font-weight: 600;">️ Faux prix ou prix trompeur</span>
             </label>
             <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 6px 10px; background: #F8FAF6; border-radius: 6px;">
               <input type="radio" name="motifSignalement" value="contenu interdit" style="accent-color: #C53030;">
-              <span style="font-size: 13px; font-weight: 600;">🚫 Contenu interdit ou injurieux</span>
+              <span style="font-size: 13px; font-weight: 600;"> Contenu interdit ou injurieux</span>
             </label>
             <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 6px 10px; background: #F8FAF6; border-radius: 6px;">
               <input type="radio" name="motifSignalement" value="autre" style="accent-color: #C53030;">
@@ -4032,7 +4116,7 @@
     <div class="modal-dialog modal-dialog-financement">
       <div class="modal-header">
         <div class="modal-title-wrap">
-          <span class="modal-icon bg-green">🔔</span>
+          <span class="modal-icon bg-green"></span>
           <div>
             <h3 class="modal-title">Ajouter un rappel ou une tâche</h3>
             <p class="modal-subtitle" id="taskModalCycleInfo">Rattachez une intervention agronomique à votre cycle.</p>
@@ -4050,12 +4134,12 @@
           
           <!-- Puces de suggestion en 1 clic -->
           <div class="task-suggestion-chips" style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px;">
-            <button type="button" class="btn-task-chip" data-task="Sarclage et désherbage">🌾 Sarclage</button>
-            <button type="button" class="btn-task-chip" data-task="Traitement bio au neem">🌿 Traitement neem</button>
-            <button type="button" class="btn-task-chip" data-task="Apport de compost / fumure">🍃 Apport compost</button>
-            <button type="button" class="btn-task-chip" data-task="Buttage des plants">⛏️ Buttage</button>
-            <button type="button" class="btn-task-chip" data-task="Irrigation et arrosage soutenu">💧 Arrosage</button>
-            <button type="button" class="btn-task-chip" data-task="Taille et tuteurage">✂️ Tuteurage</button>
+            <button type="button" class="btn-task-chip" data-task="Sarclage et désherbage"> Sarclage</button>
+            <button type="button" class="btn-task-chip" data-task="Traitement bio au neem"> Traitement neem</button>
+            <button type="button" class="btn-task-chip" data-task="Apport de compost / fumure"> Apport compost</button>
+            <button type="button" class="btn-task-chip" data-task="Buttage des plants">️ Buttage</button>
+            <button type="button" class="btn-task-chip" data-task="Irrigation et arrosage soutenu"> Arrosage</button>
+            <button type="button" class="btn-task-chip" data-task="Taille et tuteurage">️ Tuteurage</button>
           </div>
         </div>
 
@@ -4082,7 +4166,7 @@
     <div class="modal-dialog modal-dialog-compte" style="max-width: 900px; max-height: 92vh; display: flex; flex-direction: column;">
       <div class="modal-header" style="flex-shrink: 0;">
         <div class="modal-title-wrap">
-          <span class="modal-icon bg-green">📄</span>
+          <span class="modal-icon bg-green"></span>
           <div>
             <h3 class="modal-title">Compte d'exploitation certifié</h3>
             <p class="modal-subtitle">Bilan comptable agropastoral officiel pour banques, microfinances et guichets PReCA.</p>
@@ -4103,7 +4187,7 @@
         <!-- CALQUE FLOU POUR UTILISATEURS NON PRO -->
         <div id="compteProLockGate" class="compte-pro-gate hidden" style="position: absolute; inset: 0; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); background: rgba(255,255,255,0.85); z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; text-align: center;">
           <div style="width: 56px; height: 56px; border-radius: 50%; background: #FFF8E1; border: 2px solid #C8862A; display: flex; align-items: center; justify-content: center; font-size: 26px; margin-bottom: 12px;">
-            🔒
+            
           </div>
           <h3 style="font-size: 20px; font-weight: 800; color: #1E2922; margin-bottom: 6px;">Fonctionnalité réservée aux abonnés Pro</h3>
           <p style="max-width: 440px; font-size: 13.5px; color: #4A5750; margin-bottom: 18px; line-height: 1.5;">
@@ -4278,9 +4362,31 @@
     </div>
   </div>
 
-  <!-- TOAST DE NOTIFICATION FLOTTANT -->
+  <!-- BARRE DE NAVIGATION FIXE EN BAS SUR MOBILE (Accueil, Exploitation, Marché, Profil) -->
+  <nav class="mobile-bottom-nav" id="mobileBottomNav" aria-label="Navigation principale mobile">
+    <a href="#dashboard" class="mobile-nav-item active" data-page="dashboard" id="bottomNavDashboard">
+      <i data-lucide="home"></i>
+      <span>Accueil</span>
+    </a>
+    <a href="#synthese" class="mobile-nav-item" data-page="synthese" id="bottomNavExploitation">
+      <i data-lucide="sprout"></i>
+      <span>Exploitation</span>
+    </a>
+    <a href="#marche" class="mobile-nav-item" data-page="marche" id="bottomNavMarche">
+      <i data-lucide="store"></i>
+      <span>Marché</span>
+    </a>
+    <a href="#profil" class="mobile-nav-item" data-page="profil" id="bottomNavProfil">
+      <i data-lucide="user"></i>
+      <span>Profil</span>
+    </a>
+  </nav>
+
+  <!-- TOAST DE NOTIFICATION FLOTTANT SANS EMOJI -->
   <div class="toast-notification hidden" id="toastNotification">
-    <div class="toast-icon" id="toastIcon">✅</div>
+    <div class="toast-icon" id="toastIcon">
+      <i data-lucide="check-circle"></i>
+    </div>
     <div class="toast-content">
       <strong class="toast-title" id="toastTitle">Succès</strong>
       <p class="toast-message" id="toastMessage">La dépense a été enregistrée avec succès.</p>
@@ -4292,6 +4398,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <!-- SCRIPT APPLICATION -->
-  <script src="scripts/app.js?v=20261021.15"></script>
+  <script src="scripts/app.js?v=20261021.16"></script>
 </body>
 </html>

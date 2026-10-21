@@ -7,57 +7,99 @@
 
 :root {
   /* ==========================================================================
-     1. COULEUR PRINCIPALE (Vert Sahélo-Agricole & Variantes)
+     1. TYPOGRAPHIE OFFICIELLE
      ========================================================================== */
-  --couleur-principale:                #1E5E2A; /* Vert forêt principal (boutons pleins, marque, liens actifs) */
-  --couleur-principale-foncee:         #0E3615; /* Vert forêt profond (titres majeurs, accents profonds) */
-  --couleur-principale-intermediaire:  #256E30; /* Vert intermédiaire */
-  --couleur-principale-claire:         #2E7D32; /* Vert vif (survol des boutons, états actifs secondaires) */
-  --couleur-principale-accent:         #4CAF50; /* Vert d'accentuation vive */
-  --couleur-principale-doux:           #8BC34A; /* Vert jeune pousse / séries graphiques */
-  --couleur-principale-pale:           #C8E6C9; /* Vert très clair pour badges et contours */
-  --couleur-principale-fond:           #EAF4E6; /* Fond pastel vert (pastilles statut, sélection active) */
-  --couleur-principale-fond-leger:     #F4FAF2; /* Fond vert ultra-doux pour cartes sélectionnées */
-  --couleur-principale-bordure:        #D2E7CB; /* Bordure verte subtile */
+  --font-sans:                         'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
   /* ==========================================================================
-     2. COULEUR SECONDAIRE (Terre du Sahel, Ocre & Or)
+     2. COULEURS OFFICIELLES (DESIGN SYSTEM SAHÉLO-TECH V4)
      ========================================================================== */
-  --couleur-secondaire:                #C8862A; /* Ocre Sahel (forfaits PRO, badges prestige, terre) */
-  --couleur-secondaire-foncee:         #9E6519; /* Ocre terre foncé (textes sur fond ocre clair) */
-  --couleur-secondaire-claire:         #E5A855; /* Ocre doré clair */
-  --couleur-secondaire-fond:           #FDF6ED; /* Fond pastel ocre / cartes mise en avant */
-  --couleur-secondaire-bordure:        #F5D380; /* Bordure dorée / contours premium */
+  --vert-principal:                    #1F5E3B; /* Vert principal */
+  --vert-clair:                        #E8F0EA; /* Vert clair (fonds d'icônes, bouton léger, pastille nav) */
+  --ocre:                              #A85A1C; /* Ocre (texte blanc : SEULEMENT bouton le plus important) */
+  --ocre-clair:                        #F6EADF; /* Ocre clair */
+  --jaune-soleil:                      #E0A526; /* Jaune soleil (badges, perte saison) */
+  --jaune-clair:                       #FBF1D6; /* Jaune clair */
+  --fond-creme:                        #FAF7F0; /* Fond de page crème */
+  --carte-blanche:                     #FFFFFF; /* Cartes blanches */
+  --bordure-carte:                     #ECE6D9; /* Bordure 1px des cartes */
+  --texte-principal:                   #1A1A1A; /* Texte principal (WCAG AAA) */
+  --texte-secondaire:                  #4A4A4A; /* Texte secondaire (jamais plus clair) */
+  --rouge-alerte:                      #C0392B; /* Rouge uniquement alertes et suppressions */
+  --rouge-fond:                        #FBE9E7; /* Fond alerte rouge */
 
   /* ==========================================================================
-     3. FONDS & SURFACES
+     3. ALIAS & RÉTROCOMPATIBILITÉ THÈME
      ========================================================================== */
-  --fond:                              #F6F8F4; /* Fond d'écran global (vert-gris reposant plein soleil) */
-  --fond-sombre:                       #18201A; /* Fond sombre pour bandeaux, headers et footers */
-  --surface:                           #FFFFFF; /* Surface blanche pour cartes, modales et conteneurs */
-  --surface-alt:                       #FBFDFB; /* Surface alternative très légèrement teintée */
-  --surface-douce:                     #FAFDF9; /* Surface douce pour zones d'information et widgets */
-  --surface-neutre:                    #F0F4EE; /* Surface grise-verte pour badges neutres et champs */
-  --surface-hover:                     #F3F7F1; /* Couleur d'arrière-plan au survol d'un élément */
+  --couleur-principale:                var(--vert-principal);
+  --couleur-principale-foncee:         #154329;
+  --couleur-principale-intermediaire:  #1F5E3B;
+  --couleur-principale-claire:         #277449;
+  --couleur-principale-accent:         #2E8B57;
+  --couleur-principale-doux:           #68A37E;
+  --couleur-principale-pale:           #C5DEC9;
+  --couleur-principale-fond:           var(--vert-clair);
+  --couleur-principale-fond-leger:     #F2F7F3;
+  --couleur-principale-bordure:        #C5DEC9;
 
-  /* ==========================================================================
-     4. TEXTES & TYPOGRAPHIE
-     ========================================================================== */
-  --texte:                             #18201A; /* Texte principal (noir verdâtre haute lisibilité WCAG AAA) */
-  --texte-sombre:                      #1E2822; /* Texte pour titres et en-têtes gras */
-  --texte-secondaire:                  #5B6660; /* Texte adouci (sous-titres, descriptions, métadonnées) */
-  --texte-discret:                     #7C8781; /* Texte discret (légendes, unités, horodatages) */
-  --texte-faible:                      #A0ABA5; /* Texte très atténué (placeholders, séparateurs) */
-  --texte-sur-couleur:                 #FFFFFF; /* Texte blanc lisible sur fond vert ou ocre */
-  --texte-sur-sombre:                  #F6F8F4; /* Texte clair pour affichage sur fond sombre */
+  --couleur-secondaire:                var(--ocre);
+  --couleur-secondaire-foncee:         #874614;
+  --couleur-secondaire-claire:         #C26B22;
+  --couleur-secondaire-fond:           var(--ocre-clair);
+  --couleur-secondaire-bordure:        #E2C7B3;
 
-  /* ==========================================================================
-     5. BORDURES & SÉPARATEURS
-     ========================================================================== */
-  --bordure:                           #E6EAE3; /* Bordure standard des cartes et tableaux */
-  --bordure-claire:                    #F0F3EF; /* Bordure très fine et discrète */
-  --bordure-forte:                     #DCE6D9; /* Bordure marquée pour délimitation forte */
-  --bordure-sombre:                    rgba(255, 255, 255, 0.12); /* Bordure sur fond sombre */
+  --fond:                              var(--fond-creme);
+  --fond-sombre:                       #1A1A1A;
+  --surface:                           var(--carte-blanche);
+  --surface-alt:                       #FCFBF7;
+  --surface-douce:                     #F5F0E6;
+  --surface-neutre:                    var(--vert-clair);
+  --surface-hover:                     #F2EDE4;
+
+  --texte:                             var(--texte-principal);
+  --texte-sombre:                      var(--texte-principal);
+  --texte-secondaire:                  var(--texte-secondaire);
+  --texte-discret:                     var(--texte-secondaire);
+  --texte-faible:                      #666666;
+  --texte-sur-couleur:                 #FFFFFF;
+  --texte-sur-sombre:                  #FAF7F0;
+
+  --bordure:                           var(--bordure-carte);
+  --bordure-claire:                    var(--bordure-carte);
+  --bordure-forte:                     #D8CEBE;
+  --bordure-sombre:                    rgba(255, 255, 255, 0.15);
+
+  --succes:                            var(--vert-principal);
+  --succes-vif:                        var(--vert-principal);
+  --succes-fond:                       var(--vert-clair);
+  --succes-bordure:                    #C5DEC9;
+  --succes-texte:                      var(--vert-principal);
+
+  --alerte:                            var(--jaune-soleil);
+  --alerte-vif:                        var(--jaune-soleil);
+  --alerte-fonce:                      #9C6F12;
+  --alerte-fond:                       var(--jaune-clair);
+  --alerte-fond-pale:                  var(--jaune-clair);
+  --alerte-bordure:                    #E8D4A2;
+  --alerte-texte:                      #1A1A1A;
+
+  --erreur:                            var(--rouge-alerte);
+  --erreur-vif:                        var(--rouge-alerte);
+  --erreur-fonce:                      #962417;
+  --erreur-fond:                       var(--rouge-fond);
+  --erreur-fond-alt:                   var(--rouge-fond);
+  --erreur-bordure:                    #F5B7B1;
+  --erreur-texte:                      var(--rouge-alerte);
+
+  --info:                              var(--vert-principal);
+  --info-fonce:                        #154329;
+  --info-fond:                         var(--vert-clair);
+  --info-bordure:                      #C5DEC9;
+  --info-texte:                        var(--vert-principal);
+
+  --accent:                            var(--ocre);
+  --accent-fonce:                      #874614;
+  --accent-fond:                       var(--ocre-clair);
 
   /* ==========================================================================
      6. ALERTES & STATUTS MÉTIER
@@ -102,21 +144,38 @@
   --accent-texte:                      #452B9C; /* Texte violet */
 
   /* ==========================================================================
-     7. BOUTONS & INTERACTIONS
+     7. BOUTONS, FORMES & INTERACTIONS
      ========================================================================== */
-  --bouton-primaire-fond:              var(--couleur-principale);
-  --bouton-primaire-survol:            var(--couleur-principale-claire);
-  --bouton-primaire-texte:             var(--texte-sur-couleur);
-  --bouton-secondaire-fond:            var(--surface);
-  --bouton-secondaire-survol:          var(--surface-neutre);
-  --bouton-secondaire-bordure:         var(--bordure);
-  --bouton-secondaire-texte:           var(--texte);
-  --bouton-danger-fond:                var(--erreur);
-  --bouton-danger-survol:              var(--erreur-fonce);
-  --bouton-danger-texte:               var(--texte-sur-couleur);
-  --bouton-or-fond:                    var(--couleur-secondaire);
-  --bouton-or-survol:                  var(--couleur-secondaire-foncee);
-  --bouton-or-texte:                   var(--texte-sur-couleur);
+  --radius-carte:                      20px;
+  --radius-bouton:                     14px;
+  --radius-badge:                      999px;
+
+  /* Bouton Principal : Ocre #A85A1C (texte blanc, SEULEMENT bouton le plus important) */
+  --bouton-primaire-fond:              var(--ocre);
+  --bouton-primaire-survol:            #874614;
+  --bouton-primaire-texte:             #FFFFFF;
+  --bouton-primaire-hauteur:           52px;
+
+  /* Bouton Secondaire : Blanc avec bordure verte 1.5px */
+  --bouton-secondaire-fond:            var(--carte-blanche);
+  --bouton-secondaire-survol:          var(--vert-clair);
+  --bouton-secondaire-bordure:         1.5px solid var(--vert-principal);
+  --bouton-secondaire-texte:           var(--vert-principal);
+
+  /* Bouton Petit / Léger : Fond vert clair, texte vert */
+  --bouton-leger-fond:                 var(--vert-clair);
+  --bouton-leger-survol:               #D8E8DB;
+  --bouton-leger-texte:                var(--vert-principal);
+
+  /* Bouton Danger / Suppression */
+  --bouton-danger-fond:                var(--rouge-alerte);
+  --bouton-danger-survol:              #962417;
+  --bouton-danger-texte:               #FFFFFF;
+  --bouton-danger-bg-subtle:           var(--rouge-fond);
+
+  --bouton-or-fond:                    var(--ocre);
+  --bouton-or-survol:                  #874614;
+  --bouton-or-texte:                   #FFFFFF;
 
   /* ==========================================================================
      8. BADGES THÉMATIQUES & SURFACES PASTELS (Conseils, Financements, Catégories)

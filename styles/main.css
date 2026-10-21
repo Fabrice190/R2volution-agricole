@@ -9000,6 +9000,590 @@ body.drawer-open {
   display: none !important;
 }
 
+/* ==========================================================================
+   RÉVOLUTION AGRICOLE — DESIGN SYSTEM SAHÉLO-TECH V4 (REFONTE MAÎTRESSE)
+   ========================================================================== */
+
+/* 1. TYPOGRAPHIE & COULEURS GLOBALES */
+html, body {
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif !important;
+  background-color: #FAF7F0 !important;
+  color: #1A1A1A !important;
+  font-size: 16px;
+}
+
+*, *::before, *::after {
+  font-family: inherit;
+}
+
+/* Titres d'écran 26px gras 800 */
+h1, .greeting-title, .page-title, .screen-title, .user-display-name {
+  font-size: 26px !important;
+  font-weight: 800 !important;
+  color: #1A1A1A !important;
+  letter-spacing: -0.02em;
+}
+
+/* Sous-titres 18px 700 */
+h2, h3, .card-title, .advice-card-title, .fiche-title, .modal-title {
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  color: #1A1A1A !important;
+}
+
+/* Corps 16px min */
+p, .card-subtitle, .advice-card-text, .fin-section-desc {
+  font-size: 16px !important;
+  color: #4A4A4A !important;
+  line-height: 1.55;
+}
+
+/* Petites infos 13px */
+small, .stat-module-tag, .comparison-text, .weather-short-city, .subcard-title, .home-card-title, .shortcut-label, .meta-info {
+  font-size: 13px !important;
+  color: #4A4A4A !important;
+}
+
+/* 2. CARTES & CONTENEURS (Coins arrondis 20px, bordure 1px #ECE6D9, fond #FFFFFF) */
+.content-card,
+.stat-card,
+.home-white-card,
+.home-weather-short-card,
+.home-daily-advice-card,
+.shortcut-square-btn,
+.fiche-seller-card,
+.data-table-container,
+.finance-chart-card,
+.deadlines-card,
+.table-section-card,
+.weather-card,
+.mobile-stat-card,
+.mobile-cycle-card,
+.transaction-row,
+.fiche-info-box {
+  border-radius: 20px !important;
+  border: 1px solid #ECE6D9 !important;
+  background-color: #FFFFFF !important;
+  box-shadow: none !important;
+}
+
+/* Marges : 20px sur les bords de l'écran, 16px entre les blocs */
+.dashboard-body,
+.mobile-body,
+.main-wrapper {
+  padding: 20px !important;
+  gap: 16px !important;
+}
+
+/* 3. BOUTONS (Coins arrondis 14px, min 44px de zone cliquable) */
+button,
+a.btn-primary,
+a.btn-secondary,
+a.btn-fiche-whatsapp,
+a.btn-fiche-call,
+.btn-primary-action,
+.btn-revenue-action {
+  border-radius: 14px !important;
+  min-height: 44px;
+}
+
+/* Bouton principal : OCRE #A85A1C (texte blanc, SEULEMENT bouton le plus important) */
+.btn-primary,
+.btn-fiche-whatsapp,
+#btnSaveExpense,
+#btnSaveRevenue,
+#btnModalActionPrimary,
+#btnInstallPwaHomeCard,
+#btnMatWhatsappOrder,
+#btnAnnonceWhatsapp,
+.btn-revenue-action {
+  background-color: #A85A1C !important;
+  color: #FFFFFF !important;
+  border: none !important;
+  height: 52px !important;
+  border-radius: 14px !important;
+  font-weight: 800 !important;
+  font-size: 15px !important;
+  box-shadow: 0 4px 12px rgba(168, 90, 28, 0.2) !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.btn-primary:hover,
+.btn-fiche-whatsapp:hover,
+#btnSaveExpense:hover,
+#btnSaveRevenue:hover,
+.btn-revenue-action:hover {
+  background-color: #874614 !important;
+}
+
+/* Bouton secondaire : BLANC avec bordure verte 1.5px (#1F5E3B) */
+.btn-secondary,
+.btn-fiche-call,
+.btn-primary-action,
+#btnMatPhoneCall,
+#btnAnnonceCall,
+#btnCloseMaterielDetailsBottom,
+#btnCancelAddExpense,
+#btnCancelAddRevenue {
+  background-color: #FFFFFF !important;
+  border: 1.5px solid #1F5E3B !important;
+  color: #1F5E3B !important;
+  height: 48px;
+  border-radius: 14px !important;
+  font-weight: 700 !important;
+  font-size: 14px !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.btn-secondary:hover,
+.btn-fiche-call:hover,
+.btn-primary-action:hover {
+  background-color: #E8F0EA !important;
+}
+
+/* Bouton petit / léger : fond vert clair #E8F0EA, texte vert #1F5E3B */
+.btn-listen-advice,
+.btn-table-action,
+.btn-filter-pill,
+.wi-listen-btn,
+.btn-pwa-dismiss,
+.btn-pwa-home-dismiss {
+  background-color: #E8F0EA !important;
+  color: #1F5E3B !important;
+  border: none !important;
+  border-radius: 14px !important;
+  font-weight: 700 !important;
+  padding: 6px 14px !important;
+  min-height: 44px !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+/* Boutons de suppression / alerte rouge #C0392B sur fond #FBE9E7 */
+.btn-trans-delete,
+.btn-danger,
+.btn-delete-confirm {
+  background-color: #FBE9E7 !important;
+  color: #C0392B !important;
+  border: 1px solid #F5B7B1 !important;
+  border-radius: 14px !important;
+}
+
+.btn-trans-delete:hover,
+.btn-danger:hover {
+  background-color: #C0392B !important;
+  color: #FFFFFF !important;
+}
+
+/* 4. BADGES (Coins arrondis 999px) */
+.badge-tag-pill,
+.badge-sun-yellow,
+.badge-primary-light,
+.nav-badge-amber,
+.pwa-home-badge,
+.urgent-pill,
+.trend-badge {
+  border-radius: 999px !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  padding: 4px 12px !important;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.badge-sun-yellow {
+  background-color: #FBF1D6 !important;
+  color: #1A1A1A !important;
+  border: 1px solid #E0A526 !important;
+}
+
+.badge-primary-light {
+  background-color: #E8F0EA !important;
+  color: #1F5E3B !important;
+}
+
+/* 5. GRANDE CARTE VERTE SAISON 2026 */
+.home-season-card {
+  background: #1F5E3B !important;
+  color: #FFFFFF !important;
+  border-radius: 20px !important;
+  padding: 22px 20px !important;
+  margin-bottom: 16px !important;
+  box-shadow: 0 6px 18px rgba(31, 94, 59, 0.18) !important;
+  border: none !important;
+}
+
+.season-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.season-tag {
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  color: #E8F0EA !important;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.season-parcels-count {
+  background: rgba(255, 255, 255, 0.18) !important;
+  color: #FFFFFF !important;
+  padding: 4px 12px !important;
+  border-radius: 999px !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+}
+
+.season-margin-block {
+  margin: 10px 0 16px;
+}
+
+.season-margin-label {
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  color: #E8F0EA !important;
+  display: block;
+}
+
+.season-margin-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+/* Grands montants adaptatifs (34px -> 28px -> 24px) */
+.season-amount {
+  font-size: 34px !important;
+  font-weight: 800 !important;
+  color: #FFFFFF !important;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+
+.season-amount.len-9 {
+  font-size: 28px !important;
+}
+
+.season-amount.len-long {
+  font-size: 24px !important;
+}
+
+.season-amount.is-loss {
+  color: #E0A526 !important; /* Jaune soleil en cas de perte */
+}
+
+.season-currency {
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  color: #E8F0EA !important;
+  white-space: nowrap;
+}
+
+.season-subcards-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.season-subcard {
+  background: rgba(255, 255, 255, 0.12) !important;
+  border-radius: 14px !important;
+  padding: 10px 14px !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.season-subcard-label {
+  font-size: 12px !important;
+  color: #E8F0EA !important;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.season-subcard-val {
+  font-size: 16px !important;
+  font-weight: 800 !important;
+  color: #FFFFFF !important;
+  white-space: nowrap;
+}
+
+.season-subcard-val small {
+  font-size: 11px !important;
+  color: #E8F0EA !important;
+  font-weight: 600 !important;
+}
+
+/* 6. DEUX CARTES BLANCHES CÔTE À CÔTE */
+.home-two-cards-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.home-white-card {
+  padding: 14px !important;
+  display: flex !align-items: center;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none !important;
+  color: inherit !important;
+  min-height: 74px;
+}
+
+.home-card-icon-pill {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background-color: #E8F0EA;
+  color: #1F5E3B;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.home-card-meta {
+  display: flex;
+  flex-direction: column;
+}
+
+.home-card-title {
+  font-size: 13px !important;
+  color: #4A4A4A !important;
+  font-weight: 600;
+}
+
+.home-card-value {
+  font-size: 20px !important;
+  font-weight: 800 !important;
+  color: #1A1A1A !important;
+  white-space: nowrap;
+}
+
+.home-card-value small {
+  font-size: 13px !important;
+  color: #4A4A4A !important;
+  font-weight: 600;
+}
+
+/* 7. MÉTÉO COURTE SUR UNE SEULE CARTE */
+.home-weather-short-card {
+  padding: 16px 18px !important;
+  margin-bottom: 16px !important;
+}
+
+.weather-short-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.weather-short-temp-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.weather-short-icon {
+  width: 32px;
+  height: 32px;
+  color: #1F5E3B;
+}
+
+.weather-short-temp {
+  font-size: 22px !important;
+  font-weight: 800 !important;
+  color: #1A1A1A !important;
+}
+
+.weather-short-city {
+  font-size: 13px !important;
+  color: #4A4A4A !important;
+  margin-left: 6px;
+}
+
+.weather-short-tomorrow {
+  text-align: right;
+}
+
+.tomorrow-label {
+  font-size: 11.5px !important;
+  color: #4A4A4A !important;
+  display: block;
+}
+
+.tomorrow-val {
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  color: #1F5E3B !important;
+}
+
+.weather-short-advice {
+  font-size: 14px !important;
+  line-height: 1.5;
+  color: #4A4A4A !important;
+  margin: 0 !important;
+}
+
+/* 8. CARTE CONSEIL DU JOUR */
+.home-daily-advice-card {
+  padding: 18px 20px !important;
+  margin-bottom: 16px !important;
+}
+
+.advice-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.advice-card-title {
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  color: #1A1A1A !important;
+  margin-bottom: 6px !important;
+}
+
+.advice-card-text {
+  font-size: 14.5px !important;
+  line-height: 1.55;
+  color: #4A4A4A !important;
+  margin: 0 !important;
+}
+
+/* 9. RACCOURCIS EN ICÔNES CARRÉES ARRONDIES */
+.home-shortcuts-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.shortcut-square-btn {
+  padding: 12px 6px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  text-decoration: none !important;
+  color: inherit !important;
+  min-height: 78px;
+  transition: transform 0.15s ease;
+}
+
+.shortcut-square-btn:hover {
+  transform: translateY(-2px);
+}
+
+.shortcut-icon-box {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background-color: #E8F0EA;
+  color: #1F5E3B;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.shortcut-label {
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  color: #1A1A1A !important;
+}
+
+/* 10. BARRE FIXE BASSE MOBILE (Accueil, Exploitation, Marché, Profil) */
+.mobile-bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  background-color: #FFFFFF;
+  border-top: 1px solid #ECE6D9;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  z-index: 999;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.03);
+  padding: 0 6px;
+}
+
+.mobile-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  color: #4A4A4A;
+  text-decoration: none;
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 6px 12px;
+  min-height: 48px;
+  border-radius: 12px;
+  min-width: 60px;
+  transition: all 0.15s ease;
+}
+
+.mobile-nav-item.active {
+  background-color: #E8F0EA !important;
+  color: #1F5E3B !important;
+  font-weight: 800 !important;
+}
+
+.mobile-nav-item i {
+  width: 20px;
+  height: 20px;
+}
+
+@media (max-width: 1024px) {
+  body, .mobile-body, .main-wrapper {
+    padding-bottom: 84px !important;
+  }
+}
+
+@media (min-width: 1025px) {
+  .mobile-bottom-nav {
+    display: none !important;
+  }
+}
+
+/* 11. SÉCURITÉ GRANDS MONTANTS (Zéro débordement sur 360px) */
+.stat-number,
+.season-amount,
+.fiche-price-val,
+.trans-amount-val,
+.mobile-stat-val {
+  max-width: 100%;
+  overflow-wrap: break-word;
+  font-variant-numeric: tabular-nums;
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+}
+
 
 
 

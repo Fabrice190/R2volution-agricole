@@ -1,4 +1,4 @@
-/**
+﻿/**
  * RÉVOLUTION AGRICOLE — MOTEUR INTERACTIF DU DASHBOARD
  * Implémentation du système multi-profils, responsive mobile et états UI
  */
@@ -14,9 +14,9 @@ document.addEventListener('DOMContentLoaded', () => {
   if (window.supabase && typeof window.supabase.createClient === 'function') {
     supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     window.supabaseClient = supabaseClient;
-    console.log('🌾 [Révolution Agricole] Connecté avec succès à Supabase !');
+    console.log(' [Révolution Agricole] Connecté avec succès à Supabase !');
   } else {
-    console.warn('⚠️ [Révolution Agricole] Client Supabase CDN indisponible, bascule en mode local.');
+    console.warn('️ [Révolution Agricole] Client Supabase CDN indisponible, bascule en mode local.');
   }
 
   // ==========================================
@@ -378,9 +378,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function getModeleModeBadge(mode) {
     if (mode === 'pepiniere') {
-      return '<span class="modele-mode-badge modele-mode-pepiniere">🌱 Pépinière</span>';
+      return '<span class="modele-mode-badge modele-mode-pepiniere"> Pépinière</span>';
     }
-    return '<span class="modele-mode-badge modele-mode-semis">🌾 Semis direct</span>';
+    return '<span class="modele-mode-badge modele-mode-semis"> Semis direct</span>';
   }
 
   function getActiveModelesCount() {
@@ -494,7 +494,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (items.length === 0) {
       deadlinesList.innerHTML = `
         <div class="widget-empty-state" style="padding: 16px; text-align: center;">
-          <span style="font-size: 20px;">✓</span>
+          <span style="font-size: 20px;"></span>
           <p style="font-size: 12px; color: #6C7A72; margin: 4px 0 0;">Aucune échéance urgente pour le moment.</p>
         </div>
       `;
@@ -572,7 +572,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 3. Salutation personnalisée garantie (ex: Bonjour, Fabrice) & Horloge temps réel
     const userFirstName = data.name ? data.name.trim().split(' ')[0] : 'Exploitant';
-    greetingTitle.innerHTML = `Bonjour, ${userFirstName} <span class="greeting-emoji">🌱</span>`;
+    greetingTitle.innerHTML = `Bonjour, ${userFirstName} <span class="greeting-emoji"></span>`;
     greetingSubtitle.textContent = data.subtitle || 'Voici l\'essentiel pour votre exploitation aujourd\'hui.';
     updateDashboardDateTime();
 
@@ -656,7 +656,7 @@ document.addEventListener('DOMContentLoaded', () => {
           tbody.innerHTML = `
             <tr>
               <td colspan="${(data.tableHeaders && data.tableHeaders.length) || 6}" style="text-align: center; padding: 36px 16px; color: var(--text-muted);">
-                <div style="font-size: 30px; margin-bottom: 6px;">🌱</div>
+                <div style="font-size: 30px; margin-bottom: 6px;"></div>
                 <strong style="font-size: 14.5px; color: var(--text-dark); display: block; margin-bottom: 4px;">Aucun cycle ou culture en cours</strong>
                 <p style="font-size: 12.5px; margin: 0 0 14px; color: #5D6C63; max-width: 400px; margin-left: auto; margin-right: auto;">
                   Votre tableau de bord démarre à blanc. Enregistrez votre première dépense pour lancer le suivi agronomique.
@@ -721,7 +721,7 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
       } else {
         sidebarPromoCard.innerHTML = `
-          <div class="promo-badge-icon">🌾</div>
+          <div class="promo-badge-icon"></div>
           <div class="promo-text">
             <strong class="promo-title" id="promoCardTitle">Passer au Forfait Pro</strong>
             <p class="promo-desc" id="promoCardDesc">5 000 F CFA/mois • Marges illimitées, alertes SMS & rappels PReCA.</p>
@@ -780,14 +780,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (redReasons.length > 0) {
       return {
         level: 'red',
-        icon: '🚨',
+        icon: '',
         message: `Alerte demain (${tomorrow.shortDay || 'demain'}) : ${redReasons.join(', ')}. Prévoyez vos précautions.`
       };
     }
     if (orangeReasons.length > 0) {
       return {
         level: 'orange',
-        icon: '⚠️',
+        icon: '️',
         message: `Vigilance demain (${tomorrow.shortDay || 'demain'}) : ${orangeReasons.join(', ')}.`
       };
     }
@@ -852,7 +852,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="mobile-weather-card" id="btnMobileWeatherCardClick" style="cursor: pointer;" title="Voir la semaine complète">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
             <div style="display: flex; align-items: center; gap: 8px;">
-              <span style="font-size: 24px;">⛅</span>
+              <span style="font-size: 24px;"></span>
               <strong style="font-size: 20px;">-- °C</strong>
             </div>
             <span style="font-size: 11px; font-weight: 700; color: #1E5E2A; background: #EAF4E6; padding: 2px 8px; border-radius: 99px;">Météo en direct…</span>
@@ -898,7 +898,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
             ${speechSupported ? `
               <button type="button" class="wi-listen-btn" id="btnListenMobileDashWeather" style="padding: 2px 7px; font-size: 10px;">
-                🔊 <span>Écouter</span>
+                 <span>Écouter</span>
               </button>
             ` : ''}
           </div>
@@ -947,7 +947,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
           <div>
-            <h2 style="font-size: 18px; font-weight: 800; color: #1E2822; margin: 0 0 2px;">🌦️ Météo Agricole</h2>
+            <h2 style="font-size: 18px; font-weight: 800; color: #1E2822; margin: 0 0 2px;">️ Météo Agricole</h2>
             <p style="font-size: 11.5px; color: #5B6660; margin: 0;">${w ? `${w.communeName} • MAJ ${w.updateTime}` : 'Open-Meteo'}</p>
           </div>
           <button type="button" class="btn-refresh-meteo" id="btnRefreshMobileMeteo" style="padding: 6px 10px; font-size: 11.5px; border-radius: 8px;">
@@ -998,20 +998,20 @@ document.addEventListener('DOMContentLoaded', () => {
             <!-- Grille 2x2 métriques -->
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; border-top: 1px solid #E6EAE3; padding-top: 10px;">
               <div style="background: #FFF; border: 1px solid #E3ECE0; border-radius: 10px; padding: 8px 10px;">
-                <span style="font-size: 10.5px; color: #7C8781; display: block;">💧 HUMIDITÉ</span>
+                <span style="font-size: 10.5px; color: #7C8781; display: block;"> HUMIDITÉ</span>
                 <strong style="font-size: 14px; color: #1E2822;">${w.current.humidity} %</strong>
               </div>
               <div style="background: #FFF; border: 1px solid #E3ECE0; border-radius: 10px; padding: 8px 10px;">
-                <span style="font-size: 10.5px; color: #7C8781; display: block;">💨 VENT & RAFALES</span>
+                <span style="font-size: 10.5px; color: #7C8781; display: block;"> VENT & RAFALES</span>
                 <strong style="font-size: 12px; color: #1E2822; display: block; line-height: 1.35;">Vent ${w.current.windSpeed} km/h • Rafales ${w.daily[0]?.gustsMax || w.current.gusts} km/h</strong>
                 <span style="font-size: 10px; color: #7C8781; display: block; margin-top: 2px;">Direction : ${w.current.windDirection}</span>
               </div>
               <div style="background: #FFF; border: 1px solid #E3ECE0; border-radius: 10px; padding: 8px 10px;">
-                <span style="font-size: 10.5px; color: #7C8781; display: block;">🌧️ PLUIE ESTIMÉE</span>
+                <span style="font-size: 10.5px; color: #7C8781; display: block;">️ PLUIE ESTIMÉE</span>
                 <strong style="font-size: 14px; color: #1E2822;">${w.daily[0]?.rainSum || 0} mm</strong>
               </div>
               <div style="background: #FFF; border: 1px solid #E3ECE0; border-radius: 10px; padding: 8px 10px;">
-                <span style="font-size: 10.5px; color: #7C8781; display: block;">📊 PROBABILITÉ</span>
+                <span style="font-size: 10.5px; color: #7C8781; display: block;"> PROBABILITÉ</span>
                 <strong style="font-size: 14px; color: ${w.daily[0]?.rainProb >= 40 ? '#0A66C2' : '#1E2822'};">${w.daily[0]?.rainProb || 0} %</strong>
               </div>
             </div>
@@ -1027,7 +1027,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
                 ${speechSupported ? `
                   <button type="button" class="wi-listen-btn" id="btnListenMobileMeteo">
-                    🔊 <span>Écouter</span>
+                     <span>Écouter</span>
                   </button>
                 ` : ''}
               </div>
@@ -1044,13 +1044,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
             <!-- Conseil de la semaine (Mobile Page) -->
             <div class="weekly-advice-banner" style="margin-bottom: 12px;">
-              <span class="wab-icon">💡</span>
+              <span class="wab-icon"></span>
               <div><strong>Conseil de la semaine :</strong> <span>${weeklyAdvice}</span></div>
             </div>
           ` : ''}
 
           <!-- Prévisions 7 jours en liste mobile -->
-          <h4 style="font-size: 13.5px; font-weight: 800; color: #1E2822; margin: 0 0 8px;">📅 Prévisions sur 7 jours</h4>
+          <h4 style="font-size: 13.5px; font-weight: 800; color: #1E2822; margin: 0 0 8px;"> Prévisions sur 7 jours</h4>
           <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px;">
             ${(w.daily || []).map((d, idx) => {
               const badge = computeForecastDayBadge(d, idx, interp);
@@ -1113,7 +1113,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
           <span>Tableau de bord</span>
         </a>
-        <h2 style="font-size: 20px; font-weight: 800; color: #1E2822; margin: 0 0 2px;">🌾 Financements</h2>
+        <h2 style="font-size: 20px; font-weight: 800; color: #1E2822; margin: 0 0 2px;"> Financements</h2>
         <p style="font-size: 12px; color: #5B6660; margin: 0;">${openList.length} opportunité${openList.length > 1 ? 's' : ''} disponible${openList.length > 1 ? 's' : ''}</p>
       </div>
 
@@ -1146,7 +1146,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="mobile-fin-card" data-id="${item.id}" style="background: #FFF; border: 1px solid #E6EAE3; border-radius: 12px; padding: 14px; cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,0.03);">
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
                 <span class="fin-badge-type ${typeClass}">${item.type}</span>
-                <span style="font-size: 11px; color: #6C7A72;">📍 ${item.region || 'Tout le Burkina'}</span>
+                <span style="font-size: 11px; color: #6C7A72;"> ${item.region || 'Tout le Burkina'}</span>
               </div>
               <span style="font-size: 10.5px; color: #8A978E; font-weight: 700; text-transform: uppercase;">${item.organisme}</span>
               <h4 style="font-size: 14.5px; font-weight: 700; color: #1E2822; margin: 4px 0 8px; line-height: 1.35;">${item.titre}</h4>
@@ -1196,7 +1196,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </a>
         <div style="display: flex; justify-content: space-between; align-items: center;">
           <div>
-            <h2 style="font-size: 18px; font-weight: 800; color: #1E2822; margin: 0 0 2px;">🛡️ Administration</h2>
+            <h2 style="font-size: 18px; font-weight: 800; color: #1E2822; margin: 0 0 2px;">️ Administration</h2>
             <p style="font-size: 11.5px; color: #5B6660; margin: 0;">Gérer les financements</p>
           </div>
           <button type="button" class="btn-primary" id="btnMobileOpenAddFin" style="padding: 8px 12px; font-size: 12px; font-weight: 700; border-radius: 8px; cursor: pointer;">+ Ajouter</button>
@@ -1245,7 +1245,7 @@ document.addEventListener('DOMContentLoaded', () => {
               <div class="admin-fin-content">
                 <div class="admin-fin-header-row">
                   <span class="admin-status-pill ${item.statut}">
-                    ${item.statut === 'en_attente' ? '⏳ En attente' : (item.statut === 'publie' ? '✅ Publié' : '⏹️ Expiré')}
+                    ${item.statut === 'en_attente' ? '⏳ En attente' : (item.statut === 'publie' ? ' Publié' : '⏹️ Expiré')}
                   </span>
                   <span style="font-size: 11px; color: #7C8781;">${item.type}</span>
                 </div>
@@ -1258,11 +1258,11 @@ document.addEventListener('DOMContentLoaded', () => {
               </div>
               <div class="admin-actions-group" style="margin-top: 8px; display: flex; gap: 6px; width: 100%;">
                 ${item.statut !== 'publie' ? `
-                  <button type="button" class="btn-admin-action btn-admin-publish btn-action-publish" data-id="${item.id}" style="flex: 1; justify-content: center;">✅ Publier</button>
+                  <button type="button" class="btn-admin-action btn-admin-publish btn-action-publish" data-id="${item.id}" style="flex: 1; justify-content: center;"> Publier</button>
                 ` : ''}
-                <button type="button" class="btn-admin-action btn-admin-edit btn-action-edit" data-id="${item.id}" style="flex: 1; justify-content: center;">✏️ Modifier</button>
+                <button type="button" class="btn-admin-action btn-admin-edit btn-action-edit" data-id="${item.id}" style="flex: 1; justify-content: center;">️ Modifier</button>
                 ${item.statut !== 'expire' ? `
-                  <button type="button" class="btn-admin-action btn-admin-withdraw btn-action-withdraw" data-id="${item.id}" style="flex: 1; justify-content: center;">🚫 Retirer</button>
+                  <button type="button" class="btn-admin-action btn-admin-withdraw btn-action-withdraw" data-id="${item.id}" style="flex: 1; justify-content: center;"> Retirer</button>
                 ` : ''}
               </div>
             </div>
@@ -1314,7 +1314,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <span style="font-size: 11px; color: #6C7A72;">⏱️ ${item.duree_lecture || 3} min • ${item.saison || 'Toute l\'année'}</span>
           </div>
           <h4 style="font-size: 14.5px; font-weight: 700; color: #1E2822; margin: 4px 0 6px; line-height: 1.35;">${item.titre}</h4>
-          ${item.cultures ? `<div class="conseil-cultures-tag" style="margin-bottom: 6px; font-size: 10.5px;">🌱 ${item.cultures}</div>` : ''}
+          ${item.cultures ? `<div class="conseil-cultures-tag" style="margin-bottom: 6px; font-size: 10.5px;"> ${item.cultures}</div>` : ''}
           <p style="font-size: 12px; color: #5B6660; line-height: 1.45; margin: 0 0 10px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${item.resume || ''}</p>
           <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #F0F2EE; padding-top: 8px; font-size: 11.5px;">
             <span style="color: #6C7A72;">${item.source || 'INERA / DGPV'}</span>
@@ -1336,7 +1336,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (groupUserCrops.length > 0) {
         cardsHtml += `
           <div style="margin: 8px 0 4px; padding-left: 8px; border-left: 3px solid #1E5E2A; display: flex; align-items: center; gap: 8px;">
-            <strong style="font-size: 13.5px; color: #1E2822;">🌱 Pour vos cultures</strong>
+            <strong style="font-size: 13.5px; color: #1E2822;"> Pour vos cultures</strong>
             <span style="font-size: 10.5px; background: #EAF4E6; color: #1E5E2A; padding: 1px 6px; border-radius: 8px; font-weight: 700;">${groupUserCrops.length}</span>
           </div>
           ${groupUserCrops.map(renderMobileCard).join('')}
@@ -1358,7 +1358,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (groupUserRegion.length > 0) {
           cardsHtml += `
             <div style="margin: 14px 0 4px; padding-left: 8px; border-left: 3px solid #C8862A; display: flex; align-items: center; gap: 8px;">
-              <strong style="font-size: 13.5px; color: #1E2822;">📍 Pour votre région</strong>
+              <strong style="font-size: 13.5px; color: #1E2822;"> Pour votre région</strong>
               <span style="font-size: 10.5px; background: #FFF8E1; color: #8D5B15; padding: 1px 6px; border-radius: 8px; font-weight: 700;">${groupUserRegion.length}</span>
             </div>
             ${groupUserRegion.map(renderMobileCard).join('')}
@@ -1368,7 +1368,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (groupNational.length > 0) {
           cardsHtml += `
             <div style="margin: 14px 0 4px; padding-left: 8px; border-left: 3px solid #2E7D32; display: flex; align-items: center; gap: 8px;">
-              <strong style="font-size: 13.5px; color: #1E2822;">🇧🇫 Tout le Burkina Faso</strong>
+              <strong style="font-size: 13.5px; color: #1E2822;"> Tout le Burkina Faso</strong>
               <span style="font-size: 10.5px; background: #E8F5E9; color: #1B5E20; padding: 1px 6px; border-radius: 8px; font-weight: 700;">${groupNational.length}</span>
             </div>
             ${groupNational.map(renderMobileCard).join('')}
@@ -1378,7 +1378,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (groupOther.length > 0) {
           cardsHtml += `
             <div style="margin: 14px 0 4px; padding-left: 8px; border-left: 3px solid #78909C; display: flex; align-items: center; gap: 8px;">
-              <strong style="font-size: 13.5px; color: #1E2822;">🌍 Autres régions</strong>
+              <strong style="font-size: 13.5px; color: #1E2822;"> Autres régions</strong>
               <span style="font-size: 10.5px; background: #ECEFF1; color: #455A64; padding: 1px 6px; border-radius: 8px; font-weight: 700;">${groupOther.length}</span>
             </div>
             ${groupOther.map(renderMobileCard).join('')}
@@ -1388,7 +1388,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (groupUserCrops.length > 0 && remainingConseils.length > 0) {
           cardsHtml += `
             <div style="margin: 14px 0 4px; padding-left: 8px; border-left: 3px solid #2E7D32; display: flex; align-items: center; gap: 8px;">
-              <strong style="font-size: 13.5px; color: #1E2822;">📚 Autres conseils</strong>
+              <strong style="font-size: 13.5px; color: #1E2822;"> Autres conseils</strong>
               <span style="font-size: 10.5px; background: #E8F5E9; color: #1B5E20; padding: 1px 6px; border-radius: 8px; font-weight: 700;">${remainingConseils.length}</span>
             </div>
             ${remainingConseils.map(renderMobileCard).join('')}
@@ -1405,7 +1405,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
           <span>Tableau de bord</span>
         </a>
-        <h2 style="font-size: 20px; font-weight: 800; color: #1E2822; margin: 0 0 2px;">💡 Conseils Agricoles</h2>
+        <h2 style="font-size: 20px; font-weight: 800; color: #1E2822; margin: 0 0 2px;"> Conseils Agricoles</h2>
         <p style="font-size: 12px; color: #5B6660; margin: 0;">${cachedConseils.filter(c => c.statut === 'publie').length} fiches techniques vérifiées</p>
       </div>
 
@@ -1450,7 +1450,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </a>
         <div style="display: flex; justify-content: space-between; align-items: center;">
           <div>
-            <h2 style="font-size: 18px; font-weight: 800; color: #1E2822; margin: 0 0 2px;">🛡️ Administration</h2>
+            <h2 style="font-size: 18px; font-weight: 800; color: #1E2822; margin: 0 0 2px;">️ Administration</h2>
             <p style="font-size: 11.5px; color: #5B6660; margin: 0;">Gérer les conseils agronomiques</p>
           </div>
           <button type="button" class="btn-primary" id="btnMobileOpenAddConseil" style="padding: 8px 12px; font-size: 12px; font-weight: 700; border-radius: 8px; cursor: pointer;">+ Ajouter</button>
@@ -1498,7 +1498,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="admin-fin-content">
               <div class="admin-fin-header-row">
                 <span class="admin-status-pill ${item.statut}">
-                  ${item.statut === 'en_attente' ? '⏳ En attente' : (item.statut === 'publie' ? '✅ Publié' : '📦 Archivé')}
+                  ${item.statut === 'en_attente' ? '⏳ En attente' : (item.statut === 'publie' ? ' Publié' : ' Archivé')}
                 </span>
                 ${getConseilCategoryBadge(item.categorie)}
               </div>
@@ -1510,13 +1510,13 @@ document.addEventListener('DOMContentLoaded', () => {
               </div>
             </div>
             <div class="admin-actions-group" style="margin-top: 8px; display: flex; gap: 6px; width: 100%;">
-              <button type="button" class="btn-admin-action btn-admin-edit btn-mobile-conseil-read" data-id="${item.id}" style="flex: 1; justify-content: center;">📖 Lire</button>
-              <button type="button" class="btn-admin-action btn-admin-edit btn-mobile-conseil-edit" data-id="${item.id}" style="flex: 1; justify-content: center;">✏️ Modifier</button>
+              <button type="button" class="btn-admin-action btn-admin-edit btn-mobile-conseil-read" data-id="${item.id}" style="flex: 1; justify-content: center;"> Lire</button>
+              <button type="button" class="btn-admin-action btn-admin-edit btn-mobile-conseil-edit" data-id="${item.id}" style="flex: 1; justify-content: center;">️ Modifier</button>
               ${item.statut !== 'publie' ? `
-                <button type="button" class="btn-admin-action btn-admin-publish btn-mobile-conseil-publish" data-id="${item.id}" style="flex: 1; justify-content: center;">✅ Publier</button>
+                <button type="button" class="btn-admin-action btn-admin-publish btn-mobile-conseil-publish" data-id="${item.id}" style="flex: 1; justify-content: center;"> Publier</button>
               ` : ''}
               ${item.statut !== 'archive' ? `
-                <button type="button" class="btn-admin-action btn-admin-archive btn-mobile-conseil-archive" data-id="${item.id}" style="flex: 1; justify-content: center;">📦 Archiver</button>
+                <button type="button" class="btn-admin-action btn-admin-archive btn-mobile-conseil-archive" data-id="${item.id}" style="flex: 1; justify-content: center;"> Archiver</button>
               ` : ''}
             </div>
           </div>
@@ -1572,93 +1572,144 @@ document.addEventListener('DOMContentLoaded', () => {
       } else if (currentRoutePage === 'notifications') {
         mobileBodyHtml = getMobileNotificationsHtml();
       } else {
+        const netMargin = (currentRevenueTotal || 0) - (currentExpenseTotal || 0);
+        const isLoss = netMargin < 0;
+        const absMargin = Math.abs(netMargin);
+        const formattedAbsMargin = new Intl.NumberFormat('fr-FR').format(absMargin);
+        const digitCount = absMargin.toString().length;
+        let marginClass = '';
+        if (digitCount > 9) marginClass = 'len-long';
+        else if (digitCount >= 8) marginClass = 'len-9';
+        if (isLoss) marginClass += ' is-loss';
+
+        const formattedTotalRev = new Intl.NumberFormat('fr-FR').format(currentRevenueTotal || 0);
+        const formattedTotalExp = new Intl.NumberFormat('fr-FR').format(currentExpenseTotal || 0);
+        const parcelsCount = (cachedUserParcels || []).length;
+        const activeCyclesCount = (cachedCropCycles || []).filter(c => c.status !== 'Terminé' && c.status !== 'Récolté').length;
+
         mobileBodyHtml = `
-        <!-- 1. En haut : Message de salutation avec date et commune -->
-        <div>
-          <h2 class="mobile-greeting">Bonjour, ${data.name.split(' ')[0]} ${isPro ? '<span class="user-badge-pro" style="font-size: 10px; vertical-align: middle;">⭐ PRO</span>' : '<span class="greeting-emoji">🌱</span>'}</h2>
-          <p class="mobile-subdate">${(new Date()).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })} • ${data.location.split('(')[0]}</p>
+        <!-- Salutation sobre sans emoji -->
+        <div style="margin-bottom: 12px;">
+          <h2 class="mobile-greeting" style="font-size: 22px; font-weight: 800; color: #1A1A1A; margin: 0 0 2px;">Bonjour, ${data.name.split(' ')[0]} ${isPro ? '<span class="user-badge-pro" style="font-size: 11px; padding: 2px 8px; border-radius: 999px; background: #FAF0D6; color: #874614; font-weight: 700; vertical-align: middle;">PRO</span>' : ''}</h2>
+          <p class="mobile-subdate" style="font-size: 13px; color: #4A4A4A; margin: 0;">${(new Date()).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })} • ${data.location.split('(')[0]}</p>
         </div>
 
-        <!-- 2. Juste en dessous : Les 4 cartes de chiffres en grille de 2 colonnes -->
-        <div class="mobile-stat-grid">
-          ${data.stats.map(s => `
-            <div class="mobile-stat-card">
-              <span class="mobile-stat-title">${s.label}</span>
-              <div class="mobile-stat-val">${s.value} <small style="font-size: 10px;">${s.unit}</small></div>
-              <span class="mobile-stat-trend ${s.trendType === 'unfavorable' ? 'text-red' : 'text-green'}">
-                ${s.trendText || s.badge || 'Normal'}
-              </span>
+        <!-- 1. GRANDE CARTE VERTE SAISON 2026 (Remplace Dépenses et Recettes) -->
+        <section class="home-season-card">
+          <div class="season-card-header">
+            <span class="season-tag">Saison 2026</span>
+            <span class="season-parcels-count">${parcelsCount} parcelle${parcelsCount > 1 ? 's' : ''}</span>
+          </div>
+          <div class="season-margin-block">
+            <span class="season-margin-label">${isLoss ? 'Perte de la saison' : 'Bénéfice de la saison'}</span>
+            <div class="season-margin-row">
+              <span class="season-amount ${marginClass}">${isLoss ? '− ' : ''}${formattedAbsMargin}</span>
+              <span class="season-currency">FCFA</span>
             </div>
-          `).join('')}
-        </div>
+          </div>
+          <div class="season-subcards-grid">
+            <div class="season-subcard">
+              <span class="season-subcard-label">Dépenses</span>
+              <div class="season-subcard-val">
+                <span>${formattedTotalExp}</span> <small>FCFA</small>
+              </div>
+            </div>
+            <div class="season-subcard">
+              <span class="season-subcard-label">Ventes</span>
+              <div class="season-subcard-val">
+                <span>${formattedTotalRev}</span> <small>FCFA</small>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 2. DEUX CARTES BLANCHES CÔTE À CÔTE -->
+        <section class="home-two-cards-grid">
+          <a href="#parcelles" class="home-white-card">
+            <div class="home-card-icon-pill">
+              <i data-lucide="sprout"></i>
+            </div>
+            <div class="home-card-meta">
+              <span class="home-card-title">Cycles en cours</span>
+              <strong class="home-card-value">${activeCyclesCount} <small>actifs</small></strong>
+            </div>
+          </a>
+          <a href="#opportunites" class="home-white-card">
+            <div class="home-card-icon-pill">
+              <i data-lucide="award"></i>
+            </div>
+            <div class="home-card-meta">
+              <span class="home-card-title">Opportunités disponibles</span>
+              <strong class="home-card-value">7 <small>ouvertes</small></strong>
+            </div>
+          </a>
+        </section>
+
+        <!-- 3. MÉTÉO COURTE SUR UNE SEULE CARTE -->
+        <section class="home-weather-short-card">
+          <div class="weather-short-top">
+            <div class="weather-short-temp-group">
+              <i data-lucide="cloud-sun" class="weather-short-icon"></i>
+              <div>
+                <strong class="weather-short-temp">29 °C</strong>
+                <span class="weather-short-city">${data.location.split('(')[0]}</span>
+              </div>
+            </div>
+            <div class="weather-short-tomorrow">
+              <span class="tomorrow-label">Demain</span>
+              <strong class="tomorrow-val">31 °C • Ensoleillé</strong>
+            </div>
+          </div>
+          <p class="weather-short-advice">
+            Temps sec et vent modéré : conditions propices aux travaux du sol et à l'irrigation du soir.
+          </p>
+        </section>
+
+        <!-- 4. CARTE CONSEIL DU JOUR AVEC BADGE JAUNE ET BOUTON ÉCOUTER -->
+        <section class="home-daily-advice-card">
+          <div class="advice-card-header">
+            <span class="badge-sun-yellow">Conseil du jour</span>
+            <button type="button" class="btn-listen-advice" id="btnListenMobileDashAdvice" aria-label="Écouter le conseil agronomique">
+              <i data-lucide="volume-2"></i>
+              <span>Écouter</span>
+            </button>
+          </div>
+          <h3 class="advice-card-title" style="margin: 0 0 6px;">Gestion de l'eau en maraîchage</h3>
+          <p class="advice-card-text" style="margin: 0;">
+            Privilégiez les arrosages matinaux (entre 6h et 8h) ou après 17h pour réduire l'évaporation de plus de 40 % et préserver vos réserves en motopompe.
+          </p>
+        </section>
+
+        <!-- 5. QUATRE RACCOURCIS EN ICÔNES CARRÉES ARRONDIES -->
+        <section class="home-shortcuts-grid">
+          <a href="#opportunites" class="shortcut-square-btn" data-page="opportunites">
+            <div class="shortcut-icon-box">
+              <i data-lucide="landmark"></i>
+            </div>
+            <span class="shortcut-label">Financer</span>
+          </a>
+          <a href="#formations" class="shortcut-square-btn" data-page="formations">
+            <div class="shortcut-icon-box">
+              <i data-lucide="graduation-cap"></i>
+            </div>
+            <span class="shortcut-label">Formations</span>
+          </a>
+          <a href="#materiel-services" class="shortcut-square-btn" data-page="materiel-services">
+            <div class="shortcut-icon-box">
+              <i data-lucide="tractor"></i>
+            </div>
+            <span class="shortcut-label">Matériel</span>
+          </a>
+          <a href="#marche" class="shortcut-square-btn" data-page="marche">
+            <div class="shortcut-icon-box">
+              <i data-lucide="store"></i>
+            </div>
+            <span class="shortcut-label">Marché</span>
+          </a>
+        </section>
 
         <!-- Carte d'installation PWA sur l'accueil mobile (refermable) -->
         ${getMobilePwaHomeCardHtml()}
-
-        <!-- 3. Ensuite : Carte météo simplifiée -->
-        ${getMobileDashboardWeatherCardHtml()}
-
-        <!-- 4. ÉCHÉANCES : CE QUI EST URGENT -->
-        <div>
-          <div class="mobile-section-header">
-            <h4>Échéances urgentes</h4>
-            <a href="#toutes-echeances" class="card-link-action" id="linkMobileAllDeadlines">Voir tout</a>
-          </div>
-          <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;">
-            ${getDashboardDeadlines().slice(0, 3).map(d => `
-              <div class="deadline-item mobile-deadline-card" data-id="${d.id || ''}" data-type="${d.type}" style="padding: 10px; cursor: ${d.type === 'financement' ? 'pointer' : 'default'};">
-                <div class="deadline-icon-pill icon-${d.icon}" style="width: 32px; height: 32px;">
-                  <span style="font-size: 14px;">⏱</span>
-                </div>
-                <div class="deadline-info">
-                  <div class="deadline-title" style="font-size: 12.5px;">${d.title}</div>
-                  <div class="deadline-meta" style="font-size: 11px;">${d.meta}</div>
-                </div>
-                <div class="deadline-badge ${d.badgeClass}" style="font-size: 10px;">${d.badge}</div>
-              </div>
-            `).join('')}
-          </div>
-        </div>
-
-        <!-- 5. LE TABLEAU DEVIENT UNE LISTE DE CARTES -->
-        <div>
-          <div class="mobile-section-header">
-            <h4>${data.tableTitle}</h4>
-            <a href="#cycles" class="card-link-action" id="linkMobileAllCycles">Voir tout</a>
-          </div>
-          <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;">
-            ${data.tableRows.slice(0, 2).map(r => `
-              <div class="mobile-cycle-card">
-                <div class="mobile-cycle-info">
-                  <strong>${r.name}</strong>
-                  <span>${r.col2} • ${r.col4}</span>
-                </div>
-                <span class="badge-state ${r.statusClass}" style="font-size: 11px; padding: 2px 8px;">
-                  ${r.statusText}
-                </span>
-              </div>
-            `).join('')}
-          </div>
-        </div>
-
-        <!-- 5. GRAPHIQUE CHARGÉ LORSQU'IL DEVIENT VISIBLE -->
-        <div style="background: #FFF; border: 1px solid #E6EAE3; border-radius: 12px; padding: 14px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-            <strong style="font-size: 13px;">${data.chartTitle}</strong>
-            <span style="font-size: 11px; color: #1E5E2A; font-weight: 700;">${data.marginOct}</span>
-          </div>
-          <div style="display: flex; align-items: flex-end; justify-content: space-around; height: 80px; padding-top: 10px; border-bottom: 1px solid #EEE;">
-            <div style="width: 10px; height: 60%; background: #2E7D32; border-radius: 2px;"></div>
-            <div style="width: 10px; height: 75%; background: #2E7D32; border-radius: 2px;"></div>
-            <div style="width: 10px; height: 50%; background: #2E7D32; border-radius: 2px;"></div>
-            <div style="width: 10px; height: 80%; background: #2E7D32; border-radius: 2px;"></div>
-            <div style="width: 10px; height: 70%; background: #2E7D32; border-radius: 2px;"></div>
-            <div style="width: 10px; height: 90%; background: #1E5E2A; border-radius: 2px;"></div>
-          </div>
-          <div style="display: flex; justify-content: space-between; font-size: 10px; color: #7C8781; margin-top: 4px;">
-            <span>mai</span><span>juin</span><span>juil</span><span>août</span><span>sept</span><span style="font-weight: 700; color: #1E5E2A;">oct</span>
-          </div>
-        </div>
         `;
       }
 
@@ -1902,16 +1953,16 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
 
           <!-- Carte Promotionnelle dans le tiroir mobile -->
-          <div style="background: #FFF9E6; border: 1px solid #F5E0A0; border-radius: 8px; padding: 12px; margin: 12px 14px; font-size: 11.5px; color: #784F11;">
-            <strong>${isPro ? '⭐ Forfait Pro Actif' : '⭐ Forfait Pro (5 000 F)'}</strong>
-            <p style="margin: 4px 0 8px; font-size: 11px;">${isPro ? 'Alertes SMS et calculs de marge illimités.' : 'Débloquez toutes les fonctionnalités et alertes SMS.'}</p>
-            <button type="button" id="btnMobileDrawerGoPro" style="background: #C8862A; color: #FFF; border: none; padding: 7px 10px; border-radius: 6px; font-weight: 700; font-size: 11px; cursor: pointer; width: 100%;">
+          <div style="background: #FBF1D6; border: 1px solid #E0A526; border-radius: 14px; padding: 12px; margin: 12px 14px; font-size: 13px; color: #1A1A1A;">
+            <strong style="font-size: 14px; font-weight: 800;">${isPro ? 'Forfait Pro Actif' : 'Forfait Pro (5 000 F)'}</strong>
+            <p style="margin: 4px 0 8px; font-size: 12px; color: #4A4A4A;">${isPro ? 'Alertes SMS et calculs de marge illimités.' : 'Débloquez toutes les fonctionnalités et alertes SMS.'}</p>
+            <button type="button" id="btnMobileDrawerGoPro" style="background: #A85A1C; color: #FFF; border: none; padding: 10px; border-radius: 12px; font-weight: 700; font-size: 13px; cursor: pointer; width: 100%;">
               ${isPro ? 'Gérer mon forfait' : 'Voir les forfaits Pro'}
             </button>
           </div>
 
           <!-- Déconnexion isolée -->
-          <div class="sidebar-logout" style="border-top: 1px solid #E6EAE3; padding-top: 10px; margin-top: 10px;">
+          <div class="sidebar-logout" style="border-top: 1px solid #ECE6D9; padding-top: 10px; margin-top: 10px;">
             <button class="btn-logout" id="btnMobileLogout">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
               <span>Déconnexion</span>
@@ -1926,19 +1977,19 @@ document.addEventListener('DOMContentLoaded', () => {
           <button class="mobile-menu-hamburger-btn" id="btnOpenMobileDrawer" aria-label="Ouvrir le menu">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
           </button>
-          <div class="mobile-brand">
-            <span>🌱</span>
-            <span>Révolution Agri.</span>
+          <div class="mobile-brand" style="display: flex; align-items: center; gap: 6px;">
+            <i data-lucide="sprout" style="width: 18px; height: 18px; color: #1F5E3B;"></i>
+            <span style="font-weight: 800; font-size: 15px; color: #1A1A1A;">Révolution Agri.</span>
           </div>
         </div>
         <div class="mobile-header-actions">
           <button class="btn-mobile-expense-pill" id="btnMobileAddExpense" title="Ajouter une dépense">+ Dépense</button>
           <button class="btn-mobile-revenue-pill" id="btnMobileAddRevenue" title="Enregistrer une vente">+ Vente</button>
-          <button class="icon-btn mobile-icon-btn" id="btnMobileNotif" aria-label="Notifications" style="width: 30px; height: 30px; position: relative;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/></svg>
+          <button class="icon-btn mobile-icon-btn" id="btnMobileNotif" aria-label="Notifications" style="width: 34px; height: 34px; position: relative;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/></svg>
             <span class="notification-badge-count hidden" id="mobileNotifBadgeCount"></span>
           </button>
-          <img src="${data.avatar}" alt="Avatar" class="mobile-user-avatar" id="btnMobileAvatarOpenDrawer" style="cursor: pointer; width: 30px; height: 30px;">
+          <img src="${data.avatar}" alt="Avatar" class="mobile-user-avatar" id="btnMobileAvatarOpenDrawer" style="cursor: pointer; width: 34px; height: 34px; border-radius: 50%;">
         </div>
       </header>
 
@@ -1951,24 +2002,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
       <!-- FEUILLE D'ACTION MOBILE (Action Sheet au clic sur +) -->
       <div class="mobile-action-sheet-overlay hidden" id="mobileActionSheetOverlay">
-        <div class="mobile-action-sheet">
-          <div class="action-sheet-header">
-            <strong>Que voulez-vous enregistrer ?</strong>
+        <div class="mobile-action-sheet" style="border-radius: 20px 20px 0 0; padding: 20px; background: #FFFFFF;">
+          <div class="action-sheet-header" style="margin-bottom: 14px;">
+            <strong style="font-size: 16px; font-weight: 800; color: #1A1A1A;">Que voulez-vous enregistrer ?</strong>
             <button class="action-sheet-close" id="btnCloseActionSheet">&times;</button>
           </div>
-          <div class="action-sheet-buttons">
-            <button type="button" class="sheet-action-btn sheet-expense-btn" id="btnSheetAddExpense">
-              <span class="sheet-icon">💸</span>
-              <div class="sheet-text">
-                <strong>+ Ajouter une dépense</strong>
-                <small>Engrais, semences, carburant, main d'œuvre (30s)</small>
+          <div class="action-sheet-buttons" style="display: flex; flex-direction: column; gap: 10px;">
+            <button type="button" class="sheet-action-btn sheet-expense-btn" id="btnSheetAddExpense" style="border-radius: 14px; border: 1.5px solid #1F5E3B; background: #FFFFFF; min-height: 52px; padding: 12px 16px; display: flex; align-items: center; gap: 12px; cursor: pointer;">
+              <div style="width: 36px; height: 36px; border-radius: 10px; background: #E8F0EA; color: #1F5E3B; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <i data-lucide="wallet"></i>
+              </div>
+              <div class="sheet-text" style="text-align: left;">
+                <strong style="display: block; font-size: 14.5px; color: #1A1A1A;">+ Ajouter une dépense</strong>
+                <small style="font-size: 12px; color: #4A4A4A;">Engrais, semences, carburant, main d'œuvre</small>
               </div>
             </button>
-            <button type="button" class="sheet-action-btn sheet-revenue-btn" id="btnSheetAddRevenue">
-              <span class="sheet-icon">🌾</span>
-              <div class="sheet-text">
-                <strong>+ Enregistrer une vente de récolte</strong>
-                <small>Vente de parcelles, marché de gros, Mobile Money</small>
+            <button type="button" class="sheet-action-btn sheet-revenue-btn" id="btnSheetAddRevenue" style="border-radius: 14px; background: #A85A1C; color: #FFFFFF; border: none; min-height: 52px; padding: 12px 16px; display: flex; align-items: center; gap: 12px; cursor: pointer; box-shadow: 0 4px 12px rgba(168, 90, 28, 0.2);">
+              <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(255,255,255,0.2); color: #FFFFFF; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <i data-lucide="trending-up"></i>
+              </div>
+              <div class="sheet-text" style="text-align: left;">
+                <strong style="display: block; font-size: 14.5px; color: #FFFFFF;">+ Enregistrer une vente de récolte</strong>
+                <small style="font-size: 12px; color: #F6EADF;">Vente au marché, bord champ, encaissement</small>
               </div>
             </button>
           </div>
@@ -2484,9 +2539,40 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
+    // Écouteurs des raccourcis carrés arrondis de l'accueil mobile
+    document.querySelectorAll('.home-shortcuts-grid .shortcut-square-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const page = btn.getAttribute('data-page') || btn.getAttribute('data-nav');
+        if (page) {
+          e.preventDefault();
+          window.location.hash = page;
+          handleRoute();
+        }
+      });
+    });
+
+    // Écouteur vocal du conseil du jour en mobile
+    const btnListenMobDashAdv = document.getElementById('btnListenMobileDashAdvice');
+    if (btnListenMobDashAdv) {
+      btnListenMobDashAdv.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if ('speechSynthesis' in window) {
+          window.speechSynthesis.cancel();
+          const utter = new SpeechSynthesisUtterance("Gestion de l'eau en maraîchage. Privilégiez les arrosages matinaux entre 6h et 8h ou après 17h pour réduire l'évaporation de plus de 40 % et préserver vos réserves en motopompe.");
+          utter.lang = 'fr-FR';
+          window.speechSynthesis.speak(utter);
+        }
+      });
+    }
+
     // Mise à jour de la visibilité des boutons et cartes PWA
     if (typeof updatePwaVisibility === 'function') {
       updatePwaVisibility();
+    }
+
+    // Génération automatique des icônes Lucide au trait
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+      window.lucide.createIcons();
     }
     } catch (err) {
       console.error('Erreur renderMobileView:', err);
@@ -2547,7 +2633,7 @@ document.addEventListener('DOMContentLoaded', () => {
       // Démonstration état vide conforme
       deadlinesList.innerHTML = `
         <div class="widget-empty-state">
-          <span class="empty-icon">🌱</span>
+          <span class="empty-icon"></span>
           <strong class="empty-title">Aucune échéance urgente</strong>
           <p class="empty-desc">Ajoutez vos cultures ou suivez des opportunités pour recevoir des rappels automatiques avant la date limite.</p>
           <button class="btn-empty-action" id="btnEmptyAction">+ Planifier un cycle</button>
@@ -2556,7 +2642,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } else if (state === 'error') {
       deadlinesList.innerHTML = `
         <div class="widget-error-state">
-          <span style="font-size: 24px;">⚠️</span>
+          <span style="font-size: 24px;">️</span>
           <strong class="error-title">Données momentanément indisponibles</strong>
           <p style="font-size: 12px; color: #5B6660;">La synchronisation avec le serveur a rencontré une latence réseau.</p>
           <button class="btn-retry" id="btnRetry">Réessayer</button>
@@ -2661,7 +2747,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderFinancesPage();
       }
     } catch (err) {
-      console.warn('⚠️ Synchronisation financière Supabase :', err);
+      console.warn('️ Synchronisation financière Supabase :', err);
       updateFinancialMetrics();
     }
   }
@@ -2730,13 +2816,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (revCycleSel) {
           revCycleSel.innerHTML = '<option value="">-- Aucune culture spécifique (Vente hors parcelle) --</option>' +
             (data || []).map(c => `<option value="${c.id}">${c.crop_name} (${c.parcels?.name || 'Parcelle'})</option>`).join('') +
-            '<option value="custom">✏️ + Vente libre / Saisie personnalisée...</option>';
+            '<option value="custom">️ + Vente libre / Saisie personnalisée...</option>';
         }
 
         renderProfile(currentProfileKey);
       }
     } catch (err) {
-      console.warn('⚠️ Erreur synchronisation cycles culturaux :', err);
+      console.warn('️ Erreur synchronisation cycles culturaux :', err);
     }
   }
 
@@ -2756,7 +2842,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderProfile(profileId);
       }
     } catch (err) {
-      console.warn('⚠️ Erreur synchronisation abonnement Supabase :', err);
+      console.warn('️ Erreur synchronisation abonnement Supabase :', err);
     }
   }
 
@@ -2772,10 +2858,64 @@ document.addEventListener('DOMContentLoaded', () => {
     const marginSign = monthMargin >= 0 ? '+' : '';
     const formattedMargin = `${marginSign}${new Intl.NumberFormat('fr-FR').format(monthMargin)} F CFA`;
 
+    // A. Mise à jour de la grande carte verte "Saison 2026"
+    const seasonParcelsCount = document.getElementById('homeSeasonParcelsCount');
+    const seasonMarginLabel = document.getElementById('homeSeasonMarginLabel');
+    const seasonMarginValue = document.getElementById('homeSeasonMarginValue');
+    const seasonExpenses = document.getElementById('homeSeasonExpenses');
+    const seasonRevenues = document.getElementById('homeSeasonRevenues');
+    const statCyclesHome = document.getElementById('homeStatCycles');
+    const statOpportHome = document.getElementById('homeStatOpport');
+
+    const parcelsCount = (cachedUserParcels || []).length;
+    if (seasonParcelsCount) {
+      seasonParcelsCount.textContent = `${parcelsCount} parcelle${parcelsCount > 1 ? 's' : ''}`;
+    }
+
+    if (seasonExpenses) {
+      seasonExpenses.textContent = formattedTotalExp;
+    }
+    if (seasonRevenues) {
+      seasonRevenues.textContent = formattedTotalRev;
+    }
+
+    // Calcul du bénéfice / perte de la saison avec ajustement dynamique de la taille
+    if (seasonMarginValue && seasonMarginLabel) {
+      const isLoss = netMargin < 0;
+      const absMargin = Math.abs(netMargin);
+      const formattedAbsMargin = new Intl.NumberFormat('fr-FR').format(absMargin);
+      const digitCount = absMargin.toString().length;
+
+      seasonMarginLabel.textContent = isLoss ? 'Perte de la saison' : 'Bénéfice de la saison';
+      seasonMarginValue.textContent = isLoss ? `− ${formattedAbsMargin}` : formattedAbsMargin;
+
+      // Réinitialisation des classes de taille et de statut
+      seasonMarginValue.classList.remove('is-loss', 'len-9', 'len-long');
+      if (isLoss) {
+        seasonMarginValue.classList.add('is-loss');
+      }
+
+      // Règle 10 : 34px jusqu'à 7 chiffres, 28px pour 9 chiffres, 24px au-delà
+      if (digitCount > 9) {
+        seasonMarginValue.classList.add('len-long');
+      } else if (digitCount >= 8) {
+        seasonMarginValue.classList.add('len-9');
+      }
+    }
+
+    if (statCyclesHome) {
+      const activeCycles = (cachedCropCycles || []).filter(c => c.status !== 'Terminé' && c.status !== 'Récolté');
+      statCyclesHome.innerHTML = `${activeCycles.length} <small>actif${activeCycles.length > 1 ? 's' : ''}</small>`;
+    }
+    if (statOpportHome) {
+      statOpportHome.innerHTML = `7 <small>ouvertes</small>`;
+    }
+
     // 1. Mettre à jour les stats des cartes bureau (Données réelles du mois)
     const stat1 = document.getElementById('statValue1'); // Dépenses du mois
     const stat2 = document.getElementById('statValue2'); // Recettes du mois
     const stat3 = document.getElementById('statValue3'); // Cycles en cours
+    const stat4 = document.getElementById('statValue4'); // Opportunités ouvertes
     const statComp1 = document.getElementById('statComp1');
     const statComp2 = document.getElementById('statComp2');
 
@@ -2784,6 +2924,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (stat2) {
       stat2.innerHTML = `${formattedMonthRev} <small>F CFA</small>`;
+    }
+    if (stat4) {
+      stat4.innerHTML = `7 <small>disponibles</small>`;
     }
     if (statComp1) {
       const expCount = (cachedExpenses || []).filter(e => {
@@ -2881,7 +3024,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!modalExpense) return;
     const exp = (cachedExpenses || []).find(e => String(e.id) === String(expenseId));
     if (!exp) {
-      showToast('⚠️ Dépense introuvable', 'Impossible de charger la dépense à modifier.');
+      showToast('️ Dépense introuvable', 'Impossible de charger la dépense à modifier.');
       return;
     }
 
@@ -2974,7 +3117,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (error) {
               console.error('Erreur Supabase update expense:', error);
             } else {
-              console.log('✅ Dépense mise à jour dans Supabase');
+              console.log(' Dépense mise à jour dans Supabase');
             }
           } else {
             // Mode Ajout
@@ -2990,7 +3133,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (error) {
               console.error('Erreur Supabase insert expense:', error);
             } else {
-              console.log('✅ Dépense enregistrée dans Supabase');
+              console.log(' Dépense enregistrée dans Supabase');
             }
           }
         } catch (err) {
@@ -3227,7 +3370,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const chips = document.querySelectorAll('.date-quick-chips .date-chip-btn[data-date]');
     if (chips.length >= 3) {
       chips[0].setAttribute('data-date', todayIso);
-      chips[0].textContent = `🟢 Aujourd'hui (${now.getDate()} ${MONTH_SHORT_FR[now.getMonth()]})`;
+      chips[0].textContent = ` Aujourd'hui (${now.getDate()} ${MONTH_SHORT_FR[now.getMonth()]})`;
       chips[0].classList.add('active');
 
       chips[1].setAttribute('data-date', yestIso);
@@ -3359,7 +3502,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!modalRevenue) return;
     const rev = (cachedRevenues || []).find(r => String(r.id) === String(revenueId));
     if (!rev) {
-      showToast('⚠️ Vente introuvable', 'Impossible de charger la vente à modifier.');
+      showToast('️ Vente introuvable', 'Impossible de charger la vente à modifier.');
       return;
     }
 
@@ -3511,7 +3654,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (error) {
               console.error('Erreur Supabase update revenue:', error);
             } else {
-              console.log('✅ Recette mise à jour dans Supabase');
+              console.log(' Recette mise à jour dans Supabase');
             }
           } else {
             // Mode Ajout
@@ -3530,7 +3673,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (error) {
               console.error('Erreur Supabase insert revenue:', error);
             } else {
-              console.log('✅ Recette enregistrée dans Supabase');
+              console.log(' Recette enregistrée dans Supabase');
             }
           }
         } catch (err) {
@@ -3679,16 +3822,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function getWeatherMeta(code) {
     const c = Number(code);
-    if (c === 0) return { icon: '☀️', label: 'Ciel dégagé / Ensoleillé' };
-    if (c === 1 || c === 2) return { icon: '🌤️', label: 'Éclaircies' };
-    if (c === 3) return { icon: '☁️', label: 'Couvert' };
-    if (c === 45 || c === 48) return { icon: '🌫️', label: 'Brume / Poussière' };
-    if (c >= 51 && c <= 57) return { icon: '🌦️', label: 'Bruine légère' };
-    if (c >= 61 && c <= 67) return { icon: '🌧️', label: 'Pluie' };
-    if (c >= 71 && c <= 77) return { icon: '🌨️', label: 'Grêle / Neige' };
-    if (c >= 80 && c <= 82) return { icon: '🌧️', label: 'Averses' };
-    if (c >= 95 && c <= 99) return { icon: '⛈️', label: 'Orage violent' };
-    return { icon: '⛅', label: 'Partiellement nuageux' };
+    if (c === 0) return { icon: '️', label: 'Ciel dégagé / Ensoleillé' };
+    if (c === 1 || c === 2) return { icon: '️', label: 'Éclaircies' };
+    if (c === 3) return { icon: '️', label: 'Couvert' };
+    if (c === 45 || c === 48) return { icon: '️', label: 'Brume / Poussière' };
+    if (c >= 51 && c <= 57) return { icon: '️', label: 'Bruine légère' };
+    if (c >= 61 && c <= 67) return { icon: '️', label: 'Pluie' };
+    if (c >= 71 && c <= 77) return { icon: '️', label: 'Grêle / Neige' };
+    if (c >= 80 && c <= 82) return { icon: '️', label: 'Averses' };
+    if (c >= 95 && c <= 99) return { icon: '️', label: 'Orage violent' };
+    return { icon: '', label: 'Partiellement nuageux' };
   }
 
   function computeWeatherAlerts(current, todayDaily) {
@@ -3707,7 +3850,7 @@ document.addEventListener('DOMContentLoaded', () => {
       alerts.push({
         type: 'danger',
         level: 'Forte pluie',
-        icon: '🌧️',
+        icon: '️',
         message: "Pluie prévue : reportez les traitements et l'irrigation."
       });
     }
@@ -3717,7 +3860,7 @@ document.addEventListener('DOMContentLoaded', () => {
       alerts.push({
         type: 'warning',
         level: 'Forte chaleur',
-        icon: '☀️',
+        icon: '️',
         message: "Forte chaleur : arrosez tôt le matin ou le soir, protégez les jeunes plants."
       });
     }
@@ -3727,7 +3870,7 @@ document.addEventListener('DOMContentLoaded', () => {
       alerts.push({
         type: 'warning',
         level: 'Vent fort',
-        icon: '💨',
+        icon: '',
         message: "Vent fort : évitez les pulvérisations."
       });
     }
@@ -3754,26 +3897,26 @@ document.addEventListener('DOMContentLoaded', () => {
     if (rainSum >= 30) {
       redReasons.push('très forte pluie');
       adviceList.push({
-        icon: '🌧️',
+        icon: '️',
         category: 'Pluie',
         text: 'Très forte pluie : protégez les semis et vérifiez que l\'eau s\'écoule bien.'
       });
     } else if (rainProb >= 60 || rainSum >= 10) {
       orangeReasons.push('bonne pluie attendue');
       adviceList.push({
-        icon: '🌧️',
+        icon: '️',
         category: 'Pluie',
         text: 'Bonne pluie attendue : pas besoin d\'arroser. Ne traitez pas et n\'épandez pas d\'engrais juste avant la pluie.'
       });
     } else if ((rainProb >= 20 && rainProb <= 59) || (rainSum >= 1 && rainSum <= 9)) {
       adviceList.push({
-        icon: '🌦️',
+        icon: '️',
         category: 'Pluie',
         text: 'Petite pluie possible, pas assez pour remplacer l\'arrosage.'
       });
     } else {
       adviceList.push({
-        icon: '☀️',
+        icon: '️',
         category: 'Pluie',
         text: 'Pas de pluie attendue : prévoyez d\'arroser.'
       });
@@ -3783,14 +3926,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (tempMax >= 40) {
       redReasons.push(`forte chaleur (${tempMax} °C)`);
       adviceList.push({
-        icon: '🔥',
+        icon: '',
         category: 'Chaleur',
         text: 'Très forte chaleur : arrosez matin et soir, paillez le sol, protégez les jeunes plants.'
       });
     } else if (tempMax >= 35 && tempMax <= 39) {
       orangeReasons.push(`chaleur (${tempMax} °C)`);
       adviceList.push({
-        icon: '🌡️',
+        icon: '️',
         category: 'Chaleur',
         text: 'Il fera chaud : arrosez tôt le matin (avant 9 h) ou après 17 h.'
       });
@@ -3801,14 +3944,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (maxGust >= 40) {
       redReasons.push(`vent fort (rafales ${maxGust} km/h)`);
       adviceList.push({
-        icon: '💨',
+        icon: '',
         category: 'Vent',
         text: 'Vent fort : ne pulvérisez pas, attachez les tuteurs et les bâches.'
       });
     } else if (maxGust >= 25 && maxGust <= 39) {
       orangeReasons.push('vent gênant pour pulvériser');
       adviceList.push({
-        icon: '💨',
+        icon: '',
         category: 'Vent',
         text: 'Vent : évitez de pulvériser les produits.'
       });
@@ -3819,7 +3962,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (humidity >= 80 || isHumid2Days) {
       orangeReasons.push('temps humide');
       adviceList.push({
-        icon: '💧',
+        icon: '',
         category: 'Humidité',
         text: 'Temps humide : surveillez les taches et moisissures sur les feuilles.'
       });
@@ -3829,13 +3972,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (adviceList.length < 2) {
       if (maxGust < 25) {
         adviceList.push({
-          icon: '🌱',
+          icon: '',
           category: 'Travaux',
           text: 'Temps calme : conditions idéales pour le sarclage et l\'entretien.'
         });
       } else {
         adviceList.push({
-          icon: '🚜',
+          icon: '',
           category: 'Travaux',
           text: 'Conditions favorables pour les travaux du sol.'
         });
@@ -3948,7 +4091,7 @@ document.addEventListener('DOMContentLoaded', () => {
       try { window.speechSynthesis.cancel(); } catch (e) {}
     }
     if (activeWeatherSpeechBtn) {
-      activeWeatherSpeechBtn.innerHTML = '🔊 <span>Écouter</span>';
+      activeWeatherSpeechBtn.innerHTML = ' <span>Écouter</span>';
       activeWeatherSpeechBtn.classList.remove('speaking');
       activeWeatherSpeechBtn = null;
     }
@@ -4003,7 +4146,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
         ${speechSupported ? `
           <button type="button" class="wi-listen-btn" id="${btnId}" aria-label="Écouter les conseils météo" title="Écouter à voix haute">
-            🔊 <span>Écouter</span>
+             <span>Écouter</span>
           </button>
         ` : ''}
       </div>
@@ -4090,7 +4233,7 @@ document.addEventListener('DOMContentLoaded', () => {
       cachedWeatherResult = weatherRes;
       return weatherRes;
     } catch (err) {
-      console.warn('⚠️ Erreur Open-Meteo, chargement du cache hors-ligne :', err);
+      console.warn('️ Erreur Open-Meteo, chargement du cache hors-ligne :', err);
       if (cachedRaw) {
         try {
           const parsed = JSON.parse(cachedRaw);
@@ -4221,7 +4364,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const weeklyBox = document.getElementById('dashWeatherWeeklyAdvice');
     if (weeklyBox) {
       weeklyBox.innerHTML = `
-        <span class="wab-icon">💡</span>
+        <span class="wab-icon"></span>
         <div><strong>Conseil de la semaine :</strong> <span>${weeklyAdvice}</span></div>
       `;
     }
@@ -4324,7 +4467,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const weeklyBox = document.getElementById('meteoPageWeeklyAdvice');
     if (weeklyBox) {
       weeklyBox.innerHTML = `
-        <span class="wab-icon">💡</span>
+        <span class="wab-icon"></span>
         <div><strong>Conseil de la semaine :</strong> <span>${weeklyAdvice}</span></div>
       `;
     }
@@ -4347,10 +4490,10 @@ document.addEventListener('DOMContentLoaded', () => {
               <span class="meteo-t-min">${d.tempMin}°</span>
             </div>
             <div class="meteo-day-rain ${d.rainProb >= 40 ? 'has-rain' : ''}">
-              💧 ${d.rainProb}% (${d.rainSum} mm)
+               ${d.rainProb}% (${d.rainSum} mm)
             </div>
             <div class="meteo-day-wind">
-              💨 ${d.windMax} km/h
+               ${d.windMax} km/h
             </div>
             <div class="badge-agri-recom ${badge.badgeClass}">
               ${badge.text}
@@ -4466,7 +4609,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function navigateToPage(page) {
     if (!VALID_PAGES.has(page)) {
-      console.warn('⚠️ [Navigation] Page inconnue demandée dans navigateToPage :', page);
+      console.warn('️ [Navigation] Page inconnue demandée dans navigateToPage :', page);
       page = 'dashboard';
     }
 
@@ -4542,6 +4685,27 @@ document.addEventListener('DOMContentLoaded', () => {
       renderNotificationsPage();
     }
 
+    // Mise à jour de l'onglet actif dans la barre fixe mobile du bas
+    const bDash = document.getElementById('bottomNavDashboard');
+    const bExploit = document.getElementById('bottomNavExploitation');
+    const bMarche = document.getElementById('bottomNavMarche');
+    const bProfil = document.getElementById('bottomNavProfil');
+    if (bDash && bExploit && bMarche && bProfil) {
+      [bDash, bExploit, bMarche, bProfil].forEach(el => el.classList.remove('active'));
+      if (page === 'dashboard') {
+        bDash.classList.add('active');
+      } else if (page === 'parcelles' || page === 'synthese' || page === 'cycles' || page === 'finances') {
+        bExploit.classList.add('active');
+      } else if (page === 'marche' || page === 'materiel-services' || page === 'mes-annonces') {
+        bMarche.classList.add('active');
+      }
+    }
+
+    // Rendu automatique de toutes les icônes au trait Lucide
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+      window.lucide.createIcons();
+    }
+
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
@@ -4552,7 +4716,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const resolved = ROUTE_ALIASES[cleanHash];
 
     if (!resolved) {
-      console.warn('⚠️ [Navigation] Adresse inconnue demandée :', '#' + rawHash);
+      console.warn('️ [Navigation] Adresse inconnue demandée :', '#' + rawHash);
       window.location.hash = 'dashboard';
       navigateToPage('dashboard');
       return;
@@ -4657,6 +4821,64 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // Écouteur pour la grande carte verte Saison 2026 (redirige vers les finances)
+  const homeSeasonCard = document.getElementById('homeSeasonCard');
+  if (homeSeasonCard) {
+    homeSeasonCard.style.cursor = 'pointer';
+    homeSeasonCard.addEventListener('click', () => {
+      window.location.hash = 'finances';
+      handleRoute();
+    });
+  }
+
+  // Écouteur vocal du conseil du jour sur bureau
+  const btnListenHomeDailyAdvice = document.getElementById('btnListenHomeDailyAdvice');
+  if (btnListenHomeDailyAdvice) {
+    btnListenHomeDailyAdvice.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const utter = new SpeechSynthesisUtterance("Gestion de l'eau en maraîchage sahélien. Privilégiez les arrosages matinaux entre 6 heures et 8 heures ou après 17 heures pour réduire l'évaporation de plus de 40 pour cent et préserver vos réserves en motopompe.");
+        utter.lang = 'fr-FR';
+        window.speechSynthesis.speak(utter);
+      }
+    });
+  }
+
+  // Écouteurs pour la barre de navigation mobile fixe en bas (Accueil, Exploitation, Marché, Profil)
+  const bNavDash = document.getElementById('bottomNavDashboard');
+  const bNavExploit = document.getElementById('bottomNavExploitation');
+  const bNavMarche = document.getElementById('bottomNavMarche');
+  const bNavProfil = document.getElementById('bottomNavProfil');
+
+  if (bNavDash) {
+    bNavDash.addEventListener('click', (e) => {
+      e.preventDefault();
+      window.location.hash = 'dashboard';
+      handleRoute();
+    });
+  }
+  if (bNavExploit) {
+    bNavExploit.addEventListener('click', (e) => {
+      e.preventDefault();
+      window.location.hash = 'parcelles';
+      handleRoute();
+    });
+  }
+  if (bNavMarche) {
+    bNavMarche.addEventListener('click', (e) => {
+      e.preventDefault();
+      window.location.hash = 'marche';
+      handleRoute();
+    });
+  }
+  if (bNavProfil) {
+    bNavProfil.addEventListener('click', (e) => {
+      e.preventDefault();
+      openProfileModal();
+    });
+  }
+
   const btnShortcutOpps = document.getElementById('btnShortcutOpps');
   if (btnShortcutOpps) {
     btnShortcutOpps.addEventListener('click', () => {
@@ -4707,7 +4929,7 @@ document.addEventListener('DOMContentLoaded', () => {
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.warn('⚠️ Erreur fetchFinancements Supabase :', error);
+        console.warn('️ Erreur fetchFinancements Supabase :', error);
         return;
       }
 
@@ -4754,7 +4976,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderMobileView();
       }
     } catch (err) {
-      console.warn('⚠️ Erreur réseau fetchFinancements :', err);
+      console.warn('️ Erreur réseau fetchFinancements :', err);
     }
   }
 
@@ -4856,7 +5078,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
           statCard4Footer.innerHTML = `
             <span class="urgent-pill" style="background: #F4F6F2; color: #5B6660; border-color: #E6EAE3;">
-              <span>✓</span> Aucune urgence
+              <span></span> Aucune urgence
             </span>
             <span class="comparison-text">À jour</span>
           `;
@@ -4928,7 +5150,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <article class="financement-card" data-id="${item.id}">
           <div class="fin-card-top-meta">
             <span class="fin-badge-type ${typeClass}">${item.type}</span>
-            <span class="fin-badge-region">📍 ${item.region || 'Tout le Burkina'}</span>
+            <span class="fin-badge-region"> ${item.region || 'Tout le Burkina'}</span>
           </div>
 
           <div class="fin-card-org">${item.organisme}</div>
@@ -4974,7 +5196,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (groupUserRegion.length > 0) {
         html += `
           <div class="region-section-divider">
-            <h3 class="region-section-title">📍 Pour votre région</h3>
+            <h3 class="region-section-title"> Pour votre région</h3>
             <span class="region-section-badge">${groupUserRegion.length} opportunité${groupUserRegion.length > 1 ? 's' : ''}</span>
           </div>
           ${groupUserRegion.map(renderFinancementCard).join('')}
@@ -4984,7 +5206,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (groupNational.length > 0) {
         html += `
           <div class="region-section-divider" style="border-left-color: #2E7D32;">
-            <h3 class="region-section-title">🇧🇫 Tout le Burkina Faso</h3>
+            <h3 class="region-section-title"> Tout le Burkina Faso</h3>
             <span class="region-section-badge" style="background: #E8F5E9; color: #1B5E20;">${groupNational.length} opportunité${groupNational.length > 1 ? 's' : ''}</span>
           </div>
           ${groupNational.map(renderFinancementCard).join('')}
@@ -4994,7 +5216,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (groupOther.length > 0) {
         html += `
           <div class="region-section-divider" style="border-left-color: #78909C;">
-            <h3 class="region-section-title">🌍 Autres régions</h3>
+            <h3 class="region-section-title"> Autres régions</h3>
             <span class="region-section-badge" style="background: #ECEFF1; color: #455A64;">${groupOther.length} opportunité${groupOther.length > 1 ? 's' : ''}</span>
           </div>
           ${groupOther.map(renderFinancementCard).join('')}
@@ -5054,10 +5276,10 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="admin-fin-content">
             <div class="admin-fin-header-row">
               <span class="admin-status-pill ${item.statut}">
-                ${item.statut === 'en_attente' ? '⏳ En attente' : (item.statut === 'publie' ? '✅ Publié' : '⏹️ Expiré')}
+                ${item.statut === 'en_attente' ? '⏳ En attente' : (item.statut === 'publie' ? ' Publié' : '⏹️ Expiré')}
               </span>
               <span class="fin-badge-type ${(item.type || '').toLowerCase().replace(/[\s']/g, '-')}">${item.type}</span>
-              <span style="font-size: 11.5px; color: var(--text-dim);">📍 ${item.region}</span>
+              <span style="font-size: 11.5px; color: var(--text-dim);"> ${item.region}</span>
             </div>
             <h4 class="admin-fin-title">${item.titre}</h4>
             <div class="admin-fin-meta-row">
@@ -5071,15 +5293,15 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="admin-actions-group">
             ${item.statut !== 'publie' ? `
               <button type="button" class="btn-admin-action btn-admin-publish btn-action-publish" data-id="${item.id}" title="Publier immédiatement cette fiche pour tous les utilisateurs">
-                ✅ Publier
+                 Publier
               </button>
             ` : ''}
             <button type="button" class="btn-admin-action btn-admin-edit btn-action-edit" data-id="${item.id}" title="Modifier les champs de l'offre">
-              ✏️ Modifier
+              ️ Modifier
             </button>
             ${item.statut !== 'expire' ? `
               <button type="button" class="btn-admin-action btn-admin-withdraw btn-action-withdraw" data-id="${item.id}" title="Retirer l'offre du public">
-                🚫 Retirer
+                 Retirer
               </button>
             ` : ''}
           </div>
@@ -5124,7 +5346,7 @@ document.addEventListener('DOMContentLoaded', () => {
         .eq('id', id);
 
       if (error) {
-        showToast('⚠️ Erreur', error.message || 'Impossible de mettre à jour le statut.');
+        showToast('️ Erreur', error.message || 'Impossible de mettre à jour le statut.');
         return;
       }
 
@@ -5160,7 +5382,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnApply = document.getElementById('btnApplyFinancement');
 
     if (bType) bType.textContent = item.type;
-    if (bRegion) bRegion.textContent = `📍 ${item.region || 'Tout le Burkina'}`;
+    if (bRegion) bRegion.textContent = ` ${item.region || 'Tout le Burkina'}`;
     if (dOrg) dOrg.textContent = item.organisme;
     if (dTitre) dTitre.textContent = item.titre;
     if (dMontant) dMontant.textContent = item.montant || 'Non spécifié';
@@ -5398,7 +5620,7 @@ document.addEventListener('DOMContentLoaded', () => {
         await fetchFinancements();
         if (typeof fetchNotifications === 'function') fetchNotifications().catch(() => {});
       } catch (err) {
-        showToast('⚠️ Erreur', err.message || 'Impossible d\'enregistrer le financement.');
+        showToast('️ Erreur', err.message || 'Impossible d\'enregistrer le financement.');
       } finally {
         if (saveBtn) saveBtn.disabled = false;
         if (saveBtnText) saveBtnText.textContent = 'Enregistrer le financement';
@@ -5474,7 +5696,7 @@ document.addEventListener('DOMContentLoaded', () => {
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.warn('⚠️ Erreur fetchConseils Supabase :', error);
+        console.warn('️ Erreur fetchConseils Supabase :', error);
         return;
       }
 
@@ -5490,7 +5712,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderMobileView();
       }
     } catch (err) {
-      console.warn('⚠️ Erreur réseau fetchConseils :', err);
+      console.warn('️ Erreur réseau fetchConseils :', err);
     }
   }
 
@@ -5643,12 +5865,12 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="conseil-card-source">${item.source || 'INERA / DGPV Burkina Faso'}</div>
           <h3 class="conseil-card-title">${item.titre}</h3>
 
-          ${item.cultures ? `<div class="conseil-cultures-tag">🌱 ${item.cultures}</div>` : ''}
+          ${item.cultures ? `<div class="conseil-cultures-tag"> ${item.cultures}</div>` : ''}
 
           <p class="conseil-card-resume">${item.resume || ''}</p>
 
           <div class="conseil-card-footer">
-            <span class="conseil-season-tag">📅 ${item.saison || 'Toute l\'année'}</span>
+            <span class="conseil-season-tag"> ${item.saison || 'Toute l\'année'}</span>
             <button type="button" class="conseil-card-link-btn">Lire le conseil →</button>
           </div>
         </article>
@@ -5676,7 +5898,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (groupUserCrops.length > 0) {
       html += `
         <div class="region-section-divider" style="border-left-color: #1E5E2A;">
-          <h3 class="region-section-title">🌱 Pour vos cultures</h3>
+          <h3 class="region-section-title"> Pour vos cultures</h3>
           <span class="region-section-badge" style="background: #EAF4E6; color: #1E5E2A;">${groupUserCrops.length} conseil${groupUserCrops.length > 1 ? 's' : ''}</span>
         </div>
         ${groupUserCrops.map(renderConseilCard).join('')}
@@ -5699,7 +5921,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (groupUserRegion.length > 0) {
         html += `
           <div class="region-section-divider" style="border-left-color: #C8862A;">
-            <h3 class="region-section-title">📍 Pour votre région</h3>
+            <h3 class="region-section-title"> Pour votre région</h3>
             <span class="region-section-badge" style="background: #FFF8E1; color: #8D5B15;">${groupUserRegion.length} conseil${groupUserRegion.length > 1 ? 's' : ''}</span>
           </div>
           ${groupUserRegion.map(renderConseilCard).join('')}
@@ -5709,7 +5931,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (groupNational.length > 0) {
         html += `
           <div class="region-section-divider" style="border-left-color: #2E7D32;">
-            <h3 class="region-section-title">🇧🇫 Tout le Burkina Faso</h3>
+            <h3 class="region-section-title"> Tout le Burkina Faso</h3>
             <span class="region-section-badge" style="background: #E8F5E9; color: #1B5E20;">${groupNational.length} conseil${groupNational.length > 1 ? 's' : ''}</span>
           </div>
           ${groupNational.map(renderConseilCard).join('')}
@@ -5719,7 +5941,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (groupOther.length > 0) {
         html += `
           <div class="region-section-divider" style="border-left-color: #78909C;">
-            <h3 class="region-section-title">🌍 Autres régions</h3>
+            <h3 class="region-section-title"> Autres régions</h3>
             <span class="region-section-badge" style="background: #ECEFF1; color: #455A64;">${groupOther.length} conseil${groupOther.length > 1 ? 's' : ''}</span>
           </div>
           ${groupOther.map(renderConseilCard).join('')}
@@ -5730,7 +5952,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (groupUserCrops.length > 0 && remainingConseils.length > 0) {
         html += `
           <div class="region-section-divider" style="border-left-color: #2E7D32;">
-            <h3 class="region-section-title">📚 Autres conseils</h3>
+            <h3 class="region-section-title"> Autres conseils</h3>
             <span class="region-section-badge" style="background: #E8F5E9; color: #1B5E20;">${remainingConseils.length} conseil${remainingConseils.length > 1 ? 's' : ''}</span>
           </div>
           ${remainingConseils.map(renderConseilCard).join('')}
@@ -5780,7 +6002,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="admin-item-top">
             <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
               <span class="admin-status-pill status-${c.statut}">
-                ${isPending ? '⏳ En attente' : (isPublie ? '✅ Publié' : '📦 Archivé')}
+                ${isPending ? '⏳ En attente' : (isPublie ? ' Publié' : ' Archivé')}
               </span>
               <span class="conseil-badge-category ${catClass}" style="font-size: 11px; padding: 2px 8px;">${c.categorie || 'Conseil'}</span>
             </div>
@@ -5788,14 +6010,14 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
 
           <h4 class="admin-item-title">${c.titre}</h4>
-          ${c.cultures ? `<div style="font-size: 12px; color: #1E5E2A; margin: 4px 0 6px 0;">🌱 Cultures : <strong>${c.cultures}</strong></div>` : ''}
+          ${c.cultures ? `<div style="font-size: 12px; color: #1E5E2A; margin: 4px 0 6px 0;"> Cultures : <strong>${c.cultures}</strong></div>` : ''}
           <p class="admin-item-desc">${c.resume || ''}</p>
 
           <div class="admin-item-footer">
             <div class="admin-item-meta-info">
               <span>⏱️ ${c.duree_lecture || 3} min</span> •
-              <span>📅 ${c.saison || 'Toute l\'année'}</span> •
-              <span>🏛️ ${c.source || 'INERA / DGPV'}</span>
+              <span> ${c.saison || 'Toute l\'année'}</span> •
+              <span>️ ${c.source || 'INERA / DGPV'}</span>
             </div>
             <div class="admin-actions-group">
               <button type="button" class="btn-admin-action btn-admin-view" data-action="view" data-id="${c.id}">Lire</button>
@@ -5903,7 +6125,7 @@ document.addEventListener('DOMContentLoaded', () => {
       try { window.speechSynthesis.cancel(); } catch (e) {}
     }
     if (activeConseilSpeechBtn) {
-      activeConseilSpeechBtn.innerHTML = '🔊 <span>Écouter le conseil</span>';
+      activeConseilSpeechBtn.innerHTML = ' <span>Écouter le conseil</span>';
       activeConseilSpeechBtn.classList.remove('speaking');
       activeConseilSpeechBtn = null;
     }
@@ -5969,7 +6191,7 @@ document.addEventListener('DOMContentLoaded', () => {
       catEl.className = `conseil-badge-category ${getConseilCategoryBadgeClass(conseil.categorie)}`;
       catEl.textContent = conseil.categorie || 'Conseil';
     }
-    if (seasonEl) seasonEl.textContent = `🌱 ${conseil.saison || 'Toute l\'année'}`;
+    if (seasonEl) seasonEl.textContent = ` ${conseil.saison || 'Toute l\'année'}`;
     if (timeEl) timeEl.textContent = `⏱️ ${conseil.duree_lecture || 3} min`;
     if (sourceEl) sourceEl.textContent = conseil.source || 'INERA / DGPV Burkina Faso';
     if (titleEl) titleEl.textContent = conseil.titre;
@@ -6011,7 +6233,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const listenBtn = document.getElementById('btnListenConseil');
     if (listenBtn) {
-      listenBtn.innerHTML = '🔊 <span>Écouter le conseil</span>';
+      listenBtn.innerHTML = ' <span>Écouter le conseil</span>';
       listenBtn.classList.remove('speaking');
     }
 
@@ -6230,7 +6452,7 @@ document.addEventListener('DOMContentLoaded', () => {
         updateModelesUI();
       }
     } catch (err) {
-      console.warn('⚠️ Erreur fetchModelesCultures :', err);
+      console.warn('️ Erreur fetchModelesCultures :', err);
     }
     return cachedModelesCultures || [];
   }
@@ -6254,7 +6476,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return data;
       }
     } catch (err) {
-      console.warn('⚠️ Erreur fetchRegions :', err);
+      console.warn('️ Erreur fetchRegions :', err);
     }
     return [];
   }
@@ -6283,7 +6505,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       return [];
     } catch (err) {
-      console.warn('⚠️ Erreur fetchUserParcels :', err);
+      console.warn('️ Erreur fetchUserParcels :', err);
       return [];
     }
   }
@@ -6607,7 +6829,7 @@ document.addEventListener('DOMContentLoaded', () => {
       window.speechSynthesis.cancel();
       if (activeParcelSpeechBtn) {
         activeParcelSpeechBtn.classList.remove('speaking');
-        activeParcelSpeechBtn.innerHTML = '🔊 <span>Écouter</span>';
+        activeParcelSpeechBtn.innerHTML = ' <span>Écouter</span>';
         activeParcelSpeechBtn = null;
       }
       return;
@@ -6670,7 +6892,7 @@ document.addEventListener('DOMContentLoaded', () => {
     utterance.onend = utterance.onerror = () => {
       if (btn) {
         btn.classList.remove('speaking');
-        btn.innerHTML = '🔊 <span>Écouter</span>';
+        btn.innerHTML = ' <span>Écouter</span>';
       }
       activeParcelSpeechBtn = null;
     };
@@ -6873,7 +7095,7 @@ document.addEventListener('DOMContentLoaded', () => {
           const label = m.variete && m.variete.trim() ? `${m.nom_culture} – ${m.variete.trim()}` : m.nom_culture;
           return `<option value="${m.id}">${escapeHtml(label)}</option>`;
         }).join('') +
-        '<option value="autre_culture">✏️ Autre culture (pas dans la liste)</option>';
+        '<option value="autre_culture">️ Autre culture (pas dans la liste)</option>';
 
       if (preselectedModelId) {
         modeleSelect.value = preselectedModelId;
@@ -6919,7 +7141,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnListen = document.getElementById('btnListenCropForecast');
     if (btnListen) {
       btnListen.classList.remove('speaking');
-      btnListen.innerHTML = '🔊 <span>Écouter</span>';
+      btnListen.innerHTML = ' <span>Écouter</span>';
     }
 
     if (preselectedModelId && modeleSelect) {
@@ -6943,7 +7165,7 @@ document.addEventListener('DOMContentLoaded', () => {
       window.speechSynthesis.cancel();
       if (btn) {
         btn.classList.remove('speaking');
-        btn.innerHTML = '🔊 <span>Écouter</span>';
+        btn.innerHTML = ' <span>Écouter</span>';
       }
       return;
     }
@@ -7008,7 +7230,7 @@ document.addEventListener('DOMContentLoaded', () => {
     utterance.onend = utterance.onerror = () => {
       if (btn) {
         btn.classList.remove('speaking');
-        btn.innerHTML = '🔊 <span>Écouter</span>';
+        btn.innerHTML = ' <span>Écouter</span>';
       }
     };
 
@@ -7213,7 +7435,7 @@ document.addEventListener('DOMContentLoaded', () => {
           }
           return `
             <div class="parcel-crop-detail-card">
-              <div class="parcel-crop-detail-title">🌱 ${escapeHtml(c.crop_name)}${plantingStr}</div>
+              <div class="parcel-crop-detail-title"> ${escapeHtml(c.crop_name)}${plantingStr}</div>
               <div class="parcel-crop-detail-stats">dépenses ${formatFrancsCFA(cExp)}, ventes ${formatFrancsCFA(cRev)}, ${cGainFormatted}</div>
             </div>
           `;
@@ -7249,10 +7471,10 @@ document.addEventListener('DOMContentLoaded', () => {
       <div class="parcel-balance-box">
         <div class="parcel-balance-header">
           <div class="parcel-balance-title-wrap">
-            <span>💰 Bilan de cette parcelle</span>
+            <span> Bilan de cette parcelle</span>
           </div>
           <button type="button" class="btn-listen-parcel-balance" data-parcel-id="${p.id}" onclick="listenParcelBalance('${p.id}')">
-            🔊 <span>Écouter</span>
+             <span>Écouter</span>
           </button>
         </div>
         ${balanceBodyHtml}
@@ -7301,7 +7523,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="parcel-card">
               <div class="parcel-card-header">
                 <div>
-                  <h4 class="parcel-card-name">📍 ${escapeHtml(p.name)}</h4>
+                  <h4 class="parcel-card-name"> ${escapeHtml(p.name)}</h4>
                   <span class="parcel-card-badge">${escapeHtml(p.area_ha)} ha</span>
                 </div>
               </div>
@@ -7314,10 +7536,10 @@ document.addEventListener('DOMContentLoaded', () => {
               ${renderParcelBalanceHtml(p)}
               <div class="parcel-card-actions">
                 <button type="button" class="btn-edit-parcel" onclick="openAddParcelModal('${p.id}')">
-                  ✏️ Modifier
+                  ️ Modifier
                 </button>
                 <button type="button" class="btn-delete-parcel" onclick="deleteParcel('${p.id}')">
-                  🗑️ Supprimer
+                  ️ Supprimer
                 </button>
               </div>
             </div>
@@ -7362,10 +7584,10 @@ document.addEventListener('DOMContentLoaded', () => {
             <div>
               <div class="admin-fin-meta-row">
                 <span class="fin-badge-type">${cycle.category || 'Culture'}</span>
-                <span class="fin-badge-region">📍 ${pInfo}</span>
+                <span class="fin-badge-region"> ${pInfo}</span>
                 <span class="fin-badge-status badge-status-publie">${cycle.status || 'En végétation'}</span>
               </div>
-              <h3 class="admin-fin-title" style="margin-top: 4px;">🌱 ${cycle.crop_name}</h3>
+              <h3 class="admin-fin-title" style="margin-top: 4px;"> ${cycle.crop_name}</h3>
             </div>
           </div>
 
@@ -7382,7 +7604,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
           <div class="admin-fin-card-footer" style="display: flex; justify-content: flex-end; gap: 8px;">
             <button type="button" class="btn-table-action" onclick="deleteCropCycle('${cycle.id}')" style="color: #C62828; border-color: #F8B4B0; cursor: pointer;">
-              🗑️ Retirer du suivi
+              ️ Retirer du suivi
             </button>
           </div>
         </div>
@@ -7407,7 +7629,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return data;
       }
     } catch (err) {
-      console.warn('⚠️ Erreur fetchCycleTasks :', err);
+      console.warn('️ Erreur fetchCycleTasks :', err);
     }
     return [];
   }
@@ -7670,21 +7892,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
           <!-- Jalon Semis -->
           <div class="timeline-milestone" style="left: 0;">
-            <div class="milestone-dot dot-start">🌱</div>
+            <div class="milestone-dot dot-start"></div>
             <span class="milestone-label">Semis<br><strong>${plantingLabel}</strong></span>
           </div>
 
           <!-- Jalon Repiquage -->
           ${repiquage ? `
             <div class="timeline-milestone" style="left: ${repiqPct}%;">
-              <div class="milestone-dot dot-repiquage">🪴</div>
+              <div class="milestone-dot dot-repiquage"></div>
               <span class="milestone-label">Repiquage<br><strong>${repiquageLabel}</strong></span>
             </div>
           ` : ''}
 
           <!-- Jalon Récolte -->
           <div class="timeline-milestone" style="left: ${harvestMinPct}%;">
-            <div class="milestone-dot dot-harvest">🌾</div>
+            <div class="milestone-dot dot-harvest"></div>
             <span class="milestone-label">Récolte<br><strong>${harvestLabel}</strong></span>
           </div>
 
@@ -7715,7 +7937,7 @@ document.addEventListener('DOMContentLoaded', () => {
               <span class="task-title-text">${escapeHtml(t.titre)}</span>
             </label>
             <div class="cycle-task-meta">
-              <span class="task-date-badge">📅 ${dateStr}</span>
+              <span class="task-date-badge"> ${dateStr}</span>
               <button type="button" class="btn-del-task" onclick="deleteCycleTask('${t.id}')" title="Supprimer ce rappel">&times;</button>
             </div>
           </div>
@@ -7727,7 +7949,7 @@ document.addEventListener('DOMContentLoaded', () => {
       <div class="cycle-tasks-box">
         <div class="cycle-tasks-header">
           <div style="display: flex; align-items: center; gap: 6px;">
-            <span style="font-size: 14px;">🔔</span>
+            <span style="font-size: 14px;"></span>
             <strong style="font-size: 13px; color: #1E2922;">Rappels & Travaux agronomiques</strong>
             <span class="nav-pill-count">${tasks.filter(t => t.statut !== 'fait').length}</span>
           </div>
@@ -7816,10 +8038,10 @@ document.addEventListener('DOMContentLoaded', () => {
             <div>
               <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 6px;">
                 <span class="cycle-badge-status ${s.badgeClass}">${s.label}</span>
-                <span class="fin-badge-region">📍 ${parcelDesc}</span>
+                <span class="fin-badge-region"> ${parcelDesc}</span>
                 ${varieteHtml}
               </div>
-              <h3 class="cycle-card-title">🌱 ${escapeHtml(c.crop_name)}</h3>
+              <h3 class="cycle-card-title"> ${escapeHtml(c.crop_name)}</h3>
             </div>
             <div class="cycle-card-margin-chip">
               <span style="font-size: 11px; color: #5D6C63; text-transform: uppercase;">Marge dégagée</span>
@@ -7833,7 +8055,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <!-- Conseil agronomique court INERA -->
           ${c.conseil_court ? `
             <div class="cycle-advice-box">
-              <span style="font-size: 15px;">💡</span>
+              <span style="font-size: 15px;"></span>
               <div>
                 <strong>Conseil agronomique INERA :</strong>
                 <p style="margin: 2px 0 0; font-size: 12.5px; color: #2A362E;">${escapeHtml(c.conseil_court)}</p>
@@ -7849,14 +8071,14 @@ document.addEventListener('DOMContentLoaded', () => {
             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
               ${s.key !== 'termine' ? `
                 <button type="button" class="btn-cycle-harvest-done" onclick="markCropCycleHarvested('${c.id}')">
-                  🌾 Récolte terminée
+                   Récolte terminée
                 </button>
               ` : ''}
               <button type="button" class="btn-cycle-action" onclick="editCycleHarvestDate('${c.id}')">
-                ✏️ Ajuster date récolte
+                ️ Ajuster date récolte
               </button>
               <button type="button" class="btn-cycle-action" onclick="deleteCropCycle('${c.id}')" style="color: #C53030; border-color: #F8B4B0;">
-                🗑️ Supprimer
+                ️ Supprimer
               </button>
             </div>
           </div>
@@ -7994,8 +8216,8 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="finance-cycle-card">
             <div class="finance-cycle-info">
               <div>
-                ${secondaryInfo ? `<span class="fin-badge-region">📍 ${escapeHtml(secondaryInfo)}</span>` : '<span class="fin-badge-region">🌾 Cycle cultural</span>'}
-                <h4 style="font-size: 16px; font-weight: 800; color: #1E2922; margin: 4px 0 2px;">🌱 ${escapeHtml(c.crop_name)}</h4>
+                ${secondaryInfo ? `<span class="fin-badge-region"> ${escapeHtml(secondaryInfo)}</span>` : '<span class="fin-badge-region"> Cycle cultural</span>'}
+                <h4 style="font-size: 16px; font-weight: 800; color: #1E2922; margin: 4px 0 2px;"> ${escapeHtml(c.crop_name)}</h4>
                 <span style="font-size: 12px; color: #7C8781;">Semé le ${c.planting_date ? formatDateEnToutesLettres(new Date(c.planting_date)) : '-'}</span>
               </div>
               <div style="text-align: right;">
@@ -8025,7 +8247,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="finance-cycle-info">
               <div>
                 <span class="fin-badge-type">Général & Ventes ponctuelles</span>
-                <h4 style="font-size: 16px; font-weight: 800; color: #1E2922; margin: 4px 0 2px;">📦 Frais généraux & Ventes libres</h4>
+                <h4 style="font-size: 16px; font-weight: 800; color: #1E2922; margin: 4px 0 2px;"> Frais généraux & Ventes libres</h4>
                 <span style="font-size: 12px; color: #7C8781;">Opérations non affectées à une culture</span>
               </div>
               <div style="text-align: right;">
@@ -8100,7 +8322,7 @@ document.addEventListener('DOMContentLoaded', () => {
       amount: parseFloat(e.amount) || 0,
       title: e.notes || (e.category ? (e.category.charAt(0).toUpperCase() + e.category.slice(1)) : 'Dépense d\'exploitation'),
       sub: `${e.category ? 'Charge : ' + e.category : 'Dépense'} • ${e.expense_date ? formatDateEnToutesLettres(new Date(e.expense_date)) : '-'}`,
-      icon: '💸'
+      icon: ''
     }));
 
     const revList = (cachedRevenues || []).map(r => ({
@@ -8110,7 +8332,7 @@ document.addEventListener('DOMContentLoaded', () => {
       amount: parseFloat(r.amount) || 0,
       title: r.crop_name || 'Vente de récolte',
       sub: `${r.buyer_name ? 'Acheteur : ' + r.buyer_name : 'Vente récolte'} • ${r.revenue_date ? formatDateEnToutesLettres(new Date(r.revenue_date)) : '-'}`,
-      icon: '🌾'
+      icon: ''
     }));
 
     if (countAllEl) countAllEl.textContent = expList.length + revList.length;
@@ -8351,7 +8573,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (topCropEl) {
       if (bestCrop && maxGain > 0) {
-        topCropEl.textContent = `🌱 ${bestCrop.crop_name}`;
+        topCropEl.textContent = ` ${bestCrop.crop_name}`;
         if (topCropGainEl) topCropGainEl.textContent = `Bénéfice : +${formatFrancsCFA(maxGain)}`;
       } else {
         topCropEl.textContent = '--';
@@ -8376,7 +8598,7 @@ document.addEventListener('DOMContentLoaded', () => {
           deadlines.push({
             date: d,
             type: 'tache',
-            icon: '🔔',
+            icon: '',
             title: t.titre,
             sub: cycleObj ? `Cycle : ${cycleObj.crop_name}` : 'Travail agricole',
             badge: 'Tâche'
@@ -8391,7 +8613,7 @@ document.addEventListener('DOMContentLoaded', () => {
           deadlines.push({
             date: d,
             type: 'repiquage',
-            icon: '🪴',
+            icon: '',
             title: `Repiquage : ${c.crop_name}`,
             sub: c.parcels?.name || 'Parcelle',
             badge: 'Repiquage'
@@ -8406,7 +8628,7 @@ document.addEventListener('DOMContentLoaded', () => {
           deadlines.push({
             date: d,
             type: 'recolte',
-            icon: '🌾',
+            icon: '',
             title: `Début récolte : ${c.crop_name}`,
             sub: c.parcels?.name || 'Parcelle',
             badge: 'Récolte'
@@ -8548,7 +8770,7 @@ document.addEventListener('DOMContentLoaded', () => {
           const secInfo = getCycleSecondaryInfo(c);
           return `
             <tr style="border-bottom: 1px solid #E6EAE3;">
-              <td style="padding: 8px 10px;"><strong>🌱 ${escapeHtml(c.crop_name)}</strong>${secInfo ? `<br><small style="color: #7C8781;">${escapeHtml(secInfo)}</small>` : ''}</td>
+              <td style="padding: 8px 10px;"><strong> ${escapeHtml(c.crop_name)}</strong>${secInfo ? `<br><small style="color: #7C8781;">${escapeHtml(secInfo)}</small>` : ''}</td>
               <td style="padding: 8px 10px;">${c.parcels?.area_ha || 1} ha</td>
               <td style="padding: 8px 10px; text-align: right; font-family: inherit;">${formatFrancsCFA(exp)}</td>
               <td style="padding: 8px 10px; text-align: right; font-family: inherit;">${formatFrancsCFA(rev)}</td>
@@ -8708,7 +8930,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (items.length === 0) {
         listEl.innerHTML = `
           <div style="padding: 12px 14px; background: #F8FAF7; border-radius: 8px; color: #5D6C63; font-size: 13px; text-align: center;">
-            ✨ Aucune culture déclarée sans modèle pour le moment.
+             Aucune culture déclarée sans modèle pour le moment.
           </div>
         `;
         return;
@@ -8719,13 +8941,13 @@ document.addEventListener('DOMContentLoaded', () => {
           ${items.map(item => `
             <div style="display: flex; align-items: center; justify-content: space-between; background: #F9FBFA; border: 1px solid #E1EBE2; border-radius: 8px; padding: 10px 14px;">
               <div>
-                <strong style="display: block; font-size: 14px; color: #1E2822;">🌱 ${escapeHtml(item.name)}</strong>
+                <strong style="display: block; font-size: 14px; color: #1E2822;"> ${escapeHtml(item.name)}</strong>
                 <span style="font-size: 11.5px; color: #5D6C63;">
-                  👥 ${item.count} producteur${item.count > 1 ? 's' : ''}
+                   ${item.count} producteur${item.count > 1 ? 's' : ''}
                 </span>
               </div>
               <button type="button" class="btn-table-action" onclick="window.openAddModeleWithName('${escapeHtml(item.name.replace(/'/g, "\\'"))}')" style="font-size: 11.5px; padding: 4px 10px; cursor: pointer; color: #1E5E2A; font-weight: 700; border-color: #B8D8B2;">
-                ➕ Créer modèle
+                 Créer modèle
               </button>
             </div>
           `).join('')}
@@ -8784,7 +9006,7 @@ document.addEventListener('DOMContentLoaded', () => {
     listEl.innerHTML = items.map(m => {
       const isActif = !!m.actif;
       const statusBadge = isActif
-        ? '<span class="fin-badge-status badge-status-publie">✅ Actif</span>'
+        ? '<span class="fin-badge-status badge-status-publie"> Actif</span>'
         : '<span class="fin-badge-status badge-status-expire">⏸️ Désactivé</span>';
 
       const modeBadge = getModeleModeBadge(m.mode_depart);
@@ -8806,7 +9028,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 ${statusBadge}
               </div>
               <h3 class="admin-fin-title" style="margin-top: 4px;">
-                🌱 ${m.nom_culture} ${m.variete ? `<small style="font-size: 13px; font-weight: 600; color: #5D6C63;">(variété ${m.variete})</small>` : '<small style="font-size: 13px; font-weight: 500; color: #5D6C63;">(toutes variétés)</small>'}
+                 ${m.nom_culture} ${m.variete ? `<small style="font-size: 13px; font-weight: 600; color: #5D6C63;">(variété ${m.variete})</small>` : '<small style="font-size: 13px; font-weight: 500; color: #5D6C63;">(toutes variétés)</small>'}
               </h3>
             </div>
           </div>
@@ -8824,7 +9046,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
           ${m.conseil_court ? `
             <div style="background: #FFFFFF; border: 1px dashed #B8D8B2; border-radius: 8px; padding: 8px 12px; margin-bottom: 8px; font-size: 12.5px; color: #1E2822;">
-              💡 <strong>Conseil court :</strong> ${m.conseil_court}
+               <strong>Conseil court :</strong> ${m.conseil_court}
             </div>
           ` : ''}
 
@@ -8834,10 +9056,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
           <div class="admin-fin-card-footer" style="display: flex; justify-content: flex-end; gap: 8px; border-top: 1px solid #EDF3EB; padding-top: 10px;">
             <button type="button" class="btn-table-action" onclick="openManageModeleModal('${m.id}')" style="cursor: pointer;">
-              ✏️ Modifier
+              ️ Modifier
             </button>
             <button type="button" class="btn-table-action" onclick="toggleModeleActive('${m.id}')" style="cursor: pointer; ${isActif ? 'color: #D97706;' : 'color: #1E5E2A;'}">
-              ${isActif ? '👁️ Désactiver' : '✅ Activer'}
+              ${isActif ? '️ Désactiver' : ' Activer'}
             </button>
           </div>
         </div>
@@ -9002,7 +9224,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </a>
         <div style="display: flex; justify-content: space-between; align-items: center;">
           <div>
-            <h2 style="font-size: 18px; font-weight: 800; color: #1E2822; margin: 0 0 2px;">🛡️ Administration</h2>
+            <h2 style="font-size: 18px; font-weight: 800; color: #1E2822; margin: 0 0 2px;">️ Administration</h2>
             <p style="font-size: 11.5px; color: #5B6660; margin: 0;">Gérer les modèles de cultures</p>
           </div>
           <button type="button" class="btn-primary" id="btnMobileOpenAddModele" style="padding: 8px 12px; font-size: 12px; font-weight: 700; border-radius: 8px; cursor: pointer;">+ Ajouter</button>
@@ -9030,20 +9252,20 @@ document.addEventListener('DOMContentLoaded', () => {
             <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 6px;">
               <div>
                 <span style="font-size: 11px; font-weight: 700; color: #1E5E2A; background: #EAF4E6; padding: 2px 6px; border-radius: 4px;">${m.categorie || 'Culture'}</span>
-                <span style="font-size: 11px; font-weight: 600; color: #5D6C63; margin-left: 4px;">${m.mode_depart === 'pepiniere' ? '🌱 Pépinière' : '🌾 Semis direct'}</span>
+                <span style="font-size: 11px; font-weight: 600; color: #5D6C63; margin-left: 4px;">${m.mode_depart === 'pepiniere' ? ' Pépinière' : ' Semis direct'}</span>
               </div>
               <span style="font-size: 10.5px; font-weight: 700; padding: 2px 6px; border-radius: 4px; ${m.actif ? 'background: #DEF7EC; color: #03543F;' : 'background: #F3F4F6; color: #6B7280;'}">
                 ${m.actif ? 'Actif' : 'Désactivé'}
               </span>
             </div>
             <h4 style="font-size: 14.5px; font-weight: 800; color: #1E2822; margin: 4px 0 6px;">
-              🌱 ${m.nom_culture} ${m.variete ? `(${m.variete})` : ''}
+               ${m.nom_culture} ${m.variete ? `(${m.variete})` : ''}
             </h4>
             <div style="font-size: 12px; color: #4F6456; line-height: 1.4; margin-bottom: 6px;">
               ${m.mode_depart === 'pepiniere' ? `Pépinière : ${m.pepiniere_jours_min || 0} à ${m.pepiniere_jours_max || 0}j • ` : ''}
               Récolte : ${m.recolte_jours_min ? `${m.recolte_jours_min} à ${m.recolte_jours_max}j` : '<span style="color:#C65D07;font-weight:700;">Inconnue (agent de zone)</span>'}
             </div>
-            ${m.conseil_court ? `<div style="font-size: 11.5px; background: #F8FAF7; padding: 6px 8px; border-radius: 6px; margin-bottom: 8px; color: #2D3A31;">💡 ${m.conseil_court}</div>` : ''}
+            ${m.conseil_court ? `<div style="font-size: 11.5px; background: #F8FAF7; padding: 6px 8px; border-radius: 6px; margin-bottom: 8px; color: #2D3A31;"> ${m.conseil_court}</div>` : ''}
             <div style="display: flex; justify-content: flex-end; gap: 6px; border-top: 1px solid #F0F4EF; padding-top: 8px;">
               <button type="button" onclick="openManageModeleModal('${m.id}')" style="padding: 4px 10px; font-size: 11.5px; font-weight: 700; border-radius: 6px; border: 1px solid #CBD5E1; background: #FFF; cursor: pointer;">Modifier</button>
               <button type="button" onclick="toggleModeleActive('${m.id}')" style="padding: 4px 10px; font-size: 11.5px; font-weight: 700; border-radius: 6px; border: 1px solid #CBD5E1; background: #FFF; cursor: pointer; ${m.actif ? 'color: #D97706;' : 'color: #1E5E2A;'}">${m.actif ? 'Désactiver' : 'Activer'}</button>
@@ -9055,7 +9277,7 @@ document.addEventListener('DOMContentLoaded', () => {
       ${cachedDeclaredCrops && cachedDeclaredCrops.length > 0 ? `
         <div style="margin-top: 16px; background: #FFFFFF; border: 1px solid #E1EBE2; border-radius: 12px; padding: 14px 16px;">
           <h3 style="font-size: 14px; font-weight: 800; color: #1E2822; margin: 0 0 4px; display: flex; align-items: center; justify-content: space-between;">
-            <span>📋 Cultures déclarées par les producteurs</span>
+            <span> Cultures déclarées par les producteurs</span>
             <span class="nav-pill-count" style="background: #EAF4E6; color: #1E5E2A;">${cachedDeclaredCrops.length}</span>
           </h3>
           <p style="font-size: 11.5px; color: #5D6C63; margin: 0 0 10px;">Cultures saisies librement sans modèle.</p>
@@ -9063,11 +9285,11 @@ document.addEventListener('DOMContentLoaded', () => {
             ${cachedDeclaredCrops.map(item => `
               <div style="display: flex; align-items: center; justify-content: space-between; background: #F9FBFA; border: 1px solid #E1EBE2; border-radius: 8px; padding: 8px 12px;">
                 <div>
-                  <strong style="display: block; font-size: 13px; color: #1E2822;">🌱 ${escapeHtml(item.name)}</strong>
-                  <span style="font-size: 11px; color: #5D6C63;">👥 ${item.count} producteur${item.count > 1 ? 's' : ''}</span>
+                  <strong style="display: block; font-size: 13px; color: #1E2822;"> ${escapeHtml(item.name)}</strong>
+                  <span style="font-size: 11px; color: #5D6C63;"> ${item.count} producteur${item.count > 1 ? 's' : ''}</span>
                 </div>
                 <button type="button" class="btn-table-action" onclick="openAddModeleWithName('${escapeHtml(item.name.replace(/'/g, "\\'"))}')" style="font-size: 11px; padding: 4px 8px; cursor: pointer; color: #1E5E2A; font-weight: 700; border-color: #B8D8B2;">
-                  ➕ Créer
+                   Créer
                 </button>
               </div>
             `).join('')}
@@ -9090,7 +9312,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </a>
         <div style="display: flex; justify-content: space-between; align-items: center;">
           <div>
-            <h2 style="font-size: 18px; font-weight: 800; color: #1E2822; margin: 0 0 2px;">🌾 Parcelles & Bilan</h2>
+            <h2 style="font-size: 18px; font-weight: 800; color: #1E2822; margin: 0 0 2px;"> Parcelles & Bilan</h2>
             <p style="font-size: 11.5px; color: #5B6660; margin: 0;">${parcels.length} parcelle${parcels.length > 1 ? 's' : ''} • ${cycles.length} culture${cycles.length > 1 ? 's' : ''}</p>
           </div>
           <div style="display: flex; gap: 6px;">
@@ -9102,7 +9324,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       <!-- Parcelles & Bilan -->
       <div style="margin-bottom: 16px;">
-        <h3 style="font-size: 14px; font-weight: 800; color: #1E2822; margin: 0 0 8px;">📍 Vos Parcelles</h3>
+        <h3 style="font-size: 14px; font-weight: 800; color: #1E2822; margin: 0 0 8px;"> Vos Parcelles</h3>
         ${parcels.length === 0 ? `
           <div style="text-align: center; padding: 20px 14px; background: #fff; border-radius: 10px; border: 1px dashed #CBD5E1; margin-bottom: 12px;">
             <p style="font-size: 12px; color: #5D6C63; margin: 0 0 10px;">Vous n'avez pas encore de parcelle enregistrée.</p>
@@ -9117,7 +9339,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="parcel-card" style="margin-bottom: 12px;">
               <div class="parcel-card-header">
                 <div>
-                  <h4 class="parcel-card-name">📍 ${escapeHtml(p.name)}</h4>
+                  <h4 class="parcel-card-name"> ${escapeHtml(p.name)}</h4>
                   <span class="parcel-card-badge">${escapeHtml(p.area_ha)} ha</span>
                 </div>
               </div>
@@ -9130,10 +9352,10 @@ document.addEventListener('DOMContentLoaded', () => {
               ${renderParcelBalanceHtml(p)}
               <div class="parcel-card-actions">
                 <button type="button" class="btn-edit-parcel" onclick="openAddParcelModal('${p.id}')">
-                  ✏️ Modifier
+                  ️ Modifier
                 </button>
                 <button type="button" class="btn-delete-parcel" onclick="deleteParcel('${p.id}')">
-                  🗑️ Supprimer
+                  ️ Supprimer
                 </button>
               </div>
             </div>
@@ -9142,11 +9364,11 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
 
       <!-- Cultures -->
-      <h3 style="font-size: 14px; font-weight: 800; color: #1E2822; margin: 0 0 8px;">🌱 Vos Cultures en cours</h3>
+      <h3 style="font-size: 14px; font-weight: 800; color: #1E2822; margin: 0 0 8px;"> Vos Cultures en cours</h3>
       <div class="mobile-cards-list">
         ${cycles.length === 0 ? `
           <div style="text-align: center; padding: 24px 16px; background: #fff; border-radius: 12px; border: 1px dashed #CBD5E1;">
-            <div style="font-size: 24px; margin-bottom: 4px;">🌱</div>
+            <div style="font-size: 24px; margin-bottom: 4px;"></div>
             <strong style="font-size: 13.5px; color: #1E2822; display: block; margin-bottom: 4px;">Aucune culture en cours</strong>
             <p style="font-size: 11.5px; color: #5D6C63; margin: 0 0 10px;">Ajoutez votre première culture avec les modèles agronomiques.</p>
             <button type="button" class="btn-primary" id="btnMobileEmptyAddCrop" style="margin: 0 auto; padding: 7px 14px; font-size: 12px;">+ Ajouter une culture</button>
@@ -9157,13 +9379,13 @@ document.addEventListener('DOMContentLoaded', () => {
               <span style="font-size: 11px; font-weight: 700; color: #1E5E2A; background: #EAF4E6; padding: 2px 6px; border-radius: 4px;">${c.category || 'Culture'}</span>
               <span style="font-size: 11px; font-weight: 600; color: #5D6C63;">${c.parcels?.name || 'Parcelle'}</span>
             </div>
-            <h4 style="font-size: 15px; font-weight: 800; color: #1E2822; margin: 0 0 6px;">🌱 ${c.crop_name}</h4>
+            <h4 style="font-size: 15px; font-weight: 800; color: #1E2822; margin: 0 0 6px;"> ${c.crop_name}</h4>
             <div style="font-size: 12px; color: #4F6456; margin-bottom: 8px;">
               Semis : <strong>${c.planting_date ? formatDateEnToutesLettres(new Date(c.planting_date)) : '-'}</strong><br>
               Récolte prévue : <strong style="color: #1E5E2A;">${c.estimated_harvest_date ? formatDateEnToutesLettres(new Date(c.estimated_harvest_date)) : 'Non définie'}</strong>
             </div>
             <div style="display: flex; justify-content: flex-end;">
-              <button type="button" onclick="deleteCropCycle('${c.id}')" style="padding: 4px 8px; font-size: 11px; color: #C62828; border: 1px solid #F8B4B0; background: #FFF; border-radius: 6px; cursor: pointer;">🗑️ Retirer</button>
+              <button type="button" onclick="deleteCropCycle('${c.id}')" style="padding: 4px 8px; font-size: 11px; color: #C62828; border: 1px solid #F8B4B0; background: #FFF; border-radius: 6px; cursor: pointer;">️ Retirer</button>
             </div>
           </div>
         `).join('')}
@@ -9204,7 +9426,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const cycleObj = cycles.find(c => String(c.id) === String(t.crop_cycle_id));
         deadlines.push({
           date: d,
-          icon: '📋',
+          icon: '',
           title: t.titre,
           sub: cycleObj ? `${cycleObj.crop_name} (${cycleObj.parcels?.name || 'Parcelle'})` : 'Travail agricole',
           badge: 'Tâche'
@@ -9217,7 +9439,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (d >= today && d <= horizon) {
         deadlines.push({
           date: d,
-          icon: '🌱',
+          icon: '',
           title: `Repiquage de ${c.crop_name}`,
           sub: `Parcelle : ${c.parcels?.name || 'Parcelle'}`,
           badge: 'Repiquage'
@@ -9231,7 +9453,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (d >= today && d <= horizon) {
         deadlines.push({
           date: d,
-          icon: '🌾',
+          icon: '',
           title: `Récolte de ${c.crop_name}`,
           sub: `Parcelle : ${c.parcels?.name || 'Parcelle'}`,
           badge: 'Récolte'
@@ -9249,10 +9471,10 @@ document.addEventListener('DOMContentLoaded', () => {
         </a>
         <div style="display: flex; justify-content: space-between; align-items: center;">
           <div>
-            <h2 style="font-size: 18px; font-weight: 800; color: #1E2822; margin: 0 0 2px;">📊 Synthèse de l'Exploitation</h2>
+            <h2 style="font-size: 18px; font-weight: 800; color: #1E2822; margin: 0 0 2px;"> Synthèse de l'Exploitation</h2>
             <p style="font-size: 11.5px; color: #5B6660; margin: 0;">Vue consolidée parcelles & rentabilité</p>
           </div>
-          <a href="#finances" class="btn-secondary" style="font-size: 11px; padding: 6px 10px; font-weight: 700; text-decoration: none; border-radius: 8px;">💰 Finances →</a>
+          <a href="#finances" class="btn-secondary" style="font-size: 11px; padding: 6px 10px; font-weight: 700; text-decoration: none; border-radius: 8px;"> Finances →</a>
         </div>
       </div>
 
@@ -9283,7 +9505,7 @@ document.addEventListener('DOMContentLoaded', () => {
       <!-- Prochaines Échéances (30j) -->
       <div style="margin-bottom: 16px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-          <h3 style="font-size: 14px; font-weight: 800; color: #1E2822; margin: 0;">📅 Échéances sous 30 jours</h3>
+          <h3 style="font-size: 14px; font-weight: 800; color: #1E2822; margin: 0;"> Échéances sous 30 jours</h3>
           <span class="nav-pill-count">${deadlines.length}</span>
         </div>
         ${deadlines.length === 0 ? `
@@ -9340,7 +9562,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </a>
         <div style="display: flex; justify-content: space-between; align-items: center;">
           <div>
-            <h2 style="font-size: 18px; font-weight: 800; color: #1E2822; margin: 0 0 2px;">🌱 Cycles Culturaux</h2>
+            <h2 style="font-size: 18px; font-weight: 800; color: #1E2822; margin: 0 0 2px;"> Cycles Culturaux</h2>
             <p style="font-size: 11.5px; color: #5B6660; margin: 0;">${cycles.length} cycle${cycles.length > 1 ? 's' : ''} au total</p>
           </div>
           <button type="button" class="btn-primary" onclick="openAddCropCycleModal()" style="padding: 6px 10px; font-size: 11.5px; font-weight: 700; border-radius: 8px; cursor: pointer;">+ Démarrer</button>
@@ -9350,18 +9572,18 @@ document.addEventListener('DOMContentLoaded', () => {
       <!-- Filtres horizontaux mobiles -->
       <div class="filter-types-scroll" style="margin-bottom: 12px; overflow-x: auto; white-space: nowrap; padding-bottom: 4px;">
         <button type="button" class="mobile-cycle-filter-chip ${statusFilter === 'all' ? 'active' : ''}" data-status="all" style="padding: 5px 10px; font-size: 11px; border-radius: 99px; margin-right: 6px; cursor: pointer;">Tous</button>
-        <button type="button" class="mobile-cycle-filter-chip ${statusFilter === 'pepiniere' ? 'active' : ''}" data-status="pepiniere" style="padding: 5px 10px; font-size: 11px; border-radius: 99px; margin-right: 6px; cursor: pointer;">🌱 Pépinière</button>
-        <button type="button" class="mobile-cycle-filter-chip ${statusFilter === 'croissance' ? 'active' : ''}" data-status="croissance" style="padding: 5px 10px; font-size: 11px; border-radius: 99px; margin-right: 6px; cursor: pointer;">🌿 Croissance</button>
+        <button type="button" class="mobile-cycle-filter-chip ${statusFilter === 'pepiniere' ? 'active' : ''}" data-status="pepiniere" style="padding: 5px 10px; font-size: 11px; border-radius: 99px; margin-right: 6px; cursor: pointer;"> Pépinière</button>
+        <button type="button" class="mobile-cycle-filter-chip ${statusFilter === 'croissance' ? 'active' : ''}" data-status="croissance" style="padding: 5px 10px; font-size: 11px; border-radius: 99px; margin-right: 6px; cursor: pointer;"> Croissance</button>
         <button type="button" class="mobile-cycle-filter-chip ${statusFilter === 'recolte_proche' ? 'active' : ''}" data-status="recolte_proche" style="padding: 5px 10px; font-size: 11px; border-radius: 99px; margin-right: 6px; cursor: pointer;">⏳ Récolte proche</button>
-        <button type="button" class="mobile-cycle-filter-chip ${statusFilter === 'recolte' ? 'active' : ''}" data-status="recolte" style="padding: 5px 10px; font-size: 11px; border-radius: 99px; margin-right: 6px; cursor: pointer;">🌾 À récolter</button>
-        <button type="button" class="mobile-cycle-filter-chip ${statusFilter === 'termine' ? 'active' : ''}" data-status="termine" style="padding: 5px 10px; font-size: 11px; border-radius: 99px; margin-right: 6px; cursor: pointer;">✅ Terminés</button>
+        <button type="button" class="mobile-cycle-filter-chip ${statusFilter === 'recolte' ? 'active' : ''}" data-status="recolte" style="padding: 5px 10px; font-size: 11px; border-radius: 99px; margin-right: 6px; cursor: pointer;"> À récolter</button>
+        <button type="button" class="mobile-cycle-filter-chip ${statusFilter === 'termine' ? 'active' : ''}" data-status="termine" style="padding: 5px 10px; font-size: 11px; border-radius: 99px; margin-right: 6px; cursor: pointer;"> Terminés</button>
       </div>
 
       <!-- Liste des cartes de cycles -->
       <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px;">
         ${filtered.length === 0 ? `
           <div style="text-align: center; padding: 24px 16px; background: #fff; border-radius: 12px; border: 1px dashed #CBD5E1;">
-            <div style="font-size: 26px; margin-bottom: 4px;">🌱</div>
+            <div style="font-size: 26px; margin-bottom: 4px;"></div>
             <strong style="font-size: 13.5px; color: #1E2822; display: block; margin-bottom: 4px;">Aucun cycle dans cette catégorie</strong>
             <p style="font-size: 11.5px; color: #5D6C63; margin: 0 0 10px;">Lancez une nouvelle culture avec un modèle agronomique.</p>
             <button type="button" class="btn-primary" onclick="openAddCropCycleModal()" style="margin: 0 auto; padding: 7px 14px; font-size: 12px;">+ Démarrer un cycle</button>
@@ -9377,8 +9599,8 @@ document.addEventListener('DOMContentLoaded', () => {
             <div style="background: #FFF; border: 1.5px solid #E2E8F0; border-radius: 12px; padding: 14px; border-left: 4px solid #1E5E2A;">
               <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
                 <div>
-                  <h4 style="font-size: 15px; font-weight: 800; color: #1E2822; margin: 0 0 2px;">🌱 ${escapeHtml(c.crop_name)}</h4>
-                  <span style="font-size: 11px; color: #5D6C63;">📍 ${escapeHtml(c.parcels?.name || 'Parcelle')} ${c.variete ? '• ' + escapeHtml(c.variete) : ''}</span>
+                  <h4 style="font-size: 15px; font-weight: 800; color: #1E2822; margin: 0 0 2px;"> ${escapeHtml(c.crop_name)}</h4>
+                  <span style="font-size: 11px; color: #5D6C63;"> ${escapeHtml(c.parcels?.name || 'Parcelle')} ${c.variete ? '• ' + escapeHtml(c.variete) : ''}</span>
                 </div>
                 <span class="badge-state ${s.badgeClass}" style="font-size: 10px;">${s.label}</span>
               </div>
@@ -9398,8 +9620,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
               <!-- Actions du cycle -->
               <div style="display: flex; justify-content: flex-end; gap: 6px; margin-top: 10px;">
-                <button type="button" onclick="openAddCycleTaskModal('${c.id}')" style="padding: 4px 8px; font-size: 11px; background: #EAF4E6; color: #1E5E2A; border: 1px solid #C4DFC0; border-radius: 6px; font-weight: 700; cursor: pointer;">📋 + Tâche</button>
-                <button type="button" onclick="deleteCropCycle('${c.id}')" style="padding: 4px 8px; font-size: 11px; color: #C62828; border: 1px solid #F8B4B0; background: #FFF; border-radius: 6px; cursor: pointer;">🗑️ Supprimer</button>
+                <button type="button" onclick="openAddCycleTaskModal('${c.id}')" style="padding: 4px 8px; font-size: 11px; background: #EAF4E6; color: #1E5E2A; border: 1px solid #C4DFC0; border-radius: 6px; font-weight: 700; cursor: pointer;"> + Tâche</button>
+                <button type="button" onclick="deleteCropCycle('${c.id}')" style="padding: 4px 8px; font-size: 11px; color: #C62828; border: 1px solid #F8B4B0; background: #FFF; border-radius: 6px; cursor: pointer;">️ Supprimer</button>
               </div>
             </div>
           `;
@@ -9424,10 +9646,10 @@ document.addEventListener('DOMContentLoaded', () => {
         </a>
         <div style="display: flex; justify-content: space-between; align-items: center;">
           <div>
-            <h2 style="font-size: 18px; font-weight: 800; color: #1E2822; margin: 0 0 2px;">💰 Finances & Marges</h2>
+            <h2 style="font-size: 18px; font-weight: 800; color: #1E2822; margin: 0 0 2px;"> Finances & Marges</h2>
             <p style="font-size: 11.5px; color: #5B6660; margin: 0;">Trésorerie & Rentabilité réelle</p>
           </div>
-          <button type="button" class="btn-secondary" onclick="openCompteExploitationModal()" style="font-size: 11px; padding: 6px 10px; font-weight: 800; border-color: #C8862A; color: #8A4F00; border-radius: 8px;">📄 Bilan PDF</button>
+          <button type="button" class="btn-secondary" onclick="openCompteExploitationModal()" style="font-size: 11px; padding: 6px 10px; font-weight: 800; border-color: #C8862A; color: #8A4F00; border-radius: 8px;"> Bilan PDF</button>
         </div>
       </div>
 
@@ -9452,12 +9674,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
       <!-- Actions rapides mobile -->
       <div style="display: flex; gap: 8px; margin-bottom: 16px;">
-        <button type="button" class="btn-primary" id="btnMobFinAddExpense" onclick="openExpenseModal()" style="flex: 1; padding: 9px; font-size: 12px; font-weight: 700;">💸 + Dépense</button>
-        <button type="button" class="btn-revenue-action" id="btnMobFinAddRevenue" onclick="openRevenueModal()" style="flex: 1; padding: 9px; font-size: 12px; font-weight: 700;">🌾 + Vente récolte</button>
+        <button type="button" class="btn-primary" id="btnMobFinAddExpense" onclick="openExpenseModal()" style="flex: 1; padding: 9px; font-size: 12px; font-weight: 700;"> + Dépense</button>
+        <button type="button" class="btn-revenue-action" id="btnMobFinAddRevenue" onclick="openRevenueModal()" style="flex: 1; padding: 9px; font-size: 12px; font-weight: 700;"> + Vente récolte</button>
       </div>
 
       <!-- Détail de rentabilité par culture -->
-      <h3 style="font-size: 14px; font-weight: 800; color: #1E2822; margin: 0 0 8px;">🌾 Rentabilité par Culture</h3>
+      <h3 style="font-size: 14px; font-weight: 800; color: #1E2822; margin: 0 0 8px;"> Rentabilité par Culture</h3>
       <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
         ${cycles.length === 0 ? `
           <div style="text-align: center; padding: 20px; background: #FFF; border-radius: 12px; border: 1px dashed #CBD5E1;">
@@ -9472,7 +9694,7 @@ document.addEventListener('DOMContentLoaded', () => {
           return `
             <div style="background: #FFF; border: 1px solid #E2E8F0; border-radius: 10px; padding: 12px;">
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                <strong style="font-size: 13.5px; color: #1E2822;">🌱 ${escapeHtml(c.crop_name)}</strong>
+                <strong style="font-size: 13.5px; color: #1E2822;"> ${escapeHtml(c.crop_name)}</strong>
                 ${secondaryInfo ? `<span style="font-size: 11px; color: #5D6C63;">${escapeHtml(secondaryInfo)}</span>` : ''}
               </div>
               <div style="display: flex; justify-content: space-between; font-size: 11.5px; color: #5D6C63; margin-bottom: 4px;">
@@ -9492,13 +9714,13 @@ document.addEventListener('DOMContentLoaded', () => {
       <div style="background: #FFFFFF; border-radius: 12px; border: 1px solid #E2E8F0; padding: 14px; margin-bottom: 24px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
           <div>
-            <h3 style="font-size: 14px; font-weight: 800; color: #1E2822; margin: 0 0 2px;">📋 Historique des Opérations</h3>
+            <h3 style="font-size: 14px; font-weight: 800; color: #1E2822; margin: 0 0 2px;"> Historique des Opérations</h3>
             <p style="font-size: 11px; color: #7C8781; margin: 0;">Modifier ou supprimer une charge ou vente</p>
           </div>
           <div class="finances-filter-pills" style="display: flex; gap: 4px;">
             <button type="button" class="fin-tab-filter ${currentTransFilter === 'all' ? 'active' : ''}" data-filter="all" id="mobFilterTransAll" style="padding: 4px 8px; font-size: 11px;">Toutes</button>
-            <button type="button" class="fin-tab-filter ${currentTransFilter === 'expenses' ? 'active' : ''}" data-filter="expenses" id="mobFilterTransExp" style="padding: 4px 8px; font-size: 11px;">💸 Dépenses</button>
-            <button type="button" class="fin-tab-filter ${currentTransFilter === 'revenues' ? 'active' : ''}" data-filter="revenues" id="mobFilterTransRev" style="padding: 4px 8px; font-size: 11px;">🌾 Ventes</button>
+            <button type="button" class="fin-tab-filter ${currentTransFilter === 'expenses' ? 'active' : ''}" data-filter="expenses" id="mobFilterTransExp" style="padding: 4px 8px; font-size: 11px;"> Dépenses</button>
+            <button type="button" class="fin-tab-filter ${currentTransFilter === 'revenues' ? 'active' : ''}" data-filter="revenues" id="mobFilterTransRev" style="padding: 4px 8px; font-size: 11px;"> Ventes</button>
           </div>
         </div>
         <div id="mobileFinancesTransactionsList" class="finances-transactions-list" style="display: flex; flex-direction: column; gap: 8px;"></div>
@@ -9805,7 +10027,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (onboardingLocation) {
       if (currentData.location) {
-        const pureLoc = currentData.location.replace(/^📍\s*/, '');
+        const pureLoc = currentData.location.replace(/^\s*/, '');
         for (let opt of onboardingLocation.options) {
           if (opt.value.includes(pureLoc) || pureLoc.includes(opt.value)) {
             onboardingLocation.value = opt.value;
@@ -9882,9 +10104,9 @@ document.addEventListener('DOMContentLoaded', () => {
             is_onboarded: true,
             updated_at: new Date().toISOString()
           }).eq('id', currentAuthUser.id);
-          console.log('✅ Profil complété avec succès dans Supabase !');
+          console.log(' Profil complété avec succès dans Supabase !');
         } catch (err) {
-          console.warn('⚠️ Erreur mise à jour profil Supabase :', err);
+          console.warn('️ Erreur mise à jour profil Supabase :', err);
         }
       }
 
@@ -9898,7 +10120,7 @@ document.addEventListener('DOMContentLoaded', () => {
         id: userId,
         name: rawFullName,
         phone: formattedPhone,
-        location: `📍 ${rawLocation}`,
+        location: ` ${rawLocation}`,
         role: selectedRole,
         metaRole: metaRole,
         actionLabel: actionLabel,
@@ -9907,7 +10129,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       const firstName = rawFullName.split(' ')[0] || rawFullName;
-      showToast('🎉 Profil configuré avec succès !', `Bienvenue ${firstName} ! Votre tableau de bord est prêt.`);
+      showToast(' Profil configuré avec succès !', `Bienvenue ${firstName} ! Votre tableau de bord est prêt.`);
     });
   }
 
@@ -10130,9 +10352,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
           // 2. Mettre à jour le statut is_pro dans profiles
           await supabaseClient.from('profiles').update({ is_pro: true }).eq('id', currentProfileKey);
-          console.log('✅ Abonnement Mobile Money enregistré dans Supabase !');
+          console.log(' Abonnement Mobile Money enregistré dans Supabase !');
         } catch (err) {
-          console.warn('⚠️ Erreur enregistrement abonnement Supabase :', err);
+          console.warn('️ Erreur enregistrement abonnement Supabase :', err);
         }
       }
 
@@ -10145,7 +10367,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderProfile(currentProfileKey);
 
         showToast(
-          '🎉 Abonnement Pro activé sur Supabase !',
+          ' Abonnement Pro activé sur Supabase !',
           `Paiement de ${currentCheckoutPlan.formattedPrice} validé par ${opName} (+226 ${phoneVal}). Statut PRO enregistré dans la base.`
         );
       }, 1000);
@@ -10212,13 +10434,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Garde-fou 1 : Si une initialisation est déjà en cours pour cet utilisateur, on évite le doublon
     if (isSessionInitializing && currentSessionInitializedUserId === user.id && !force) {
-      console.log('🌾 Initialisation déjà en cours pour cet utilisateur, saut du doublon.');
+      console.log(' Initialisation déjà en cours pour cet utilisateur, saut du doublon.');
       return;
     }
 
     // Garde-fou 2 : Si l'utilisateur est déjà complètement initialisé et actif
     if (currentSessionInitializedUserId === user.id && currentProfileKey === user.id && !force) {
-      console.log('🌾 Utilisateur déjà actif et initialisé, mise à jour des métadonnées uniquement.');
+      console.log(' Utilisateur déjà actif et initialisé, mise à jour des métadonnées uniquement.');
       currentAuthUser = user;
       return;
     }
@@ -10241,7 +10463,7 @@ document.addEventListener('DOMContentLoaded', () => {
             profile = data;
           }
         } catch (err) {
-          console.warn('⚠️ Erreur recherche profil Supabase :', err);
+          console.warn('️ Erreur recherche profil Supabase :', err);
         }
       }
 
@@ -10284,17 +10506,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const fullName = userData.name || userData.full_name || 'Exploitant';
     const cleanFirstName = fullName.trim().split(' ')[0] || fullName;
     const phoneOrContact = userData.phone || userData.contact || '+226 70 12 34 56';
-    const loc = userData.location || '📍 Koudougou (Boulkiemdé)';
+    const loc = userData.location || ' Koudougou (Boulkiemdé)';
 
     // Création ou mise à jour du profil dans PROFILES_DATA
     PROFILES_DATA[pKey] = {
       id: pKey,
       name: fullName,
       metaRole: userData.metaRole || userData.meta_role || 'Maraîcher & Céréalier',
-      location: loc.startsWith('📍') ? loc : `📍 ${loc}`,
+      location: loc.startsWith('') ? loc : ` ${loc}`,
       avatar: userData.avatar || userData.avatar_url || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&h=120&q=80',
       actionLabel: 'Ajouter une dépense',
-      greeting: `Bonjour, ${cleanFirstName} <span class="greeting-emoji">🌱</span>`,
+      greeting: `Bonjour, ${cleanFirstName} <span class="greeting-emoji"></span>`,
       subtitle: 'Voici l\'essentiel pour votre exploitation aujourd\'hui.',
       isAdmin: !!userData.isAdmin || !!userData.is_admin,
       hasExploitation: userData.hasExploitation !== false,
@@ -10318,7 +10540,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!roleSelector.querySelector(`option[value="${pKey}"]`)) {
         const opt = document.createElement('option');
         opt.value = pKey;
-        opt.textContent = `👤 ${fullName}`;
+        opt.textContent = ` ${fullName}`;
         roleSelector.appendChild(opt);
       }
       roleSelector.value = pKey;
@@ -10349,7 +10571,7 @@ document.addEventListener('DOMContentLoaded', () => {
     currentExpenseTotal = 0;
     currentRevenueTotal = 0;
 
-    // Rendu complet avec salutation personnalisée ("Bonjour, Fabrice 🌱")
+    // Rendu complet avec salutation personnalisée ("Bonjour, Fabrice ")
     renderProfile(pKey);
     await fetchFinancements();
     await syncFinancialsFromSupabase(pKey);
@@ -10422,7 +10644,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (btnGoogleAuth) {
     btnGoogleAuth.addEventListener('click', async () => {
       if (!supabaseClient) {
-        showToast('⚠️ Service indisponible', 'Connexion Supabase non initialisée.');
+        showToast('️ Service indisponible', 'Connexion Supabase non initialisée.');
         return;
       }
       try {
@@ -10449,12 +10671,12 @@ document.addEventListener('DOMContentLoaded', () => {
       const password = portalRegPassword ? portalRegPassword.value : '';
 
       if (!rawContact || !password) {
-        showToast('⚠️ Champs requis', 'Veuillez saisir votre numéro (+226) ou email et un mot de passe.');
+        showToast('️ Champs requis', 'Veuillez saisir votre numéro (+226) ou email et un mot de passe.');
         return;
       }
 
       if (password.length < 6) {
-        showToast('⚠️ Mot de passe court', 'Le mot de passe doit comporter au moins 6 caractères.');
+        showToast('️ Mot de passe court', 'Le mot de passe doit comporter au moins 6 caractères.');
         return;
       }
 
@@ -10485,7 +10707,7 @@ document.addEventListener('DOMContentLoaded', () => {
           }
 
           if (error) {
-            showToast('⚠️ Erreur création', error.message || 'Impossible de créer ce compte.');
+            showToast('️ Erreur création', error.message || 'Impossible de créer ce compte.');
             return;
           }
 
@@ -10526,7 +10748,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const password = portalLoginPass ? portalLoginPass.value : '';
 
       if (!rawContact || !password) {
-        showToast('⚠️ Champs requis', 'Veuillez renseigner votre numéro ou email et votre mot de passe.');
+        showToast('️ Champs requis', 'Veuillez renseigner votre numéro ou email et votre mot de passe.');
         return;
       }
 
@@ -10551,7 +10773,7 @@ document.addEventListener('DOMContentLoaded', () => {
           }
 
           if (error) {
-            showToast('⚠️ Erreur connexion', error.message || 'Identifiant ou mot de passe incorrect.');
+            showToast('️ Erreur connexion', error.message || 'Identifiant ou mot de passe incorrect.');
             return;
           }
 
@@ -10575,7 +10797,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // 7. Écouteur des changements d'état d'authentification Supabase (OAuth redirect etc.)
   if (supabaseClient) {
     supabaseClient.auth.onAuthStateChange(async (event, session) => {
-      console.log('🌾 [Supabase Auth Event]', event, session?.user?.email);
+      console.log(' [Supabase Auth Event]', event, session?.user?.email);
       if (event === 'SIGNED_OUT') {
         currentSessionInitializedUserId = null;
         isSessionInitializing = false;
@@ -10772,7 +10994,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
     } catch (e) {
-      console.warn('⚠️ checkAndGenerateWeatherAlert :', e);
+      console.warn('️ checkAndGenerateWeatherAlert :', e);
     }
   }
 
@@ -10786,7 +11008,7 @@ document.addEventListener('DOMContentLoaded', () => {
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.warn('⚠️ Erreur fetchNotifications :', error);
+        console.warn('️ Erreur fetchNotifications :', error);
         return;
       }
 
@@ -10836,7 +11058,7 @@ document.addEventListener('DOMContentLoaded', () => {
           lu_le: new Date().toISOString()
         });
       } catch (e) {
-        console.warn('⚠️ Erreur marquage notif lue :', e);
+        console.warn('️ Erreur marquage notif lue :', e);
       }
     }
   }
@@ -10867,7 +11089,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }));
         await supabaseClient.from('notifications_lues').upsert(rows);
       } catch (e) {
-        console.warn('⚠️ Erreur markAllNotificationsAsRead Supabase :', e);
+        console.warn('️ Erreur markAllNotificationsAsRead Supabase :', e);
       }
     }
   }
@@ -10881,7 +11103,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (filtered.length === 0) {
       container.innerHTML = `
         <div class="notif-empty-state">
-          <div class="notif-empty-icon">🔔</div>
+          <div class="notif-empty-icon"></div>
           <h3 class="notif-empty-title">Aucune notification pour le moment</h3>
           <p class="notif-empty-sub">Vous recevrez ici les nouvelles subventions ministérielles, les échéances de dépôt, les conseils de saison et les alertes météo en direct.</p>
         </div>
@@ -10890,13 +11112,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const iconsByType = {
-      financement: '🌱',
+      financement: '',
       date_limite: '⏳',
-      conseil: '💡',
-      meteo: '🌦️',
-      info: '📢',
-      agronomique: '🌾',
-      tache: '📋'
+      conseil: '',
+      meteo: '️',
+      info: '',
+      agronomique: '',
+      tache: ''
     };
 
     const labelsByType = {
@@ -10911,7 +11133,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     container.innerHTML = filtered.map(notif => {
       const isRead = currentReadNotifIds.has(notif.id);
-      const icon = iconsByType[notif.type] || '🔔';
+      const icon = iconsByType[notif.type] || '';
       const tag = labelsByType[notif.type] || notif.type;
       const timeStr = formatRelativeTime(notif.created_at);
 
@@ -10954,13 +11176,13 @@ document.addEventListener('DOMContentLoaded', () => {
   function getMobileNotificationsHtml() {
     const filtered = getFilteredNotifications();
     const iconsByType = {
-      financement: '🌱',
+      financement: '',
       date_limite: '⏳',
-      conseil: '💡',
-      meteo: '🌦️',
-      info: '📢',
-      agronomique: '🌾',
-      tache: '📋'
+      conseil: '',
+      meteo: '️',
+      info: '',
+      agronomique: '',
+      tache: ''
     };
 
     const labelsByType = {
@@ -10977,7 +11199,7 @@ document.addEventListener('DOMContentLoaded', () => {
       <div style="padding: 12px 14px 40px;">
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
           <div>
-            <h2 style="font-size: 18px; font-weight: 800; color: var(--primary-900); margin: 0;">🔔 Notifications</h2>
+            <h2 style="font-size: 18px; font-weight: 800; color: var(--primary-900); margin: 0;"> Notifications</h2>
             <span style="font-size: 11.5px; color: var(--text-dim);">Alertes & Opportunités réelles</span>
           </div>
           <button type="button" class="btn-secondary" id="btnMobileMarkAllRead" style="font-size: 11.5px; padding: 6px 10px;">
@@ -10987,7 +11209,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         ${filtered.length === 0 ? `
           <div class="notif-empty-state" style="padding: 40px 16px;">
-            <div class="notif-empty-icon" style="font-size: 36px;">🔔</div>
+            <div class="notif-empty-icon" style="font-size: 36px;"></div>
             <h3 class="notif-empty-title" style="font-size: 15px;">Aucune notification</h3>
             <p class="notif-empty-sub" style="font-size: 12px;">Vos alertes de financements, météo et conseils apparaîtront ici.</p>
           </div>
@@ -10995,7 +11217,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <div style="display: flex; flex-direction: column; gap: 10px;">
             ${filtered.map(notif => {
               const isRead = currentReadNotifIds.has(notif.id);
-              const icon = iconsByType[notif.type] || '🔔';
+              const icon = iconsByType[notif.type] || '';
               const tag = labelsByType[notif.type] || notif.type;
               const timeStr = formatRelativeTime(notif.created_at);
               return `
@@ -11043,20 +11265,20 @@ document.addEventListener('DOMContentLoaded', () => {
   // ==========================================
 
   const MATERIEL_CATEGORIES_META = {
-    'pompes-forages': { label: 'Pompes & Forages', icon: '💧' },
-    'energie-solaire': { label: 'Énergie Solaire', icon: '☀️' },
-    'irrigation': { label: 'Irrigation', icon: '🌱' },
-    'kits-maraichage': { label: 'Kits Maraîchage', icon: '🥬' },
-    'outils-accessoires': { label: 'Outils & Accessoires', icon: '🔧' },
-    'intrants': { label: 'Intrants certifiés', icon: '📦' },
-    'services': { label: 'Services & Réparations', icon: '🛠️' }
+    'pompes-forages': { label: 'Pompes & Forages', icon: '' },
+    'energie-solaire': { label: 'Énergie Solaire', icon: '️' },
+    'irrigation': { label: 'Irrigation', icon: '' },
+    'kits-maraichage': { label: 'Kits Maraîchage', icon: '' },
+    'outils-accessoires': { label: 'Outils & Accessoires', icon: '' },
+    'intrants': { label: 'Intrants certifiés', icon: '' },
+    'services': { label: 'Services & Réparations', icon: '️' }
   };
 
   const MATERIEL_TYPES_META = {
-    vente: { label: 'Vente', icon: '🏷️' },
+    vente: { label: 'Vente', icon: '️' },
     location: { label: 'Location', icon: '⏱️' },
-    installation: { label: 'Installation', icon: '⚡' },
-    reparation: { label: 'Réparation', icon: '🧰' }
+    installation: { label: 'Installation', icon: '' },
+    reparation: { label: 'Réparation', icon: '' }
   };
 
   // Nettoyage et normalisation des numéros WhatsApp burkinabè (évite tout doublon avec l'indicatif 226)
@@ -11134,7 +11356,7 @@ document.addEventListener('DOMContentLoaded', () => {
         uploadPayload = new Blob([blobOrFile], { type: contentType });
       }
     } catch (conversionErr) {
-      console.warn('⚠️ Conversion Blob uploadMaterielPhoto :', conversionErr);
+      console.warn('️ Conversion Blob uploadMaterielPhoto :', conversionErr);
       uploadPayload = blobOrFile;
     }
 
@@ -11170,7 +11392,7 @@ document.addEventListener('DOMContentLoaded', () => {
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.warn('⚠️ Erreur fetchMateriels Supabase :', error);
+        console.warn('️ Erreur fetchMateriels Supabase :', error);
         return;
       }
 
@@ -11184,7 +11406,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderMobileView();
       }
     } catch (err) {
-      console.warn('⚠️ Erreur réseau fetchMateriels :', err);
+      console.warn('️ Erreur réseau fetchMateriels :', err);
     }
   }
 
@@ -11251,8 +11473,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (emptyState) emptyState.classList.add('hidden');
 
     grid.innerHTML = list.map(item => {
-      const catMeta = MATERIEL_CATEGORIES_META[item.categorie] || { label: item.categorie || 'Matériel', icon: '🚜' };
-      const typeMeta = MATERIEL_TYPES_META[item.type_offre] || { label: item.type_offre || 'Offre', icon: '🏷️' };
+      const catMeta = MATERIEL_CATEGORIES_META[item.categorie] || { label: item.categorie || 'Matériel', icon: '' };
+      const typeMeta = MATERIEL_TYPES_META[item.type_offre] || { label: item.type_offre || 'Offre', icon: '️' };
       const photos = Array.isArray(item.photos) ? item.photos : [];
       const mainPhoto = photos.length > 0 ? photos[0] : '';
 
@@ -11276,14 +11498,14 @@ document.addEventListener('DOMContentLoaded', () => {
             ` : ''}
             <span class="materiel-badge-type">${typeMeta.icon} ${typeMeta.label}</span>
             ${photos.length > 1 ? `
-              <span class="materiel-badge-photo-count">📷 ${photos.length}</span>
+              <span class="materiel-badge-photo-count"> ${photos.length}</span>
             ` : ''}
           </div>
           <div class="materiel-card-body">
             <div class="materiel-card-cat-line">
               <span class="materiel-card-cat">${catMeta.icon} ${catMeta.label}</span>
               ${item.badge_certifie ? `
-                <span class="materiel-badge-cert">🛡️ Fournisseur certifié</span>
+                <span class="materiel-badge-cert">️ Fournisseur certifié</span>
               ` : ''}
             </div>
             <h3 class="materiel-card-title">${escapeHtml(item.nom)}</h3>
@@ -11294,7 +11516,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 ${item.unite ? `<span class="materiel-card-unit">${escapeHtml(item.unite)}</span>` : ''}
               </div>
               <span class="materiel-card-loc" title="${escapeHtml(item.fournisseur_ville || 'Burkina Faso')}">
-                📍 ${escapeHtml(item.fournisseur_ville || 'Burkina Faso')}
+                 ${escapeHtml(item.fournisseur_ville || 'Burkina Faso')}
               </span>
             </div>
           </div>
@@ -11330,13 +11552,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnPhone = document.getElementById('btnMatPhoneCall');
     const phoneText = document.getElementById('matDetailPhoneText');
 
-    const catMeta = MATERIEL_CATEGORIES_META[item.categorie] || { label: item.categorie || 'Matériel', icon: '🚜' };
-    const typeMeta = MATERIEL_TYPES_META[item.type_offre] || { label: item.type_offre || 'Vente', icon: '🏷️' };
+    const catMeta = MATERIEL_CATEGORIES_META[item.categorie] || { label: item.categorie || 'Matériel', icon: '' };
+    const typeMeta = MATERIEL_TYPES_META[item.type_offre] || { label: item.type_offre || 'Vente', icon: '️' };
 
     if (bType) bType.textContent = `${typeMeta.icon} ${typeMeta.label}`;
     if (bCert) {
       if (item.badge_certifie) {
-        bCert.textContent = '🛡️ Fournisseur certifié';
+        bCert.textContent = '️ Fournisseur certifié';
         bCert.classList.remove('hidden');
       } else {
         bCert.classList.add('hidden');
@@ -11482,7 +11704,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (list.length === 0) {
       listContainer.innerHTML = `
         <div class="financements-empty-state" style="padding: 30px;">
-          <div class="empty-state-icon">🚜</div>
+          <div class="empty-state-icon"></div>
           <h3>Aucun produit trouvé</h3>
           <p>Cliquez sur « + Ajouter un produit » pour enregistrer une offre de matériel ou service.</p>
         </div>
@@ -11493,8 +11715,8 @@ document.addEventListener('DOMContentLoaded', () => {
     listContainer.innerHTML = list.map(item => {
       const photos = Array.isArray(item.photos) ? item.photos : [];
       const thumb = photos.length > 0 ? photos[0] : '';
-      const catMeta = MATERIEL_CATEGORIES_META[item.categorie] || { label: item.categorie || 'Matériel', icon: '🚜' };
-      const typeMeta = MATERIEL_TYPES_META[item.type_offre] || { label: item.type_offre || 'Vente', icon: '🏷️' };
+      const catMeta = MATERIEL_CATEGORIES_META[item.categorie] || { label: item.categorie || 'Matériel', icon: '' };
+      const typeMeta = MATERIEL_TYPES_META[item.type_offre] || { label: item.type_offre || 'Vente', icon: '️' };
 
       let priceDisplay = 'Prix sur demande';
       if (item.prix_texte && item.prix_texte.trim() !== '') {
@@ -11513,18 +11735,18 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="admin-materiel-info">
             <div class="admin-materiel-header">
               <span class="admin-status-pill ${item.statut}">
-                ${item.statut === 'en_attente' ? '⏳ En attente' : (item.statut === 'publie' ? '✅ Publié' : '📦 Retiré')}
+                ${item.statut === 'en_attente' ? '⏳ En attente' : (item.statut === 'publie' ? ' Publié' : ' Retiré')}
               </span>
               <span class="fin-badge-type">${typeMeta.icon} ${typeMeta.label}</span>
               <span style="font-size: 11.5px; color: var(--text-dim);">${catMeta.icon} ${catMeta.label}</span>
               ${item.mis_en_avant ? '<span class="badge-urgent-pulse" style="font-size: 10px;">⭐ Mis en avant</span>' : ''}
-              ${item.badge_certifie ? '<span class="materiel-badge-cert" style="font-size: 10px;">🛡️ Certifié</span>' : ''}
+              ${item.badge_certifie ? '<span class="materiel-badge-cert" style="font-size: 10px;">️ Certifié</span>' : ''}
             </div>
             <h4 class="admin-materiel-title">${escapeHtml(item.nom)}</h4>
             <div class="admin-materiel-meta">
               <span><strong>Prix :</strong> ${priceDisplay}</span>
               <span>•</span>
-              <span><strong>Fournisseur :</strong> ${escapeHtml(item.fournisseur_nom)} (📍 ${escapeHtml(item.fournisseur_ville)})</span>
+              <span><strong>Fournisseur :</strong> ${escapeHtml(item.fournisseur_nom)} ( ${escapeHtml(item.fournisseur_ville)})</span>
               <span>•</span>
               <span><strong>WhatsApp :</strong> +226 ${escapeHtml(sanitizeBurkinaPhone(item.fournisseur_whatsapp))}</span>
             </div>
@@ -11532,15 +11754,15 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="admin-materiel-actions">
             ${item.statut !== 'publie' ? `
               <button type="button" class="btn-admin-action btn-admin-publish btn-mat-publish" data-id="${item.id}" title="Publier immédiatement cette fiche">
-                ✅ Publier
+                 Publier
               </button>
             ` : ''}
             <button type="button" class="btn-admin-action btn-admin-edit btn-mat-edit" data-id="${item.id}" title="Modifier cette fiche">
-              ✏️ Modifier
+              ️ Modifier
             </button>
             ${item.statut !== 'retire' ? `
               <button type="button" class="btn-admin-action btn-admin-withdraw btn-mat-withdraw" data-id="${item.id}" title="Retirer cette fiche du public">
-                🚫 Retirer
+                 Retirer
               </button>
             ` : ''}
           </div>
@@ -11584,7 +11806,7 @@ document.addEventListener('DOMContentLoaded', () => {
         .eq('id', id);
 
       if (error) {
-        showToast('⚠️ Erreur', error.message || 'Impossible de mettre à jour le statut.');
+        showToast('️ Erreur', error.message || 'Impossible de mettre à jour le statut.');
         return;
       }
 
@@ -11707,7 +11929,7 @@ document.addEventListener('DOMContentLoaded', () => {
   async function handleSaveMateriel(e) {
     e.preventDefault();
     if (!supabaseClient) {
-      showToast('⚠️ Erreur', 'Connexion Supabase non disponible.');
+      showToast('️ Erreur', 'Connexion Supabase non disponible.');
       return;
     }
 
@@ -11834,7 +12056,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const fullErrorMsg = errorDetail 
         ? `Impossible d'enregistrer le produit : ${errorDetail}`
         : 'Impossible d\'enregistrer le produit.';
-      showToast('⚠️ Erreur', fullErrorMsg);
+      showToast('️ Erreur', fullErrorMsg);
     } finally {
       if (submitBtn) submitBtn.disabled = false;
       if (submitBtnText) submitBtnText.textContent = prevText;
@@ -11853,13 +12075,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const categoriesList = [
       { key: 'all', label: 'Toutes' },
-      { key: 'pompes-forages', label: '💧 Pompes' },
-      { key: 'energie-solaire', label: '☀️ Solaire' },
-      { key: 'irrigation', label: '🌱 Irrigation' },
-      { key: 'kits-maraichage', label: '🥬 Kits' },
-      { key: 'outils-accessoires', label: '🔧 Outils' },
-      { key: 'intrants', label: '📦 Intrants' },
-      { key: 'services', label: '🛠️ Services' }
+      { key: 'pompes-forages', label: ' Pompes' },
+      { key: 'energie-solaire', label: '️ Solaire' },
+      { key: 'irrigation', label: ' Irrigation' },
+      { key: 'kits-maraichage', label: ' Kits' },
+      { key: 'outils-accessoires', label: ' Outils' },
+      { key: 'intrants', label: ' Intrants' },
+      { key: 'services', label: '️ Services' }
     ];
 
     return `
@@ -11868,7 +12090,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
           <span>Tableau de bord</span>
         </a>
-        <h2 style="font-size: 20px; font-weight: 800; color: #1E2822; margin: 0 0 2px;">🚜 Matériel & Services</h2>
+        <h2 style="font-size: 20px; font-weight: 800; color: #1E2822; margin: 0 0 2px;"> Matériel & Services</h2>
         <p style="font-size: 12px; color: #5B6660; margin: 0;">${list.length} équipement${list.length > 1 ? 's' : ''} et service${list.length > 1 ? 's' : ''} vérifié${list.length > 1 ? 's' : ''}</p>
       </div>
 
@@ -11891,8 +12113,8 @@ document.addEventListener('DOMContentLoaded', () => {
         ` : list.map(item => {
           const photos = Array.isArray(item.photos) ? item.photos : [];
           const thumb = photos.length > 0 ? photos[0] : '';
-          const catMeta = MATERIEL_CATEGORIES_META[item.categorie] || { label: item.categorie || 'Matériel', icon: '🚜' };
-          const typeMeta = MATERIEL_TYPES_META[item.type_offre] || { label: item.type_offre || 'Vente', icon: '🏷️' };
+          const catMeta = MATERIEL_CATEGORIES_META[item.categorie] || { label: item.categorie || 'Matériel', icon: '' };
+          const typeMeta = MATERIEL_TYPES_META[item.type_offre] || { label: item.type_offre || 'Vente', icon: '️' };
 
           let priceDisplay = 'Prix sur demande';
           if (item.prix_texte && item.prix_texte.trim() !== '') {
@@ -11912,11 +12134,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div style="flex: 1; min-width: 0;">
                   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
                     <span style="font-size: 10.5px; font-weight: 700; color: #1E5E2A;">${catMeta.icon} ${typeMeta.label}</span>
-                    ${item.badge_certifie ? '<span style="font-size: 9.5px; font-weight: 700; color: #1E5E2A; background: #EAF4E6; padding: 1px 5px; border-radius: 4px;">🛡️ Certifié</span>' : ''}
+                    ${item.badge_certifie ? '<span style="font-size: 9.5px; font-weight: 700; color: #1E5E2A; background: #EAF4E6; padding: 1px 5px; border-radius: 4px;">️ Certifié</span>' : ''}
                   </div>
                   <h4 style="font-size: 13.5px; font-weight: 800; color: #141A15; margin: 2px 0 4px; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHtml(item.nom)}</h4>
                   <div style="font-size: 13.5px; font-weight: 800; color: #1E5E2A; font-family: 'JetBrains Mono', monospace;">${priceDisplay}</div>
-                  <div style="font-size: 11px; color: #6B776D; margin-top: 2px;">📍 ${escapeHtml(item.fournisseur_ville || 'Burkina Faso')}</div>
+                  <div style="font-size: 11px; color: #6B776D; margin-top: 2px;"> ${escapeHtml(item.fournisseur_ville || 'Burkina Faso')}</div>
                 </div>
               </div>
             </div>
@@ -11945,7 +12167,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </a>
         <div style="display: flex; justify-content: space-between; align-items: center;">
           <div>
-            <h2 style="font-size: 18px; font-weight: 800; color: #1E2822; margin: 0 0 2px;">🛡️ Administration</h2>
+            <h2 style="font-size: 18px; font-weight: 800; color: #1E2822; margin: 0 0 2px;">️ Administration</h2>
             <p style="font-size: 11.5px; color: #5B6660; margin: 0;">Gérer le matériel & services</p>
           </div>
           <button type="button" class="btn-primary" id="btnMobileOpenAddMateriel" style="padding: 8px 12px; font-size: 12px; font-weight: 700; border-radius: 8px; cursor: pointer;">+ Ajouter</button>
@@ -11978,7 +12200,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="admin-fin-content">
               <div class="admin-fin-header-row">
                 <span class="admin-status-pill ${item.statut}">
-                  ${item.statut === 'en_attente' ? '⏳ En attente' : (item.statut === 'publie' ? '✅ Publié' : '📦 Retiré')}
+                  ${item.statut === 'en_attente' ? '⏳ En attente' : (item.statut === 'publie' ? ' Publié' : ' Retiré')}
                 </span>
                 <span style="font-size: 11px; color: #1E5E2A; font-weight: 700;">${item.type_offre}</span>
               </div>
@@ -11990,12 +12212,12 @@ document.addEventListener('DOMContentLoaded', () => {
               </div>
             </div>
             <div class="admin-actions-group" style="margin-top: 8px; display: flex; gap: 6px; width: 100%;">
-              <button type="button" class="btn-admin-action btn-admin-edit btn-mobile-mat-edit" data-id="${item.id}" style="flex: 1; justify-content: center;">✏️ Modifier</button>
+              <button type="button" class="btn-admin-action btn-admin-edit btn-mobile-mat-edit" data-id="${item.id}" style="flex: 1; justify-content: center;">️ Modifier</button>
               ${item.statut !== 'publie' ? `
-                <button type="button" class="btn-admin-action btn-admin-publish btn-mobile-mat-publish" data-id="${item.id}" style="flex: 1; justify-content: center;">✅ Publier</button>
+                <button type="button" class="btn-admin-action btn-admin-publish btn-mobile-mat-publish" data-id="${item.id}" style="flex: 1; justify-content: center;"> Publier</button>
               ` : ''}
               ${item.statut !== 'retire' ? `
-                <button type="button" class="btn-admin-action btn-admin-archive btn-mobile-mat-withdraw" data-id="${item.id}" style="flex: 1; justify-content: center;">🚫 Retirer</button>
+                <button type="button" class="btn-admin-action btn-admin-archive btn-mobile-mat-withdraw" data-id="${item.id}" style="flex: 1; justify-content: center;"> Retirer</button>
               ` : ''}
             </div>
           </div>
@@ -12193,12 +12415,12 @@ document.addEventListener('DOMContentLoaded', () => {
   // ==========================================
 
   const ANNONCES_CATEGORIES_META = {
-    'cereales': { label: 'Céréales', icon: '🌽' },
-    'legumes': { label: 'Légumes & Maraîchage', icon: '🍅' },
-    'fruits': { label: 'Fruits', icon: '🥭' },
-    'oleagineux': { label: 'Oléagineux', icon: '🥜' },
-    'betail-volaille': { label: 'Bétail & Volaille', icon: '🐂' },
-    'autres': { label: 'Autres produits', icon: '📦' }
+    'cereales': { label: 'Céréales', icon: '' },
+    'legumes': { label: 'Légumes & Maraîchage', icon: '' },
+    'fruits': { label: 'Fruits', icon: '' },
+    'oleagineux': { label: 'Oléagineux', icon: '' },
+    'betail-volaille': { label: 'Bétail & Volaille', icon: '' },
+    'autres': { label: 'Autres produits', icon: '' }
   };
 
   function formatAnnonceRelativeDate(dateStr) {
@@ -12283,7 +12505,7 @@ document.addEventListener('DOMContentLoaded', () => {
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.warn('⚠️ Erreur fetchAnnonces Supabase :', error);
+        console.warn('️ Erreur fetchAnnonces Supabase :', error);
         return;
       }
 
@@ -12298,7 +12520,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderMobileView();
       }
     } catch (err) {
-      console.warn('⚠️ Erreur fetchAnnonces :', err);
+      console.warn('️ Erreur fetchAnnonces :', err);
     }
   }
 
@@ -12315,7 +12537,7 @@ document.addEventListener('DOMContentLoaded', () => {
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.warn('⚠️ Erreur fetchSignalements Supabase :', error);
+        console.warn('️ Erreur fetchSignalements Supabase :', error);
         return;
       }
 
@@ -12325,7 +12547,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderAdminQueuePage();
       }
     } catch (err) {
-      console.warn('⚠️ Erreur fetchSignalements :', err);
+      console.warn('️ Erreur fetchSignalements :', err);
     }
   }
 
@@ -12435,7 +12657,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (emptyState) emptyState.classList.add('hidden');
 
     grid.innerHTML = list.map(item => {
-      const catMeta = ANNONCES_CATEGORIES_META[item.categorie] || { label: item.categorie || 'Autre', icon: '📦' };
+      const catMeta = ANNONCES_CATEGORIES_META[item.categorie] || { label: item.categorie || 'Autre', icon: '' };
       const photos = Array.isArray(item.photos) ? item.photos : [];
       const mainPhoto = photos.length > 0 ? photos[0] : '';
 
@@ -12456,11 +12678,11 @@ document.addEventListener('DOMContentLoaded', () => {
               <div class="annonce-placeholder-icon">${catMeta.icon}</div>
             `}
             <span class="annonce-card-type-badge ${item.type === 'vente' ? 'annonce-type-vente' : 'annonce-type-achat'}">
-              ${item.type === 'vente' ? '🌾 Vente' : '🔍 Recherche'}
+              ${item.type === 'vente' ? ' Vente' : ' Recherche'}
             </span>
             <span class="annonce-card-cat-pill">${catMeta.icon} ${catMeta.label}</span>
             ${photos.length > 1 ? `
-              <span class="annonce-card-photos-count">📷 ${photos.length}</span>
+              <span class="annonce-card-photos-count"> ${photos.length}</span>
             ` : ''}
           </div>
           <div class="annonce-card-body">
@@ -12470,11 +12692,11 @@ document.addEventListener('DOMContentLoaded', () => {
               ${item.prix_negociable ? '<span class="annonce-card-nego-tag">Négociable</span>' : ''}
             </div>
             <div class="annonce-card-qty-row">
-              <span>📦 Quantité :</span>
+              <span> Quantité :</span>
               <strong>${item.quantite} ${escapeHtml(item.unite || '')}</strong>
             </div>
             <div class="annonce-card-footer">
-              <span class="annonce-card-location">📍 ${escapeHtml(item.commune || 'Burkina Faso')} (${escapeHtml(item.region || '')})</span>
+              <span class="annonce-card-location"> ${escapeHtml(item.commune || 'Burkina Faso')} (${escapeHtml(item.region || '')})</span>
               <span>${formatAnnonceRelativeDate(item.created_at)}</span>
             </div>
           </div>
@@ -12508,7 +12730,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (emptyState) emptyState.classList.add('hidden');
 
     listContainer.innerHTML = myAds.map(item => {
-      const catMeta = ANNONCES_CATEGORIES_META[item.categorie] || { label: item.categorie || 'Autre', icon: '📦' };
+      const catMeta = ANNONCES_CATEGORIES_META[item.categorie] || { label: item.categorie || 'Autre', icon: '' };
       const photos = Array.isArray(item.photos) ? item.photos : [];
       const thumb = photos.length > 0 ? photos[0] : '';
 
@@ -12540,7 +12762,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="mes-annonce-info">
             <div class="mes-annonce-title-row">
               <span class="status-badge ${statusBadgeClass}">${statusLabel}</span>
-              <span style="font-size: 11.5px; font-weight: 700; color: #1E5E2A;">${item.type === 'vente' ? '🌾 Vente' : '🔍 Recherche'}</span>
+              <span style="font-size: 11.5px; font-weight: 700; color: #1E5E2A;">${item.type === 'vente' ? ' Vente' : ' Recherche'}</span>
               <h4 class="mes-annonce-title">${escapeHtml(item.produit)}</h4>
             </div>
             <div class="mes-annonce-meta">
@@ -12548,20 +12770,20 @@ document.addEventListener('DOMContentLoaded', () => {
               <span>•</span>
               <span style="color: var(--primary-700); font-weight: 700;">${priceDisplay}</span>
               <span>•</span>
-              <span>📍 ${escapeHtml(item.commune || '')} (${escapeHtml(item.region || '')})</span>
+              <span> ${escapeHtml(item.commune || '')} (${escapeHtml(item.region || '')})</span>
               <span>•</span>
               <span style="font-style: italic;">${formatAnnonceExpiryInfo(item.date_expiration, item.statut)}</span>
             </div>
           </div>
           <div class="mes-annonce-actions">
-            <button type="button" class="btn-secondary btn-mes-edit" data-id="${item.id}" style="padding: 6px 12px; font-size: 12px;">✏️ Modifier</button>
+            <button type="button" class="btn-secondary btn-mes-edit" data-id="${item.id}" style="padding: 6px 12px; font-size: 12px;">️ Modifier</button>
             ${item.statut === 'active' ? `
-              <button type="button" class="btn-secondary btn-mes-sold" data-id="${item.id}" style="padding: 6px 12px; font-size: 12px; color: #5B21B6; border-color: #DDD6FE;">✅ Marquer vendue</button>
+              <button type="button" class="btn-secondary btn-mes-sold" data-id="${item.id}" style="padding: 6px 12px; font-size: 12px; color: #5B21B6; border-color: #DDD6FE;"> Marquer vendue</button>
             ` : ''}
             ${item.statut === 'expiree' || item.statut === 'vendue' ? `
-              <button type="button" class="btn-primary btn-mes-renew" data-id="${item.id}" style="padding: 6px 12px; font-size: 12px;">🔄 Renouveler (30j)</button>
+              <button type="button" class="btn-primary btn-mes-renew" data-id="${item.id}" style="padding: 6px 12px; font-size: 12px;"> Renouveler (30j)</button>
             ` : ''}
-            <button type="button" class="btn-secondary btn-mes-del" data-id="${item.id}" style="padding: 6px 10px; font-size: 12px; color: #C53030; border-color: #F8D7DA;" title="Supprimer définitivement">🗑️</button>
+            <button type="button" class="btn-secondary btn-mes-del" data-id="${item.id}" style="padding: 6px 10px; font-size: 12px; color: #C53030; border-color: #F8D7DA;" title="Supprimer définitivement">️</button>
           </div>
         </div>
       `;
@@ -12627,11 +12849,11 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="signalement-card ${sig.statut !== 'en_attente' ? 'status-traite' : ''}" data-id="${sig.id}">
           <div class="signalement-card-header">
             <div>
-              <span class="signalement-motif-badge">🚩 Motif : ${escapeHtml(sig.motif || 'Signalement')}</span>
+              <span class="signalement-motif-badge"> Motif : ${escapeHtml(sig.motif || 'Signalement')}</span>
               <span style="font-size: 12px; color: #7C8781; margin-left: 8px;">Reçu ${formatAnnonceRelativeDate(sig.created_at)}</span>
             </div>
             <span class="status-badge ${sig.statut === 'en_attente' ? 'status-retiree' : 'status-active'}">
-              ${sig.statut === 'en_attente' ? '⏳ En attente de modération' : (sig.statut === 'traite' ? '✅ Traité (Annonce retirée)' : 'ℹ️ Signalement ignoré')}
+              ${sig.statut === 'en_attente' ? '⏳ En attente de modération' : (sig.statut === 'traite' ? ' Traité (Annonce retirée)' : 'ℹ️ Signalement ignoré')}
             </span>
           </div>
 
@@ -12645,7 +12867,7 @@ document.addEventListener('DOMContentLoaded', () => {
             ${thumb ? `
               <img src="${thumb}" alt="Aperçu" style="width: 56px; height: 56px; border-radius: 8px; object-fit: cover;">
             ` : `
-              <div style="width: 56px; height: 56px; border-radius: 8px; background: #E8ECE6; display: flex; align-items: center; justify-content: center; font-size: 22px;">🌾</div>
+              <div style="width: 56px; height: 56px; border-radius: 8px; background: #E8ECE6; display: flex; align-items: center; justify-content: center; font-size: 22px;"></div>
             `}
             <div style="flex: 1; min-width: 0;">
               <strong style="font-size: 14px; color: #141A15; display: block;">${escapeHtml(annonce?.produit || 'Annonce supprimée ou introuvable')}</strong>
@@ -12660,12 +12882,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
           <div class="signalement-actions-bar">
             ${annonce ? `
-              <button type="button" class="btn-secondary btn-sig-view" data-ann-id="${annonce.id}" style="padding: 6px 12px; font-size: 12px;">👁️ Voir l'annonce</button>
+              <button type="button" class="btn-secondary btn-sig-view" data-ann-id="${annonce.id}" style="padding: 6px 12px; font-size: 12px;">️ Voir l'annonce</button>
             ` : ''}
             ${sig.statut === 'en_attente' ? `
               <button type="button" class="btn-secondary btn-sig-ignore" data-sig-id="${sig.id}" style="padding: 6px 12px; font-size: 12px; color: #556358;">Ignorer le signalement</button>
               <button type="button" class="btn-primary btn-sig-withdraw" data-sig-id="${sig.id}" data-ann-id="${sig.annonce_id}" style="padding: 6px 14px; font-size: 12px; background: #C53030; border-color: #C53030;">
-                <span>🚫 Retirer l'annonce du marché</span>
+                <span> Retirer l'annonce du marché</span>
               </button>
             ` : ''}
           </div>
@@ -12715,10 +12937,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnCall = document.getElementById('btnAnnonceCall');
 
     if (bType) {
-      bType.textContent = item.type === 'vente' ? '🌾 À vendre' : '🔍 On cherche';
+      bType.textContent = item.type === 'vente' ? ' À vendre' : ' On cherche';
       bType.className = `fin-detail-type-badge ${item.type === 'vente' ? 'type-subvention' : 'type-appel'}`;
     }
-    if (bReg) bReg.textContent = `📍 ${item.commune || 'Burkina Faso'} (${item.region || ''})`;
+    if (bReg) bReg.textContent = ` ${item.commune || 'Burkina Faso'} (${item.region || ''})`;
     if (dRel) dRel.textContent = `Publiée ${formatAnnonceRelativeDate(item.created_at)}`;
     if (dProd) dProd.textContent = item.produit || 'Produit agricole';
 
@@ -12900,7 +13122,7 @@ document.addEventListener('DOMContentLoaded', () => {
   async function handleSaveAnnonce(e) {
     e.preventDefault();
     if (!supabaseClient) {
-      showToast('⚠️ Erreur', 'Connexion Supabase non disponible.');
+      showToast('️ Erreur', 'Connexion Supabase non disponible.');
       return;
     }
 
@@ -12995,7 +13217,7 @@ document.addEventListener('DOMContentLoaded', () => {
           .insert([payload]);
 
         if (error) throw error;
-        showToast('Annonce publiée ! 🌾', `Votre annonce pour « ${produit} » est maintenant visible sur le Marché.`);
+        showToast('Annonce publiée ! ', `Votre annonce pour « ${produit} » est maintenant visible sur le Marché.`);
       }
 
       closePublishAnnonceModal();
@@ -13019,7 +13241,7 @@ document.addEventListener('DOMContentLoaded', () => {
         .eq('id', id);
 
       if (error) throw error;
-      showToast('Félicitations ! 🎉', 'Votre annonce a été marquée comme vendue.');
+      showToast('Félicitations ! ', 'Votre annonce a été marquée comme vendue.');
       await fetchAnnonces();
     } catch (err) {
       showToast('Erreur', err.message || 'Impossible de mettre à jour le statut.');
@@ -13040,7 +13262,7 @@ document.addEventListener('DOMContentLoaded', () => {
         .eq('id', id);
 
       if (error) throw error;
-      showToast('Annonce renouvelée ! 🔄', 'Votre annonce est réactivée pour 30 jours supplémentaires.');
+      showToast('Annonce renouvelée ! ', 'Votre annonce est réactivée pour 30 jours supplémentaires.');
       await fetchAnnonces();
     } catch (err) {
       showToast('Erreur', err.message || 'Impossible de renouveler l\'annonce.');
@@ -13109,7 +13331,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (error) throw error;
 
-      showToast('Signalement envoyé 🛡️', 'Merci pour votre vigilance. Notre équipe modère les annonces sous 24h.');
+      showToast('Signalement envoyé ️', 'Merci pour votre vigilance. Notre équipe modère les annonces sous 24h.');
       closeSignalerAnnonceModal();
       closeAnnonceDetailsModal();
       await fetchSignalements();
@@ -13179,7 +13401,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </a>
         <div style="display: flex; justify-content: space-between; align-items: center;">
           <div>
-            <h2 style="font-size: 18px; font-weight: 800; color: #1E2822; margin: 0 0 2px;">🌾 Marché Agricole</h2>
+            <h2 style="font-size: 18px; font-weight: 800; color: #1E2822; margin: 0 0 2px;"> Marché Agricole</h2>
             <p style="font-size: 11.5px; color: #5B6660; margin: 0;">Achetez et vendez en direct bord champ</p>
           </div>
           <button type="button" class="btn-primary" id="btnMobileOpenPublishAnnonce" style="padding: 8px 12px; font-size: 12px; font-weight: 700; border-radius: 8px; cursor: pointer;">+ Publier</button>
@@ -13189,11 +13411,11 @@ document.addEventListener('DOMContentLoaded', () => {
       <!-- Onglets Vente vs Achat Mobile -->
       <div class="marche-tabs-container">
         <button type="button" class="marche-main-tab ${marcheActiveType === 'vente' ? 'active' : ''}" id="btnMobileTabVente">
-          <span>🌾 À vendre</span>
+          <span> À vendre</span>
           <span class="marche-tab-count">${cachedAnnonces.filter(a => a.statut === 'active' && a.type === 'vente').length}</span>
         </button>
         <button type="button" class="marche-main-tab ${marcheActiveType === 'achat' ? 'active' : ''}" id="btnMobileTabAchat">
-          <span>🔍 On cherche</span>
+          <span> On cherche</span>
           <span class="marche-tab-count">${cachedAnnonces.filter(a => a.statut === 'active' && a.type === 'achat').length}</span>
         </button>
       </div>
@@ -13205,7 +13427,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <p style="font-weight: 700; font-size: 13px; margin: 0; color: #1E2822;">Aucune annonce trouvée</p>
           </div>
         ` : list.map(item => {
-          const catMeta = ANNONCES_CATEGORIES_META[item.categorie] || { label: item.categorie || 'Autre', icon: '📦' };
+          const catMeta = ANNONCES_CATEGORIES_META[item.categorie] || { label: item.categorie || 'Autre', icon: '' };
           const photos = Array.isArray(item.photos) ? item.photos : [];
           const thumb = photos.length > 0 ? photos[0] : '';
 
@@ -13229,7 +13451,7 @@ document.addEventListener('DOMContentLoaded', () => {
                   </div>
                   <h4 style="font-size: 14px; font-weight: 800; color: #141A15; margin: 2px 0 4px; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHtml(item.produit)}</h4>
                   <div style="font-size: 13.5px; font-weight: 800; color: #1E5E2A; font-family: 'JetBrains Mono', monospace;">${priceDisplay}</div>
-                  <div style="font-size: 11px; color: #556358; margin-top: 2px;">📦 ${item.quantite} ${escapeHtml(item.unite || '')} • 📍 ${escapeHtml(item.commune || '')}</div>
+                  <div style="font-size: 11px; color: #556358; margin-top: 2px;"> ${item.quantite} ${escapeHtml(item.unite || '')} •  ${escapeHtml(item.commune || '')}</div>
                 </div>
               </div>
             </div>
@@ -13251,7 +13473,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </a>
         <div style="display: flex; justify-content: space-between; align-items: center;">
           <div>
-            <h2 style="font-size: 18px; font-weight: 800; color: #1E2822; margin: 0 0 2px;">📋 Mes Annonces</h2>
+            <h2 style="font-size: 18px; font-weight: 800; color: #1E2822; margin: 0 0 2px;"> Mes Annonces</h2>
             <p style="font-size: 11.5px; color: #5B6660; margin: 0;">Gérez vos récoltes et offres</p>
           </div>
           <button type="button" class="btn-primary" id="btnMobileOpenPublishMesAnnonces" style="padding: 8px 12px; font-size: 12px; font-weight: 700; border-radius: 8px; cursor: pointer;">+ Publier</button>
@@ -13274,14 +13496,14 @@ document.addEventListener('DOMContentLoaded', () => {
               ${item.quantite} ${escapeHtml(item.unite || '')} • ${item.prix ? item.prix + ' F CFA' : 'À discuter'}
             </div>
             <div style="display: flex; gap: 6px;">
-              <button type="button" class="btn-secondary btn-mobile-edit-ad" data-id="${item.id}" style="flex: 1; padding: 6px; font-size: 11px; justify-content: center;">✏️ Modifier</button>
+              <button type="button" class="btn-secondary btn-mobile-edit-ad" data-id="${item.id}" style="flex: 1; padding: 6px; font-size: 11px; justify-content: center;">️ Modifier</button>
               ${item.statut === 'active' ? `
-                <button type="button" class="btn-secondary btn-mobile-sold-ad" data-id="${item.id}" style="flex: 1; padding: 6px; font-size: 11px; justify-content: center; color: #5B21B6;">✅ Vendue</button>
+                <button type="button" class="btn-secondary btn-mobile-sold-ad" data-id="${item.id}" style="flex: 1; padding: 6px; font-size: 11px; justify-content: center; color: #5B21B6;"> Vendue</button>
               ` : ''}
               ${item.statut !== 'active' ? `
-                <button type="button" class="btn-primary btn-mobile-renew-ad" data-id="${item.id}" style="flex: 1; padding: 6px; font-size: 11px; justify-content: center;">🔄 30j</button>
+                <button type="button" class="btn-primary btn-mobile-renew-ad" data-id="${item.id}" style="flex: 1; padding: 6px; font-size: 11px; justify-content: center;"> 30j</button>
               ` : ''}
-              <button type="button" class="btn-secondary btn-mobile-del-ad" data-id="${item.id}" style="padding: 6px 10px; font-size: 11px; color: #C53030;">🗑️</button>
+              <button type="button" class="btn-secondary btn-mobile-del-ad" data-id="${item.id}" style="padding: 6px 10px; font-size: 11px; color: #C53030;">️</button>
             </div>
           </div>
         `).join('')}
@@ -13302,7 +13524,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
           <span>Tableau de bord</span>
         </a>
-        <h2 style="font-size: 18px; font-weight: 800; color: #1E2822; margin: 0 0 2px;">🛡️ Modération</h2>
+        <h2 style="font-size: 18px; font-weight: 800; color: #1E2822; margin: 0 0 2px;">️ Modération</h2>
         <p style="font-size: 11.5px; color: #5B6660; margin: 0;">Signalements reçus sur le Marché agricole</p>
       </div>
 
@@ -13316,7 +13538,7 @@ document.addEventListener('DOMContentLoaded', () => {
           return `
             <div style="background: #FFF; border: 1px solid #F5C6CB; border-left: 4px solid #C53030; border-radius: 12px; padding: 12px;">
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-                <span class="signalement-motif-badge" style="font-size: 11px;">🚩 ${escapeHtml(sig.motif)}</span>
+                <span class="signalement-motif-badge" style="font-size: 11px;"> ${escapeHtml(sig.motif)}</span>
                 <span style="font-size: 10.5px; color: #7C8781;">${formatAnnonceRelativeDate(sig.created_at)}</span>
               </div>
               <strong style="font-size: 13.5px; color: #141A15; display: block; margin: 4px 0;">${escapeHtml(annonce?.produit || 'Annonce')}</strong>
@@ -13848,7 +14070,7 @@ document.addEventListener('DOMContentLoaded', () => {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('sw.js')
           .then((registration) => {
-            console.log('🌾 [PWA] Service Worker actif et enregistré avec succès ! Scope :', registration.scope);
+            console.log(' [PWA] Service Worker actif et enregistré avec succès ! Scope :', registration.scope);
 
             // Détection et application automatique des mises à jour au prochain lancement
             registration.addEventListener('updatefound', () => {
@@ -13856,7 +14078,7 @@ document.addEventListener('DOMContentLoaded', () => {
               if (newWorker) {
                 newWorker.addEventListener('statechange', () => {
                   if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                    console.log('🔄 [PWA] Une nouvelle version est prête pour le prochain lancement.');
+                    console.log(' [PWA] Une nouvelle version est prête pour le prochain lancement.');
                     showToast('Mise à jour prête', 'La nouvelle version de l\'application s\'appliquera automatiquement au prochain lancement.');
                   }
                 });
@@ -13864,7 +14086,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
           })
           .catch((err) => {
-            console.warn('⚠️ [PWA] Échec enregistrement Service Worker :', err);
+            console.warn('️ [PWA] Échec enregistrement Service Worker :', err);
           });
 
         // Rechargement transparent lors du changement de contrôleur SW
@@ -13872,7 +14094,7 @@ document.addEventListener('DOMContentLoaded', () => {
         navigator.serviceWorker.addEventListener('controllerchange', () => {
           if (!refreshing) {
             refreshing = true;
-            console.log('🚀 [PWA] Nouveau Service Worker activé.');
+            console.log(' [PWA] Nouveau Service Worker activé.');
           }
         });
       });
@@ -13882,7 +14104,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
       deferredPwaPrompt = e;
-      console.log('📲 [PWA] Invite d\'installation native capturée.');
+      console.log(' [PWA] Invite d\'installation native capturée.');
 
       // Si l'application n'est pas déjà installée, mettre à jour la visibilité
       updatePwaVisibility();
@@ -13891,7 +14113,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 3. Événement appinstalled (Installation terminée -> disparition des boutons)
     window.addEventListener('appinstalled', () => {
-      console.log('🎉 [PWA] Application installée avec succès sur l\'appareil !');
+      console.log(' [PWA] Application installée avec succès sur l\'appareil !');
       showToast('Application installée', 'Retrouvez Révolution Agricole directement sur votre écran d\'accueil.');
       try {
         localStorage.setItem('pwa_installed', '1');
