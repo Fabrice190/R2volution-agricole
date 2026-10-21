@@ -8634,10 +8634,10 @@ document.addEventListener('DOMContentLoaded', () => {
   async function compressImageFile(file, maxWidth = 1200, maxHeight = 1200, quality = 0.8) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
-      reader.onerror = reject;
+      reader.onerror = () => reject(new Error(`Impossible de lire le fichier « ${file?.name || 'image'} »`));
       reader.onload = (e) => {
         const img = new Image();
-        img.onerror = reject;
+        img.onerror = () => reject(new Error(`Impossible de décoder l'image « ${file?.name || 'photo'} » pour compression.`));
         img.onload = () => {
           let width = img.width;
           let height = img.height;
@@ -8658,7 +8658,7 @@ document.addEventListener('DOMContentLoaded', () => {
           canvas.toBlob(
             (blob) => {
               if (blob) resolve(blob);
-              else reject(new Error('Erreur de compression d\'image'));
+              else reject(new Error('Erreur de compression d\'image (Canvas toBlob vide)'));
             },
             'image/jpeg',
             quality
@@ -8675,14 +8675,38 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!supabaseClient) throw new Error('Connexion Supabase non disponible');
     const cleanName = `${Date.now()}_${Math.random().toString(36).substring(2, 9)}.${ext}`;
     const filePath = `photos/${cleanName}`;
+
+    // S'assurer que le blob envoyé vers Supabase Storage a toujours le bon Content-Type strict
+    let uploadPayload = blobOrFile;
+    try {
+      if (typeof blobOrFile.arrayBuffer === 'function') {
+        const arrayBuf = await blobOrFile.arrayBuffer();
+        uploadPayload = new Blob([arrayBuf], { type: contentType });
+      } else if (blobOrFile instanceof Blob && blobOrFile.type !== contentType) {
+        uploadPayload = new Blob([blobOrFile], { type: contentType });
+      }
+    } catch (conversionErr) {
+      console.warn('⚠️ Conversion Blob uploadMaterielPhoto :', conversionErr);
+      uploadPayload = blobOrFile;
+    }
+
     const { error } = await supabaseClient.storage
       .from('materiels')
-      .upload(filePath, blobOrFile, { contentType: contentType, upsert: true });
+      .upload(filePath, uploadPayload, { contentType: contentType, upsert: true });
 
-    if (error) throw error;
+    if (error) {
+      console.error('Erreur Supabase Storage upload :', error);
+      const errDetail = error.message || error.error_description || error.error || JSON.stringify(error);
+      throw new Error(`Erreur Storage (${errDetail})`);
+    }
+
     const { data: publicUrlData } = supabaseClient.storage
       .from('materiels')
       .getPublicUrl(filePath);
+
+    if (!publicUrlData || !publicUrlData.publicUrl) {
+      throw new Error(`Impossible d'obtenir l'URL publique de la photo ${filePath}`);
+    }
 
     return publicUrlData.publicUrl;
   }
@@ -9254,30 +9278,25 @@ document.addEventListener('DOMContentLoaded', () => {
           finalPhotoUrls.push(item.url);
         } else if (item.file) {
           const file = item.file;
-          const isGif = file.type === 'image/gif' || (file.name && file.name.toLowerCase().endsWith('.gif'));
-          let isAnimatedWebp = false;
-          if (file.type === 'image/webp' || (file.name && file.name.toLowerCase().endsWith('.webp'))) {
-            try {
-              const buffer = await file.slice(0, 256).arrayBuffer();
-              const text = new TextDecoder('ascii').decode(new Uint8Array(buffer));
-              if (text.includes('ANIM') || text.includes('ANMF')) {
-                isAnimatedWebp = true;
-              }
-            } catch (e) {
-              console.warn('Erreur détection WebP animé :', e);
-            }
-          }
+          const fileName = (file.name || '').toLowerCase();
+          const fileType = (file.type || '').toLowerCase();
+
+          const isGif = fileType === 'image/gif' || fileName.endsWith('.gif');
+          const isWebp = fileType === 'image/webp' || fileName.endsWith('.webp');
 
           if (isGif) {
-            // Ne pas compresser le GIF : l'envoyer tel quel pour conserver l'animation fluide
+            // Fichier GIF (animé ou fixe) : envoi tel quel sans re-compression pour préserver toutes les frames animées
+            if (submitBtnText) submitBtnText.textContent = 'Envoi du GIF animé…';
             const uploadedUrl = await uploadMaterielPhoto(file, 'image/gif', 'gif');
             finalPhotoUrls.push(uploadedUrl);
-          } else if (isAnimatedWebp) {
-            // Ne pas compresser le WebP animé : l'envoyer tel quel
+          } else if (isWebp) {
+            // Fichier WebP (animé ou fixe) : envoi tel quel sans compression Canvas pour préserver l'animation native
+            if (submitBtnText) submitBtnText.textContent = 'Envoi du WebP animé…';
             const uploadedUrl = await uploadMaterielPhoto(file, 'image/webp', 'webp');
             finalPhotoUrls.push(uploadedUrl);
           } else {
-            // Photos JPG et PNG normales : compression Canvas
+            // Photos normales (JPG, PNG) : compression Canvas
+            if (submitBtnText) submitBtnText.textContent = 'Compression photo…';
             const compressedBlob = await compressImageFile(file);
             const uploadedUrl = await uploadMaterielPhoto(compressedBlob, 'image/jpeg', 'jpg');
             finalPhotoUrls.push(uploadedUrl);
@@ -9356,7 +9375,18 @@ document.addEventListener('DOMContentLoaded', () => {
       await fetchMateriels();
     } catch (err) {
       console.error('Erreur handleSaveMateriel :', err);
-      showToast('⚠️ Erreur', err.message || 'Impossible d\'enregistrer le produit.');
+      let errorDetail = '';
+      if (err instanceof Event) {
+        errorDetail = 'Erreur lors du traitement d\'une image locale (lecture ou compression)';
+      } else if (typeof err === 'string') {
+        errorDetail = err;
+      } else if (err && typeof err === 'object') {
+        errorDetail = err.message || err.error_description || err.details || err.hint || (err.error ? (err.error.message || JSON.stringify(err.error)) : JSON.stringify(err));
+      }
+      const fullErrorMsg = errorDetail 
+        ? `Impossible d'enregistrer le produit : ${errorDetail}`
+        : 'Impossible d\'enregistrer le produit.';
+      showToast('⚠️ Erreur', fullErrorMsg);
     } finally {
       if (submitBtn) submitBtn.disabled = false;
       if (submitBtnText) submitBtnText.textContent = prevText;

@@ -548,11 +548,17 @@ Depuis la version 2.9, l'application est entièrement Full Stack connectée au p
   - Les champs « Description » et « Caractéristiques techniques » bénéficient d'un format de départ spacieux de **8 lignes** (`rows="8"`, `min-height: 180px`, `line-height: 1.55`) et s'agrandissent automatiquement en temps réel (`autoExpandTextarea`) au fur et à mesure de la saisie de texte ou lors du pré-remplissage en mode modification.
 - **Normalisation Stricte des Liens WhatsApp (`wa.me`)** :
   - Fonction `sanitizeBurkinaPhone` qui élimine tout préfixe `+226`, `00226` ou `226` saisi par l'utilisateur avant de recomposer le lien officiel `https://wa.me/226[numéro]` : l'indicatif 226 n'est plus jamais dupliqué en `wa.me/226226...`.
-  - Formatage harmonisé de l'appel téléphonique `tel:+226...` et de l'affichage dans l'administration.
+### U. Résolution Enregistrement WebP & GIF Animés & Diagnostic d'Erreur Précis (v6.0)
+- **Origine du blocage identifiée et résolue** :
+  1. *Échec de détection et écrasement Canvas* : L'ancienne détection par tranche binaire fixe (`slice(0, 256)`) ne trouvait pas les marqueurs `ANIM` lorsque des métadonnées (EXIF, ICCP, XMP) précédaient le flux d'animation WebP. Le fichier basculait alors vers la compression Canvas `compressImageFile(file)`. Canvas levait une exception `img.onerror` non gérée qui rejetait un objet `Event` brut (sans propriété `.message`), bloquant le script avant l'émission de la moindre requête réseau HTTP.
+  2. *Bypass total de Canvas pour GIF et WebP* : Désormais, **tous les fichiers GIF (`image/gif` ou extension `.gif`) et WebP (`image/webp` ou extension `.webp`)** contournent systématiquement la compression Canvas et sont transférés tels quels avec toutes leurs images d'animation intactes.
+  3. *Typage MIME strict Supabase Storage* : Dans `uploadMaterielPhoto`, conversion sécurisée du fichier en `Blob` avec type MIME strict garanti (`image/webp` ou `image/gif`) pour éviter que le navigateur ne transmette un type vide ou générique `application/octet-stream` rejeté par la liste blanche du bucket `materiels`.
+  4. *Conservation de la compression JPG & PNG* : Les photos classiques JPEG et PNG continuent d'être compressées automatiquement à 1200×1200 px avec une qualité de 0.8 pour économiser la bande passante.
+  5. *Diagnostic technique explicite dans les alertes* : En cas d'erreur lors de l'enregistrement d'un produit, le toast affiche désormais la raison technique exacte (`Impossible d'enregistrer le produit : ${errorDetail}`) au lieu du message opaque précédent, permettant une compréhension immédiate de tout incident.
 
 ---
 
-*Fin du document de spécification système — Version 5.9 • Révolution Agricole Burkina Faso.*
+*Fin du document de spécification système — Version 6.0 • Révolution Agricole Burkina Faso.*
 
 
 
