@@ -538,9 +538,21 @@ Depuis la version 2.9, l'application est entièrement Full Stack connectée au p
   5. *Blocage automatique du défilement arrière-plan* : Classe `modal-open` appliquée dynamiquement sur `body` et `html` (`overflow: hidden !important`) via un `MutationObserver` et retirée instantanément dès la fermeture de la dernière fenêtre.
   6. *Application universelle* : Prise en charge identique sur l'ensemble des 20 modales de la plateforme (fiches matériel, financements, conseils, formulaires d'ajout/modification, dépenses, ventes, abonnements, authentification).
 
+### T. Support des GIF Animés Matériel, Textareas Agrandies & Normalisation WhatsApp (v5.9)
+- **Support des GIF et WebP Animés dans « Matériel & Services »** :
+  1. *Acceptation dans le formulaire* : `materielPhotoInput` accepte désormais les formats `.gif`, `image/gif`, `.webp`, `.png`, `.jpg`, `.jpeg`.
+  2. *Exemption de compression Canvas* : Les fichiers GIF (`image/gif` ou `.gif`) et les fichiers WebP animés (détectés via le conteneur RIFF/chunks `ANIM`/`ANMF`) contournent la compression Canvas pour être envoyés directement dans Supabase Storage avec leur type MIME d'origine (`image/gif` ou `image/webp`), préservant ainsi l'intégralité de leur boucle d'animation. Les images JPG et PNG continuent d'être compressées automatiquement via Canvas.
+  3. *Configuration Supabase Storage* : Extension de `allowed_mime_types` sur le bucket `materiels` pour autoriser formellement `image/gif`.
+  4. *Rendu en mouvement* : Affichage fluide et continu sur les cartes catalogue (`.materiel-card-img`), le carrousel principal de la fiche détail (`#matDetailMainPhoto`), et l'aperçu du formulaire (`renderPhotoPreviews`).
+- **Agrandissement Dynamique des Textareas** :
+  - Les champs « Description » et « Caractéristiques techniques » bénéficient d'un format de départ spacieux de **8 lignes** (`rows="8"`, `min-height: 180px`, `line-height: 1.55`) et s'agrandissent automatiquement en temps réel (`autoExpandTextarea`) au fur et à mesure de la saisie de texte ou lors du pré-remplissage en mode modification.
+- **Normalisation Stricte des Liens WhatsApp (`wa.me`)** :
+  - Fonction `sanitizeBurkinaPhone` qui élimine tout préfixe `+226`, `00226` ou `226` saisi par l'utilisateur avant de recomposer le lien officiel `https://wa.me/226[numéro]` : l'indicatif 226 n'est plus jamais dupliqué en `wa.me/226226...`.
+  - Formatage harmonisé de l'appel téléphonique `tel:+226...` et de l'affichage dans l'administration.
+
 ---
 
-*Fin du document de spécification système — Version 5.8 • Révolution Agricole Burkina Faso.*
+*Fin du document de spécification système — Version 5.9 • Révolution Agricole Burkina Faso.*
 
 
 

@@ -8611,7 +8611,26 @@ document.addEventListener('DOMContentLoaded', () => {
     reparation: { label: 'Réparation', icon: '🧰' }
   };
 
-  // Compression d'image côté client via Canvas (JPG 1200x1200 max, qualité 0.8)
+  // Nettoyage et normalisation des numéros WhatsApp burkinabè (évite tout doublon avec l'indicatif 226)
+  function sanitizeBurkinaPhone(raw) {
+    let digits = String(raw || '').trim().replace(/[^0-9]/g, '');
+    while (digits.startsWith('00226')) {
+      digits = digits.slice(5);
+    }
+    while (digits.startsWith('226')) {
+      digits = digits.slice(3);
+    }
+    return digits;
+  }
+
+  // Auto-agrandissement dynamique des zones de texte (Description & Caractéristiques)
+  function autoExpandTextarea(el) {
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = Math.max(el.scrollHeight, 180) + 'px';
+  }
+
+  // Compression d'image côté client via Canvas uniquement pour JPG et PNG (1200x1200 max, qualité 0.8)
   async function compressImageFile(file, maxWidth = 1200, maxHeight = 1200, quality = 0.8) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -8651,14 +8670,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Upload d'une photo vers le bucket Storage 'materiels'
-  async function uploadMaterielPhoto(blob) {
+  // Upload d'une photo ou d'un fichier animé (GIF, WebP) vers le bucket Storage 'materiels'
+  async function uploadMaterielPhoto(blobOrFile, contentType = 'image/jpeg', ext = 'jpg') {
     if (!supabaseClient) throw new Error('Connexion Supabase non disponible');
-    const cleanName = `${Date.now()}_${Math.random().toString(36).substring(2, 9)}.jpg`;
+    const cleanName = `${Date.now()}_${Math.random().toString(36).substring(2, 9)}.${ext}`;
     const filePath = `photos/${cleanName}`;
     const { error } = await supabaseClient.storage
       .from('materiels')
-      .upload(filePath, blob, { contentType: 'image/jpeg', upsert: true });
+      .upload(filePath, blobOrFile, { contentType: contentType, upsert: true });
 
     if (error) throw error;
     const { data: publicUrlData } = supabaseClient.storage
@@ -8888,7 +8907,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Boutons Contact WhatsApp et Téléphone
     const rawPhone = String(item.fournisseur_whatsapp || '').trim();
-    const cleanDigits = rawPhone.replace(/[^0-9]/g, '').replace(/^226/, '');
+    const cleanDigits = sanitizeBurkinaPhone(rawPhone);
 
     if (btnWa) {
       const waMessage = `Bonjour ${item.fournisseur_nom || ''}, je vous contacte depuis Révolution Agricole concernant votre offre : « ${item.nom} » (${priceDisplay}). Est-elle toujours disponible ?`;
@@ -9035,7 +9054,7 @@ document.addEventListener('DOMContentLoaded', () => {
               <span>•</span>
               <span><strong>Fournisseur :</strong> ${escapeHtml(item.fournisseur_nom)} (📍 ${escapeHtml(item.fournisseur_ville)})</span>
               <span>•</span>
-              <span><strong>WhatsApp :</strong> +226 ${escapeHtml(item.fournisseur_whatsapp)}</span>
+              <span><strong>WhatsApp :</strong> +226 ${escapeHtml(sanitizeBurkinaPhone(item.fournisseur_whatsapp))}</span>
             </div>
           </div>
           <div class="admin-materiel-actions">
@@ -9148,7 +9167,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (descInput) descInput.value = item.description || '';
       if (caractInput) caractInput.value = item.caracteristiques || '';
       if (fnNomInput) fnNomInput.value = item.fournisseur_nom || '';
-      if (fnWaInput) fnWaInput.value = item.fournisseur_whatsapp || '';
+      if (fnWaInput) fnWaInput.value = sanitizeBurkinaPhone(item.fournisseur_whatsapp);
       if (fnVilleInput) fnVilleInput.value = item.fournisseur_ville || '';
       if (regInput) regInput.value = item.regions_livraison || '';
       if (misEnAvantChk) misEnAvantChk.checked = Boolean(item.mis_en_avant);
@@ -9178,6 +9197,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     renderPhotoPreviews();
     modalManageMateriel.classList.remove('hidden');
+
+    setTimeout(() => {
+      autoExpandTextarea(descInput);
+      autoExpandTextarea(caractInput);
+    }, 50);
   }
 
   function renderPhotoPreviews() {
@@ -9229,11 +9253,35 @@ document.addEventListener('DOMContentLoaded', () => {
         if (item.url) {
           finalPhotoUrls.push(item.url);
         } else if (item.file) {
-          // Compression Canvas
-          const compressedBlob = await compressImageFile(item.file);
-          // Upload vers bucket 'materiels'
-          const uploadedUrl = await uploadMaterielPhoto(compressedBlob);
-          finalPhotoUrls.push(uploadedUrl);
+          const file = item.file;
+          const isGif = file.type === 'image/gif' || (file.name && file.name.toLowerCase().endsWith('.gif'));
+          let isAnimatedWebp = false;
+          if (file.type === 'image/webp' || (file.name && file.name.toLowerCase().endsWith('.webp'))) {
+            try {
+              const buffer = await file.slice(0, 256).arrayBuffer();
+              const text = new TextDecoder('ascii').decode(new Uint8Array(buffer));
+              if (text.includes('ANIM') || text.includes('ANMF')) {
+                isAnimatedWebp = true;
+              }
+            } catch (e) {
+              console.warn('Erreur détection WebP animé :', e);
+            }
+          }
+
+          if (isGif) {
+            // Ne pas compresser le GIF : l'envoyer tel quel pour conserver l'animation fluide
+            const uploadedUrl = await uploadMaterielPhoto(file, 'image/gif', 'gif');
+            finalPhotoUrls.push(uploadedUrl);
+          } else if (isAnimatedWebp) {
+            // Ne pas compresser le WebP animé : l'envoyer tel quel
+            const uploadedUrl = await uploadMaterielPhoto(file, 'image/webp', 'webp');
+            finalPhotoUrls.push(uploadedUrl);
+          } else {
+            // Photos JPG et PNG normales : compression Canvas
+            const compressedBlob = await compressImageFile(file);
+            const uploadedUrl = await uploadMaterielPhoto(compressedBlob, 'image/jpeg', 'jpg');
+            finalPhotoUrls.push(uploadedUrl);
+          }
         }
       }
 
@@ -9257,7 +9305,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const caracteristiques = document.getElementById('materielCaracteristiques').value.trim() || null;
       const fournisseur_nom = document.getElementById('materielFournisseurNom').value.trim();
       const rawWa = document.getElementById('materielFournisseurWhatsapp').value.trim();
-      const fournisseur_whatsapp = rawWa.replace(/[^0-9]/g, '').replace(/^226/, '');
+      const fournisseur_whatsapp = sanitizeBurkinaPhone(rawWa);
       const fournisseur_ville = document.getElementById('materielFournisseurVille').value.trim();
       const regions_livraison = document.getElementById('materielRegionsLivraison').value.trim() || null;
       const mis_en_avant = document.getElementById('materielMisEnAvant').checked;
@@ -9542,6 +9590,16 @@ document.addEventListener('DOMContentLoaded', () => {
     modalManageMateriel.addEventListener('click', (e) => {
       if (e.target === modalManageMateriel) closeManageMaterielModal();
     });
+  }
+
+  // Écouteurs de saisie pour l'agrandissement dynamique des textareas
+  const matDesc = document.getElementById('materielDescription');
+  const matCaract = document.getElementById('materielCaracteristiques');
+  if (matDesc) {
+    matDesc.addEventListener('input', () => autoExpandTextarea(matDesc));
+  }
+  if (matCaract) {
+    matCaract.addEventListener('input', () => autoExpandTextarea(matCaract));
   }
 
   // Recherche textuelle

@@ -40,6 +40,7 @@ try {
                     ".jpg"  { "image/jpeg" }
                     ".jpeg" { "image/jpeg" }
                     ".webp" { "image/webp" }
+                    ".gif"  { "image/gif" }
                     ".woff2"{ "font/woff2" }
                     Default { "application/octet-stream" }
                 }
