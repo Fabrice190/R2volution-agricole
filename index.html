@@ -14,6 +14,16 @@
   <link rel="stylesheet" href="styles/theme.css?v=20261021.1">
   <link rel="stylesheet" href="styles/main.css?v=20261021.5">
 
+  <!-- CONFIGURATION PWA (PROGRESSIVE WEB APP) -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#1F5E3B">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Révolution Agricole">
+  <link rel="apple-touch-icon" href="images/icons/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="images/icons/icon-192x192.png">
+
   <!-- PROTECTION DÉMARRAGE RÉSILIENTE SAFARI / IPHONE / WEBKIT -->
   <script>
     (function() {
@@ -514,6 +524,13 @@
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
               </span>
               <span class="nav-label">Profil & Paramètres</span>
+            </a>
+            <a href="#installer" class="nav-item" id="navItemInstallPwa" data-page="installer">
+              <span class="nav-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              </span>
+              <span class="nav-label">Installer l'application</span>
+              <span class="nav-badge-amber" id="navBadgeInstallPwa" style="background:#EAF4E6;color:#1F5E3B;font-weight:700;">App</span>
             </a>
           </nav>
 
@@ -4131,6 +4148,65 @@
     </div>
   </div>
 
+  <!-- BANDEAU PWA : INSTALLATION À LA PREMIÈRE VISITE -->
+  <aside class="pwa-install-banner hidden" id="pwaInstallBanner" aria-label="Installer l'application">
+    <div class="pwa-banner-content">
+      <div class="pwa-banner-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.7 10-10 10Z"/>
+          <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>
+        </svg>
+      </div>
+      <div class="pwa-banner-text">
+        <strong>Installer Révolution Agricole</strong>
+        <p>Installez l'application sur votre écran d'accueil pour un accès direct et un fonctionnement hors connexion.</p>
+      </div>
+    </div>
+    <div class="pwa-banner-actions">
+      <button type="button" class="btn-pwa-dismiss" id="btnPwaDismiss">Plus tard</button>
+      <button type="button" class="btn-pwa-install" id="btnPwaInstall">Installer l'app</button>
+    </div>
+  </aside>
+
+  <!-- MODALE PWA EXPLICATION IPHONE (iOS Safari) -->
+  <div class="modal-backdrop hidden" id="modalIosInstall" role="dialog" aria-modal="true">
+    <div class="modal-dialog ios-pwa-dialog" style="max-width: 380px; text-align: center; padding: 24px 20px;">
+      <div style="width: 56px; height: 56px; background: #EAF4E6; color: #1F5E3B; border-radius: 16px; display: inline-flex; align-items: center; justify-content: center; margin: 0 auto 14px; font-size: 26px;">
+        🌱
+      </div>
+      <h3 style="font-size: 18px; font-weight: 800; color: #0E3615; margin-bottom: 8px;">Installer sur votre iPhone</h3>
+      <p style="font-size: 13px; color: #5B6660; line-height: 1.5; margin-bottom: 18px;">
+        Pour installer l'application sur votre écran d'accueil iOS :
+      </p>
+      
+      <div style="display: flex; align-items: center; gap: 12px; background: #F6F8F4; padding: 12px 14px; border-radius: 12px; margin-bottom: 10px; text-align: left;">
+        <span style="width: 32px; height: 32px; background: #FFF; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; box-shadow: 0 2px 6px rgba(0,0,0,0.06); flex-shrink: 0;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#007AFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+            <polyline points="16 6 12 2 8 6"/>
+            <line x1="12" y1="2" x2="12" y2="15"/>
+          </svg>
+        </span>
+        <span style="font-size: 13px; color: #1E2822;"><strong>1.</strong> Touchez <strong>Partager</strong> en bas de l'écran Safari</span>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 12px; background: #F6F8F4; padding: 12px 14px; border-radius: 12px; margin-bottom: 20px; text-align: left;">
+        <span style="width: 32px; height: 32px; background: #FFF; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; box-shadow: 0 2px 6px rgba(0,0,0,0.06); flex-shrink: 0;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1F5E3B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="4"/>
+            <line x1="12" y1="8" x2="12" y2="16"/>
+            <line x1="8" y1="12" x2="16" y2="12"/>
+          </svg>
+        </span>
+        <span style="font-size: 13px; color: #1E2822;"><strong>2.</strong> Touchez <strong>Sur l'écran d'accueil</strong></span>
+      </div>
+
+      <button type="button" class="btn-primary" id="btnCloseIosInstall" style="width: 100%; justify-content: center; padding: 12px; font-weight: 700; border-radius: 10px;">
+        J'ai compris
+      </button>
+    </div>
+  </div>
+
   <!-- TOAST DE NOTIFICATION FLOTTANT -->
   <div class="toast-notification hidden" id="toastNotification">
     <div class="toast-icon" id="toastIcon">✅</div>
@@ -4145,6 +4221,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <!-- SCRIPT APPLICATION -->
-  <script src="scripts/app.js?v=20261021.11"></script>
+  <script src="scripts/app.js?v=20261021.12"></script>
 </body>
 </html>

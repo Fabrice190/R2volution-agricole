@@ -662,9 +662,34 @@ Depuis la version 2.9, l'application est entièrement Full Stack connectée au p
 - **3. Préservation Intégrale de la Mise en Page Ordinateur** :
   - Aucune modification sur la version bureau (sidebar, cartes pastel, graphique large, échéances et widget météo restent inchangés).
 
+### AA. Transformation Progressive Web App (PWA) Installable & Mode Hors-Ligne (v6.6)
+- **1. Web App Manifest Standard (`manifest.json`)** :
+  - Nom officiel : `« Révolution Agricole »` / Nom court : `« Rév. Agricole »`.
+  - Palette officielle : Thème vert `#1F5E3B`, fond crème sahélienne `#FAF7F0`.
+  - Mode d'affichage : `standalone` avec orientation `portrait`.
+  - Jeu d'icônes physiques haute définition généré à partir du logo feuille de l'application :
+    - `images/icons/icon-192x192.png` (192×192 px, `purpose: "any"`)
+    - `images/icons/icon-512x512.png` (512×512 px, `purpose: "any"`)
+    - `images/icons/icon-maskable-192x192.png` (192×192 px, `purpose: "maskable"`, fond plein `#1F5E3B`, safe-zone 80%)
+    - `images/icons/icon-maskable-512x512.png` (512×512 px, `purpose: "maskable"`, fond plein `#1F5E3B`, safe-zone 80%)
+    - `images/icons/apple-touch-icon.png` (180×180 px pour iOS Safari)
+- **2. Service Worker Intelligent & Résilient (`sw.js`)** :
+  - Mise en cache sélective au démarrage (`CACHE_NAME = 'revagri-v20261021.12'`) des fichiers vitaux (HTML, CSS, JS, icônes) pour un lancement ultra-rapide même sur réseau 2G/3G instable.
+  - **Exclusion stricte des requêtes Supabase** : Toute requête vers `supabase.co` ou de méthode non-GET (POST, PUT, PATCH, DELETE) contourne formellement le cache (`Network-Only`). Aucune donnée sensible ou session d'authentification n'est mise en cache.
+  - Page hors connexion dédiée propre (`offline.html`) : Interface élégante avec message rassurant sur la préservation des données et bouton *« Réessayer la connexion »*.
+- **3. Gestion Automatique des Mises à Jour au Prochain Lancement** :
+  - Cycle de vie avec `self.skipWaiting()` lors de l'installation et `clients.claim()` lors de l'activation.
+  - Écouteur `navigator.serviceWorker.addEventListener('controllerchange')` dans `app.js` qui détecte la nouvelle version et recharge en douceur la page au lancement suivant avec un toast discret *« Application mise à jour vers la dernière version »*.
+- **4. Installation Ergonomique Multi-Plateforme (Android & iPhone)** :
+  - **Bouton « 📲 Installer l'application »** intégré dans les menus (section *COMPTE* de la barre latérale bureau et du tiroir latéral mobile).
+  - **Bandeau discret à la première visite** (`#pwaInstallBanner`) avec délai de 3 secondes pour ne pas surprendre l'utilisateur, mémorisé via `localStorage.getItem('pwa_dismissed')`.
+  - **Expérience Android / Chrome** : Interception de l'événement natif `beforeinstallprompt` et déclenchement de l'invite d'installation système en un clic.
+  - **Expérience iPhone / iPad (iOS Safari)** : Détection de l'appareil iOS et affichage d'une modale explicative claire et intuitive avec les 2 étapes simples : *« 1. Touchez Partager [icône Safari] »* puis *« 2. Touchez Sur l'écran d'accueil [icône +] »*.
+
 ---
 
-*Fin du document de spécification système — Version 6.5 • Révolution Agricole Burkina Faso.*
+*Fin du document de spécification système — Version 6.6 • Révolution Agricole Burkina Faso.*
+
 
 
 

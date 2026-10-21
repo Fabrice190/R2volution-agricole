@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hors connexion — Révolution Agricole</title>
+  <meta name="theme-color" content="#1F5E3B">
+  <link rel="icon" type="image/png" href="images/icons/icon-192x192.png">
+  <link rel="stylesheet" href="styles/theme.css">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      background-color: #FAF7F0;
+      color: #1E2822;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+      text-align: center;
+    }
+    .offline-card {
+      background: #FFFFFF;
+      border: 1px solid #E6EAE3;
+      border-radius: 20px;
+      padding: 36px 28px;
+      max-width: 440px;
+      width: 100%;
+      box-shadow: 0 12px 30px rgba(31, 94, 59, 0.08);
+    }
+    .offline-icon-wrap {
+      width: 80px;
+      height: 80px;
+      background: #EAF4E6;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+      color: #1F5E3B;
+      font-size: 36px;
+    }
+    .offline-title {
+      font-size: 22px;
+      font-weight: 800;
+      color: #0E3615;
+      margin-bottom: 10px;
+    }
+    .offline-text {
+      font-size: 14px;
+      line-height: 1.55;
+      color: #5D6C63;
+      margin-bottom: 24px;
+    }
+    .offline-hint {
+      background: #F4F7F3;
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-size: 12.5px;
+      color: #384A40;
+      margin-bottom: 26px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-align: left;
+    }
+    .btn-retry {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      background: #1F5E3B;
+      color: #FFFFFF;
+      border: none;
+      padding: 14px 20px;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(31, 94, 59, 0.25);
+      transition: all 0.2s ease;
+    }
+    .btn-retry:hover {
+      background: #15452A;
+      transform: translateY(-1px);
+    }
+    .brand-sub {
+      margin-top: 24px;
+      font-size: 11.5px;
+      color: #8C9991;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+  <main class="offline-card">
+    <div class="offline-icon-wrap">
+      <span>📡</span>
+    </div>
+    <h1 class="offline-title">Vous êtes hors connexion</h1>
+    <p class="offline-text">
+      Votre connexion Internet semble interrompue. Les données enregistrées sur votre appareil restent protégées.
+    </p>
+    <div class="offline-hint">
+      <span style="font-size: 20px;">🌱</span>
+      <span>Dès que le réseau sera rétabli, vos synchronisations avec Supabase reprendront automatiquement.</span>
+    </div>
+    <button type="button" class="btn-retry" onclick="window.location.reload();">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+      </svg>
+      <span>Réessayer la connexion</span>
+    </button>
+    <div class="brand-sub">Révolution Agricole • Burkina Faso</div>
+  </main>
+</body>
+</html>

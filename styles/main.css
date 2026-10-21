@@ -8479,11 +8479,134 @@ body.drawer-open {
   }
 }
 
+/* ========================================================
+   BANDEAU D'INSTALLATION PWA & MODALE IOS SAFARI
+   ======================================================== */
+.pwa-install-banner {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 32px);
+  max-width: 480px;
+  background: #FAF7F0;
+  border: 1px solid #D5E1D2;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(14, 54, 21, 0.18), 0 2px 8px rgba(0, 0, 0, 0.06);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 99999;
+  animation: pwaSlideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes pwaSlideUp {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 25px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+.pwa-banner-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pwa-banner-icon {
+  width: 42px;
+  height: 42px;
+  background: #1F5E3B;
+  color: #FFFFFF;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 10px rgba(31, 94, 59, 0.25);
+}
+
+.pwa-banner-text {
+  flex: 1;
+  text-align: left;
+}
+
+.pwa-banner-text strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 800;
+  color: #0E3615;
+  margin-bottom: 2px;
+}
+
+.pwa-banner-text p {
+  font-size: 12px;
+  color: #5D6C63;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.pwa-banner-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.btn-pwa-dismiss {
+  background: transparent;
+  border: 1px solid #D5E1D2;
+  color: #5D6C63;
+  padding: 7px 14px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-pwa-dismiss:hover {
+  background: #EAF4E6;
+  color: #1F5E3B;
+}
+
+.btn-pwa-install {
+  background: #1F5E3B;
+  color: #FFFFFF;
+  border: none;
+  padding: 7px 16px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(31, 94, 59, 0.25);
+  transition: all 0.2s ease;
+}
+
+.btn-pwa-install:hover {
+  background: #15452A;
+  transform: translateY(-1px);
+}
+
+@media (max-width: 480px) {
+  .pwa-install-banner {
+    bottom: 12px;
+    width: calc(100% - 24px);
+    padding: 12px 14px;
+  }
+}
+
 /* RÈGLE ABSOLUE DE SÉCURITÉ D'AFFICHAGE */
 #viewportContainer.hidden,
 .viewport-wrapper.hidden,
 .hidden {
   display: none !important;
 }
+
 
 

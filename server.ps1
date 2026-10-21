@@ -48,6 +48,9 @@ try {
                 $response.ContentType = $mime
                 $response.Headers.Add("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
                 $response.Headers.Add("Pragma", "no-cache")
+                if ($relPath -eq "sw.js") {
+                    $response.Headers.Add("Service-Worker-Allowed", "/")
+                }
                 $response.ContentLength64 = $bytes.Length
                 $response.StatusCode = 200
                 $response.OutputStream.Write($bytes, 0, $bytes.Length)

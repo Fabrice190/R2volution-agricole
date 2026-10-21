@@ -1831,6 +1831,11 @@ document.addEventListener('DOMContentLoaded', () => {
               <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
               <span class="nav-label">Profil & Paramètres</span>
             </a>
+            <a href="#installer" class="nav-item mobile-drawer-link" id="btnMobileDrawerInstallPwa">
+              <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></span>
+              <span class="nav-label">Installer l'application</span>
+              <span class="nav-badge-amber" id="mobileDrawerBadgeInstallPwa" style="background:#EAF4E6;color:#1F5E3B;font-weight:700;">App</span>
+            </a>
           </div>
 
           <!-- Carte Promotionnelle dans le tiroir mobile -->
@@ -4150,7 +4155,9 @@ document.addEventListener('DOMContentLoaded', () => {
     'formations': 'formations',
     'profil': 'profil',
     'abonnements': 'abonnements',
-    'pricing': 'abonnements'
+    'pricing': 'abonnements',
+    'installer': 'installer',
+    'install': 'installer'
   };
 
   const VALID_PAGES = new Set([
@@ -4276,6 +4283,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (resolved === 'admin-audit') {
       showToast('Journal d\'audit', 'Toutes les actions d\'administration sont journalisées et sécurisées.');
+      return;
+    }
+
+    if (resolved === 'installer') {
+      triggerPwaInstallFlow();
       return;
     }
 
@@ -13147,6 +13159,180 @@ document.addEventListener('DOMContentLoaded', () => {
 
   updateDashboardDateTime();
   setInterval(updateDashboardDateTime, 10000);
+
+  // ==========================================
+  // MODULE PWA : SERVICE WORKER, INSTALLATION & MISES À JOUR
+  // ==========================================
+  let deferredPwaPrompt = null;
+
+  function isRunningInStandaloneMode() {
+    return (
+      window.matchMedia('(display-mode: standalone)').matches ||
+      window.navigator.standalone === true ||
+      document.referrer.includes('android-app://')
+    );
+  }
+
+  function isIosDevice() {
+    return (
+      /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+    ) && !window.MSStream;
+  }
+
+  function triggerPwaInstallFlow() {
+    if (isRunningInStandaloneMode()) {
+      showToast('Application déjà installée', 'Révolution Agricole est déjà installée sur votre appareil !');
+      return;
+    }
+
+    if (deferredPwaPrompt) {
+      // Déclencher l'invite native du navigateur (Android / Chrome Desktop)
+      deferredPwaPrompt.prompt();
+      deferredPwaPrompt.userChoice.then((choiceResult) => {
+        if (choiceResult.outcome === 'accepted') {
+          showToast('Installation confirmée', 'L\'application Révolution Agricole s\'installe sur votre appareil.');
+          const banner = document.getElementById('pwaInstallBanner');
+          if (banner) banner.classList.add('hidden');
+          try { localStorage.setItem('pwa_installed', '1'); } catch (e) {}
+        }
+        deferredPwaPrompt = null;
+      });
+      return;
+    }
+
+    if (isIosDevice()) {
+      // Afficher les explications spécifiques iPhone (iOS Safari)
+      const modalIos = document.getElementById('modalIosInstall');
+      if (modalIos) {
+        modalIos.classList.remove('hidden');
+        syncBodyModalScrollLock();
+      }
+      return;
+    }
+
+    // Autres cas (navigateur sans invite déclenchable ou déjà installée)
+    showToast('Installer l\'application', 'Ouvrez le menu de votre navigateur (⋮ ou Partager) et choisissez « Installer » ou « Sur l\'écran d\'accueil ».');
+  }
+
+  function initPwaModule() {
+    // 1. Enregistrement du Service Worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+          .then((registration) => {
+            console.log('🌾 [PWA] Service Worker actif et enregistré avec succès ! Scope :', registration.scope);
+
+            // Détection et application automatique des mises à jour au prochain lancement
+            registration.addEventListener('updatefound', () => {
+              const newWorker = registration.installing;
+              if (newWorker) {
+                newWorker.addEventListener('statechange', () => {
+                  if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                    console.log('🔄 [PWA] Une nouvelle version est prête pour le prochain lancement.');
+                    showToast('Mise à jour prête', 'La nouvelle version de l\'application s\'appliquera automatiquement au prochain lancement.');
+                  }
+                });
+              }
+            });
+          })
+          .catch((err) => {
+            console.warn('⚠️ [PWA] Échec enregistrement Service Worker :', err);
+          });
+
+        // Rechargement transparent lors du changement de contrôleur SW
+        let refreshing = false;
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          if (!refreshing) {
+            refreshing = true;
+            console.log('🚀 [PWA] Nouveau Service Worker activé.');
+          }
+        });
+      });
+    }
+
+    // 2. Événement beforeinstallprompt (Android / Chrome Desktop)
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPwaPrompt = e;
+      console.log('📲 [PWA] Invite d\'installation native capturée.');
+
+      // Afficher le bandeau à la première visite si non rejeté et non standalone
+      checkAndShowPwaBanner();
+    });
+
+    // 3. Événement appinstalled (Installation terminée)
+    window.addEventListener('appinstalled', () => {
+      console.log('🎉 [PWA] Application installée avec succès sur l\'appareil !');
+      showToast('Application installée', 'Retrouvez Révolution Agricole directement sur votre écran d\'accueil.');
+      const banner = document.getElementById('pwaInstallBanner');
+      if (banner) banner.classList.add('hidden');
+      try {
+        localStorage.setItem('pwa_installed', '1');
+      } catch (e) {}
+    });
+
+    // 4. Gestion du bandeau à la première visite
+    const banner = document.getElementById('pwaInstallBanner');
+    const btnDismiss = document.getElementById('btnPwaDismiss');
+    const btnInstall = document.getElementById('btnPwaInstall');
+
+    function checkAndShowPwaBanner() {
+      if (isRunningInStandaloneMode()) return;
+      try {
+        if (localStorage.getItem('pwa_dismissed') === '1' || localStorage.getItem('pwa_installed') === '1') {
+          return;
+        }
+      } catch (e) {}
+
+      // Délai de 3s pour ne pas gêner le premier affichage
+      setTimeout(() => {
+        if (!isRunningInStandaloneMode() && banner) {
+          banner.classList.remove('hidden');
+        }
+      }, 3000);
+    }
+
+    // Vérifier pour iOS à la première visite
+    if (isIosDevice() && !isRunningInStandaloneMode()) {
+      checkAndShowPwaBanner();
+    }
+
+    if (btnDismiss) {
+      btnDismiss.addEventListener('click', () => {
+        if (banner) banner.classList.add('hidden');
+        try { localStorage.setItem('pwa_dismissed', '1'); } catch (e) {}
+      });
+    }
+
+    if (btnInstall) {
+      btnInstall.addEventListener('click', () => {
+        triggerPwaInstallFlow();
+        if (banner) banner.classList.add('hidden');
+      });
+    }
+
+    // 5. Fermeture de la modale iOS
+    const btnCloseIos = document.getElementById('btnCloseIosInstall');
+    const modalIos = document.getElementById('modalIosInstall');
+    if (btnCloseIos && modalIos) {
+      btnCloseIos.addEventListener('click', () => {
+        modalIos.classList.add('hidden');
+        syncBodyModalScrollLock();
+      });
+    }
+
+    // 6. Liens de navigation vers #installer dans la sidebar et le drawer
+    const navItemInstall = document.getElementById('navItemInstallPwa');
+    if (navItemInstall) {
+      navItemInstall.addEventListener('click', (e) => {
+        e.preventDefault();
+        triggerPwaInstallFlow();
+      });
+    }
+  }
+
+  initPwaModule();
 
   initAppAuth();
 
