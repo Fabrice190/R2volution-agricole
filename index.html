@@ -12,7 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
   
   <link rel="stylesheet" href="styles/theme.css?v=20261021.1">
-  <link rel="stylesheet" href="styles/main.css?v=20261021.1">
+  <link rel="stylesheet" href="styles/main.css?v=20261021.4">
 
   <!-- PROTECTION DÉMARRAGE RÉSILIENTE SAFARI / IPHONE / WEBKIT -->
   <script>
@@ -381,6 +381,7 @@
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
               </span>
               <span class="nav-label">Marché agricole</span>
+              <span class="nav-badge-neutral hidden" id="navMarcheBadge">0</span>
             </a>
             <a href="#materiel-services" class="nav-item" data-page="materiel-services">
               <span class="nav-icon">
@@ -393,6 +394,7 @@
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
               </span>
               <span class="nav-label">Mes annonces</span>
+              <span class="nav-badge-neutral hidden" id="navMesAnnoncesBadge">0</span>
             </a>
           </div>
 
@@ -461,7 +463,7 @@
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
               </span>
               <span class="nav-label">Files de modération</span>
-              <span class="nav-badge-red">6</span>
+              <span class="nav-badge-red hidden" id="navAdminQueueBadge">0</span>
             </a>
             <a href="#admin-verif" class="nav-item" data-page="admin-verif">
               <span class="nav-icon">
@@ -1433,6 +1435,192 @@
           <!-- Liste des produits admin -->
           <div class="admin-materiels-list" id="adminMaterielsList">
             <!-- Injecté dynamiquement par JavaScript -->
+          </div>
+        </div>
+
+        <!-- ==================== PAGE UTILISATEUR : MARCHÉ AGRICOLE ==================== -->
+        <div class="dashboard-body hidden" id="pageMarche">
+          <div class="page-view-header">
+            <div class="page-view-title-group">
+              <div class="page-breadcrumb">
+                <a href="#dashboard" class="breadcrumb-back-link">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+                  <span>Tableau de bord</span>
+                </a>
+                <span class="bullet-sep">•</span>
+                <span>Marché agricole</span>
+              </div>
+              <h1 class="page-main-title">🌾 Marché Agricole Burkinabè</h1>
+              <p class="page-subtitle">Achetez et vendez vos récoltes, céréales, légumes et bétail en direct bord champ.</p>
+            </div>
+            <div class="page-header-actions-group">
+              <button type="button" class="btn-primary" id="btnOpenPublishAnnonceModal">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                <span>+ Publier une annonce</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Onglets principaux : À vendre vs On cherche -->
+          <div class="marche-tabs-container">
+            <button type="button" class="marche-main-tab active" data-type="vente" id="tabMarcheVente">
+              <span class="marche-tab-icon">🌾</span>
+              <span class="marche-tab-label">À vendre (Offres)</span>
+              <span class="marche-tab-count" id="countMarcheVente">0</span>
+            </button>
+            <button type="button" class="marche-main-tab" data-type="achat" id="tabMarcheAchat">
+              <span class="marche-tab-icon">🔍</span>
+              <span class="marche-tab-label">On cherche (Achats)</span>
+              <span class="marche-tab-count" id="countMarcheAchat">0</span>
+            </button>
+          </div>
+
+          <!-- Barre de filtres & Recherche -->
+          <div class="materiels-filter-section" style="margin-top: 14px;">
+            <div class="materiels-search-bar" style="margin-bottom: 12px; position: relative;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="position: absolute; left: 14px; top: 12px; color: #7C8781;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" id="searchAnnoncesInput" placeholder="Rechercher maïs, oignon, sésame, tomate, Koudougou, Bobo..." class="form-input" style="padding-left: 40px;">
+            </div>
+
+            <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+              <!-- Catégories de produits -->
+              <div class="filter-types-scroll" id="filterAnnoncesCategoryContainer" style="flex: 1; min-width: 260px;">
+                <button type="button" class="type-filter-chip active" data-cat="all">Toutes catégories</button>
+                <button type="button" class="type-filter-chip" data-cat="cereales">🌽 Céréales</button>
+                <button type="button" class="type-filter-chip" data-cat="legumes">🍅 Légumes</button>
+                <button type="button" class="type-filter-chip" data-cat="fruits">🥭 Fruits</button>
+                <button type="button" class="type-filter-chip" data-cat="oleagineux">🥜 Oléagineux</button>
+                <button type="button" class="type-filter-chip" data-cat="betail-volaille">🐂 Bétail & Volaille</button>
+                <button type="button" class="type-filter-chip" data-cat="autres">📦 Autres</button>
+              </div>
+
+              <!-- Filtre par région -->
+              <select id="filterAnnoncesRegionSelect" class="form-select" style="width: auto; min-width: 170px; font-size: 13px;">
+                <option value="all">📍 Toutes les régions</option>
+                <option value="Boucle du Mouhoun">Boucle du Mouhoun (Dédougou)</option>
+                <option value="Cascades">Cascades (Banfora)</option>
+                <option value="Centre">Centre (Ouagadougou)</option>
+                <option value="Centre-Est">Centre-Est (Tenkodogo)</option>
+                <option value="Centre-Nord">Centre-Nord (Kaya)</option>
+                <option value="Centre-Ouest">Centre-Ouest (Koudougou)</option>
+                <option value="Centre-Sud">Centre-Sud (Manga)</option>
+                <option value="Est">Est (Fada N'Gourma)</option>
+                <option value="Hauts-Bassins">Hauts-Bassins (Bobo-Dioulasso)</option>
+                <option value="Nord">Nord (Ouahigouya)</option>
+                <option value="Plateau-Central">Plateau-Central (Ziniaré)</option>
+                <option value="Sahel">Sahel (Dori)</option>
+                <option value="Sud-Ouest">Sud-Ouest (Gaoua)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Grille des annonces du marché -->
+          <div class="annonces-cards-grid" id="marcheAnnoncesGrid">
+            <!-- Injecté dynamiquement par JavaScript depuis Supabase -->
+          </div>
+
+          <!-- État vide -->
+          <div class="financements-empty-state hidden" id="marcheEmptyState">
+            <div class="empty-state-icon">🌾</div>
+            <h3>Aucune annonce trouvée</h3>
+            <p>Soyez le premier à publier une offre ou une demande d'achat dans cette catégorie !</p>
+            <button type="button" class="btn-primary" id="btnEmptyPublishAnnonce" style="margin-top: 10px;">
+              <span>+ Publier une annonce</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- ==================== PAGE UTILISATEUR : MES ANNONCES ==================== -->
+        <div class="dashboard-body hidden" id="pageMesAnnonces">
+          <div class="page-view-header">
+            <div class="page-view-title-group">
+              <div class="page-breadcrumb">
+                <a href="#dashboard" class="breadcrumb-back-link">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+                  <span>Tableau de bord</span>
+                </a>
+                <span class="bullet-sep">•</span>
+                <span>Mes annonces</span>
+              </div>
+              <h1 class="page-main-title">📢 Mes Annonces Publiées</h1>
+              <p class="page-subtitle">Gérez vos offres et demandes sur le Marché agricole, marquez vos ventes et renouvelez leur visibilité.</p>
+            </div>
+            <div class="page-header-actions-group">
+              <button type="button" class="btn-primary" id="btnOpenPublishFromMesAnnonces">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                <span>+ Publier une annonce</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Onglets de statut pour mes annonces -->
+          <div class="admin-materiels-filters-bar" style="margin-bottom: 16px;">
+            <div class="filter-types-scroll" id="filterMesAnnoncesStatusContainer">
+              <button type="button" class="type-filter-chip active" data-status="all">Toutes mes annonces</button>
+              <button type="button" class="type-filter-chip" data-status="active">🟢 Actives</button>
+              <button type="button" class="type-filter-chip" data-status="vendue">✅ Vendues</button>
+              <button type="button" class="type-filter-chip" data-status="expiree">⏳ Expirées</button>
+              <button type="button" class="type-filter-chip" data-status="retiree">🚫 Retirées par modération</button>
+            </div>
+          </div>
+
+          <!-- Grille de mes annonces -->
+          <div class="mes-annonces-grid" id="mesAnnoncesGrid">
+            <!-- Injecté dynamiquement par JavaScript depuis Supabase -->
+          </div>
+
+          <!-- État vide -->
+          <div class="financements-empty-state hidden" id="mesAnnoncesEmptyState">
+            <div class="empty-state-icon">📢</div>
+            <h3>Vous n'avez pas encore publié d'annonce</h3>
+            <p>Vendez vos récoltes au meilleur prix ou trouvez des produits directement auprès des producteurs.</p>
+            <button type="button" class="btn-primary" id="btnEmptyMesAnnoncesPublish" style="margin-top: 10px;">
+              <span>+ Publier ma première annonce</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- ==================== PAGE ADMINISTRATION : FILES DE MODÉRATION ==================== -->
+        <div class="dashboard-body hidden" id="pageAdminQueue">
+          <div class="page-view-header">
+            <div class="page-view-title-group">
+              <div class="page-breadcrumb">
+                <a href="#dashboard" class="breadcrumb-back-link">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+                  <span>Tableau de bord</span>
+                </a>
+                <span class="bullet-sep">•</span>
+                <span>Administration</span>
+              </div>
+              <h1 class="page-main-title">🛡️ Files de Modération des Annonces</h1>
+              <p class="page-subtitle">Examinez les signalements émis par les utilisateurs et retirez immédiatement les offres non conformes.</p>
+            </div>
+            <div class="page-header-meta-badge" id="adminSignalementsCountBadge">
+              <span class="pulse-dot-green"></span>
+              <span id="adminSignalementsCountText">0 signalement en attente</span>
+            </div>
+          </div>
+
+          <!-- Onglets de statut de modération -->
+          <div class="admin-materiels-filters-bar" style="margin-bottom: 16px;">
+            <div class="filter-types-scroll" id="adminFilterSignalementsStatus">
+              <button type="button" class="type-filter-chip active" data-status="en_attente">⏳ En attente</button>
+              <button type="button" class="type-filter-chip" data-status="traite">✅ Traités / Retirés</button>
+              <button type="button" class="type-filter-chip" data-status="ignore">👁️ Ignorés</button>
+              <button type="button" class="type-filter-chip" data-status="all">Tous</button>
+            </div>
+          </div>
+
+          <!-- Liste des signalements -->
+          <div class="admin-signalements-list" id="adminSignalementsList">
+            <!-- Injecté dynamiquement par JavaScript depuis Supabase -->
+          </div>
+
+          <!-- État vide -->
+          <div class="financements-empty-state hidden" id="adminSignalementsEmptyState">
+            <div class="empty-state-icon">🛡️</div>
+            <h3>Aucun signalement dans cette file</h3>
+            <p>Toutes les annonces signalées ont été examinées et traitées avec succès.</p>
           </div>
         </div>
 
@@ -3176,6 +3364,355 @@
     </div>
   </div>
 
+  <!-- ==================== MODALE PUBLIER UNE ANNONCE (2 ÉTAPES) ==================== -->
+  <div class="modal-backdrop hidden" id="modalPublishAnnonce">
+    <div class="modal-dialog modal-dialog-financement" style="max-width: 620px;">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <span class="modal-icon bg-green">📢</span>
+          <div>
+            <h3 class="modal-title" id="publishAnnonceModalTitle">Publier une annonce</h3>
+            <p class="modal-subtitle" id="publishAnnonceModalSubtitle">Étape 1 sur 2 : Que proposez-vous ?</p>
+          </div>
+        </div>
+        <button class="modal-close-btn" id="btnClosePublishAnnonce">&times;</button>
+      </div>
+
+      <!-- Stepper indicateur -->
+      <div class="publish-stepper-bar">
+        <div class="publish-step-item active" id="stepperItem1">
+          <span class="step-num">1</span>
+          <span class="step-label">Produit & Prix</span>
+        </div>
+        <div class="publish-step-line" id="stepperLine"></div>
+        <div class="publish-step-item" id="stepperItem2">
+          <span class="step-num">2</span>
+          <span class="step-label">Photos & Contact</span>
+        </div>
+      </div>
+
+      <form id="formPublishAnnonce" class="modal-form" autocomplete="off">
+        <input type="hidden" id="annonceId" value="">
+        <input type="hidden" id="annonceTypeChoice" value="vente">
+
+        <!-- ==================== ÉTAPE 1 : PRODUIT, QUANTITÉ & PRIX ==================== -->
+        <div id="publishStep1">
+          <!-- Choix Vente vs Achat -->
+          <div class="form-group">
+            <label style="font-weight: 700; color: var(--text-main); margin-bottom: 8px; display: block;">Votre intention <span class="required">*</span></label>
+            <div class="annonce-type-toggle-grid">
+              <button type="button" class="btn-type-toggle active" data-type="vente" id="btnTypeVente">
+                <span class="toggle-icon">🌾</span>
+                <div class="toggle-text">
+                  <strong>Je vends</strong>
+                  <small>J'ai une récolte ou du bétail disponible</small>
+                </div>
+              </button>
+              <button type="button" class="btn-type-toggle" data-type="achat" id="btnTypeAchat">
+                <span class="toggle-icon">🔍</span>
+                <div class="toggle-text">
+                  <strong>Je cherche</strong>
+                  <small>J'achète des produits bord champ</small>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          <!-- Produit & Puces rapides -->
+          <div class="form-group" style="margin-top: 14px;">
+            <label for="annonceProduit">Nom du produit agricole <span class="required">*</span></label>
+            <input type="text" id="annonceProduit" class="form-input" placeholder="Ex: Oignon Violet de Galmi, Maïs blanc, Tomate..." required>
+            
+            <!-- Puces de suggestion en 1 clic -->
+            <div class="quick-chips-row" style="margin-top: 8px; display: flex; gap: 6px; flex-wrap: wrap;">
+              <button type="button" class="quick-chip-btn" data-val="Oignon Violet de Galmi" data-cat="legumes">🧅 Oignon</button>
+              <button type="button" class="quick-chip-btn" data-val="Maïs blanc pluvial" data-cat="cereales">🌽 Maïs</button>
+              <button type="button" class="quick-chip-btn" data-val="Tomate Mongal" data-cat="legumes">🍅 Tomate</button>
+              <button type="button" class="quick-chip-btn" data-val="Sésame blanc" data-cat="oleagineux">🌿 Sésame</button>
+              <button type="button" class="quick-chip-btn" data-val="Arachide décortiquée" data-cat="oleagineux">🥜 Arachide</button>
+              <button type="button" class="quick-chip-btn" data-val="Niébé (haricot)" data-cat="legumes">🫘 Niébé</button>
+              <button type="button" class="quick-chip-btn" data-val="Mangues fraîches" data-cat="fruits">🥭 Mangues</button>
+              <button type="button" class="quick-chip-btn" data-val="Bovins d'élevage" data-cat="betail-volaille">🐂 Bovins</button>
+              <button type="button" class="quick-chip-btn" data-val="Poulets locaux" data-cat="betail-volaille">🐔 Volaille</button>
+            </div>
+          </div>
+
+          <!-- Catégorie -->
+          <div class="form-row" style="margin-top: 12px;">
+            <div class="form-group flex-1">
+              <label for="annonceCategorie">Catégorie <span class="required">*</span></label>
+              <select id="annonceCategorie" class="form-select" required>
+                <option value="cereales">🌽 Céréales (Maïs, Mil, Sorgho, Riz)</option>
+                <option value="legumes" selected>🍅 Légumes & Maraîchage (Oignon, Tomate, Gombo)</option>
+                <option value="fruits">🥭 Fruits (Mangues, Papayes, Pastèques)</option>
+                <option value="oleagineux">🥜 Oléagineux (Sésame, Arachide, Soja)</option>
+                <option value="betail-volaille">🐂 Bétail & Volaille (Bovins, Ovins, Caprins, Poulets)</option>
+                <option value="autres">📦 Autres produits du terroir</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Quantité & Unité -->
+          <div class="form-row" style="margin-top: 12px;">
+            <div class="form-group flex-1">
+              <label for="annonceQuantite">Quantité <span class="required">*</span></label>
+              <input type="number" id="annonceQuantite" class="form-input" placeholder="Ex: 50" min="0.1" step="any" required>
+            </div>
+            <div class="form-group flex-1">
+              <label for="annonceUnite">Unité <span class="required">*</span></label>
+              <select id="annonceUnite" class="form-select" required>
+                <option value="sac de 100 kg" selected>Sac de 100 kg</option>
+                <option value="sac de 50 kg">Sac de 50 kg</option>
+                <option value="kg">Kilogramme (kg)</option>
+                <option value="tonne">Tonne</option>
+                <option value="tête">Tête (animal)</option>
+                <option value="caisse">Caisse</option>
+                <option value="panier">Panier</option>
+                <option value="botte">Botte</option>
+                <option value="plateau">Plateau (œufs)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Prix & Négociable -->
+          <div class="form-row" style="margin-top: 12px;">
+            <div class="form-group flex-1">
+              <label for="annoncePrix">Prix (F CFA) <small style="color: var(--text-muted);">(facultatif)</small></label>
+              <input type="number" id="annoncePrix" class="form-input" placeholder="Ex: 25000">
+            </div>
+            <div class="form-group flex-1">
+              <label for="annoncePrixUnite">Modalité de prix</label>
+              <select id="annoncePrixUnite" class="form-select">
+                <option value="par sac" selected>par sac</option>
+                <option value="le kg">le kg</option>
+                <option value="la tonne">la tonne</option>
+                <option value="par tête">par tête</option>
+                <option value="le tout">le lot entier</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-top: 8px;">
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+              <input type="checkbox" id="annoncePrixNegociable" checked style="width: 18px; height: 18px; accent-color: var(--primary-700);">
+              <span style="font-size: 13px; font-weight: 600; color: var(--text-main);">Prix à discuter / négociable bord champ</span>
+            </label>
+          </div>
+
+          <div class="modal-footer" style="margin-top: 20px; padding-top: 14px; border-top: 1px solid var(--border-light);">
+            <button type="button" class="btn-secondary" id="btnCancelPublishStep1">Annuler</button>
+            <button type="button" class="btn-primary" id="btnGoToStep2">
+              <span>Continuer (Étape 2/2) →</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- ==================== ÉTAPE 2 : LOCALISATION, PHOTOS & CONTACT ==================== -->
+        <div id="publishStep2" class="hidden">
+          <!-- Commune & Région -->
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label for="annonceCommune">Commune / Ville <span class="required">*</span></label>
+              <input type="text" id="annonceCommune" class="form-input" placeholder="Ex: Koudougou, Bobo, Dédougou..." required>
+            </div>
+            <div class="form-group flex-1">
+              <label for="annonceRegion">Région du Burkina <span class="required">*</span></label>
+              <select id="annonceRegion" class="form-select" required>
+                <option value="Centre-Ouest" selected>Centre-Ouest (Koudougou)</option>
+                <option value="Hauts-Bassins">Hauts-Bassins (Bobo-Dioulasso)</option>
+                <option value="Centre">Centre (Ouagadougou)</option>
+                <option value="Boucle du Mouhoun">Boucle du Mouhoun (Dédougou)</option>
+                <option value="Nord">Nord (Ouahigouya)</option>
+                <option value="Cascades">Cascades (Banfora)</option>
+                <option value="Centre-Nord">Centre-Nord (Kaya)</option>
+                <option value="Centre-Est">Centre-Est (Tenkodogo)</option>
+                <option value="Centre-Sud">Centre-Sud (Manga)</option>
+                <option value="Est">Est (Fada N'Gourma)</option>
+                <option value="Plateau-Central">Plateau-Central (Ziniaré)</option>
+                <option value="Sahel">Sahel (Dori)</option>
+                <option value="Sud-Ouest">Sud-Ouest (Gaoua)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Photos (1 à 3) -->
+          <div class="form-group" style="margin-top: 12px;">
+            <label style="font-weight: 700; color: var(--text-main); display: block;">Photos du produit (1 à 3) <small style="color: var(--text-muted);" id="annoncePhotoHelper">(Facultatif pour un achat)</small></label>
+            <div style="display: flex; gap: 10px; align-items: center; margin-top: 6px;">
+              <button type="button" class="btn-secondary" id="btnTriggerAnnoncePhoto" style="font-size: 13px; padding: 8px 14px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                <span>Choisir des photos</span>
+              </button>
+              <span style="font-size: 12px; color: var(--text-muted);" id="annoncePhotoCountNote">0 photo sélectionnée (max 3)</span>
+            </div>
+            <input type="file" id="annoncePhotoInput" accept="image/*,.webp,.gif" multiple class="hidden">
+            <div id="annoncePhotoPreviews" class="photo-previews-row" style="display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap;"></div>
+          </div>
+
+          <!-- Description courte -->
+          <div class="form-group" style="margin-top: 12px;">
+            <label for="annonceDescription">Description courte <small style="color: var(--text-muted);">(qualité, variété, date de récolte...)</small></label>
+            <textarea id="annonceDescription" class="form-textarea" rows="3" placeholder="Ex: Récolte fraîche de ce matin, bien séchée et calibrée. Enlèvement possible directement au champ ou livraison négociable."></textarea>
+          </div>
+
+          <!-- WhatsApp -->
+          <div class="form-group" style="margin-top: 12px;">
+            <label for="annonceWhatsapp">Numéro WhatsApp pour contact rapide <span class="required">*</span></label>
+            <div style="position: relative;">
+              <span style="position: absolute; left: 12px; top: 11px; font-weight: 700; color: var(--primary-700); font-size: 13.5px;">+226</span>
+              <input type="tel" id="annonceWhatsapp" class="form-input" style="padding-left: 56px;" placeholder="Ex: 01 60 77 03" required>
+            </div>
+            <small style="color: var(--text-muted); display: block; margin-top: 4px;">Les acheteurs pourront vous contacter en 1 clic sur WhatsApp ou par téléphone.</small>
+          </div>
+
+          <div class="modal-footer" style="margin-top: 20px; padding-top: 14px; border-top: 1px solid var(--border-light); display: flex; justify-content: space-between;">
+            <button type="button" class="btn-secondary" id="btnBackToStep1">← Étape précédente</button>
+            <button type="submit" class="btn-primary" id="btnSubmitAnnonce">
+              <span id="btnSubmitAnnonceText">Publier mon annonce</span>
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== MODALE DÉTAIL D'ANNONCE (UTILISATEUR) ==================== -->
+  <div class="modal-backdrop hidden" id="modalAnnonceDetails">
+    <div class="modal-dialog modal-dialog-materiel-details" style="max-width: 640px;">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <span class="fin-detail-type-badge" id="annonceDetailTypeBadge">🌾 À vendre</span>
+          <span class="fin-detail-region-badge" id="annonceDetailRegionBadge">📍 Koudougou</span>
+        </div>
+        <button class="modal-close-btn" id="btnCloseAnnonceDetails">&times;</button>
+      </div>
+
+      <div class="fin-detail-body" style="padding: 16px 20px;">
+        <!-- Galerie de photos -->
+        <div class="materiel-carousel-container" id="annonceDetailPhotoContainer">
+          <div class="materiel-carousel-main" style="position: relative; border-radius: 12px; overflow: hidden; background: #0E1A12; height: 260px; display: flex; align-items: center; justify-content: center;">
+            <img src="" alt="Photo annonce" id="annonceDetailMainPhoto" style="width: 100%; height: 100%; object-fit: contain;">
+            <button type="button" class="carousel-arrow carousel-prev hidden" id="annonceCarouselPrev" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 36px; height: 36px; border-radius: 50%; background: rgba(0,0,0,0.6); color: #FFF; border: none; font-size: 18px; cursor: pointer;">&lt;</button>
+            <button type="button" class="carousel-arrow carousel-next hidden" id="annonceCarouselNext" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); width: 36px; height: 36px; border-radius: 50%; background: rgba(0,0,0,0.6); color: #FFF; border: none; font-size: 18px; cursor: pointer;">&gt;</button>
+            <span class="carousel-counter hidden" id="annonceCarouselCounter" style="position: absolute; bottom: 10px; right: 12px; background: rgba(0,0,0,0.6); color: #FFF; font-size: 11px; padding: 2px 8px; border-radius: 10px;">1 / 1</span>
+          </div>
+          <div class="materiel-carousel-thumbs" id="annonceDetailThumbs" style="display: flex; gap: 8px; margin-top: 8px; overflow-x: auto; padding-bottom: 4px;"></div>
+        </div>
+
+        <div style="margin-top: 14px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span class="materiel-category-tag" id="annonceDetailCategoryTag" style="font-size: 11.5px; font-weight: 700; color: #1E5E2A; background: #EAF4E6; padding: 3px 8px; border-radius: 4px;">🌽 Céréales</span>
+            <span id="annonceDetailDateRel" style="font-size: 12px; color: var(--text-muted);">Publiée récemment</span>
+          </div>
+
+          <h2 class="fin-detail-title" id="annonceDetailProduit" style="margin: 4px 0 8px; font-size: 21px;">Produit agricole</h2>
+
+          <div style="display: flex; align-items: baseline; gap: 10px; margin-bottom: 12px; flex-wrap: wrap;">
+            <strong id="annonceDetailPrix" style="font-size: 24px; color: var(--primary-700); font-family: 'JetBrains Mono', monospace; font-weight: 800;">25 000 F CFA</strong>
+            <span id="annonceDetailQuantiteBadge" style="font-size: 13.5px; font-weight: 700; background: #F0F4EE; padding: 3px 10px; border-radius: 20px; color: #2E4032;">Quantité : 50 sacs de 100 kg</span>
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div class="fin-detail-section" style="margin-bottom: 14px;">
+          <h4 class="fin-section-title" style="font-size: 13px; font-weight: 700; color: var(--text-main); margin-bottom: 4px;">Description de l'annonce</h4>
+          <p id="annonceDetailDescription" style="font-size: 13.5px; line-height: 1.55; color: #3C4740; margin: 0; white-space: pre-wrap;"></p>
+        </div>
+
+        <!-- Auteur & Localisation -->
+        <div class="fin-detail-meta-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-bottom: 16px;">
+          <div class="fin-meta-item">
+            <span class="fin-meta-icon">👤</span>
+            <div>
+              <span class="fin-meta-label">Annonceur</span>
+              <strong class="fin-meta-val" id="annonceDetailAuteur">Producteur vérifié</strong>
+            </div>
+          </div>
+          <div class="fin-meta-item">
+            <span class="fin-meta-icon">📍</span>
+            <div>
+              <span class="fin-meta-label">Localisation</span>
+              <strong class="fin-meta-val" id="annonceDetailLocation">Koudougou (Centre-Ouest)</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Boutons d'action WhatsApp & Appel -->
+        <div class="materiel-contact-bar" style="margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border-light); display: flex; gap: 10px; flex-wrap: wrap;">
+          <a href="#" target="_blank" rel="noopener" class="btn-primary" id="btnAnnonceWhatsapp" style="flex: 2; min-width: 190px; background: #25D366; border-color: #25D366; justify-content: center;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.312.045-.698.077-1.111-.061-.264-.087-.585-.195-1.008-.38-1.785-.783-2.951-2.588-3.04-2.707-.089-.12-1.071-1.425-1.071-2.717 0-1.293.677-1.929.917-2.193.24-.265.525-.332.7-.332.175 0 .349.002.5.01.161.008.375-.061.587.45.22.531.751 1.834.816 1.968.066.134.11.291.022.468-.088.177-.133.288-.264.441-.132.155-.277.345-.395.464-.133.133-.272.278-.117.545.155.266.688 1.137 1.477 1.839 1.015.903 1.871 1.183 2.138 1.316.266.133.421.111.576-.067.156-.178.665-.774.843-1.04.177-.266.355-.221.598-.133.244.089 1.551.731 1.817.864.267.133.444.199.51.31.067.111.067.643-.077 1.048z"/></svg>
+            <span>Contacter sur WhatsApp</span>
+          </a>
+          <a href="#" class="btn-secondary" id="btnAnnonceCall" style="flex: 1; min-width: 120px; justify-content: center;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            <span>Appeler</span>
+          </a>
+        </div>
+
+        <!-- Lien de signalement -->
+        <div style="text-align: center; margin-top: 14px;">
+          <button type="button" id="btnOpenSignalerAnnonce" style="background: none; border: none; font-size: 12px; color: #C53030; text-decoration: underline; cursor: pointer;">
+            🚩 Signaler cette annonce (arnaque, faux prix, contenu non conforme)
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODALE SIGNALER UNE ANNONCE ==================== -->
+  <div class="modal-backdrop hidden" id="modalSignalerAnnonce">
+    <div class="modal-dialog" style="max-width: 440px;">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <span class="modal-icon" style="background: #FFF1F0; color: #C53030;">🚩</span>
+          <div>
+            <h3 class="modal-title" style="color: #C53030;">Signaler une annonce</h3>
+            <p class="modal-subtitle">Aidez-nous à protéger le Marché agricole des fraudes.</p>
+          </div>
+        </div>
+        <button class="modal-close-btn" id="btnCloseSignalerAnnonce">&times;</button>
+      </div>
+
+      <form id="formSignalerAnnonce" class="modal-form" autocomplete="off">
+        <input type="hidden" id="signalementAnnonceId" value="">
+
+        <div class="form-group">
+          <label style="font-weight: 700; color: var(--text-main); margin-bottom: 8px; display: block;">Motif du signalement <span class="required">*</span></label>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 6px 10px; background: #F8FAF6; border-radius: 6px;">
+              <input type="radio" name="motifSignalement" value="arnaque" checked style="accent-color: #C53030;">
+              <span style="font-size: 13px; font-weight: 600;">⚠️ Arnaque ou tentative d'escroquerie</span>
+            </label>
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 6px 10px; background: #F8FAF6; border-radius: 6px;">
+              <input type="radio" name="motifSignalement" value="faux prix" style="accent-color: #C53030;">
+              <span style="font-size: 13px; font-weight: 600;">🏷️ Faux prix ou prix trompeur</span>
+            </label>
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 6px 10px; background: #F8FAF6; border-radius: 6px;">
+              <input type="radio" name="motifSignalement" value="contenu interdit" style="accent-color: #C53030;">
+              <span style="font-size: 13px; font-weight: 600;">🚫 Contenu interdit ou injurieux</span>
+            </label>
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 6px 10px; background: #F8FAF6; border-radius: 6px;">
+              <input type="radio" name="motifSignalement" value="autre" style="accent-color: #C53030;">
+              <span style="font-size: 13px; font-weight: 600;">ℹ️ Autre motif</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top: 12px;">
+          <label for="signalementCommentaire">Précisez le problème <small style="color: var(--text-muted);">(facultatif)</small></label>
+          <textarea id="signalementCommentaire" class="form-textarea" rows="3" placeholder="Expliquez brièvement ce qui ne va pas..."></textarea>
+        </div>
+
+        <div class="modal-footer" style="margin-top: 16px;">
+          <button type="button" class="btn-secondary" id="btnCancelSignalement">Annuler</button>
+          <button type="submit" class="btn-primary" id="btnSubmitSignalement" style="background: #C53030; border-color: #C53030;">
+            <span>Envoyer le signalement</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- TOAST DE NOTIFICATION FLOTTANT -->
   <div class="toast-notification hidden" id="toastNotification">
     <div class="toast-icon" id="toastIcon">✅</div>
@@ -3190,6 +3727,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <!-- SCRIPT APPLICATION -->
-  <script src="scripts/app.js?v=20261021.2"></script>
+  <script src="scripts/app.js?v=20261021.4"></script>
 </body>
 </html>

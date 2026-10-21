@@ -7451,6 +7451,633 @@ body.drawer-open {
   background: #C53030;
 }
 
+/* ==================== 16. MARCHÉ AGRICOLE & ANNONCES BURKINABÈ ==================== */
+.marche-tabs-container {
+  display: flex;
+  gap: 8px;
+  background: #EAF1E8;
+  padding: 5px;
+  border-radius: 12px;
+  margin-top: 12px;
+  margin-bottom: 14px;
+}
+
+.marche-main-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #4B594E;
+  transition: all var(--transition-fast);
+}
+
+.marche-main-tab:hover {
+  background: rgba(255, 255, 255, 0.5);
+  color: var(--primary-900);
+}
+
+.marche-main-tab.active {
+  background: #FFFFFF;
+  color: var(--primary-900);
+  box-shadow: 0 2px 6px rgba(20, 50, 25, 0.08);
+}
+
+.marche-tab-count {
+  font-size: 11px;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 10px;
+  background: #DCE8DA;
+  color: var(--primary-900);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.marche-main-tab.active .marche-tab-count {
+  background: #E8F5E9;
+  color: var(--primary-800);
+}
+
+/* Grille des cartes du marché */
+.annonces-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.annonce-card {
+  background: #FFFFFF;
+  border: 1px solid #E1EBE2;
+  border-radius: 14px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease;
+  position: relative;
+  cursor: pointer;
+}
+
+.annonce-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 24px rgba(20, 50, 25, 0.1);
+  border-color: #A3C99E;
+}
+
+.annonce-card-img-wrap {
+  width: 100%;
+  height: 180px;
+  position: relative;
+  background: #F0F4EE;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.annonce-card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.annonce-card:hover .annonce-card-img {
+  transform: scale(1.03);
+}
+
+.annonce-placeholder-icon {
+  font-size: 48px;
+  opacity: 0.6;
+}
+
+.annonce-card-type-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  padding: 3px 9px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.annonce-type-vente {
+  background: rgba(30, 94, 42, 0.92);
+  color: #FFFFFF;
+}
+
+.annonce-type-achat {
+  background: rgba(200, 134, 42, 0.95);
+  color: #FFFFFF;
+}
+
+.annonce-card-cat-pill {
+  position: absolute;
+  bottom: 8px;
+  left: 10px;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  color: #FFFFFF;
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 12px;
+}
+
+.annonce-card-photos-count {
+  position: absolute;
+  bottom: 8px;
+  right: 10px;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  color: #FFFFFF;
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 12px;
+}
+
+.annonce-card-body {
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.annonce-card-title {
+  font-size: 15.5px;
+  font-weight: 800;
+  color: #141A15;
+  margin: 0 0 4px;
+  line-height: 1.3;
+}
+
+.annonce-card-price-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+
+.annonce-card-price {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--primary-700);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.annonce-card-nego-tag {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #C8862A;
+  background: #FEF7EE;
+  padding: 1px 6px;
+  border-radius: 4px;
+  border: 1px solid #FEE5C7;
+}
+
+.annonce-card-qty-row {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #4B594E;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.annonce-card-footer {
+  margin-top: auto;
+  padding-top: 10px;
+  border-top: 1px solid #EEF3EE;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11.5px;
+  color: #7C8781;
+}
+
+.annonce-card-location {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+  color: #556358;
+}
+
+/* ==================== MES ANNONCES ==================== */
+.mes-annonces-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.mes-annonce-card {
+  background: #FFFFFF;
+  border: 1px solid #E1EBE2;
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  transition: border-color var(--transition-fast);
+}
+
+.mes-annonce-card:hover {
+  border-color: #A3C99E;
+}
+
+.mes-annonce-thumb {
+  width: 72px;
+  height: 72px;
+  border-radius: 9px;
+  object-fit: cover;
+  background: #F0F4EE;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+}
+
+.mes-annonce-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.mes-annonce-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+
+.mes-annonce-title {
+  font-size: 15px;
+  font-weight: 800;
+  color: #141A15;
+  margin: 0;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 12px;
+  text-transform: capitalize;
+}
+
+.status-badge.status-active {
+  background: #E8F5E9;
+  color: #1E5E2A;
+  border: 1px solid #C8E6C9;
+}
+
+.status-badge.status-vendue {
+  background: #EDE9FE;
+  color: #5B21B6;
+  border: 1px solid #DDD6FE;
+}
+
+.status-badge.status-expiree {
+  background: #FEF3C7;
+  color: #92400E;
+  border: 1px solid #FDE68A;
+}
+
+.status-badge.status-retiree {
+  background: #FEE2E2;
+  color: #991B1B;
+  border: 1px solid #FECACA;
+}
+
+.mes-annonce-meta {
+  font-size: 12.5px;
+  color: #6B776D;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 3px;
+}
+
+.mes-annonce-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+/* ==================== FILES DE MODÉRATION ==================== */
+.admin-queue-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid #E1EBE2;
+  padding-bottom: 8px;
+}
+
+.admin-queue-tab-btn {
+  padding: 8px 14px;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  color: #5A695D;
+  transition: all var(--transition-fast);
+}
+
+.admin-queue-tab-btn.active {
+  background: #F0F5EE;
+  color: var(--primary-900);
+}
+
+.admin-queue-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.signalement-card {
+  background: #FFFFFF;
+  border: 1px solid #F5C6CB;
+  border-left: 4px solid #C53030;
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 2px 8px rgba(197, 48, 48, 0.05);
+}
+
+.signalement-card.status-traite {
+  border-color: #E1EBE2;
+  border-left-color: #7C8781;
+  opacity: 0.8;
+}
+
+.signalement-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.signalement-motif-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #FFF1F0;
+  color: #C53030;
+  border: 1px solid #FFCCC7;
+  padding: 3px 9px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.signalement-target-preview {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #F9FAF8;
+  border: 1px solid #E8ECE6;
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.signalement-actions-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
+
+/* ==================== FORMULAIRE ÉTAPE PAR ÉTAPE (STEPPER) ==================== */
+.publish-stepper-nav {
+  display: flex;
+  border-bottom: 2px solid #E8EFE7;
+  margin-bottom: 16px;
+}
+
+.publish-step-indicator {
+  flex: 1;
+  padding: 8px 12px;
+  text-align: center;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #7C8781;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: all var(--transition-fast);
+}
+
+.publish-step-indicator.active {
+  color: var(--primary-700);
+  border-bottom-color: var(--primary-700);
+}
+
+.publish-step-indicator.completed {
+  color: #2E4032;
+}
+
+.quick-chips-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.quick-chip-btn {
+  background: #F0F5EE;
+  border: 1px solid #DCE6DA;
+  border-radius: 16px;
+  padding: 4px 10px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--primary-900);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.quick-chip-btn:hover {
+  background: #E0EBD8;
+  border-color: var(--primary-400);
+}
+
+.quick-chip-btn.selected {
+  background: var(--primary-700);
+  border-color: var(--primary-700);
+  color: #FFFFFF;
+}
+
+/* Stepper bar pour la modale de publication */
+.publish-stepper-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 18px;
+  background: #F4F8F3;
+  border-bottom: 1px solid #E1EBE2;
+}
+
+.publish-step-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  opacity: 0.55;
+  transition: all var(--transition-fast);
+}
+
+.publish-step-item.active {
+  opacity: 1;
+}
+
+.publish-step-item .step-num {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #CBDAD0;
+  color: #2E4032;
+  font-size: 12px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.publish-step-item.active .step-num {
+  background: var(--primary-700);
+  color: #FFFFFF;
+}
+
+.publish-step-item .step-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #2E4032;
+}
+
+.publish-step-line {
+  flex: 1;
+  height: 2px;
+  background: #DCE8DC;
+  margin: 0 12px;
+  transition: background var(--transition-fast);
+}
+
+.publish-step-line.active {
+  background: var(--primary-700);
+}
+
+/* Grille de bascule Je Vends / Je Cherche */
+.annonce-type-toggle-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.btn-type-toggle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1.5px solid #DCE6DA;
+  background: #F9FAF8;
+  border-radius: 10px;
+  cursor: pointer;
+  text-align: left;
+  transition: all var(--transition-fast);
+}
+
+.btn-type-toggle:hover {
+  border-color: #B5D4B8;
+  background: #F0F6EE;
+}
+
+.btn-type-toggle.active {
+  border-color: var(--primary-700);
+  background: #EBF5E9;
+  box-shadow: 0 0 0 1px var(--primary-700);
+}
+
+.btn-type-toggle .toggle-icon {
+  font-size: 24px;
+}
+
+.btn-type-toggle .toggle-text strong {
+  display: block;
+  font-size: 14px;
+  color: var(--primary-900);
+}
+
+.btn-type-toggle .toggle-text small {
+  display: block;
+  font-size: 11px;
+  color: #6B776D;
+  line-height: 1.2;
+}
+
+/* Miniatures de photos uploadées */
+.annonce-photo-preview-item {
+  position: relative;
+  width: 76px;
+  height: 76px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1.5px solid #D5E0D5;
+  background: #F0F4EE;
+}
+
+.annonce-photo-preview-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.annonce-photo-preview-del {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 20px;
+  height: 20px;
+  background: rgba(0, 0, 0, 0.65);
+  color: #FFFFFF;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  line-height: 1;
+}
+
+.annonce-photo-preview-del:hover {
+  background: #C53030;
+}
+
 /* RÈGLE ABSOLUE DE SÉCURITÉ D'AFFICHAGE */
 #viewportContainer.hidden,
 .viewport-wrapper.hidden,

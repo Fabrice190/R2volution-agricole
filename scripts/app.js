@@ -75,6 +75,28 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentDetailPhotoIndex = 0;
   let pendingMaterielPhotos = [];
 
+  // Variables d'état pour Marché agricole, Mes annonces et Modération
+  let cachedAnnonces = [];
+  let cachedSignalements = [];
+  let marcheActiveType = 'vente'; // 'vente' | 'achat'
+  let marcheSelectedCategory = 'all';
+  let marcheSelectedRegion = 'all';
+  let marcheSearchQuery = '';
+  let adminQueueActiveStatusTab = 'en_attente'; // 'en_attente' | 'traite' | 'all'
+  let pendingAnnoncePhotos = [];
+  let currentDetailAnnonce = null;
+  let currentEditingAnnonceId = null;
+  let currentPublishStep = 1;
+
+  const pageMarche = document.getElementById('pageMarche');
+  const pageMesAnnonces = document.getElementById('pageMesAnnonces');
+  const pageAdminQueue = document.getElementById('pageAdminQueue');
+  const modalPublishAnnonce = document.getElementById('modalPublishAnnonce');
+  const modalAnnonceDetails = document.getElementById('modalAnnonceDetails');
+  const modalSignalerAnnonce = document.getElementById('modalSignalerAnnonce');
+  const formPublishAnnonce = document.getElementById('formPublishAnnonce');
+  const formSignalerAnnonce = document.getElementById('formSignalerAnnonce');
+
   const pageMaterielServices = document.getElementById('pageMaterielServices');
   const pageAdminMateriels = document.getElementById('pageAdminMateriels');
   const modalManageMateriel = document.getElementById('modalManageMateriel');
@@ -1415,6 +1437,12 @@ document.addEventListener('DOMContentLoaded', () => {
         mobileBodyHtml = getMobileMaterielsHtml();
       } else if (currentRoutePage === 'admin-materiels') {
         mobileBodyHtml = getMobileAdminMaterielsHtml();
+      } else if (currentRoutePage === 'marche') {
+        mobileBodyHtml = getMobileMarcheHtml();
+      } else if (currentRoutePage === 'mes-annonces') {
+        mobileBodyHtml = getMobileMesAnnoncesHtml();
+      } else if (currentRoutePage === 'admin-queue' || currentRoutePage === 'admin-moderation') {
+        mobileBodyHtml = getMobileAdminQueueHtml();
       } else if (currentRoutePage === 'parcelles') {
         mobileBodyHtml = getMobileParcellesHtml();
       } else if (currentRoutePage === 'meteo') {
@@ -1608,23 +1636,25 @@ document.addEventListener('DOMContentLoaded', () => {
           <!-- Groupe 4: ÉCHANGER -->
           <div class="nav-section">
             <div class="nav-section-title">ÉCHANGER</div>
-            <a href="#marche" class="nav-item mobile-drawer-link">
+            <a href="#marche" class="nav-item mobile-drawer-link" data-page="marche">
               <span class="nav-icon">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
               </span>
               <span class="nav-label">Marché agricole</span>
+              <span class="nav-badge-neutral hidden" id="mobileDrawerMarcheBadge">0</span>
             </a>
-            <a href="#materiel-services" class="nav-item mobile-drawer-link">
+            <a href="#materiel-services" class="nav-item mobile-drawer-link" data-page="materiel-services">
               <span class="nav-icon">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
               </span>
               <span class="nav-label">Matériel & services</span>
             </a>
-            <a href="#mes-annonces" class="nav-item mobile-drawer-link">
+            <a href="#mes-annonces" class="nav-item mobile-drawer-link" data-page="mes-annonces">
               <span class="nav-icon">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
               </span>
               <span class="nav-label">Mes annonces</span>
+              <span class="nav-badge-neutral hidden" id="mobileDrawerMesAnnoncesBadge">0</span>
             </a>
           </div>
 
@@ -1702,10 +1732,17 @@ document.addEventListener('DOMContentLoaded', () => {
                   }
                 })()}
               </a>
-              <a href="#admin-queue" class="nav-item mobile-drawer-link">
+              <a href="#admin-queue" class="nav-item mobile-drawer-link" data-page="admin-queue">
                 <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></span>
                 <span class="nav-label">Files de modération</span>
-                <span class="nav-badge-red">6</span>
+                ${(() => {
+                  try {
+                    const count = (cachedSignalements || []).filter(s => s.statut === 'en_attente').length;
+                    return `<span class="nav-badge-red ${count === 0 ? 'hidden' : ''}" id="mobileDrawerAdminQueueBadge">${count}</span>`;
+                  } catch (e) {
+                    return `<span class="nav-badge-red hidden" id="mobileDrawerAdminQueueBadge">0</span>`;
+                  }
+                })()}
               </a>
               <a href="#admin-verif" class="nav-item mobile-drawer-link">
                 <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/></svg></span>
@@ -3872,11 +3909,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (pageParcelles) pageParcelles.classList.toggle('hidden', page !== 'parcelles');
     if (pageMeteo) pageMeteo.classList.toggle('hidden', page !== 'meteo');
     if (pageNotifications) pageNotifications.classList.toggle('hidden', page !== 'notifications');
+    if (pageMarche) pageMarche.classList.toggle('hidden', page !== 'marche');
+    if (pageMesAnnonces) pageMesAnnonces.classList.toggle('hidden', page !== 'mes-annonces');
+    if (pageAdminQueue) pageAdminQueue.classList.toggle('hidden', page !== 'admin-queue' && page !== 'admin-moderation');
     if (dashboardContent) dashboardContent.classList.toggle('hidden', page !== 'dashboard');
 
     document.querySelectorAll('.sidebar-nav .nav-item').forEach(item => {
       const itemPage = item.getAttribute('data-page');
-      if (itemPage === page || (page === 'dashboard' && itemPage === 'dashboard') || (page === 'parcelles' && (itemPage === 'parcelles' || itemPage === 'cycles'))) {
+      if (itemPage === page || (page === 'dashboard' && itemPage === 'dashboard') || (page === 'parcelles' && (itemPage === 'parcelles' || itemPage === 'cycles')) || ((page === 'admin-queue' || page === 'admin-moderation') && itemPage === 'admin-queue')) {
         item.classList.add('active');
       } else {
         item.classList.remove('active');
@@ -3901,6 +3941,12 @@ document.addEventListener('DOMContentLoaded', () => {
       renderUserMateriels();
     } else if (page === 'admin-materiels') {
       renderAdminMateriels();
+    } else if (page === 'marche') {
+      renderMarchePage();
+    } else if (page === 'mes-annonces') {
+      renderMesAnnoncesPage();
+    } else if (page === 'admin-queue' || page === 'admin-moderation') {
+      renderAdminQueuePage();
     } else if (page === 'parcelles') {
       renderParcellesPage();
     } else if (page === 'meteo') {
@@ -3932,6 +3978,12 @@ document.addEventListener('DOMContentLoaded', () => {
       navigateToPage('materiel-services');
     } else if (hash === 'admin-materiels') {
       navigateToPage('admin-materiels');
+    } else if (hash === 'marche') {
+      navigateToPage('marche');
+    } else if (hash === 'mes-annonces') {
+      navigateToPage('mes-annonces');
+    } else if (hash === 'admin-queue' || hash === 'admin-moderation') {
+      navigateToPage('admin-queue');
     } else if (hash === 'parcelles' || hash === 'cycles' || hash === 'tous-les-cycles') {
       navigateToPage('parcelles');
     } else if (hash === 'meteo' || hash === 'meteo-details') {
@@ -3951,9 +4003,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const href = link.getAttribute('href');
       if (href && href.startsWith('#')) {
         const page = href.replace(/^#/, '');
-        if (page === 'opportunites' || page === 'admin-financements' || page === 'conseils' || page === 'admin-conseils' || page === 'admin-modeles' || page === 'parcelles' || page === 'cycles' || page === 'dashboard' || page === 'meteo' || page === 'notifications' || page === 'materiel-services' || page === 'admin-materiels') {
+        if (page === 'opportunites' || page === 'admin-financements' || page === 'conseils' || page === 'admin-conseils' || page === 'admin-modeles' || page === 'parcelles' || page === 'cycles' || page === 'dashboard' || page === 'meteo' || page === 'notifications' || page === 'materiel-services' || page === 'admin-materiels' || page === 'marche' || page === 'mes-annonces' || page === 'admin-queue' || page === 'admin-moderation') {
           e.preventDefault();
-          const routeTarget = (page === 'cycles') ? 'parcelles' : page;
+          const routeTarget = (page === 'cycles') ? 'parcelles' : ((page === 'admin-moderation') ? 'admin-queue' : page);
           window.location.hash = routeTarget;
           navigateToPage(routeTarget);
         }
@@ -9738,11 +9790,1433 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // Bouton retirer fiche admin mobile
-    const mobWithBtn = e.target.closest('.btn-mobile-mat-withdraw');
-    if (mobWithBtn) {
-      const id = mobWithBtn.getAttribute('data-id');
-      await updateMaterielStatus(id, 'retire');
+  });
+
+  // ==========================================
+  // MODULE MARCHÉ AGRICOLE, MES ANNONCES & MODÉRATION (SUPABASE CONNECTÉ)
+  // ==========================================
+
+  const ANNONCES_CATEGORIES_META = {
+    'cereales': { label: 'Céréales', icon: '🌽' },
+    'legumes': { label: 'Légumes & Maraîchage', icon: '🍅' },
+    'fruits': { label: 'Fruits', icon: '🥭' },
+    'oleagineux': { label: 'Oléagineux', icon: '🥜' },
+    'betail-volaille': { label: 'Bétail & Volaille', icon: '🐂' },
+    'autres': { label: 'Autres produits', icon: '📦' }
+  };
+
+  function formatAnnonceRelativeDate(dateStr) {
+    if (!dateStr) return 'Récemment';
+    const d = new Date(dateStr);
+    const now = new Date();
+    const diffSec = Math.floor((now - d) / 1000);
+    if (diffSec < 60) return 'À l\'instant';
+    const diffMin = Math.floor(diffSec / 60);
+    if (diffMin < 60) return `Il y a ${diffMin} min`;
+    const diffHours = Math.floor(diffMin / 60);
+    if (diffHours < 24) return `Il y a ${diffHours} h`;
+    const diffDays = Math.floor(diffHours / 24);
+    if (diffDays === 1) return 'Hier';
+    if (diffDays < 7) return `Il y a ${diffDays} jours`;
+    return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+  }
+
+  function formatAnnonceExpiryInfo(dateExpStr, statut) {
+    if (statut === 'vendue') return 'Vendue';
+    if (statut === 'retiree par la modération') return 'Retirée par la modération';
+    if (!dateExpStr) return 'Active';
+    const exp = new Date(dateExpStr);
+    const now = new Date();
+    const diffDays = Math.ceil((exp - now) / (1000 * 60 * 60 * 24));
+    if (diffDays <= 0 || statut === 'expiree') return 'Expirée';
+    if (diffDays === 1) return 'Expire demain';
+    return `Expire dans ${diffDays} jours`;
+  }
+
+  function cleanBurkinaPhone(raw) {
+    if (!raw) return '';
+    let digits = String(raw).replace(/[^0-9]/g, '');
+    if (digits.startsWith('226') && digits.length >= 11) {
+      return digits;
+    }
+    if (digits.length === 8) {
+      return '226' + digits;
+    }
+    return digits;
+  }
+
+  // Téléversement d'une photo d'annonce vers le Storage Supabase 'annonces'
+  async function uploadAnnoncePhoto(fileBlob, mimeType, extension) {
+    if (!supabaseClient) throw new Error('Supabase non disponible');
+    const ext = extension || 'jpg';
+    const cleanMime = mimeType || 'image/jpeg';
+    const fileName = `annonce_${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${ext}`;
+
+    const { data, error } = await supabaseClient
+      .storage
+      .from('annonces')
+      .upload(fileName, fileBlob, {
+        contentType: cleanMime,
+        upsert: true
+      });
+
+    if (error) {
+      throw new Error(error.message || 'Échec du téléversement de la photo');
+    }
+
+    const { data: publicUrlData } = supabaseClient
+      .storage
+      .from('annonces')
+      .getPublicUrl(fileName);
+
+    return publicUrlData.publicUrl;
+  }
+
+  // Récupération des annonces réelles depuis Supabase
+  async function fetchAnnonces() {
+    if (!supabaseClient) return;
+    try {
+      const { data, error } = await supabaseClient
+        .from('annonces')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.warn('⚠️ Erreur fetchAnnonces Supabase :', error);
+        return;
+      }
+
+      cachedAnnonces = data || [];
+      updateAnnoncesCounters();
+      renderMarchePage();
+      renderMesAnnoncesPage();
+      if (currentRoutePage === 'admin-queue' || currentRoutePage === 'admin-moderation') {
+        renderAdminQueuePage();
+      }
+      if (currentViewMode === 'mobile' || window.innerWidth < 1024) {
+        renderMobileView();
+      }
+    } catch (err) {
+      console.warn('⚠️ Erreur fetchAnnonces :', err);
+    }
+  }
+
+  // Récupération des signalements pour les administrateurs
+  async function fetchSignalements() {
+    if (!supabaseClient) return;
+    const profile = PROFILES_DATA[currentProfileKey];
+    if (!profile?.isAdmin) return;
+
+    try {
+      const { data, error } = await supabaseClient
+        .from('signalements')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.warn('⚠️ Erreur fetchSignalements Supabase :', error);
+        return;
+      }
+
+      cachedSignalements = data || [];
+      updateSignalementsCounters();
+      if (currentRoutePage === 'admin-queue' || currentRoutePage === 'admin-moderation') {
+        renderAdminQueuePage();
+      }
+    } catch (err) {
+      console.warn('⚠️ Erreur fetchSignalements :', err);
+    }
+  }
+
+  // Mise à jour de tous les compteurs d'annonces
+  function updateAnnoncesCounters() {
+    const activeAds = cachedAnnonces.filter(a => a.statut === 'active');
+    const venteAds = activeAds.filter(a => a.type === 'vente');
+    const achatAds = activeAds.filter(a => a.type === 'achat');
+
+    const cntVenteEl = document.getElementById('countMarcheVente');
+    const cntAchatEl = document.getElementById('countMarcheAchat');
+    if (cntVenteEl) cntVenteEl.textContent = venteAds.length;
+    if (cntAchatEl) cntAchatEl.textContent = achatAds.length;
+
+    const navMarcheBadge = document.getElementById('navMarcheBadge');
+    if (navMarcheBadge) {
+      navMarcheBadge.textContent = activeAds.length;
+      navMarcheBadge.classList.toggle('hidden', activeAds.length === 0);
+    }
+
+    const drawerMarcheBadge = document.getElementById('mobileDrawerMarcheBadge');
+    if (drawerMarcheBadge) {
+      drawerMarcheBadge.textContent = activeAds.length;
+      drawerMarcheBadge.classList.toggle('hidden', activeAds.length === 0);
+    }
+
+    // Mes annonces
+    const myAds = cachedAnnonces.filter(a => String(a.profile_id) === String(currentProfileKey));
+    const myActiveAds = myAds.filter(a => a.statut === 'active');
+
+    const navMesBadge = document.getElementById('navMesAnnoncesBadge');
+    if (navMesBadge) {
+      navMesBadge.textContent = myActiveAds.length;
+      navMesBadge.classList.toggle('hidden', myActiveAds.length === 0);
+    }
+
+    const drawerMesBadge = document.getElementById('mobileDrawerMesAnnoncesBadge');
+    if (drawerMesBadge) {
+      drawerMesBadge.textContent = myActiveAds.length;
+      drawerMesBadge.classList.toggle('hidden', myActiveAds.length === 0);
+    }
+
+    const countMesEl = document.getElementById('countMesAnnoncesTotal');
+    if (countMesEl) {
+      countMesEl.textContent = `${myAds.length} annonce${myAds.length > 1 ? 's' : ''}`;
+    }
+  }
+
+  // Mise à jour des compteurs de signalement modération
+  function updateSignalementsCounters() {
+    const pending = cachedSignalements.filter(s => s.statut === 'en_attente');
+    const badge = document.getElementById('navAdminQueueBadge');
+    if (badge) {
+      badge.textContent = pending.length;
+      badge.classList.toggle('hidden', pending.length === 0);
+    }
+    const drawerBadge = document.getElementById('mobileDrawerAdminQueueBadge');
+    if (drawerBadge) {
+      drawerBadge.textContent = pending.length;
+      drawerBadge.classList.toggle('hidden', pending.length === 0);
+    }
+    const countQueueEl = document.getElementById('countAdminQueuePending');
+    if (countQueueEl) {
+      countQueueEl.textContent = pending.length;
+    }
+  }
+
+  // Rendu de la page Marché agricole (Desktop)
+  function renderMarchePage() {
+    const grid = document.getElementById('annoncesCardsGrid');
+    const emptyState = document.getElementById('annoncesEmptyState');
+    if (!grid) return;
+
+    let list = cachedAnnonces.filter(a => a.statut === 'active');
+
+    // Filtre vente / achat
+    list = list.filter(a => a.type === marcheActiveType);
+
+    // Filtre catégorie
+    if (marcheSelectedCategory && marcheSelectedCategory !== 'all') {
+      list = list.filter(a => a.categorie === marcheSelectedCategory);
+    }
+
+    // Filtre région
+    if (marcheSelectedRegion && marcheSelectedRegion !== 'all') {
+      list = list.filter(a => a.region === marcheSelectedRegion);
+    }
+
+    // Recherche textuelle
+    if (marcheSearchQuery && marcheSearchQuery.trim() !== '') {
+      const q = marcheSearchQuery.toLowerCase().trim();
+      list = list.filter(a => {
+        const prod = (a.produit || '').toLowerCase();
+        const desc = (a.description || '').toLowerCase();
+        const com = (a.commune || '').toLowerCase();
+        const reg = (a.region || '').toLowerCase();
+        return prod.includes(q) || desc.includes(q) || com.includes(q) || reg.includes(q);
+      });
+    }
+
+    if (list.length === 0) {
+      grid.innerHTML = '';
+      if (emptyState) emptyState.classList.remove('hidden');
+      return;
+    }
+
+    if (emptyState) emptyState.classList.add('hidden');
+
+    grid.innerHTML = list.map(item => {
+      const catMeta = ANNONCES_CATEGORIES_META[item.categorie] || { label: item.categorie || 'Autre', icon: '📦' };
+      const photos = Array.isArray(item.photos) ? item.photos : [];
+      const mainPhoto = photos.length > 0 ? photos[0] : '';
+
+      let priceDisplay = 'Prix à discuter';
+      if (item.prix !== null && item.prix !== undefined && !isNaN(Number(item.prix)) && Number(item.prix) > 0) {
+        priceDisplay = `${new Intl.NumberFormat('fr-FR').format(Number(item.prix))} F CFA`;
+        if (item.prix_unite) {
+          priceDisplay += ` <small style="font-size: 11.5px; font-weight: 600; color: #556358;">/${escapeHtml(item.prix_unite)}</small>`;
+        }
+      }
+
+      return `
+        <div class="annonce-card" data-id="${item.id}">
+          <div class="annonce-card-img-wrap">
+            ${mainPhoto ? `
+              <img src="${mainPhoto}" alt="${escapeHtml(item.produit)}" class="annonce-card-img" loading="lazy">
+            ` : `
+              <div class="annonce-placeholder-icon">${catMeta.icon}</div>
+            `}
+            <span class="annonce-card-type-badge ${item.type === 'vente' ? 'annonce-type-vente' : 'annonce-type-achat'}">
+              ${item.type === 'vente' ? '🌾 Vente' : '🔍 Recherche'}
+            </span>
+            <span class="annonce-card-cat-pill">${catMeta.icon} ${catMeta.label}</span>
+            ${photos.length > 1 ? `
+              <span class="annonce-card-photos-count">📷 ${photos.length}</span>
+            ` : ''}
+          </div>
+          <div class="annonce-card-body">
+            <h3 class="annonce-card-title">${escapeHtml(item.produit)}</h3>
+            <div class="annonce-card-price-row">
+              <span class="annonce-card-price">${priceDisplay}</span>
+              ${item.prix_negociable ? '<span class="annonce-card-nego-tag">Négociable</span>' : ''}
+            </div>
+            <div class="annonce-card-qty-row">
+              <span>📦 Quantité :</span>
+              <strong>${item.quantite} ${escapeHtml(item.unite || '')}</strong>
+            </div>
+            <div class="annonce-card-footer">
+              <span class="annonce-card-location">📍 ${escapeHtml(item.commune || 'Burkina Faso')} (${escapeHtml(item.region || '')})</span>
+              <span>${formatAnnonceRelativeDate(item.created_at)}</span>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    grid.querySelectorAll('.annonce-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const id = card.getAttribute('data-id');
+        const item = cachedAnnonces.find(a => String(a.id) === String(id));
+        if (item) openAnnonceDetailsModal(item);
+      });
+    });
+  }
+
+  // Rendu de la page Mes annonces (Desktop)
+  function renderMesAnnoncesPage() {
+    const listContainer = document.getElementById('mesAnnoncesList');
+    const emptyState = document.getElementById('mesAnnoncesEmptyState');
+    if (!listContainer) return;
+
+    const myAds = cachedAnnonces.filter(a => String(a.profile_id) === String(currentProfileKey));
+
+    if (myAds.length === 0) {
+      listContainer.innerHTML = '';
+      if (emptyState) emptyState.classList.remove('hidden');
+      return;
+    }
+
+    if (emptyState) emptyState.classList.add('hidden');
+
+    listContainer.innerHTML = myAds.map(item => {
+      const catMeta = ANNONCES_CATEGORIES_META[item.categorie] || { label: item.categorie || 'Autre', icon: '📦' };
+      const photos = Array.isArray(item.photos) ? item.photos : [];
+      const thumb = photos.length > 0 ? photos[0] : '';
+
+      let priceDisplay = 'Prix à discuter';
+      if (item.prix !== null && item.prix !== undefined && !isNaN(Number(item.prix)) && Number(item.prix) > 0) {
+        priceDisplay = `${new Intl.NumberFormat('fr-FR').format(Number(item.prix))} F CFA`;
+      }
+
+      let statusBadgeClass = 'status-active';
+      let statusLabel = 'Active';
+      if (item.statut === 'vendue') {
+        statusBadgeClass = 'status-vendue';
+        statusLabel = 'Vendue';
+      } else if (item.statut === 'expiree') {
+        statusBadgeClass = 'status-expiree';
+        statusLabel = 'Expirée';
+      } else if (item.statut === 'retiree par la modération') {
+        statusBadgeClass = 'status-retiree';
+        statusLabel = 'Retirée modération';
+      }
+
+      return `
+        <div class="mes-annonce-card" data-id="${item.id}">
+          ${thumb ? `
+            <img src="${thumb}" alt="${escapeHtml(item.produit)}" class="mes-annonce-thumb">
+          ` : `
+            <div class="mes-annonce-thumb">${catMeta.icon}</div>
+          `}
+          <div class="mes-annonce-info">
+            <div class="mes-annonce-title-row">
+              <span class="status-badge ${statusBadgeClass}">${statusLabel}</span>
+              <span style="font-size: 11.5px; font-weight: 700; color: #1E5E2A;">${item.type === 'vente' ? '🌾 Vente' : '🔍 Recherche'}</span>
+              <h4 class="mes-annonce-title">${escapeHtml(item.produit)}</h4>
+            </div>
+            <div class="mes-annonce-meta">
+              <span><strong>${item.quantite} ${escapeHtml(item.unite || '')}</strong></span>
+              <span>•</span>
+              <span style="color: var(--primary-700); font-weight: 700;">${priceDisplay}</span>
+              <span>•</span>
+              <span>📍 ${escapeHtml(item.commune || '')} (${escapeHtml(item.region || '')})</span>
+              <span>•</span>
+              <span style="font-style: italic;">${formatAnnonceExpiryInfo(item.date_expiration, item.statut)}</span>
+            </div>
+          </div>
+          <div class="mes-annonce-actions">
+            <button type="button" class="btn-secondary btn-mes-edit" data-id="${item.id}" style="padding: 6px 12px; font-size: 12px;">✏️ Modifier</button>
+            ${item.statut === 'active' ? `
+              <button type="button" class="btn-secondary btn-mes-sold" data-id="${item.id}" style="padding: 6px 12px; font-size: 12px; color: #5B21B6; border-color: #DDD6FE;">✅ Marquer vendue</button>
+            ` : ''}
+            ${item.statut === 'expiree' || item.statut === 'vendue' ? `
+              <button type="button" class="btn-primary btn-mes-renew" data-id="${item.id}" style="padding: 6px 12px; font-size: 12px;">🔄 Renouveler (30j)</button>
+            ` : ''}
+            <button type="button" class="btn-secondary btn-mes-del" data-id="${item.id}" style="padding: 6px 10px; font-size: 12px; color: #C53030; border-color: #F8D7DA;" title="Supprimer définitivement">🗑️</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    listContainer.querySelectorAll('.btn-mes-edit').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-id');
+        const item = cachedAnnonces.find(a => String(a.id) === String(id));
+        if (item) openPublishAnnonceModal(item);
+      });
+    });
+
+    listContainer.querySelectorAll('.btn-mes-sold').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const id = btn.getAttribute('data-id');
+        await handleMarkAnnonceSold(id);
+      });
+    });
+
+    listContainer.querySelectorAll('.btn-mes-renew').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const id = btn.getAttribute('data-id');
+        await handleRenewAnnonce(id);
+      });
+    });
+
+    listContainer.querySelectorAll('.btn-mes-del').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const id = btn.getAttribute('data-id');
+        await handleDeleteAnnonce(id);
+      });
+    });
+  }
+
+  // Rendu de la page Files de modération (Administration)
+  function renderAdminQueuePage() {
+    const listContainer = document.getElementById('adminQueueList');
+    const emptyState = document.getElementById('adminQueueEmptyState');
+    if (!listContainer) return;
+
+    let list = cachedSignalements;
+    if (adminQueueActiveStatusTab === 'en_attente') {
+      list = list.filter(s => s.statut === 'en_attente');
+    } else if (adminQueueActiveStatusTab === 'traite') {
+      list = list.filter(s => s.statut === 'traite' || s.statut === 'ignore');
+    }
+
+    if (list.length === 0) {
+      listContainer.innerHTML = '';
+      if (emptyState) emptyState.classList.remove('hidden');
+      return;
+    }
+
+    if (emptyState) emptyState.classList.add('hidden');
+
+    listContainer.innerHTML = list.map(sig => {
+      const annonce = cachedAnnonces.find(a => String(a.id) === String(sig.annonce_id));
+      const photos = Array.isArray(annonce?.photos) ? annonce.photos : [];
+      const thumb = photos.length > 0 ? photos[0] : '';
+
+      return `
+        <div class="signalement-card ${sig.statut !== 'en_attente' ? 'status-traite' : ''}" data-id="${sig.id}">
+          <div class="signalement-card-header">
+            <div>
+              <span class="signalement-motif-badge">🚩 Motif : ${escapeHtml(sig.motif || 'Signalement')}</span>
+              <span style="font-size: 12px; color: #7C8781; margin-left: 8px;">Reçu ${formatAnnonceRelativeDate(sig.created_at)}</span>
+            </div>
+            <span class="status-badge ${sig.statut === 'en_attente' ? 'status-retiree' : 'status-active'}">
+              ${sig.statut === 'en_attente' ? '⏳ En attente de modération' : (sig.statut === 'traite' ? '✅ Traité (Annonce retirée)' : 'ℹ️ Signalement ignoré')}
+            </span>
+          </div>
+
+          ${sig.commentaire ? `
+            <div style="background: #FFF8F8; border-left: 3px solid #E19898; padding: 8px 12px; border-radius: 4px; font-size: 13px; color: #6A2424;">
+              <strong>Commentaire de l'utilisateur :</strong> ${escapeHtml(sig.commentaire)}
+            </div>
+          ` : ''}
+
+          <div class="signalement-target-preview">
+            ${thumb ? `
+              <img src="${thumb}" alt="Aperçu" style="width: 56px; height: 56px; border-radius: 8px; object-fit: cover;">
+            ` : `
+              <div style="width: 56px; height: 56px; border-radius: 8px; background: #E8ECE6; display: flex; align-items: center; justify-content: center; font-size: 22px;">🌾</div>
+            `}
+            <div style="flex: 1; min-width: 0;">
+              <strong style="font-size: 14px; color: #141A15; display: block;">${escapeHtml(annonce?.produit || 'Annonce supprimée ou introuvable')}</strong>
+              <div style="font-size: 12px; color: #556358; margin-top: 2px;">
+                ${annonce ? `Quantité : ${annonce.quantite} ${annonce.unite || ''} • Prix : ${annonce.prix ? annonce.prix + ' F CFA' : 'À discuter'} • Localisation : ${annonce.commune || ''} (${annonce.region || ''})` : ''}
+              </div>
+              <div style="font-size: 11.5px; color: #7C8781; margin-top: 2px;">
+                Statut actuel de l'annonce : <strong>${annonce?.statut || 'N/A'}</strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="signalement-actions-bar">
+            ${annonce ? `
+              <button type="button" class="btn-secondary btn-sig-view" data-ann-id="${annonce.id}" style="padding: 6px 12px; font-size: 12px;">👁️ Voir l'annonce</button>
+            ` : ''}
+            ${sig.statut === 'en_attente' ? `
+              <button type="button" class="btn-secondary btn-sig-ignore" data-sig-id="${sig.id}" style="padding: 6px 12px; font-size: 12px; color: #556358;">Ignorer le signalement</button>
+              <button type="button" class="btn-primary btn-sig-withdraw" data-sig-id="${sig.id}" data-ann-id="${sig.annonce_id}" style="padding: 6px 14px; font-size: 12px; background: #C53030; border-color: #C53030;">
+                <span>🚫 Retirer l'annonce du marché</span>
+              </button>
+            ` : ''}
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    listContainer.querySelectorAll('.btn-sig-view').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const annId = btn.getAttribute('data-ann-id');
+        const annonce = cachedAnnonces.find(a => String(a.id) === String(annId));
+        if (annonce) openAnnonceDetailsModal(annonce);
+      });
+    });
+
+    listContainer.querySelectorAll('.btn-sig-ignore').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const sigId = btn.getAttribute('data-sig-id');
+        await handleAdminIgnorerSignalement(sigId);
+      });
+    });
+
+    listContainer.querySelectorAll('.btn-sig-withdraw').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const sigId = btn.getAttribute('data-sig-id');
+        const annId = btn.getAttribute('data-ann-id');
+        await handleAdminRetirerAnnonce(sigId, annId);
+      });
+    });
+  }
+
+  // Ouverture de la modale de détails d'une annonce
+  function openAnnonceDetailsModal(item) {
+    if (!modalAnnonceDetails) return;
+    currentDetailAnnonce = item;
+
+    const bType = document.getElementById('annonceDetailTypeBadge');
+    const bReg = document.getElementById('annonceDetailRegionBadge');
+    const dRel = document.getElementById('annonceDetailDateRel');
+    const dProd = document.getElementById('annonceDetailProduit');
+    const dPrix = document.getElementById('annonceDetailPrix');
+    const dQty = document.getElementById('annonceDetailQuantiteBadge');
+    const dDesc = document.getElementById('annonceDetailDescription');
+    const dAuteur = document.getElementById('annonceDetailAuteur');
+    const dLoc = document.getElementById('annonceDetailLocation');
+    const btnWa = document.getElementById('btnAnnonceWhatsapp');
+    const btnCall = document.getElementById('btnAnnonceCall');
+
+    if (bType) {
+      bType.textContent = item.type === 'vente' ? '🌾 À vendre' : '🔍 On cherche';
+      bType.className = `fin-detail-type-badge ${item.type === 'vente' ? 'type-subvention' : 'type-appel'}`;
+    }
+    if (bReg) bReg.textContent = `📍 ${item.commune || 'Burkina Faso'} (${item.region || ''})`;
+    if (dRel) dRel.textContent = `Publiée ${formatAnnonceRelativeDate(item.created_at)}`;
+    if (dProd) dProd.textContent = item.produit || 'Produit agricole';
+
+    let priceDisplay = 'Prix à discuter';
+    if (item.prix !== null && item.prix !== undefined && !isNaN(Number(item.prix)) && Number(item.prix) > 0) {
+      priceDisplay = `${new Intl.NumberFormat('fr-FR').format(Number(item.prix))} F CFA`;
+      if (item.prix_unite) priceDisplay += ` / ${item.prix_unite}`;
+      if (item.prix_negociable) priceDisplay += ' (Négociable)';
+    }
+    if (dPrix) dPrix.textContent = priceDisplay;
+    if (dQty) dQty.textContent = `Quantité : ${item.quantite} ${item.unite || ''}`;
+    if (dDesc) dDesc.textContent = item.description || 'Aucune description détaillée fournie.';
+
+    // Trouver le profil de l'auteur si disponible
+    const authorProfile = PROFILES_DATA[item.profile_id];
+    if (dAuteur) dAuteur.textContent = authorProfile?.name || 'Exploitant agricole vérifié';
+    if (dLoc) dLoc.textContent = `${item.commune || 'Burkina Faso'} (${item.region || ''})`;
+
+    // WhatsApp et Téléphone
+    const cleanPhone = cleanBurkinaPhone(item.whatsapp || authorProfile?.phone || '');
+    if (btnWa) {
+      const waMessage = `Bonjour, je vous contacte depuis Révolution Agricole au sujet de votre annonce : ${item.produit} (${item.quantite} ${item.unite || ''}) à ${priceDisplay}. Est-ce toujours disponible ?`;
+      btnWa.href = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(waMessage)}`;
+    }
+    if (btnCall) {
+      btnCall.href = `tel:+${cleanPhone}`;
+    }
+
+    modalAnnonceDetails.classList.remove('hidden');
+  }
+
+  function closeAnnonceDetailsModal() {
+    if (modalAnnonceDetails) modalAnnonceDetails.classList.add('hidden');
+    currentDetailAnnonce = null;
+  }
+
+  // Gestion du formulaire Étape par Étape pour publier une annonce
+  function setPublishStep(step) {
+    currentPublishStep = step;
+    const step1El = document.getElementById('publishStep1');
+    const step2El = document.getElementById('publishStep2');
+    const item1 = document.getElementById('stepperItem1');
+    const item2 = document.getElementById('stepperItem2');
+    const line = document.getElementById('stepperLine');
+    const subTitle = document.getElementById('publishAnnonceModalSubtitle');
+
+    if (step === 1) {
+      if (step1El) step1El.classList.remove('hidden');
+      if (step2El) step2El.classList.add('hidden');
+      if (item1) item1.classList.add('active');
+      if (item2) item2.classList.remove('active');
+      if (line) line.classList.remove('active');
+      if (subTitle) subTitle.textContent = 'Étape 1 sur 2 : Que proposez-vous ?';
+    } else {
+      if (step1El) step1El.classList.add('hidden');
+      if (step2El) step2El.classList.remove('hidden');
+      if (item1) item1.classList.add('active');
+      if (item2) item2.classList.add('active');
+      if (line) line.classList.add('active');
+      if (subTitle) subTitle.textContent = 'Étape 2 sur 2 : Localisation, photos et contact';
+    }
+  }
+
+  function openPublishAnnonceModal(adToEdit = null) {
+    if (!modalPublishAnnonce) return;
+    currentEditingAnnonceId = adToEdit ? adToEdit.id : null;
+    pendingAnnoncePhotos = [];
+
+    const userProfile = PROFILES_DATA[currentProfileKey] || {};
+
+    const typeInput = document.getElementById('annonceTypeChoice');
+    const btnVente = document.getElementById('btnTypeVente');
+    const btnAchat = document.getElementById('btnTypeAchat');
+    const prodInput = document.getElementById('annonceProduit');
+    const catInput = document.getElementById('annonceCategorie');
+    const qtyInput = document.getElementById('annonceQuantite');
+    const uniteInput = document.getElementById('annonceUnite');
+    const prixInput = document.getElementById('annoncePrix');
+    const prixUniteInput = document.getElementById('annoncePrixUnite');
+    const negoInput = document.getElementById('annoncePrixNegociable');
+    const communeInput = document.getElementById('annonceCommune');
+    const regionInput = document.getElementById('annonceRegion');
+    const descInput = document.getElementById('annonceDescription');
+    const waInput = document.getElementById('annonceWhatsapp');
+    const modalTitle = document.getElementById('publishAnnonceModalTitle');
+    const submitBtnText = document.getElementById('btnSubmitAnnonceText');
+
+    if (adToEdit) {
+      if (modalTitle) modalTitle.textContent = 'Modifier l\'annonce';
+      if (submitBtnText) submitBtnText.textContent = 'Enregistrer les modifications';
+      if (typeInput) typeInput.value = adToEdit.type || 'vente';
+      if (btnVente) btnVente.classList.toggle('active', adToEdit.type === 'vente');
+      if (btnAchat) btnAchat.classList.toggle('active', adToEdit.type === 'achat');
+      if (prodInput) prodInput.value = adToEdit.produit || '';
+      if (catInput) catInput.value = adToEdit.categorie || 'legumes';
+      if (qtyInput) qtyInput.value = adToEdit.quantite || '';
+      if (uniteInput) uniteInput.value = adToEdit.unite || 'sac de 100 kg';
+      if (prixInput) prixInput.value = adToEdit.prix || '';
+      if (prixUniteInput) prixUniteInput.value = adToEdit.prix_unite || 'par sac';
+      if (negoInput) negoInput.checked = !!adToEdit.prix_negociable;
+      if (communeInput) communeInput.value = adToEdit.commune || '';
+      if (regionInput) regionInput.value = adToEdit.region || 'Centre-Ouest';
+      if (descInput) descInput.value = adToEdit.description || '';
+      if (waInput) waInput.value = cleanBurkinaPhone(adToEdit.whatsapp || '').replace(/^226/, '');
+
+      if (Array.isArray(adToEdit.photos)) {
+        pendingAnnoncePhotos = adToEdit.photos.map(url => ({
+          url: url,
+          previewUrl: url,
+          id: Math.random().toString(36).substring(2, 9)
+        }));
+      }
+    } else {
+      if (modalTitle) modalTitle.textContent = 'Publier une annonce';
+      if (submitBtnText) submitBtnText.textContent = 'Publier mon annonce';
+      if (typeInput) typeInput.value = 'vente';
+      if (btnVente) btnVente.classList.add('active');
+      if (btnAchat) btnAchat.classList.remove('active');
+      if (prodInput) prodInput.value = '';
+      if (catInput) catInput.value = 'legumes';
+      if (qtyInput) qtyInput.value = '';
+      if (uniteInput) uniteInput.value = 'sac de 100 kg';
+      if (prixInput) prixInput.value = '';
+      if (prixUniteInput) prixUniteInput.value = 'par sac';
+      if (negoInput) negoInput.checked = true;
+
+      // Préremplissage localisation et contact depuis le profil connecté
+      const locParts = (userProfile.location || '').split('(');
+      const userCommune = locParts[0]?.trim() || 'Koudougou';
+      const userRegion = locParts[1]?.replace(')', '').trim() || 'Centre-Ouest';
+
+      if (communeInput) communeInput.value = userCommune;
+      if (regionInput) regionInput.value = userRegion;
+      if (descInput) descInput.value = '';
+      if (waInput) {
+        const rawPhone = userProfile.phone || '';
+        waInput.value = cleanBurkinaPhone(rawPhone).replace(/^226/, '');
+      }
+    }
+
+    renderAnnoncePhotoPreviews();
+    setPublishStep(1);
+    modalPublishAnnonce.classList.remove('hidden');
+  }
+
+  function closePublishAnnonceModal() {
+    if (modalPublishAnnonce) modalPublishAnnonce.classList.add('hidden');
+    pendingAnnoncePhotos = [];
+    currentEditingAnnonceId = null;
+  }
+
+  function renderAnnoncePhotoPreviews() {
+    const container = document.getElementById('annoncePhotoPreviews');
+    const note = document.getElementById('annoncePhotoCountNote');
+    if (!container) return;
+
+    if (note) {
+      note.textContent = `${pendingAnnoncePhotos.length} photo${pendingAnnoncePhotos.length > 1 ? 's' : ''} sélectionnée${pendingAnnoncePhotos.length > 1 ? 's' : ''} (max 3)`;
+    }
+
+    container.innerHTML = pendingAnnoncePhotos.map((p, idx) => `
+      <div class="annonce-photo-preview-item" data-id="${p.id}">
+        <img src="${p.previewUrl}" alt="Photo ${idx + 1}">
+        <button type="button" class="annonce-photo-preview-del" data-id="${p.id}" title="Supprimer">&times;</button>
+      </div>
+    `).join('');
+
+    container.querySelectorAll('.annonce-photo-preview-del').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const id = btn.getAttribute('data-id');
+        pendingAnnoncePhotos = pendingAnnoncePhotos.filter(p => p.id !== id);
+        renderAnnoncePhotoPreviews();
+      });
+    });
+  }
+
+  // Soumission de publication d'annonce dans Supabase
+  async function handleSaveAnnonce(e) {
+    e.preventDefault();
+    if (!supabaseClient) {
+      showToast('⚠️ Erreur', 'Connexion Supabase non disponible.');
+      return;
+    }
+
+    const type = document.getElementById('annonceTypeChoice')?.value || 'vente';
+    const produit = (document.getElementById('annonceProduit')?.value || '').trim();
+    const categorie = document.getElementById('annonceCategorie')?.value || 'autres';
+    const quantite = parseFloat(document.getElementById('annonceQuantite')?.value || '0');
+    const unite = document.getElementById('annonceUnite')?.value || 'kg';
+    const prixRaw = document.getElementById('annoncePrix')?.value;
+    const prix = (prixRaw && prixRaw.trim() !== '') ? parseFloat(prixRaw) : null;
+    const prix_unite = document.getElementById('annoncePrixUnite')?.value || 'par sac';
+    const prix_negociable = !!document.getElementById('annoncePrixNegociable')?.checked;
+    const commune = (document.getElementById('annonceCommune')?.value || '').trim();
+    const region = document.getElementById('annonceRegion')?.value || 'Centre-Ouest';
+    const description = (document.getElementById('annonceDescription')?.value || '').trim();
+    const whatsapp = cleanBurkinaPhone(document.getElementById('annonceWhatsapp')?.value || '');
+
+    if (!produit || isNaN(quantite) || quantite <= 0 || !commune || !whatsapp) {
+      showToast('Champs obligatoires', 'Veuillez remplir le produit, la quantité, la commune et votre WhatsApp.');
+      return;
+    }
+
+    const submitBtn = document.getElementById('btnSubmitAnnonce');
+    const submitBtnText = document.getElementById('btnSubmitAnnonceText');
+    const prevText = submitBtnText ? submitBtnText.textContent : 'Publier';
+
+    try {
+      if (submitBtn) submitBtn.disabled = true;
+      if (submitBtnText) submitBtnText.textContent = 'Envoi des photos…';
+
+      // Téléversement des photos vers le Storage 'annonces'
+      const finalPhotoUrls = [];
+      for (const item of pendingAnnoncePhotos) {
+        if (item.url) {
+          finalPhotoUrls.push(item.url);
+        } else if (item.file) {
+          const file = item.file;
+          const fileName = (file.name || '').toLowerCase();
+          const fileType = (file.type || '').toLowerCase();
+          const isGif = fileType === 'image/gif' || fileName.endsWith('.gif');
+          const isWebp = fileType === 'image/webp' || fileName.endsWith('.webp');
+
+          if (isGif) {
+            const url = await uploadAnnoncePhoto(file, 'image/gif', 'gif');
+            finalPhotoUrls.push(url);
+          } else if (isWebp) {
+            const url = await uploadAnnoncePhoto(file, 'image/webp', 'webp');
+            finalPhotoUrls.push(url);
+          } else {
+            // Photos normales JPG/PNG
+            const url = await uploadAnnoncePhoto(file, fileType || 'image/jpeg', fileName.split('.').pop() || 'jpg');
+            finalPhotoUrls.push(url);
+          }
+        }
+      }
+
+      if (submitBtnText) submitBtnText.textContent = 'Enregistrement…';
+
+      const payload = {
+        profile_id: currentProfileKey,
+        type: type,
+        produit: produit,
+        categorie: categorie,
+        quantite: quantite,
+        unite: unite,
+        prix: prix,
+        prix_unite: prix_unite,
+        prix_negociable: prix_negociable,
+        commune: commune,
+        region: region,
+        description: description,
+        photos: finalPhotoUrls,
+        whatsapp: whatsapp,
+        statut: 'active',
+        date_expiration: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        updated_at: new Date().toISOString()
+      };
+
+      if (currentEditingAnnonceId) {
+        // Mise à jour
+        const { error } = await supabaseClient
+          .from('annonces')
+          .update(payload)
+          .eq('id', currentEditingAnnonceId);
+
+        if (error) throw error;
+        showToast('Annonce mise à jour', `Votre annonce pour « ${produit} » a été modifiée avec succès.`);
+      } else {
+        // Nouvelle insertion
+        const { error } = await supabaseClient
+          .from('annonces')
+          .insert([payload]);
+
+        if (error) throw error;
+        showToast('Annonce publiée ! 🌾', `Votre annonce pour « ${produit} » est maintenant visible sur le Marché.`);
+      }
+
+      closePublishAnnonceModal();
+      await fetchAnnonces();
+    } catch (err) {
+      console.error('Erreur handleSaveAnnonce :', err);
+      showToast('Erreur', `Impossible d'enregistrer l'annonce : ${err.message || err}`);
+    } finally {
+      if (submitBtn) submitBtn.disabled = false;
+      if (submitBtnText) submitBtnText.textContent = prevText;
+    }
+  }
+
+  // Marquer une annonce comme vendue
+  async function handleMarkAnnonceSold(id) {
+    if (!supabaseClient) return;
+    try {
+      const { error } = await supabaseClient
+        .from('annonces')
+        .update({ statut: 'vendue', updated_at: new Date().toISOString() })
+        .eq('id', id);
+
+      if (error) throw error;
+      showToast('Félicitations ! 🎉', 'Votre annonce a été marquée comme vendue.');
+      await fetchAnnonces();
+    } catch (err) {
+      showToast('Erreur', err.message || 'Impossible de mettre à jour le statut.');
+    }
+  }
+
+  // Renouveler une annonce pour 30 jours
+  async function handleRenewAnnonce(id) {
+    if (!supabaseClient) return;
+    try {
+      const { error } = await supabaseClient
+        .from('annonces')
+        .update({
+          statut: 'active',
+          date_expiration: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', id);
+
+      if (error) throw error;
+      showToast('Annonce renouvelée ! 🔄', 'Votre annonce est réactivée pour 30 jours supplémentaires.');
+      await fetchAnnonces();
+    } catch (err) {
+      showToast('Erreur', err.message || 'Impossible de renouveler l\'annonce.');
+    }
+  }
+
+  // Supprimer définitivement une annonce
+  async function handleDeleteAnnonce(id) {
+    if (!supabaseClient) return;
+    if (!confirm('Voulez-vous vraiment supprimer définitivement cette annonce ? Cette action est irréversible.')) return;
+
+    try {
+      const { error } = await supabaseClient
+        .from('annonces')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      showToast('Annonce supprimée', 'L\'annonce a été retirée définitivement.');
+      await fetchAnnonces();
+    } catch (err) {
+      showToast('Erreur', err.message || 'Impossible de supprimer l\'annonce.');
+    }
+  }
+
+  // Modale de signalement
+  function openSignalerAnnonceModal(annonce) {
+    if (!modalSignalerAnnonce || !annonce) return;
+    const idInput = document.getElementById('signalementAnnonceId');
+    if (idInput) idInput.value = annonce.id;
+    const commentInput = document.getElementById('signalementCommentaire');
+    if (commentInput) commentInput.value = '';
+    modalSignalerAnnonce.classList.remove('hidden');
+  }
+
+  function closeSignalerAnnonceModal() {
+    if (modalSignalerAnnonce) modalSignalerAnnonce.classList.add('hidden');
+  }
+
+  async function handleSignalerAnnonce(e) {
+    e.preventDefault();
+    if (!supabaseClient) return;
+
+    const annId = document.getElementById('signalementAnnonceId')?.value;
+    const motifEl = document.querySelector('input[name="motifSignalement"]:checked');
+    const motif = motifEl ? motifEl.value : 'autre';
+    const commentaire = (document.getElementById('signalementCommentaire')?.value || '').trim();
+
+    if (!annId) {
+      showToast('Erreur', 'Identifiant d\'annonce manquant.');
+      return;
+    }
+
+    try {
+      const { error } = await supabaseClient
+        .from('signalements')
+        .insert([{
+          annonce_id: annId,
+          profile_id: currentProfileKey,
+          signaleur_id: currentProfileKey,
+          motif: motif,
+          commentaire: commentaire,
+          statut: 'en_attente',
+          created_at: new Date().toISOString()
+        }]);
+
+      if (error) throw error;
+
+      showToast('Signalement envoyé 🛡️', 'Merci pour votre vigilance. Notre équipe modère les annonces sous 24h.');
+      closeSignalerAnnonceModal();
+      closeAnnonceDetailsModal();
+      await fetchSignalements();
+    } catch (err) {
+      showToast('Erreur', err.message || 'Impossible d\'envoyer le signalement.');
+    }
+  }
+
+  // Modération administrative : retirer une annonce
+  async function handleAdminRetirerAnnonce(sigId, annId) {
+    if (!supabaseClient) return;
+    if (!confirm('Confirmez-vous le retrait immédiat de cette annonce du marché public ?')) return;
+
+    try {
+      if (annId) {
+        await supabaseClient
+          .from('annonces')
+          .update({ statut: 'retiree par la modération', updated_at: new Date().toISOString() })
+          .eq('id', annId);
+      }
+
+      if (sigId) {
+        await supabaseClient
+          .from('signalements')
+          .update({ statut: 'traite' })
+          .eq('id', sigId);
+      }
+
+      showToast('Annonce retirée', 'L\'annonce a été immédiatement retirée du marché et le signalement est marqué traité.');
+      await fetchAnnonces();
+      await fetchSignalements();
+    } catch (err) {
+      showToast('Erreur', err.message || 'Erreur lors du retrait de l\'annonce.');
+    }
+  }
+
+  // Modération administrative : ignorer un signalement non fondé
+  async function handleAdminIgnorerSignalement(sigId) {
+    if (!supabaseClient) return;
+    try {
+      const { error } = await supabaseClient
+        .from('signalements')
+        .update({ statut: 'ignore' })
+        .eq('id', sigId);
+
+      if (error) throw error;
+      showToast('Signalement classé', 'Le signalement a été classé sans suite.');
+      await fetchSignalements();
+    } catch (err) {
+      showToast('Erreur', err.message || 'Erreur lors du traitement du signalement.');
+    }
+  }
+
+  // HTML Mobile pour le Marché Agricole
+  function getMobileMarcheHtml() {
+    let list = cachedAnnonces.filter(a => a.statut === 'active');
+    list = list.filter(a => a.type === marcheActiveType);
+    if (marcheSelectedCategory && marcheSelectedCategory !== 'all') {
+      list = list.filter(a => a.categorie === marcheSelectedCategory);
+    }
+
+    return `
+      <div style="margin-bottom: 12px;">
+        <a href="#dashboard" class="breadcrumb-back-link mobile-back-to-dashboard" style="font-size: 12px; margin-bottom: 8px; display: inline-flex; align-items: center; gap: 4px; color: #1E5E2A; font-weight: 700; text-decoration: none;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+          <span>Tableau de bord</span>
+        </a>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <h2 style="font-size: 18px; font-weight: 800; color: #1E2822; margin: 0 0 2px;">🌾 Marché Agricole</h2>
+            <p style="font-size: 11.5px; color: #5B6660; margin: 0;">Achetez et vendez en direct bord champ</p>
+          </div>
+          <button type="button" class="btn-primary" id="btnMobileOpenPublishAnnonce" style="padding: 8px 12px; font-size: 12px; font-weight: 700; border-radius: 8px; cursor: pointer;">+ Publier</button>
+        </div>
+      </div>
+
+      <!-- Onglets Vente vs Achat Mobile -->
+      <div class="marche-tabs-container">
+        <button type="button" class="marche-main-tab ${marcheActiveType === 'vente' ? 'active' : ''}" id="btnMobileTabVente">
+          <span>🌾 À vendre</span>
+          <span class="marche-tab-count">${cachedAnnonces.filter(a => a.statut === 'active' && a.type === 'vente').length}</span>
+        </button>
+        <button type="button" class="marche-main-tab ${marcheActiveType === 'achat' ? 'active' : ''}" id="btnMobileTabAchat">
+          <span>🔍 On cherche</span>
+          <span class="marche-tab-count">${cachedAnnonces.filter(a => a.statut === 'active' && a.type === 'achat').length}</span>
+        </button>
+      </div>
+
+      <!-- Liste des cartes mobile -->
+      <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
+        ${list.length === 0 ? `
+          <div style="text-align: center; padding: 24px; background: #FFF; border-radius: 12px; border: 1px dashed #DDD;">
+            <p style="font-weight: 700; font-size: 13px; margin: 0; color: #1E2822;">Aucune annonce trouvée</p>
+          </div>
+        ` : list.map(item => {
+          const catMeta = ANNONCES_CATEGORIES_META[item.categorie] || { label: item.categorie || 'Autre', icon: '📦' };
+          const photos = Array.isArray(item.photos) ? item.photos : [];
+          const thumb = photos.length > 0 ? photos[0] : '';
+
+          let priceDisplay = 'Prix à discuter';
+          if (item.prix !== null && item.prix !== undefined && !isNaN(Number(item.prix)) && Number(item.prix) > 0) {
+            priceDisplay = `${new Intl.NumberFormat('fr-FR').format(Number(item.prix))} F CFA`;
+          }
+
+          return `
+            <div class="mobile-annonce-card" data-id="${item.id}" style="background: #FFF; border: 1px solid #E6EAE3; border-radius: 12px; padding: 12px; cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,0.03);">
+              <div style="display: flex; gap: 12px;">
+                ${thumb ? `
+                  <img src="${thumb}" alt="${escapeHtml(item.produit)}" style="width: 80px; height: 80px; border-radius: 8px; object-fit: cover; flex-shrink: 0; background: #F0F4EE;">
+                ` : `
+                  <div style="width: 80px; height: 80px; border-radius: 8px; background: #F0F4EE; display: flex; align-items: center; justify-content: center; font-size: 32px; flex-shrink: 0;">${catMeta.icon}</div>
+                `}
+                <div style="flex: 1; min-width: 0;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
+                    <span style="font-size: 10.5px; font-weight: 700; color: #1E5E2A;">${catMeta.icon} ${catMeta.label}</span>
+                    <span style="font-size: 10.5px; color: #7C8781;">${formatAnnonceRelativeDate(item.created_at)}</span>
+                  </div>
+                  <h4 style="font-size: 14px; font-weight: 800; color: #141A15; margin: 2px 0 4px; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHtml(item.produit)}</h4>
+                  <div style="font-size: 13.5px; font-weight: 800; color: #1E5E2A; font-family: 'JetBrains Mono', monospace;">${priceDisplay}</div>
+                  <div style="font-size: 11px; color: #556358; margin-top: 2px;">📦 ${item.quantite} ${escapeHtml(item.unite || '')} • 📍 ${escapeHtml(item.commune || '')}</div>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+  }
+
+  // HTML Mobile pour Mes Annonces
+  function getMobileMesAnnoncesHtml() {
+    const myAds = cachedAnnonces.filter(a => String(a.profile_id) === String(currentProfileKey));
+
+    return `
+      <div style="margin-bottom: 12px;">
+        <a href="#dashboard" class="breadcrumb-back-link mobile-back-to-dashboard" style="font-size: 12px; margin-bottom: 8px; display: inline-flex; align-items: center; gap: 4px; color: #1E5E2A; font-weight: 700; text-decoration: none;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+          <span>Tableau de bord</span>
+        </a>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <h2 style="font-size: 18px; font-weight: 800; color: #1E2822; margin: 0 0 2px;">📋 Mes Annonces</h2>
+            <p style="font-size: 11.5px; color: #5B6660; margin: 0;">Gérez vos récoltes et offres</p>
+          </div>
+          <button type="button" class="btn-primary" id="btnMobileOpenPublishMesAnnonces" style="padding: 8px 12px; font-size: 12px; font-weight: 700; border-radius: 8px; cursor: pointer;">+ Publier</button>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        ${myAds.length === 0 ? `
+          <div style="text-align: center; padding: 24px; background: #FFF; border-radius: 12px; border: 1px dashed #DDD;">
+            <p style="font-weight: 700; font-size: 13px; margin: 0; color: #1E2822;">Vous n'avez pas encore publié d'annonce</p>
+          </div>
+        ` : myAds.map(item => `
+          <div style="background: #FFF; border: 1px solid #E6EAE3; border-radius: 12px; padding: 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <span class="status-badge ${item.statut === 'active' ? 'status-active' : (item.statut === 'vendue' ? 'status-vendue' : 'status-expiree')}">${item.statut}</span>
+              <span style="font-size: 11px; color: #7C8781;">${formatAnnonceExpiryInfo(item.date_expiration, item.statut)}</span>
+            </div>
+            <h4 style="font-size: 14.5px; font-weight: 800; color: #141A15; margin: 0 0 4px;">${escapeHtml(item.produit)}</h4>
+            <div style="font-size: 12px; color: #556358; margin-bottom: 8px;">
+              ${item.quantite} ${escapeHtml(item.unite || '')} • ${item.prix ? item.prix + ' F CFA' : 'À discuter'}
+            </div>
+            <div style="display: flex; gap: 6px;">
+              <button type="button" class="btn-secondary btn-mobile-edit-ad" data-id="${item.id}" style="flex: 1; padding: 6px; font-size: 11px; justify-content: center;">✏️ Modifier</button>
+              ${item.statut === 'active' ? `
+                <button type="button" class="btn-secondary btn-mobile-sold-ad" data-id="${item.id}" style="flex: 1; padding: 6px; font-size: 11px; justify-content: center; color: #5B21B6;">✅ Vendue</button>
+              ` : ''}
+              ${item.statut !== 'active' ? `
+                <button type="button" class="btn-primary btn-mobile-renew-ad" data-id="${item.id}" style="flex: 1; padding: 6px; font-size: 11px; justify-content: center;">🔄 30j</button>
+              ` : ''}
+              <button type="button" class="btn-secondary btn-mobile-del-ad" data-id="${item.id}" style="padding: 6px 10px; font-size: 11px; color: #C53030;">🗑️</button>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
+
+  // HTML Mobile pour Files de modération
+  function getMobileAdminQueueHtml() {
+    let list = cachedSignalements;
+    if (adminQueueActiveStatusTab === 'en_attente') {
+      list = list.filter(s => s.statut === 'en_attente');
+    }
+
+    return `
+      <div style="margin-bottom: 12px;">
+        <a href="#dashboard" class="breadcrumb-back-link mobile-back-to-dashboard" style="font-size: 12px; margin-bottom: 8px; display: inline-flex; align-items: center; gap: 4px; color: #1E5E2A; font-weight: 700; text-decoration: none;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+          <span>Tableau de bord</span>
+        </a>
+        <h2 style="font-size: 18px; font-weight: 800; color: #1E2822; margin: 0 0 2px;">🛡️ Modération</h2>
+        <p style="font-size: 11.5px; color: #5B6660; margin: 0;">Signalements reçus sur le Marché agricole</p>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        ${list.length === 0 ? `
+          <div style="text-align: center; padding: 24px; background: #FFF; border-radius: 12px; border: 1px dashed #DDD;">
+            <p style="font-weight: 700; font-size: 13px; margin: 0; color: #1E2822;">Aucun signalement en attente</p>
+          </div>
+        ` : list.map(sig => {
+          const annonce = cachedAnnonces.find(a => String(a.id) === String(sig.annonce_id));
+          return `
+            <div style="background: #FFF; border: 1px solid #F5C6CB; border-left: 4px solid #C53030; border-radius: 12px; padding: 12px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                <span class="signalement-motif-badge" style="font-size: 11px;">🚩 ${escapeHtml(sig.motif)}</span>
+                <span style="font-size: 10.5px; color: #7C8781;">${formatAnnonceRelativeDate(sig.created_at)}</span>
+              </div>
+              <strong style="font-size: 13.5px; color: #141A15; display: block; margin: 4px 0;">${escapeHtml(annonce?.produit || 'Annonce')}</strong>
+              ${sig.commentaire ? `<p style="font-size: 12px; color: #6A2424; margin: 4px 0 8px;">${escapeHtml(sig.commentaire)}</p>` : ''}
+              ${sig.statut === 'en_attente' ? `
+                <div style="display: flex; gap: 6px; margin-top: 8px;">
+                  <button type="button" class="btn-secondary btn-mobile-sig-ignore" data-sig-id="${sig.id}" style="flex: 1; padding: 6px; font-size: 11px; justify-content: center;">Ignorer</button>
+                  <button type="button" class="btn-primary btn-mobile-sig-withdraw" data-sig-id="${sig.id}" data-ann-id="${sig.annonce_id}" style="flex: 2; padding: 6px; font-size: 11px; justify-content: center; background: #C53030; border-color: #C53030;">Retirer</button>
+                </div>
+              ` : ''}
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+  }
+
+  // ==================== ÉCOUTEURS D'ÉVÉNEMENTS DU MARCHÉ & ANNONCES ====================
+
+  // Onglets Vente vs Achat
+  const tabMarcheVente = document.getElementById('tabMarcheVente');
+  const tabMarcheAchat = document.getElementById('tabMarcheAchat');
+  if (tabMarcheVente && tabMarcheAchat) {
+    tabMarcheVente.addEventListener('click', () => {
+      marcheActiveType = 'vente';
+      tabMarcheVente.classList.add('active');
+      tabMarcheAchat.classList.remove('active');
+      renderMarchePage();
+    });
+    tabMarcheAchat.addEventListener('click', () => {
+      marcheActiveType = 'achat';
+      tabMarcheAchat.classList.add('active');
+      tabMarcheVente.classList.remove('active');
+      renderMarchePage();
+    });
+  }
+
+  // Recherche textuelle marché
+  const searchAnnoncesInput = document.getElementById('searchAnnoncesInput');
+  if (searchAnnoncesInput) {
+    searchAnnoncesInput.addEventListener('input', (e) => {
+      marcheSearchQuery = e.target.value;
+      renderMarchePage();
+    });
+  }
+
+  // Filtres catégories marché
+  const filterAnnoncesChips = document.querySelectorAll('#filterAnnoncesCategoryContainer .type-filter-chip');
+  filterAnnoncesChips.forEach(chip => {
+    chip.addEventListener('click', () => {
+      filterAnnoncesChips.forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      marcheSelectedCategory = chip.getAttribute('data-cat') || 'all';
+      renderMarchePage();
+    });
+  });
+
+  // Filtre région marché
+  const filterAnnoncesRegionSelect = document.getElementById('filterAnnoncesRegionSelect');
+  if (filterAnnoncesRegionSelect) {
+    filterAnnoncesRegionSelect.addEventListener('change', (e) => {
+      marcheSelectedRegion = e.target.value;
+      renderMarchePage();
+    });
+  }
+
+  // Bouton Réinitialiser filtres marché
+  const btnResetAnnoncesFilters = document.getElementById('btnResetAnnoncesFilters');
+  if (btnResetAnnoncesFilters) {
+    btnResetAnnoncesFilters.addEventListener('click', () => {
+      marcheSelectedCategory = 'all';
+      marcheSelectedRegion = 'all';
+      marcheSearchQuery = '';
+      if (searchAnnoncesInput) searchAnnoncesInput.value = '';
+      if (filterAnnoncesRegionSelect) filterAnnoncesRegionSelect.value = 'all';
+      filterAnnoncesChips.forEach(c => c.classList.toggle('active', c.getAttribute('data-cat') === 'all'));
+      renderMarchePage();
+    });
+  }
+
+  // Bouton Ouvrir modale publication
+  const btnOpenPublishAnnonceModal = document.getElementById('btnOpenPublishAnnonceModal');
+  if (btnOpenPublishAnnonceModal) {
+    btnOpenPublishAnnonceModal.addEventListener('click', () => openPublishAnnonceModal());
+  }
+
+  const btnOpenPublishFromEmpty = document.getElementById('btnOpenPublishFromEmpty');
+  if (btnOpenPublishFromEmpty) {
+    btnOpenPublishFromEmpty.addEventListener('click', () => openPublishAnnonceModal());
+  }
+
+  const btnOpenPublishFromMyEmpty = document.getElementById('btnOpenPublishFromMyEmpty');
+  if (btnOpenPublishFromMyEmpty) {
+    btnOpenPublishFromMyEmpty.addEventListener('click', () => openPublishAnnonceModal());
+  }
+
+  const btnClosePublishAnnonce = document.getElementById('btnClosePublishAnnonce');
+  if (btnClosePublishAnnonce) {
+    btnClosePublishAnnonce.addEventListener('click', closePublishAnnonceModal);
+  }
+
+  const btnCancelPublishStep1 = document.getElementById('btnCancelPublishStep1');
+  if (btnCancelPublishStep1) {
+    btnCancelPublishStep1.addEventListener('click', closePublishAnnonceModal);
+  }
+
+  // Stepper : Aller à l'étape 2
+  const btnGoToStep2 = document.getElementById('btnGoToStep2');
+  if (btnGoToStep2) {
+    btnGoToStep2.addEventListener('click', () => {
+      const prod = (document.getElementById('annonceProduit')?.value || '').trim();
+      const qty = parseFloat(document.getElementById('annonceQuantite')?.value || '0');
+      if (!prod) {
+        showToast('Nom du produit requis', 'Veuillez saisir ou choisir un produit agricole.');
+        document.getElementById('annonceProduit')?.focus();
+        return;
+      }
+      if (isNaN(qty) || qty <= 0) {
+        showToast('Quantité requise', 'Veuillez saisir une quantité valide supérieure à 0.');
+        document.getElementById('annonceQuantite')?.focus();
+        return;
+      }
+      setPublishStep(2);
+    });
+  }
+
+  // Stepper : Retourner à l'étape 1
+  const btnBackToStep1 = document.getElementById('btnBackToStep1');
+  if (btnBackToStep1) {
+    btnBackToStep1.addEventListener('click', () => setPublishStep(1));
+  }
+
+  // Toggle Je vends / Je cherche
+  const btnTypeVente = document.getElementById('btnTypeVente');
+  const btnTypeAchat = document.getElementById('btnTypeAchat');
+  const typeChoiceInput = document.getElementById('annonceTypeChoice');
+  if (btnTypeVente && btnTypeAchat) {
+    btnVenteAction = (type) => {
+      if (typeChoiceInput) typeChoiceInput.value = type;
+      btnTypeVente.classList.toggle('active', type === 'vente');
+      btnTypeAchat.classList.toggle('active', type === 'achat');
+    };
+    btnTypeVente.addEventListener('click', () => btnVenteAction('vente'));
+    btnTypeAchat.addEventListener('click', () => btnVenteAction('achat'));
+  }
+
+  // Puces de suggestion rapide de produits
+  document.querySelectorAll('#publishStep1 .quick-chip-btn').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const val = chip.getAttribute('data-val');
+      const cat = chip.getAttribute('data-cat');
+      const prodInput = document.getElementById('annonceProduit');
+      const catSelect = document.getElementById('annonceCategorie');
+      if (prodInput && val) prodInput.value = val;
+      if (catSelect && cat) catSelect.value = cat;
+    });
+  });
+
+  // Sélection de photos pour l'annonce
+  const btnTriggerAnnoncePhoto = document.getElementById('btnTriggerAnnoncePhoto');
+  const annoncePhotoInput = document.getElementById('annoncePhotoInput');
+  if (btnTriggerAnnoncePhoto && annoncePhotoInput) {
+    btnTriggerAnnoncePhoto.addEventListener('click', () => {
+      annoncePhotoInput.click();
+    });
+    annoncePhotoInput.addEventListener('change', (e) => {
+      const files = Array.from(e.target.files || []);
+      for (const file of files) {
+        if (pendingAnnoncePhotos.length >= 3) {
+          showToast('Limite atteinte', 'Vous pouvez ajouter au maximum 3 photos par annonce.');
+          break;
+        }
+        pendingAnnoncePhotos.push({
+          file: file,
+          previewUrl: URL.createObjectURL(file),
+          id: Math.random().toString(36).substring(2, 9)
+        });
+      }
+      renderAnnoncePhotoPreviews();
+      annoncePhotoInput.value = '';
+    });
+  }
+
+  // Soumission du formulaire de publication
+  if (formPublishAnnonce) {
+    formPublishAnnonce.addEventListener('submit', handleSaveAnnonce);
+  }
+
+  // Modale détails annonce
+  const btnCloseAnnonceDetails = document.getElementById('btnCloseAnnonceDetails');
+  if (btnCloseAnnonceDetails) {
+    btnCloseAnnonceDetails.addEventListener('click', closeAnnonceDetailsModal);
+  }
+
+  const btnOpenSignalerAnnonce = document.getElementById('btnOpenSignalerAnnonce');
+  if (btnOpenSignalerAnnonce) {
+    btnOpenSignalerAnnonce.addEventListener('click', () => {
+      if (currentDetailAnnonce) {
+        openSignalerAnnonceModal(currentDetailAnnonce);
+      }
+    });
+  }
+
+  // Modale signalement
+  const btnCloseSignalerAnnonce = document.getElementById('btnCloseSignalerAnnonce');
+  if (btnCloseSignalerAnnonce) {
+    btnCloseSignalerAnnonce.addEventListener('click', closeSignalerAnnonceModal);
+  }
+
+  const btnCancelSignalement = document.getElementById('btnCancelSignalement');
+  if (btnCancelSignalement) {
+    btnCancelSignalement.addEventListener('click', closeSignalerAnnonceModal);
+  }
+
+  if (formSignalerAnnonce) {
+    formSignalerAnnonce.addEventListener('submit', handleSignalerAnnonce);
+  }
+
+  // Onglets statut modération admin
+  const adminQueueTabs = document.querySelectorAll('.admin-queue-tab-btn');
+  adminQueueTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      adminQueueTabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      adminQueueActiveStatusTab = tab.getAttribute('data-status') || 'en_attente';
+      renderAdminQueuePage();
+    });
+  });
+
+  // Écouteurs délégués pour les événements mobiles d'annonces
+  document.addEventListener('click', async (e) => {
+    // Clic sur carte mobile d'annonce
+    const mobAnnCard = e.target.closest('.mobile-annonce-card');
+    if (mobAnnCard) {
+      const id = mobAnnCard.getAttribute('data-id');
+      const item = cachedAnnonces.find(a => String(a.id) === String(id));
+      if (item) openAnnonceDetailsModal(item);
+      return;
+    }
+
+    // Onglets vente/achat mobile
+    if (e.target.closest('#btnMobileTabVente')) {
+      marcheActiveType = 'vente';
+      renderMobileView();
+      return;
+    }
+    if (e.target.closest('#btnMobileTabAchat')) {
+      marcheActiveType = 'achat';
+      renderMobileView();
+      return;
+    }
+
+    // Boutons de publication mobiles
+    if (e.target.closest('#btnMobileOpenPublishAnnonce') || e.target.closest('#btnMobileOpenPublishMesAnnonces')) {
+      openPublishAnnonceModal();
+      return;
+    }
+
+    // Actions mes annonces mobile
+    const mobEditAd = e.target.closest('.btn-mobile-edit-ad');
+    if (mobEditAd) {
+      const id = mobEditAd.getAttribute('data-id');
+      const item = cachedAnnonces.find(a => String(a.id) === String(id));
+      if (item) openPublishAnnonceModal(item);
+      return;
+    }
+
+    const mobSoldAd = e.target.closest('.btn-mobile-sold-ad');
+    if (mobSoldAd) {
+      const id = mobSoldAd.getAttribute('data-id');
+      await handleMarkAnnonceSold(id);
+      return;
+    }
+
+    const mobRenewAd = e.target.closest('.btn-mobile-renew-ad');
+    if (mobRenewAd) {
+      const id = mobRenewAd.getAttribute('data-id');
+      await handleRenewAnnonce(id);
+      return;
+    }
+
+    const mobDelAd = e.target.closest('.btn-mobile-del-ad');
+    if (mobDelAd) {
+      const id = mobDelAd.getAttribute('data-id');
+      await handleDeleteAnnonce(id);
+      return;
+    }
+
+    // Modération mobile
+    const mobSigIgnore = e.target.closest('.btn-mobile-sig-ignore');
+    if (mobSigIgnore) {
+      const id = mobSigIgnore.getAttribute('data-sig-id');
+      await handleAdminIgnorerSignalement(id);
+      return;
+    }
+
+    const mobSigWithdraw = e.target.closest('.btn-mobile-sig-withdraw');
+    if (mobSigWithdraw) {
+      const sigId = mobSigWithdraw.getAttribute('data-sig-id');
+      const annId = mobSigWithdraw.getAttribute('data-ann-id');
+      await handleAdminRetirerAnnonce(sigId, annId);
       return;
     }
   });
@@ -9771,7 +11245,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
 
-      // Charger les financements, conseils, modèles, matériels, régions, météo et notifications en tâche de fond dès le démarrage
+      // Charger les financements, conseils, modèles, matériels, régions, météo, notifications, annonces et signalements dès le démarrage
       fetchFinancements().catch(() => {});
       fetchConseils().catch(() => {});
       fetchModelesCultures().catch(() => {});
@@ -9779,8 +11253,22 @@ document.addEventListener('DOMContentLoaded', () => {
       fetchRegions().catch(() => {});
       loadAndRenderWeather().catch(() => {});
       fetchNotifications().catch(() => {});
+      fetchAnnonces().catch(() => {});
+      fetchSignalements().catch(() => {});
 
       if (sessionUser) {
+        await checkUserProfileAndProceed(sessionUser);
+        await fetchFinancements();
+        await fetchConseils();
+        await fetchModelesCultures();
+        await fetchMateriels();
+        await fetchRegions();
+        await fetchNotifications();
+        await fetchAnnonces();
+        await fetchSignalements();
+        await fetchUserParcels(currentProfileKey);
+        handleRoute();
+      } else {
         await checkUserProfileAndProceed(sessionUser);
         await fetchFinancements();
         await fetchConseils();
