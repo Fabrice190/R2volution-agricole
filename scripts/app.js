@@ -11053,13 +11053,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnTypeAchat = document.getElementById('btnTypeAchat');
   const typeChoiceInput = document.getElementById('annonceTypeChoice');
   if (btnTypeVente && btnTypeAchat) {
-    btnVenteAction = (type) => {
+    const setAnnonceTypeAction = (type) => {
       if (typeChoiceInput) typeChoiceInput.value = type;
       btnTypeVente.classList.toggle('active', type === 'vente');
       btnTypeAchat.classList.toggle('active', type === 'achat');
     };
-    btnTypeVente.addEventListener('click', () => btnVenteAction('vente'));
-    btnTypeAchat.addEventListener('click', () => btnVenteAction('achat'));
+    btnTypeVente.addEventListener('click', () => setAnnonceTypeAction('vente'));
+    btnTypeAchat.addEventListener('click', () => setAnnonceTypeAction('achat'));
   }
 
   // Puces de suggestion rapide de produits
@@ -11266,16 +11266,6 @@ document.addEventListener('DOMContentLoaded', () => {
         await fetchNotifications();
         await fetchAnnonces();
         await fetchSignalements();
-        await fetchUserParcels(currentProfileKey);
-        handleRoute();
-      } else {
-        await checkUserProfileAndProceed(sessionUser);
-        await fetchFinancements();
-        await fetchConseils();
-        await fetchModelesCultures();
-        await fetchMateriels();
-        await fetchRegions();
-        await fetchNotifications();
         await fetchUserParcels(currentProfileKey);
         handleRoute();
       } else {
