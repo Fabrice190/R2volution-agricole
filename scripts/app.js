@@ -1,4 +1,4 @@
-﻿/**
+/**
  * RÉVOLUTION AGRICOLE — MOTEUR INTERACTIF DU DASHBOARD
  * Implémentation du système multi-profils, responsive mobile et états UI
  */
@@ -392,14 +392,91 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // Helper pour extraire un résumé clair pour la carte conseil du jour
+  function getConseilCardText(item) {
+    if (!item) return '';
+    if (item.resume && item.resume.trim()) return item.resume.trim();
+    if (item.contenu) {
+      const cleaned = item.contenu.replace(/^Pourquoi c'est important\s*:\s*/i, '').trim();
+      const firstPeriod = cleaned.indexOf('.');
+      if (firstPeriod > 30) {
+        const secondPeriod = cleaned.indexOf('.', firstPeriod + 1);
+        if (secondPeriod > firstPeriod && secondPeriod < 220) {
+          return cleaned.slice(0, secondPeriod + 1).trim();
+        }
+        return cleaned.slice(0, firstPeriod + 1).trim();
+      }
+      return cleaned.slice(0, 180).trim() + (cleaned.length > 180 ? '…' : '');
+    }
+    return '';
+  }
+
+  // Helper pour calculer la phrase agronomique météo à partir des données réelles Open-Meteo
+  function getAgronomicWeatherSentence(weatherRes) {
+    if (!weatherRes || !weatherRes.current) {
+      return 'Chargement de la météo agronomique…';
+    }
+    const cur = weatherRes.current;
+    const today = (weatherRes.daily && weatherRes.daily[0]) || {};
+    const tMax = today.tempMax ?? cur.temperature ?? 30;
+    const pRain = today.rainProb ?? 0;
+    const sRain = today.rainSum ?? 0;
+    const wind = today.windMax ?? cur.windSpeed ?? 0;
+
+    if (sRain >= 15 || pRain >= 70) {
+      return `Forte probabilité de pluie (${pRain} %, ${sRain} mm) : reportez les traitements et surveillez les drainages.`;
+    }
+    if (sRain > 2 || pRain >= 40) {
+      return `Risque d'averses (${pRain} %) : maintenez les travaux légers et reportez les pulvérisations.`;
+    }
+    if (tMax >= 38) {
+      return `Forte chaleur (${tMax} °C) : irriguez très tôt le matin ou en soirée pour limiter le stress thermique.`;
+    }
+    if (wind >= 25) {
+      return `Vent soutenu (${wind} km/h) : évitez tout traitement phytosanitaire par dérive.`;
+    }
+    return `Temps favorable (${tMax} °C, vent ${wind} km/h) : conditions propices aux travaux du sol et à l'arrosage.`;
+  }
+
+  // Lecture audio par synthèse vocale du vrai conseil agronomique Supabase
+  function speakLatestDailyConseil() {
+    const published = (cachedConseils || [])
+      .filter(c => c.statut === 'publie')
+      .sort((a, b) => new Date(b.date_publication || b.created_at) - new Date(a.date_publication || a.created_at));
+    const latest = published[0];
+    if (!latest) {
+      showToast('Aucun conseil disponible pour le moment.');
+      return;
+    }
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const textToSpeak = `${latest.titre}. ${latest.contenu || getConseilCardText(latest)}`;
+      const utter = new SpeechSynthesisUtterance(textToSpeak);
+      utter.lang = 'fr-FR';
+      utter.rate = 0.95;
+      window.speechSynthesis.speak(utter);
+      showToast('Lecture audio du conseil en cours…');
+    }
+  }
+
   function updateDashboardDateTime() {
     const now = new Date();
+    const optionsFull = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+    const fullDate = now.toLocaleDateString('fr-FR', optionsFull);
+    const capitalizedFullDate = fullDate.charAt(0).toUpperCase() + fullDate.slice(1);
 
-    // 1. Date Bureau en français (ex: "Samedi 17 octobre 2026")
+    const optionsShort = { weekday: 'long', day: 'numeric', month: 'long' };
+    const shortDate = now.toLocaleDateString('fr-FR', optionsShort);
+    const capitalizedShortDate = shortDate.charAt(0).toUpperCase() + shortDate.slice(1);
+    const loc = (PROFILES_DATA[currentProfileKey]?.location || 'Koudougou').split('(')[0].trim();
+
+    // 1. Sous-titre Bureau : Date et ville en petit (Point 5 : 14px, #4A4A4A)
+    if (greetingSubtitle) {
+      greetingSubtitle.textContent = `${capitalizedShortDate} • ${loc}`;
+    }
+
     if (liveDateDisplay) {
-      const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
-      const fullDate = now.toLocaleDateString('fr-FR', options);
-      liveDateDisplay.textContent = fullDate.charAt(0).toUpperCase() + fullDate.slice(1);
+      liveDateDisplay.textContent = capitalizedFullDate;
     }
 
     // 2. Heure Bureau en direct (ex: "13:10 • Ouagadougou")
@@ -409,14 +486,11 @@ document.addEventListener('DOMContentLoaded', () => {
       liveTimeDisplay.textContent = `${hours}:${minutes} • Ouagadougou`;
     }
 
-    // 3. Date Mobile sous la salutation
+    // 3. Date Mobile sous la salutation : 14px, #4A4A4A (Point 5)
     const mobileSubdateElements = document.querySelectorAll('.mobile-subdate');
     if (mobileSubdateElements.length > 0) {
-      const optionsShort = { weekday: 'short', day: 'numeric', month: 'short' };
-      const shortDate = now.toLocaleDateString('fr-FR', optionsShort);
-      const loc = (PROFILES_DATA[currentProfileKey]?.location || 'Koudougou').split('(')[0].trim();
       mobileSubdateElements.forEach(el => {
-        el.textContent = `${shortDate} • ${loc}`;
+        el.textContent = `${capitalizedShortDate} • ${loc}`;
       });
     }
   }
@@ -570,10 +644,8 @@ document.addEventListener('DOMContentLoaded', () => {
       else headerActionLabelShort.textContent = '+ Action';
     }
 
-    // 3. Salutation personnalisée garantie (ex: Bonjour, Fabrice) & Horloge temps réel
-    const userFirstName = data.name ? data.name.trim().split(' ')[0] : 'Exploitant';
-    greetingTitle.innerHTML = `Bonjour, ${userFirstName} <span class="greeting-emoji"></span>`;
-    greetingSubtitle.textContent = data.subtitle || 'Voici l\'essentiel pour votre exploitation aujourd\'hui.';
+    const userFirstName = data.name ? data.name.trim().split(' ')[0] : 'Fabrice';
+    if (greetingTitle) greetingTitle.textContent = `Bonjour, ${userFirstName}`;
     updateDashboardDateTime();
 
     // 4. Gestion de la visibilité des menus selon rôles
@@ -1587,11 +1659,35 @@ document.addEventListener('DOMContentLoaded', () => {
         const parcelsCount = (cachedUserParcels || []).length;
         const activeCyclesCount = (cachedCropCycles || []).filter(c => c.status !== 'Terminé' && c.status !== 'Récolté').length;
 
+        const todayDate = new Date();
+        const shortDateOpt = { weekday: 'short', day: 'numeric', month: 'short' };
+        const rawShortDate = todayDate.toLocaleDateString('fr-FR', shortDateOpt);
+        const capitalizedShortDate = rawShortDate.charAt(0).toUpperCase() + rawShortDate.slice(1);
+        const userLocName = (data.location || 'Koudougou').split('(')[0].trim();
+
+        const publishedConseils = (cachedConseils || [])
+          .filter(c => c.statut === 'publie')
+          .sort((a, b) => new Date(b.date_publication || b.created_at) - new Date(a.date_publication || a.created_at));
+        const latestDailyConseil = publishedConseils[0];
+        const latestAdviceTitle = latestDailyConseil ? latestDailyConseil.titre : 'Chargement du conseil…';
+        const latestAdviceBody = latestDailyConseil ? getConseilCardText(latestDailyConseil) : '';
+
+        const curWeather = cachedWeatherResult?.current;
+        const tomDaily = cachedWeatherResult?.daily?.[1];
+        const weatherTempStr = curWeather ? `${curWeather.temperature} °C` : '-- °C';
+        const weatherCityStr = userLocName;
+        const weatherTomorrowStr = tomDaily ? `${tomDaily.tempMax} °C • ${tomDaily.meta?.label || 'Ensoleillé'}` : '--';
+        const weatherPhrase = getAgronomicWeatherSentence(cachedWeatherResult);
+
+        const openFinancementsCount = typeof filterOpenFinancementsForUsers === 'function'
+          ? filterOpenFinancementsForUsers(cachedFinancements).length
+          : (cachedFinancements || []).filter(f => f.statut === 'publie').length;
+
         mobileBodyHtml = `
-        <!-- Salutation sobre sans emoji -->
-        <div style="margin-bottom: 12px;">
-          <h2 class="mobile-greeting" style="font-size: 22px; font-weight: 800; color: #1A1A1A; margin: 0 0 2px;">Bonjour, ${data.name.split(' ')[0]} ${isPro ? '<span class="user-badge-pro" style="font-size: 11px; padding: 2px 8px; border-radius: 999px; background: #FAF0D6; color: #874614; font-weight: 700; vertical-align: middle;">PRO</span>' : ''}</h2>
-          <p class="mobile-subdate" style="font-size: 13px; color: #4A4A4A; margin: 0;">${(new Date()).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })} • ${data.location.split('(')[0]}</p>
+        <!-- Salutation sobre sans emoji (Point 5 : Titre 26px 800, Date/Ville 14px #4A4A4A) -->
+        <div style="margin-bottom: 14px;">
+          <h1 class="mobile-greeting" style="font-size: 26px; font-weight: 800; color: #1A1A1A; margin: 0 0 4px; line-height: 1.2;">Bonjour, ${data.name.split(' ')[0]} ${isPro ? '<span class="user-badge-pro" style="font-size: 11px; padding: 2px 8px; border-radius: 999px; background: #FAF0D6; color: #874614; font-weight: 700; vertical-align: middle;">PRO</span>' : ''}</h1>
+          <p class="mobile-subdate" style="font-size: 14px; color: #4A4A4A; margin: 0;">${capitalizedShortDate} • ${userLocName}</p>
         </div>
 
         <!-- 1. GRANDE CARTE VERTE SAISON 2026 (Remplace Dépenses et Recettes) -->
@@ -1640,44 +1736,44 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
             <div class="home-card-meta">
               <span class="home-card-title">Opportunités disponibles</span>
-              <strong class="home-card-value">7 <small>ouvertes</small></strong>
+              <strong class="home-card-value">${openFinancementsCount} <small>ouverte${openFinancementsCount > 1 ? 's' : ''}</small></strong>
             </div>
           </a>
         </section>
 
-        <!-- 3. MÉTÉO COURTE SUR UNE SEULE CARTE -->
+        <!-- 3. MÉTÉO COURTE SUR UNE SEULE CARTE (Point 2 : 100% réelle Open-Meteo) -->
         <section class="home-weather-short-card">
           <div class="weather-short-top">
             <div class="weather-short-temp-group">
               <i data-lucide="cloud-sun" class="weather-short-icon"></i>
               <div>
-                <strong class="weather-short-temp">29 °C</strong>
-                <span class="weather-short-city">${data.location.split('(')[0]}</span>
+                <strong class="weather-short-temp">${weatherTempStr}</strong>
+                <span class="weather-short-city">${weatherCityStr}</span>
               </div>
             </div>
             <div class="weather-short-tomorrow">
               <span class="tomorrow-label">Demain</span>
-              <strong class="tomorrow-val">31 °C • Ensoleillé</strong>
+              <strong class="tomorrow-val">${weatherTomorrowStr}</strong>
             </div>
           </div>
           <p class="weather-short-advice">
-            Temps sec et vent modéré : conditions propices aux travaux du sol et à l'irrigation du soir.
+            ${weatherPhrase}
           </p>
         </section>
 
-        <!-- 4. CARTE CONSEIL DU JOUR AVEC BADGE JAUNE ET BOUTON ÉCOUTER -->
-        <section class="home-daily-advice-card">
-          <div class="advice-card-header">
-            <span class="badge-sun-yellow">Conseil du jour</span>
-            <button type="button" class="btn-listen-advice" id="btnListenMobileDashAdvice" aria-label="Écouter le conseil agronomique">
-              <i data-lucide="volume-2"></i>
+        <!-- 4. CARTE CONSEIL DU JOUR (Point 1 & Point 6 : Badge jaune, Titre, Résumé, Bouton Écouter vert clair 40px) -->
+        <section class="home-daily-advice-card" id="cardMobileDailyAdvice" style="cursor: pointer;">
+          <div style="margin-bottom: 8px;">
+            <span class="badge-sun-yellow" style="display: inline-block;">Conseil du jour</span>
+          </div>
+          <h3 class="advice-card-title" id="mobileDailyAdviceTitle" style="margin: 0 0 6px; font-size: 16px; font-weight: 800; color: #1A1A1A; line-height: 1.35;">${latestAdviceTitle}</h3>
+          <p class="advice-card-text" id="mobileDailyAdviceText" style="margin: 0 0 12px; font-size: 14px; color: #4A4A4A; line-height: 1.5;">${latestAdviceBody}</p>
+          <div>
+            <button type="button" class="btn-listen-advice-small" id="btnListenMobileDashAdvice" aria-label="Écouter le conseil agronomique">
+              <i data-lucide="volume-2" style="width: 16px; height: 16px;"></i>
               <span>Écouter</span>
             </button>
           </div>
-          <h3 class="advice-card-title" style="margin: 0 0 6px;">Gestion de l'eau en maraîchage</h3>
-          <p class="advice-card-text" style="margin: 0;">
-            Privilégiez les arrosages matinaux (entre 6h et 8h) ou après 17h pour réduire l'évaporation de plus de 40 % et préserver vos réserves en motopompe.
-          </p>
         </section>
 
         <!-- 5. QUATRE RACCOURCIS EN ICÔNES CARRÉES ARRONDIES -->
@@ -1971,25 +2067,28 @@ document.addEventListener('DOMContentLoaded', () => {
         </nav>
       </aside>
 
-      <!-- En-tête mobile compact avec bouton hamburger à gauche -->
+      <!-- En-tête mobile compact (Point 4 : menu ☰, logo 38px #1F5E3B feuille #E0A526, Révolution Agricole 15px 800, cloche et profil) -->
       <header class="mobile-header-bar">
-        <div class="mobile-header-left">
+        <div class="mobile-header-left" style="display: flex; align-items: center; gap: 10px;">
           <button class="mobile-menu-hamburger-btn" id="btnOpenMobileDrawer" aria-label="Ouvrir le menu">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
           </button>
-          <div class="mobile-brand" style="display: flex; align-items: center; gap: 6px;">
-            <i data-lucide="sprout" style="width: 18px; height: 18px; color: #1F5E3B;"></i>
-            <span style="font-weight: 800; font-size: 15px; color: #1A1A1A;">Révolution Agri.</span>
+          <div class="mobile-brand" style="display: flex; align-items: center; gap: 8px;">
+            <div class="header-logo-box" style="width: 38px; height: 38px; border-radius: 12px; background: #1F5E3B; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+              <i data-lucide="leaf" style="width: 20px; height: 20px; color: #E0A526;"></i>
+            </div>
+            <div class="header-brand-text" style="display: flex; flex-direction: column; line-height: 1.15; justify-content: center;">
+              <span class="header-brand-title" style="font-size: 15px; font-weight: 800; color: #1A1A1A; margin: 0; padding: 0;">Révolution</span>
+              <span class="header-brand-sub" style="font-size: 15px; font-weight: 800; color: #1F5E3B; margin: 0; padding: 0;">Agricole</span>
+            </div>
           </div>
         </div>
-        <div class="mobile-header-actions">
-          <button class="btn-mobile-expense-pill" id="btnMobileAddExpense" title="Ajouter une dépense">+ Dépense</button>
-          <button class="btn-mobile-revenue-pill" id="btnMobileAddRevenue" title="Enregistrer une vente">+ Vente</button>
-          <button class="icon-btn mobile-icon-btn" id="btnMobileNotif" aria-label="Notifications" style="width: 34px; height: 34px; position: relative;">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/></svg>
+        <div class="mobile-header-actions" style="display: flex; align-items: center; gap: 10px;">
+          <button class="icon-btn mobile-icon-btn" id="btnMobileNotif" aria-label="Notifications" style="width: 36px; height: 36px; position: relative;">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/></svg>
             <span class="notification-badge-count hidden" id="mobileNotifBadgeCount"></span>
           </button>
-          <img src="${data.avatar}" alt="Avatar" class="mobile-user-avatar" id="btnMobileAvatarOpenDrawer" style="cursor: pointer; width: 34px; height: 34px; border-radius: 50%;">
+          <img src="${data.avatar}" alt="Avatar" class="mobile-user-avatar" id="btnMobileAvatarOpenDrawer" style="cursor: pointer; width: 36px; height: 36px; border-radius: 50%; object-fit: cover;">
         </div>
       </header>
 
@@ -2551,16 +2650,25 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
 
-    // Écouteur vocal du conseil du jour en mobile
+    // Écouteur vocal et clic du conseil du jour en mobile
     const btnListenMobDashAdv = document.getElementById('btnListenMobileDashAdvice');
     if (btnListenMobDashAdv) {
       btnListenMobDashAdv.addEventListener('click', (e) => {
         e.stopPropagation();
-        if ('speechSynthesis' in window) {
-          window.speechSynthesis.cancel();
-          const utter = new SpeechSynthesisUtterance("Gestion de l'eau en maraîchage. Privilégiez les arrosages matinaux entre 6h et 8h ou après 17h pour réduire l'évaporation de plus de 40 % et préserver vos réserves en motopompe.");
-          utter.lang = 'fr-FR';
-          window.speechSynthesis.speak(utter);
+        speakLatestDailyConseil();
+      });
+    }
+
+    const cardMobAdv = document.getElementById('cardMobileDailyAdvice');
+    if (cardMobAdv) {
+      cardMobAdv.addEventListener('click', (e) => {
+        if (e.target.closest('#btnListenMobileDashAdvice')) return;
+        const published = (cachedConseils || [])
+          .filter(c => c.statut === 'publie')
+          .sort((a, b) => new Date(b.date_publication || b.created_at) - new Date(a.date_publication || a.created_at));
+        const latest = published[0];
+        if (latest && typeof openConseilDetailsModal === 'function') {
+          openConseilDetailsModal(latest);
         }
       });
     }
@@ -2908,7 +3016,10 @@ document.addEventListener('DOMContentLoaded', () => {
       statCyclesHome.innerHTML = `${activeCycles.length} <small>actif${activeCycles.length > 1 ? 's' : ''}</small>`;
     }
     if (statOpportHome) {
-      statOpportHome.innerHTML = `7 <small>ouvertes</small>`;
+      const openCount = typeof filterOpenFinancementsForUsers === 'function'
+        ? filterOpenFinancementsForUsers(cachedFinancements).length
+        : (cachedFinancements || []).filter(f => f.statut === 'publie').length;
+      statOpportHome.innerHTML = `${openCount} <small>ouverte${openCount > 1 ? 's' : ''}</small>`;
     }
 
     // 1. Mettre à jour les stats des cartes bureau (Données réelles du mois)
@@ -4382,6 +4493,24 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       `).join('');
     }
+
+    // Mise à jour dynamique de la carte météo courte d'accueil (Point 2)
+    const homeTemp = document.getElementById('homeWeatherTemp');
+    if (homeTemp) homeTemp.textContent = `${weatherRes.current.temperature} °C`;
+
+    const homeCity = document.getElementById('homeWeatherCity');
+    if (homeCity) homeCity.textContent = weatherRes.communeName;
+
+    const homeTomorrow = document.getElementById('homeWeatherTomorrowVal');
+    if (homeTomorrow && weatherRes.daily && weatherRes.daily[1]) {
+      const tom = weatherRes.daily[1];
+      homeTomorrow.textContent = `${tom.tempMax} °C • ${tom.meta?.label || 'Ensoleillé'}`;
+    }
+
+    const homeAdvice = document.getElementById('homeWeatherAdvice');
+    if (homeAdvice) {
+      homeAdvice.textContent = getAgronomicWeatherSentence(weatherRes);
+    }
   }
 
   function renderMeteoPage(weatherRes) {
@@ -4836,11 +4965,20 @@ document.addEventListener('DOMContentLoaded', () => {
   if (btnListenHomeDailyAdvice) {
     btnListenHomeDailyAdvice.addEventListener('click', (e) => {
       e.stopPropagation();
-      if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-        const utter = new SpeechSynthesisUtterance("Gestion de l'eau en maraîchage sahélien. Privilégiez les arrosages matinaux entre 6 heures et 8 heures ou après 17 heures pour réduire l'évaporation de plus de 40 pour cent et préserver vos réserves en motopompe.");
-        utter.lang = 'fr-FR';
-        window.speechSynthesis.speak(utter);
+      speakLatestDailyConseil();
+    });
+  }
+
+  const cardHomeDailyAdvice = document.getElementById('homeDailyAdviceCard');
+  if (cardHomeDailyAdvice) {
+    cardHomeDailyAdvice.addEventListener('click', (e) => {
+      if (e.target.closest('#btnListenHomeDailyAdvice')) return;
+      const published = (cachedConseils || [])
+        .filter(c => c.statut === 'publie')
+        .sort((a, b) => new Date(b.date_publication || b.created_at) - new Date(a.date_publication || a.created_at));
+      const latest = published[0];
+      if (latest && typeof openConseilDetailsModal === 'function') {
+        openConseilDetailsModal(latest);
       }
     });
   }
@@ -5687,7 +5825,13 @@ document.addEventListener('DOMContentLoaded', () => {
   // ==========================================
 
   async function fetchConseils() {
-    if (!supabaseClient) return;
+    if (!supabaseClient) {
+      const homeTitle = document.getElementById('homeDailyAdviceTitle');
+      if (homeTitle) homeTitle.textContent = 'Conseil indisponible pour le moment';
+      const mobTitle = document.getElementById('mobileDailyAdviceTitle');
+      if (mobTitle) mobTitle.textContent = 'Conseil indisponible pour le moment';
+      return;
+    }
 
     try {
       const { data, error } = await supabaseClient
@@ -5696,7 +5840,11 @@ document.addEventListener('DOMContentLoaded', () => {
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.warn('️ Erreur fetchConseils Supabase :', error);
+        console.warn('⚠️ Erreur fetchConseils Supabase :', error);
+        const homeTitle = document.getElementById('homeDailyAdviceTitle');
+        if (homeTitle) homeTitle.textContent = 'Conseil indisponible pour le moment';
+        const mobTitle = document.getElementById('mobileDailyAdviceTitle');
+        if (mobTitle) mobTitle.textContent = 'Conseil indisponible pour le moment';
         return;
       }
 
@@ -5712,7 +5860,11 @@ document.addEventListener('DOMContentLoaded', () => {
         renderMobileView();
       }
     } catch (err) {
-      console.warn('️ Erreur réseau fetchConseils :', err);
+      console.warn('⚠️ Erreur réseau fetchConseils :', err);
+      const homeTitle = document.getElementById('homeDailyAdviceTitle');
+      if (homeTitle) homeTitle.textContent = 'Conseil indisponible pour le moment';
+      const mobTitle = document.getElementById('mobileDailyAdviceTitle');
+      if (mobTitle) mobTitle.textContent = 'Conseil indisponible pour le moment';
     }
   }
 
@@ -5781,12 +5933,31 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function updateDashboardAdviceCard() {
-    const published = cachedConseils
+    const published = (cachedConseils || [])
       .filter(c => c.statut === 'publie')
       .sort((a, b) => new Date(b.date_publication || b.created_at) - new Date(a.date_publication || a.created_at));
 
     const latest = published[0];
-    if (!latest) return;
+
+    // Mise à jour de la carte "Conseil du jour" de l'accueil (Desktop & Mobile)
+    const homeTitle = document.getElementById('homeDailyAdviceTitle');
+    const homeText = document.getElementById('homeDailyAdviceText');
+    const mobileTitle = document.getElementById('mobileDailyAdviceTitle');
+    const mobileText = document.getElementById('mobileDailyAdviceText');
+
+    if (!latest) {
+      if (homeTitle) homeTitle.textContent = 'Conseil indisponible pour le moment';
+      if (homeText) homeText.textContent = '';
+      if (mobileTitle) mobileTitle.textContent = 'Conseil indisponible pour le moment';
+      if (mobileText) mobileText.textContent = '';
+      return;
+    }
+
+    const adviceSummary = getConseilCardText(latest);
+    if (homeTitle) homeTitle.textContent = latest.titre;
+    if (homeText) homeText.textContent = adviceSummary;
+    if (mobileTitle) mobileTitle.textContent = latest.titre;
+    if (mobileText) mobileText.textContent = adviceSummary;
 
     const catEl = document.getElementById('dashAdviceCategory');
     const timeEl = document.getElementById('dashAdviceReadTime');
@@ -5799,7 +5970,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (catEl) catEl.textContent = latest.categorie ? latest.categorie.charAt(0).toUpperCase() + latest.categorie.slice(1) : 'Conseil agronomique';
     if (timeEl) timeEl.textContent = `Lecture ${latest.duree_lecture || 3} min`;
     if (titleEl) titleEl.textContent = latest.titre;
-    if (summaryEl) summaryEl.textContent = latest.resume;
+    if (summaryEl) summaryEl.textContent = latest.resume || adviceSummary;
     if (authorEl) authorEl.textContent = latest.source ? `Par ${latest.source}` : 'Par INERA / DGPV';
 
     if (linkEl) {
@@ -6501,6 +6672,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (!error && data) {
         cachedUserParcels = data;
+        updateFinancialMetrics();
+        if (currentViewMode === 'mobile' || window.innerWidth < 1024) {
+          renderMobileView();
+        }
         return data;
       }
       return [];

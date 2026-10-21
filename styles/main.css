@@ -9584,6 +9584,191 @@ a.btn-fiche-call,
   font-family: 'Plus Jakarta Sans', sans-serif !important;
 }
 
+/* ========================================================
+   AJUSTEMENTS ERGONOMIQUES ACCUEIL (Points 3, 4, 5, 6)
+======================================================== */
+
+/* Point 3 : Bouton rond vert (+) 16px au-dessus de la barre de navigation basse */
+.mobile-fab-btn {
+  position: fixed !important;
+  bottom: calc(var(--mobile-bottom-nav-height, 68px) + env(safe-area-inset-bottom, 0px) + 16px) !important;
+  right: 20px !important;
+  width: 52px !important;
+  height: 52px !important;
+  border-radius: 50% !important;
+  background-color: var(--vert-principal, #1F5E3B) !important;
+  color: #FFFFFF !important;
+  border: none !important;
+  font-size: 28px !important;
+  font-weight: 700 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-shadow: 0 8px 20px rgba(31, 94, 59, 0.45) !important;
+  cursor: pointer !important;
+  z-index: 120 !important;
+  transition: transform var(--transition-fast) !important;
+}
+
+.mobile-fab-btn:active {
+  transform: scale(0.92) !important;
+}
+
+/* Point 4 : En-tête épuré avec Logo carré 38px feuille soleil et nom sur 2 lignes */
+.mobile-header-bar {
+  background-color: #FFFFFF !important;
+  border-bottom: 1px solid #ECE6D9 !important;
+  padding: 10px 16px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 50 !important;
+  min-height: 60px !important;
+}
+
+.mobile-header-left {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+}
+
+.header-logo-box {
+  width: 38px !important;
+  height: 38px !important;
+  background-color: var(--vert-principal, #1F5E3B) !important;
+  border-radius: 12px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+}
+
+.header-brand-names {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  line-height: 1.15 !important;
+}
+
+.header-brand-title {
+  font-size: 15px !important;
+  font-weight: 800 !important;
+  color: #1A1A1A !important;
+  letter-spacing: -0.2px;
+}
+
+.header-brand-sub {
+  font-size: 15px !important;
+  font-weight: 800 !important;
+  color: var(--vert-principal, #1F5E3B) !important;
+  letter-spacing: -0.2px;
+}
+
+/* Point 5 : Titre d'écran "Bonjour, Fabrice" 26px gras 800 + date/ville 14px */
+.greeting-title,
+.mobile-greeting {
+  font-size: 26px !important;
+  font-weight: 800 !important;
+  color: #1A1A1A !important;
+  margin: 0 0 4px !important;
+  line-height: 1.25 !important;
+  letter-spacing: -0.3px;
+}
+
+.greeting-subtitle,
+.mobile-subdate {
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  color: #4A4A4A !important;
+  margin: 0 !important;
+  line-height: 1.4 !important;
+}
+
+/* Point 6 : Carte Conseil du jour (badge en haut, titre, texte, bouton Écouter en dessous) */
+.home-daily-advice-card {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  padding: 20px !important;
+  background-color: #FFFFFF !important;
+  border: 1px solid #ECE6D9 !important;
+  border-radius: 20px !important;
+  margin-bottom: 16px !important;
+  cursor: pointer !important;
+  transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+}
+
+.home-daily-advice-card:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.05) !important;
+}
+
+.home-daily-advice-card .badge-sun-yellow {
+  display: inline-flex !important;
+  align-items: center !important;
+  background-color: var(--jaune-clair, #FBF1D6) !important;
+  color: #1A1A1A !important;
+  border: 1px solid var(--jaune-soleil, #E0A526) !important;
+  font-size: 12.5px !important;
+  font-weight: 700 !important;
+  padding: 4px 12px !important;
+  border-radius: 999px !important;
+  margin-bottom: 10px !important;
+  line-height: 1.2 !important;
+}
+
+.home-daily-advice-card .advice-card-title {
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  color: #1A1A1A !important;
+  margin: 0 0 8px 0 !important;
+  line-height: 1.35 !important;
+}
+
+.home-daily-advice-card .advice-card-text {
+  font-size: 14.5px !important;
+  color: #4A4A4A !important;
+  line-height: 1.55 !important;
+  margin: 0 0 12px 0 !important;
+}
+
+/* Petit bouton Écouter (hauteur 40px, fond vert clair, texte vert 14px, pas plus gros que le badge) */
+.btn-listen-advice-small {
+  height: 40px !important;
+  min-height: 40px !important;
+  background-color: var(--vert-clair, #E8F0EA) !important;
+  color: var(--vert-principal, #1F5E3B) !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  border-radius: 999px !important;
+  border: none !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  padding: 0 16px !important;
+  cursor: pointer !important;
+  margin-top: 4px !important;
+  transition: transform 0.15s ease, background-color 0.15s ease !important;
+}
+
+.btn-listen-advice-small:hover {
+  background-color: #dbe8dd !important;
+  transform: translateY(-1px) !important;
+}
+
+.btn-listen-advice-small:active {
+  transform: scale(0.96) !important;
+}
+
+.btn-listen-advice-small i,
+.btn-listen-advice-small svg {
+  width: 16px !important;
+  height: 16px !important;
+}
+
+
 
 
 

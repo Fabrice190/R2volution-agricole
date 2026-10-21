@@ -1,9 +1,9 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Révolution Agricole — Le SaaS Agricole du Burkina Faso</title>
+  <title>Révolution Agricole</title>
   <meta name="description" content="Plateforme tout-en-un pour les acteurs agricoles burkinabè : information vérifiée, météo locale, financements, marché et gestion d'exploitation.">
   
   <!-- Polices Google : Plus Jakarta Sans (géométrique, ultra-lisible, premium) -->
@@ -15,7 +15,7 @@
   <script src="https://unpkg.com/lucide@0.453.0/dist/umd/lucide.min.js"></script>
 
   <link rel="stylesheet" href="styles/theme.css?v=20261021.2">
-  <link rel="stylesheet" href="styles/main.css?v=20261021.7">
+  <link rel="stylesheet" href="styles/main.css?v=20261021.8">
 
   <!-- CONFIGURATION PWA (PROGRESSIVE WEB APP) -->
   <link rel="manifest" href="manifest.json">
@@ -594,26 +594,6 @@
               <span class="user-pill-text" id="btnAuthText">Connexion</span>
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="menu-chevron"><path d="m6 9 6 6 6-6"/></svg>
             </button>
-
-            <span class="header-divider"></span>
-
-            <!-- Bouton Enregistrer une vente / recette -->
-            <button class="btn-revenue-action" id="btnHeaderRevenue" title="Enregistrer une vente de récolte ou encaissement">
-              <span class="action-icon">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v20"/><path d="m17 5-5-3-5 3"/><path d="m17 19-5 3-5-3"/><path d="M2 12h20"/></svg>
-              </span>
-              <span class="action-label action-label-full">+ Vente récolte</span>
-              <span class="action-label action-label-short">+ Vente</span>
-            </button>
-
-            <!-- Bouton d'action contextuel principal (Ajouter une dépense) -->
-            <button class="btn-primary-action" id="btnHeaderAction">
-              <span class="action-icon">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-              </span>
-              <span class="action-label action-label-full" id="headerActionLabel">Ajouter une dépense</span>
-              <span class="action-label action-label-short" id="headerActionLabelShort">+ Dépense</span>
-            </button>
           </div>
         </header>
 
@@ -623,8 +603,8 @@
           <!-- BANDEAU DE BIENVENUE & DATE (Fidèle à AgriVision : Salutation à gauche, Date/Heure à droite) -->
           <div class="dashboard-greeting-bar">
             <div class="greeting-left">
-              <h1 class="greeting-title" id="greetingTitle">Bonjour <span class="greeting-emoji"></span></h1>
-              <p class="greeting-subtitle" id="greetingSubtitle">Voici l'essentiel pour votre activité aujourd'hui sur votre exploitation.</p>
+              <h1 class="greeting-title" id="greetingTitle">Bonjour, Fabrice</h1>
+              <p class="greeting-subtitle" id="greetingSubtitle">Chargement de la date…</p>
             </div>
             <div class="greeting-right">
               <div class="local-date-time">
@@ -717,39 +697,35 @@
             </a>
           </section>
 
-          <!-- 3. MÉTÉO COURTE SUR UNE SEULE CARTE (Température, ville, phrase de conseil, demain) -->
+          <!-- 3. MÉTÉO COURTE SUR UNE SEULE CARTE (Données 100% réelles Open-Meteo) -->
           <section class="home-weather-short-card" id="homeWeatherShortCard">
             <div class="weather-short-top">
               <div class="weather-short-temp-group">
                 <i data-lucide="cloud-sun" class="weather-short-icon"></i>
                 <div>
-                  <strong class="weather-short-temp" id="homeWeatherTemp">29 °C</strong>
-                  <span class="weather-short-city" id="homeWeatherCity">Koudougou</span>
+                  <strong class="weather-short-temp" id="homeWeatherTemp">-- °C</strong>
+                  <span class="weather-short-city" id="homeWeatherCity">--</span>
                 </div>
               </div>
               <div class="weather-short-tomorrow" id="homeWeatherTomorrow">
                 <span class="tomorrow-label">Demain</span>
-                <strong class="tomorrow-val" id="homeWeatherTomorrowVal">31 °C • Ensoleillé</strong>
+                <strong class="tomorrow-val" id="homeWeatherTomorrowVal">--</strong>
               </div>
             </div>
             <p class="weather-short-advice" id="homeWeatherAdvice">
-              Temps sec et vent modéré : conditions propices aux travaux du sol et à l'irrigation du soir.
+              Chargement de la météo agronomique…
             </p>
           </section>
 
-          <!-- 4. CARTE CONSEIL DU JOUR AVEC BADGE JAUNE ET BOUTON ÉCOUTER -->
-          <section class="home-daily-advice-card" id="homeDailyAdviceCard">
-            <div class="advice-card-header">
-              <span class="badge-sun-yellow">Conseil du jour</span>
-              <button type="button" class="btn-listen-advice" id="btnListenHomeDailyAdvice" aria-label="Écouter le conseil agronomique">
-                <i data-lucide="volume-2"></i>
-                <span>Écouter</span>
-              </button>
-            </div>
-            <h3 class="advice-card-title" id="homeDailyAdviceTitle">Gestion de l'eau en maraîchage sahélien</h3>
-            <p class="advice-card-text" id="homeDailyAdviceText">
-              Privilégiez les arrosages matinaux (entre 6h et 8h) ou après 17h pour réduire l'évaporation de plus de 40 % et préserver vos réserves en motopompe.
-            </p>
+          <!-- 4. CARTE CONSEIL DU JOUR (Données réelles de la table conseils Supabase) -->
+          <section class="home-daily-advice-card" id="homeDailyAdviceCard" style="cursor: pointer;">
+            <span class="badge-sun-yellow">Conseil du jour</span>
+            <h3 class="advice-card-title" id="homeDailyAdviceTitle">Chargement du conseil…</h3>
+            <p class="advice-card-text" id="homeDailyAdviceText"></p>
+            <button type="button" class="btn-listen-advice-small" id="btnListenHomeDailyAdvice" aria-label="Écouter le conseil agronomique">
+              <i data-lucide="volume-2"></i>
+              <span>Écouter</span>
+            </button>
           </section>
 
           <!-- 5. QUATRE RACCOURCIS EN ICÔNES CARRÉES ARRONDIES -->
@@ -4398,6 +4374,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <!-- SCRIPT APPLICATION -->
-  <script src="scripts/app.js?v=20261021.16"></script>
+  <script src="scripts/app.js?v=20261021.18"></script>
 </body>
 </html>
