@@ -6980,6 +6980,16 @@ body.drawer-open {
   color: #7B1FA2;
 }
 
+.notif-icon-box.type-agronomique {
+  background: #E8F5E9;
+  color: #1E5E2A;
+}
+
+.notif-icon-box.type-tache {
+  background: #FFF8E1;
+  color: #C8862A;
+}
+
 .notif-body {
   flex: 1;
   min-width: 0;

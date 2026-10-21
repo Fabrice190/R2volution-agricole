@@ -9365,19 +9365,19 @@ document.addEventListener('DOMContentLoaded', () => {
   // ==========================================
   let currentNotifications = [];
   let currentReadNotifIds = new Set();
-  let currentNotifPrefs = { financement: true, date_limite: true, conseil: true, meteo: true, info: true };
+  let currentNotifPrefs = { financement: true, date_limite: true, conseil: true, meteo: true, info: true, cultures: true };
 
   function loadUserNotifPrefs() {
     const profileKey = currentAuthUser ? currentAuthUser.id : (currentProfileKey || 'default');
     try {
       const stored = localStorage.getItem('revolution_notif_prefs_' + profileKey);
       if (stored) {
-        currentNotifPrefs = Object.assign({ financement: true, date_limite: true, conseil: true, meteo: true, info: true }, JSON.parse(stored));
+        currentNotifPrefs = Object.assign({ financement: true, date_limite: true, conseil: true, meteo: true, info: true, cultures: true }, JSON.parse(stored));
       } else {
-        currentNotifPrefs = { financement: true, date_limite: true, conseil: true, meteo: true, info: true };
+        currentNotifPrefs = { financement: true, date_limite: true, conseil: true, meteo: true, info: true, cultures: true };
       }
     } catch (e) {
-      currentNotifPrefs = { financement: true, date_limite: true, conseil: true, meteo: true, info: true };
+      currentNotifPrefs = { financement: true, date_limite: true, conseil: true, meteo: true, info: true, cultures: true };
     }
     syncNotifPrefCheckboxes();
   }
@@ -9394,14 +9394,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const chkDate = document.getElementById('prefNotifDateLimite');
     const chkCons = document.getElementById('prefNotifConseil');
     const chkMet = document.getElementById('prefNotifMeteo');
+    const chkCult = document.getElementById('prefNotifCultures');
 
     if (chkFin) chkFin.checked = currentNotifPrefs.financement !== false;
     if (chkDate) chkDate.checked = currentNotifPrefs.date_limite !== false;
     if (chkCons) chkCons.checked = currentNotifPrefs.conseil !== false;
     if (chkMet) chkMet.checked = currentNotifPrefs.meteo !== false;
+    if (chkCult) chkCult.checked = currentNotifPrefs.cultures !== false;
   }
 
-  ['prefNotifFinancement', 'prefNotifDateLimite', 'prefNotifConseil', 'prefNotifMeteo'].forEach(id => {
+  ['prefNotifFinancement', 'prefNotifDateLimite', 'prefNotifConseil', 'prefNotifMeteo', 'prefNotifCultures'].forEach(id => {
     const el = document.getElementById(id);
     if (el) {
       el.addEventListener('change', () => {
@@ -9409,7 +9411,8 @@ document.addEventListener('DOMContentLoaded', () => {
           prefNotifFinancement: 'financement',
           prefNotifDateLimite: 'date_limite',
           prefNotifConseil: 'conseil',
-          prefNotifMeteo: 'meteo'
+          prefNotifMeteo: 'meteo',
+          prefNotifCultures: 'cultures'
         };
         const prefKey = keyMap[id];
         if (prefKey) {
@@ -9430,6 +9433,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (n.type === 'date_limite' && currentNotifPrefs.date_limite === false) return false;
       if (n.type === 'conseil' && currentNotifPrefs.conseil === false) return false;
       if (n.type === 'meteo' && currentNotifPrefs.meteo === false) return false;
+      if ((n.type === 'agronomique' || n.type === 'tache') && currentNotifPrefs.cultures === false) return false;
       return true;
     });
   }
@@ -9645,7 +9649,9 @@ document.addEventListener('DOMContentLoaded', () => {
       date_limite: '⏳',
       conseil: '💡',
       meteo: '🌦️',
-      info: '📢'
+      info: '📢',
+      agronomique: '🌾',
+      tache: '📋'
     };
 
     const labelsByType = {
@@ -9653,7 +9659,9 @@ document.addEventListener('DOMContentLoaded', () => {
       date_limite: 'Échéance',
       conseil: 'Conseil',
       meteo: 'Météo',
-      info: 'Info'
+      info: 'Info',
+      agronomique: 'Rappel culture',
+      tache: 'Travail agricole'
     };
 
     container.innerHTML = filtered.map(notif => {

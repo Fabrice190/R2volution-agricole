@@ -591,9 +591,18 @@ Depuis la version 2.9, l'application est entièrement Full Stack connectée au p
   - Utilisateur gratuit : aperçu flouté avec calque incitatif *« 🔒 Passer au Forfait Pro »*.
   - Utilisateur Pro : bilan comptable officiel complet certifié, ventilé par catégorie de charge et par parcelle/culture, avec cachet électronique horodaté et mise en page optimisée pour l'impression / PDF (`window.print()`).
 
+### W. Sécurité Supabase & Gestion des Rappels de Cultures (v6.2)
+- **Durcissement de Sécurité sur `public.generer_rappels_exploitation()`** :
+  - `SET search_path = public` ajouté à la fonction `SECURITY DEFINER` pour prévenir tout risque de détournement de schéma d'exécution.
+  - Privilège `EXECUTE` révoqué des rôles non autorisés (`PUBLIC`, `anon`, `authenticated`). Seuls le superutilisateur `postgres` et `service_role` (utilisé par `pg_cron`) conservent le droit d'exécution de la routine quotidienne.
+- **Support des Types de Notifications `agronomique` & `tache`** :
+  - Ajout des icônes dédiées dans la page Notifications : `🌾` (vert pastel `#E8F5E9`) pour les rappels de culture et `📋` (ambre pastel `#FFF8E1`) pour les tâches d'entretien.
+  - Ajout de l'interrupteur *« 🌾 Rappels de mes cultures »* dans la modale Profil & Paramètres sous la section *« Mes notifications »*, activé par défaut (`checked`).
+  - Filtrage dynamique synchronisé avec `localStorage` (`revolution_notif_prefs_[profileId]`) masquant ou affichant les rappels selon le choix de l'utilisateur.
+
 ---
 
-*Fin du document de spécification système — Version 6.1 • Révolution Agricole Burkina Faso.*
+*Fin du document de spécification système — Version 6.2 • Révolution Agricole Burkina Faso.*
 
 
 
