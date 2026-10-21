@@ -14,3 +14,6 @@ test_*.png
 shot.png
 screenshot.png
 scratch/
+temp_chrome/
+chrome_profile/
+
