@@ -169,6 +169,15 @@ Si vous êtes un modèle IA invité à maintenir, étendre ou modifier ce projet
   - *Opérateurs de paiement* : Orange Money (`*144*4*6#`) et Moov Money Flooz (`*555*6#`), indicatif téléphonique `+226`.
   - *Programmes publics réels* : PReCA (Projet de Résilience et de Compétitivité Agricole), Ministère de l'Agriculture.
 
+### Règle 6 : Modifications de Base de Données Réelles dans Supabase
+- **Toute modification de base de données doit être faite réellement dans Supabase avec l'outil Supabase**, jamais seulement dans le code ou en `localStorage`. Aucune simulation ou persistance factice locale n'est tolérée pour les entités métier.
+
+### Règle 7 : Vérification & Preuve Supabase Avant Clôture
+- **Avant de dire qu'une tâche est terminée, vérifiez systématiquement dans Supabase que les tables, colonnes, règles RLS et espaces Storage demandés existent vraiment**, et affichez-les formellement à l'utilisateur comme preuve d'exécution.
+
+### Règle 8 : Transparence sur les Attentes d'Accord Utilisateur
+- **Si une étape attend l'accord de l'utilisateur, indiquez-le clairement et sans ambiguïté** au lieu d'annoncer prématurément que la tâche est terminée.
+
 ---
 
 ## 🗄️ 7. Architecture Full Stack Supabase & Base de Données
