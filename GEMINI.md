@@ -565,9 +565,35 @@ Depuis la version 2.9, l'application est entièrement Full Stack connectée au p
   4. *Conservation de la compression JPG & PNG* : Les photos classiques JPEG et PNG continuent d'être compressées automatiquement à 1200×1200 px avec une qualité de 0.8 pour économiser la bande passante.
   5. *Diagnostic technique explicite dans les alertes* : En cas d'erreur lors de l'enregistrement d'un produit, le toast affiche désormais la raison technique exacte (`Impossible d'enregistrer le produit : ${errorDetail}`) au lieu du message opaque précédent, permettant une compréhension immédiate de tout incident.
 
+### V. Finalisation Complète de « Mon exploitation » (v6.1)
+- **1. Parcelles Géoréférencées & Cultures Associées** :
+  - Formulaire complet d'ajout/modification de parcelles : nom, superficie en hectares (avec texte d'aide pédagogique : *« 1 hectare = un carré de 100 pas sur 100 pas »*), type d'irrigation (`goutte-à-goutte`, `pluie`, `arrosoir`, `pompe`, `bas-fond`), région (table `regions`) et village (colonne `village` ajoutée dans Supabase).
+  - Chaque fiche parcelle affiche en direct la liste des cultures actives avec leur rentabilité réelle (dépenses, ventes et gain net en F CFA).
+- **2. Cycles Culturaux en 3 Choix Simples & Frise Temporelle** :
+  - Démarrage d'un cycle en 3 choix simples : (1) la parcelle, (2) la culture avec variété issue de `modeles_cultures`, et (3) la date de semis ou mise en pépinière.
+  - Calcul et persistance réels dans Supabase des colonnes `repiquage_date`, `harvest_date_min`, `harvest_date_max`, `variete` et `conseil_court`.
+  - Statut dynamique calculé automatiquement : *« En pépinière »*, *« En croissance »*, *« Récolte proche (<15j) »*, *« À récolter »*, *« Terminé »*.
+  - Frise chronologique visuelle haute précision avec jalons (semis, repiquage, récolte) et repère dynamique *« Aujourd'hui »* qui progresse jour après jour.
+  - Gestion des interventions et travaux agricoles personnalisés (sarclage, neem, compost) reliés à chaque cycle dans la table `cycle_tasks`.
+- **3. Tâche pg_cron Quotidienne des Rappels d'Exploitation** :
+  - Tâche `rappels_exploitation_quotidien` enregistrée dans `cron.job` (`0 6 * * *` soit 06h00 UTC / heure de Ouagadougou).
+  - Exécute la fonction `public.generer_rappels_exploitation()` avec protection stricte anti-doublon pour alerter la veille du repiquage, le début de récolte et la veille des tâches planifiées.
+- **4. Finances & Marges Nettes Réelles (Zéro Donnée Démo)** :
+  - Suppression intégrale de tous les chiffres de démonstration en dur dans le code.
+  - Calcul dynamique en direct des dépenses et recettes du mois courant et de la marge de campagne.
+  - Graphique en barres bicolores des flux réels sur les 6 derniers mois.
+  - Fiches de rentabilité par cycle avec marge nette colorée en vert (bénéfice) ou rouge (déficit).
+- **5. Synthèse Consolidée de l'Exploitation** :
+  - Métriques globales en temps réel : surface totale cultivée, nombre de cycles actifs, marge nette cumulée, culture la plus rentable de l'exploitation.
+  - Calendrier unifié des prochaines échéances sous 30 jours (repiquages, récoltes, travaux).
+- **6. Compte d'Exploitation Certifié & Imprimable** :
+  - Fonctionnalité conditionnée au statut Pro (`profiles.is_pro = true`).
+  - Utilisateur gratuit : aperçu flouté avec calque incitatif *« 🔒 Passer au Forfait Pro »*.
+  - Utilisateur Pro : bilan comptable officiel complet certifié, ventilé par catégorie de charge et par parcelle/culture, avec cachet électronique horodaté et mise en page optimisée pour l'impression / PDF (`window.print()`).
+
 ---
 
-*Fin du document de spécification système — Version 6.0 • Révolution Agricole Burkina Faso.*
+*Fin du document de spécification système — Version 6.1 • Révolution Agricole Burkina Faso.*
 
 
 

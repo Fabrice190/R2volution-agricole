@@ -8078,6 +8078,397 @@ body.drawer-open {
   background: #C53030;
 }
 
+/* ==========================================================================
+   15. MON EXPLOITATION : SYNTHÈSE, PARCELLES, CYCLES & FINANCES
+   ========================================================================== */
+
+/* Frise Chronologique du Cycle */
+.cycle-timeline-container {
+  background: #F9FAF8;
+  border: 1px solid #E6EAE3;
+  border-radius: 12px;
+  padding: 16px;
+  margin: 14px 0;
+  position: relative;
+}
+
+.cycle-timeline-track {
+  position: relative;
+  height: 8px;
+  background: #E2E8DF;
+  border-radius: 99px;
+  margin: 28px 12px 24px;
+}
+
+.cycle-timeline-progress {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: linear-gradient(90deg, #2E7D32 0%, #1E5E2A 100%);
+  border-radius: 99px;
+  transition: width 0.4s ease;
+}
+
+.timeline-step-point {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 16px;
+  height: 16px;
+  background: #FFFFFF;
+  border: 3px solid #1E5E2A;
+  border-radius: 50%;
+  z-index: 2;
+}
+
+.timeline-step-point.active {
+  background: #1E5E2A;
+  box-shadow: 0 0 0 4px rgba(30, 94, 42, 0.2);
+}
+
+.timeline-step-label {
+  position: absolute;
+  top: 18px;
+  transform: translateX(-50%);
+  font-size: 11px;
+  font-weight: 700;
+  color: #4A5750;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.timeline-step-date {
+  font-size: 10px;
+  font-weight: 500;
+  color: #7C8781;
+  display: block;
+}
+
+.timeline-today-indicator {
+  position: absolute;
+  top: -24px;
+  transform: translateX(-50%);
+  background: #C8862A;
+  color: #FFFFFF;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 99px;
+  white-space: nowrap;
+  z-index: 3;
+  box-shadow: 0 2px 6px rgba(200, 134, 42, 0.35);
+}
+
+.timeline-today-indicator::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 4px 4px 0 4px;
+  border-style: solid;
+  border-color: #C8862A transparent transparent transparent;
+}
+
+/* Statuts dynamiques de cycles */
+.status-pill-pepiniere {
+  background: #E8F5E9;
+  color: #1B5E20;
+  border: 1px solid #C8E6C9;
+}
+
+.status-pill-croissance {
+  background: #E3F2FD;
+  color: #0D47A1;
+  border: 1px solid #BBDEFB;
+}
+
+.status-pill-recolte-proche {
+  background: #FFF8E1;
+  color: #B78103;
+  border: 1px solid #FFE082;
+}
+
+.status-pill-recolte {
+  background: #FBE9E7;
+  color: #BF360C;
+  border: 1px solid #FFCCBC;
+  animation: pulse-recolte 2s infinite;
+}
+
+.status-pill-termine {
+  background: #ECEFF1;
+  color: #455A64;
+  border: 1px solid #CFD8DC;
+}
+
+@keyframes pulse-recolte {
+  0% { box-shadow: 0 0 0 0 rgba(191, 54, 12, 0.4); }
+  70% { box-shadow: 0 0 0 6px rgba(191, 54, 12, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(191, 54, 12, 0); }
+}
+
+/* Section Tâches du Cycle */
+.cycle-tasks-box {
+  background: #FFFFFF;
+  border: 1px solid #E6EAE3;
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-top: 12px;
+}
+
+.cycle-task-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #FAFBF9;
+  border: 1px solid #EEF2EB;
+  margin-bottom: 6px;
+  transition: all 0.2s ease;
+}
+
+.cycle-task-item:hover {
+  background: #F4F7F2;
+}
+
+.cycle-task-item.fait {
+  opacity: 0.65;
+  background: #F0F4ED;
+}
+
+.cycle-task-item.fait .task-name {
+  text-decoration: line-through;
+  color: #7C8781;
+}
+
+.btn-check-task {
+  background: none;
+  border: 1.5px solid #2E7D32;
+  border-radius: 6px;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #2E7D32;
+  font-size: 13px;
+  font-weight: 800;
+  margin-right: 10px;
+  padding: 0;
+}
+
+.btn-check-task.checked {
+  background: #2E7D32;
+  color: #FFFFFF;
+}
+
+/* Cartes Financières & Marges */
+.fin-cycle-card {
+  background: #FFFFFF;
+  border: 1.5px solid #E2E8DE;
+  border-radius: 14px;
+  padding: 18px 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+}
+
+.margin-badge-positive {
+  background: #E8F5E9;
+  color: #1B5E20;
+  border: 1px solid #A5D6A7;
+  padding: 6px 12px;
+  border-radius: 99px;
+  font-weight: 800;
+  font-size: 13.5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.margin-badge-negative {
+  background: #FFEBEE;
+  color: #C62828;
+  border: 1px solid #FFCDD2;
+  padding: 6px 12px;
+  border-radius: 99px;
+  font-weight: 800;
+  font-size: 13.5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.expense-cat-chip {
+  background: #F4F6F2;
+  border: 1px solid #E2E6DF;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 11.5px;
+  color: #38463F;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Graphique des 6 derniers mois */
+.six-months-chart-container {
+  background: #FFFFFF;
+  border: 1.5px solid #E2E8DE;
+  border-radius: 14px;
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.six-months-bars-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 12px;
+  align-items: end;
+  height: 180px;
+  padding-top: 20px;
+  border-bottom: 2px solid #E6EAE3;
+}
+
+.six-month-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  justify-content: flex-end;
+  position: relative;
+  cursor: pointer;
+}
+
+.six-month-bars-pair {
+  display: flex;
+  gap: 4px;
+  align-items: flex-end;
+  width: 100%;
+  max-width: 44px;
+  height: 100%;
+}
+
+.six-bar-rev {
+  background: #2E7D32;
+  width: 50%;
+  border-radius: 4px 4px 0 0;
+  transition: height 0.3s ease;
+  min-height: 4px;
+}
+
+.six-bar-exp {
+  background: #C8862A;
+  width: 50%;
+  border-radius: 4px 4px 0 0;
+  transition: height 0.3s ease;
+  min-height: 4px;
+}
+
+.six-month-label {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #4A5750;
+  margin-top: 8px;
+  text-transform: capitalize;
+}
+
+/* Compte d'Exploitation PDF Preview & Modale */
+.pdf-preview-backdrop {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.pdf-preview-backdrop.is-blurred .compte-sheet-inner {
+  filter: blur(5px);
+  pointer-events: none;
+  user-select: none;
+}
+
+.pdf-pro-lock-gate {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(255, 255, 255, 0.94);
+  border: 2px solid #C8862A;
+  border-radius: 16px;
+  padding: 24px 28px;
+  text-align: center;
+  max-width: 420px;
+  width: 90%;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.15);
+  z-index: 10;
+}
+
+.compte-sheet {
+  background: #FFFFFF;
+  border: 1px solid #D5DDD3;
+  border-radius: 8px;
+  padding: 32px 36px;
+  color: #1E2822;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+}
+
+.compte-header-brand {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: 2px solid #1E5E2A;
+  padding-bottom: 14px;
+  margin-bottom: 20px;
+}
+
+.compte-bank-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+  font-size: 12.5px;
+}
+
+.compte-bank-table th {
+  background: #F4F7F2;
+  color: #1E5E2A;
+  font-weight: 800;
+  text-align: left;
+  padding: 8px 10px;
+  border: 1px solid #DCE4D8;
+}
+
+.compte-bank-table td {
+  padding: 8px 10px;
+  border: 1px solid #E6ECE2;
+  font-size: 12px;
+}
+
+/* Impression A4 officielle */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #printableCompteExploitation, #printableCompteExploitation * {
+    visibility: visible;
+  }
+  #printableCompteExploitation {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 20mm;
+    box-shadow: none;
+    border: none;
+  }
+  .no-print {
+    display: none !important;
+  }
+}
+
 /* RÈGLE ABSOLUE DE SÉCURITÉ D'AFFICHAGE */
 #viewportContainer.hidden,
 .viewport-wrapper.hidden,

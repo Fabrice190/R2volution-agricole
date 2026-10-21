@@ -1636,6 +1636,72 @@
         </div>
 
         <!-- ==========================================
+             PAGE SYNTHÈSE DE L'EXPLOITATION
+             ========================================== -->
+        <div class="dashboard-body hidden" id="pageSynthese">
+          <div class="page-view-header">
+            <div class="page-view-title-group">
+              <div class="page-breadcrumb">
+                <a href="#dashboard" class="breadcrumb-back-link">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+                  <span>Tableau de bord</span>
+                </a>
+                <span class="bullet-sep">•</span>
+                <span>Mon exploitation</span>
+              </div>
+              <h1 class="page-main-title">📊 Synthèse de l'Exploitation</h1>
+              <p class="page-subtitle">Vue d'ensemble consolidée de vos parcelles, cultures actives, rentabilité globale et calendrier des échéances.</p>
+            </div>
+            <div class="page-header-actions-group">
+              <button type="button" class="btn-secondary" id="btnSyntheseGoToFinances">
+                <span>💰 Finances & Marges →</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- 4 Indicateurs Clés de Synthèse -->
+          <div class="stats-overview-grid" style="grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); margin-bottom: 24px;">
+            <div class="stat-card" style="border-left: 4px solid #1E5E2A;">
+              <span class="stat-label">SURFACE CULTIVÉE</span>
+              <strong class="stat-value" id="syntheseSurfaceCultivee">0 ha</strong>
+              <span class="comparison-text" id="syntheseSurfaceTotalParcelles">0 parcelle active</span>
+            </div>
+            <div class="stat-card" style="border-left: 4px solid #2B6CB0;">
+              <span class="stat-label">CYCLES EN COURS</span>
+              <strong class="stat-value" id="syntheseCyclesCount">0</strong>
+              <span class="comparison-text">En production active</span>
+            </div>
+            <div class="stat-card" style="border-left: 4px solid #C8862A;">
+              <span class="stat-label">MARGE CAMPAGNE</span>
+              <strong class="stat-value" id="syntheseMargeCampagne">0 F CFA</strong>
+              <span class="comparison-text" id="syntheseMargeSub">Recettes − Dépenses</span>
+            </div>
+            <div class="stat-card" style="border-left: 4px solid #8E44AD;">
+              <span class="stat-label">CULTURE PLUS RENTABLE</span>
+              <strong class="stat-value" id="syntheseTopCrop" style="font-size: 16px; font-weight: 800;">--</strong>
+              <span class="comparison-text" id="syntheseTopCropGain">Meilleur bénéfice net</span>
+            </div>
+          </div>
+
+          <!-- Prochaines Échéances Immédiates (Repiquages, Récoltes, Tâches) -->
+          <div style="background: #FFFFFF; border: 1.5px solid #E2E8DE; border-radius: 14px; padding: 20px; margin-bottom: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
+              <h3 style="font-size: 16px; font-weight: 800; color: #1E2822; margin: 0; display: flex; align-items: center; gap: 8px;">
+                <span>📅 Prochaines Échéances de l'Exploitation</span>
+                <span class="nav-pill-count" id="syntheseEcheancesCount">0</span>
+              </h3>
+              <span style="font-size: 12px; color: #7C8781;">Repiquages, récoltes et travaux agricoles</span>
+            </div>
+            <div id="syntheseEcheancesList" style="display: flex; flex-direction: column; gap: 8px;">
+              <!-- Injecté dynamiquement par JavaScript -->
+            </div>
+            <div id="syntheseEcheancesEmpty" class="hidden" style="text-align: center; padding: 18px; color: #7C8781; font-size: 13px;">
+              Aucune échéance prévue dans les 30 prochains jours.
+            </div>
+          </div>
+        </div>
+
+        <!-- ==========================================
              PAGE PARCELLES ET CULTURES (UTILISATEUR)
              ========================================== -->
         <div class="dashboard-body hidden" id="pageParcelles">
@@ -1722,6 +1788,147 @@
             <button type="button" class="btn-primary" id="btnEmptyStateAddCrop" style="margin: 12px auto 0; display: inline-flex;">
               + Ajouter une culture avec modèle
             </button>
+          </div>
+        </div>
+
+        <!-- ==========================================
+             PAGE CYCLES CULTURAUX (MON EXPLOITATION)
+             ========================================== -->
+        <div class="dashboard-body hidden" id="pageCycles">
+          <div class="page-view-header">
+            <div class="page-view-title-group">
+              <div class="page-breadcrumb">
+                <a href="#dashboard" class="breadcrumb-back-link">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+                  <span>Tableau de bord</span>
+                </a>
+                <span class="bullet-sep">•</span>
+                <span>Mon exploitation</span>
+              </div>
+              <h1 class="page-main-title">🌱 Cycles Culturaux</h1>
+              <p class="page-subtitle">Suivez vos cultures du semis à la récolte avec frise chronologique, prévisions agronomiques et rappels de tâches.</p>
+            </div>
+            <div class="page-header-actions-group">
+              <button type="button" class="btn-primary" id="btnOpenAddCropCycleFromCycles">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="12"/></svg>
+                <span>+ Démarrer un cycle</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Onglets de filtre de statut pour les cycles -->
+          <div class="admin-materiels-filters-bar" style="margin-bottom: 16px;">
+            <div class="filter-types-scroll" id="filterCyclesStatusContainer">
+              <button type="button" class="type-filter-chip active" data-status="all">Tous les cycles</button>
+              <button type="button" class="type-filter-chip" data-status="pepiniere">🌱 En pépinière</button>
+              <button type="button" class="type-filter-chip" data-status="croissance">🌿 En croissance</button>
+              <button type="button" class="type-filter-chip" data-status="recolte_proche">⏳ Récolte proche (&lt;15j)</button>
+              <button type="button" class="type-filter-chip" data-status="recolte">🌾 À récolter</button>
+              <button type="button" class="type-filter-chip" data-status="termine">✅ Terminés</button>
+            </div>
+          </div>
+
+          <!-- Liste des cartes de cycles avec frise temporelle -->
+          <div class="cycles-list-grid" id="cyclesCardsGrid" style="display: flex; flex-direction: column; gap: 16px;">
+            <!-- Injecté dynamiquement par JavaScript depuis Supabase -->
+          </div>
+
+          <!-- État vide si aucun cycle -->
+          <div class="financements-empty-state hidden" id="cyclesEmptyState">
+            <div class="empty-state-icon">🌱</div>
+            <h3>Aucun cycle cultural pour le moment</h3>
+            <p>Démarrez un cycle en 3 clics simples : choisissez votre parcelle, sélectionnez la culture parmi les modèles INERA et saisissez la date de semis.</p>
+            <button type="button" class="btn-primary" id="btnEmptyStateAddCycle" style="margin: 12px auto 0; display: inline-flex;">
+              + Démarrer mon premier cycle
+            </button>
+          </div>
+        </div>
+
+        <!-- ==========================================
+             PAGE FINANCES & MARGES (MON EXPLOITATION)
+             ========================================== -->
+        <div class="dashboard-body hidden" id="pageFinances">
+          <div class="page-view-header">
+            <div class="page-view-title-group">
+              <div class="page-breadcrumb">
+                <a href="#dashboard" class="breadcrumb-back-link">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+                  <span>Tableau de bord</span>
+                </a>
+                <span class="bullet-sep">•</span>
+                <span>Mon exploitation</span>
+              </div>
+              <h1 class="page-main-title">💰 Finances & Marges Nettes</h1>
+              <p class="page-subtitle">Suivez vos dépenses et recettes réelles, visualisez la rentabilité exacte de chaque cycle et téléchargez votre compte d'exploitation.</p>
+            </div>
+            <div class="page-header-actions-group">
+              <button type="button" class="btn-secondary" id="btnOpenExportCompteExploitation" style="border-color: #C8862A; color: #8A4F00; font-weight: 800;">
+                <span>📄 Compte d'exploitation PDF</span>
+              </button>
+              <button type="button" class="btn-secondary" id="btnFinancesAddExpense">
+                <span>💸 + Dépense</span>
+              </button>
+              <button type="button" class="btn-primary" id="btnFinancesAddRevenue">
+                <span>🌾 + Vente récolte</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- 3 Cartes Globales Finances -->
+          <div class="stats-overview-grid" style="margin-bottom: 24px;">
+            <div class="stat-card" style="border-left: 4px solid #C53030;">
+              <span class="stat-label">DÉPENSES DU MOIS</span>
+              <strong class="stat-value" id="financesMonthExpenses">0 F CFA</strong>
+              <span class="comparison-text" id="financesMonthExpensesCount">0 dépense ce mois</span>
+            </div>
+            <div class="stat-card" style="border-left: 4px solid #1E5E2A;">
+              <span class="stat-label">RECETTES DU MOIS</span>
+              <strong class="stat-value" id="financesMonthRevenues">0 F CFA</strong>
+              <span class="comparison-text" id="financesMonthRevenuesCount">0 vente ce mois</span>
+            </div>
+            <div class="stat-card" style="border-left: 4px solid #C8862A;">
+              <span class="stat-label">MARGE DE CAMPAGNE (CUMUL)</span>
+              <strong class="stat-value" id="financesGlobalMargin">0 F CFA</strong>
+              <span class="comparison-text" id="financesGlobalMarginSub">Recettes − Dépenses</span>
+            </div>
+          </div>
+
+          <!-- Graphique d'évolution des 6 derniers mois -->
+          <div class="six-months-chart-container">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+              <div>
+                <h3 style="font-size: 16px; font-weight: 800; color: #1E2822; margin: 0 0 2px;">📈 Évolution sur les 6 Derniers Mois</h3>
+                <p style="font-size: 12px; color: #7C8781; margin: 0;">Comparatif Recettes (vert) vs Dépenses (ocre) par mois</p>
+              </div>
+              <div style="display: flex; gap: 14px; font-size: 12px; font-weight: 700;">
+                <span style="color: #2E7D32; display: flex; align-items: center; gap: 4px;">
+                  <span style="display: inline-block; width: 10px; height: 10px; background: #2E7D32; border-radius: 2px;"></span>
+                  Recettes
+                </span>
+                <span style="color: #C8862A; display: flex; align-items: center; gap: 4px;">
+                  <span style="display: inline-block; width: 10px; height: 10px; background: #C8862A; border-radius: 2px;"></span>
+                  Dépenses
+                </span>
+              </div>
+            </div>
+            <div class="six-months-bars-grid" id="sixMonthsBarsContainer">
+              <!-- Barres injectées dynamiquement par JavaScript -->
+            </div>
+          </div>
+
+          <!-- Titre Rentabilité par Cycle -->
+          <div style="margin-bottom: 12px;">
+            <h3 style="font-size: 16px; font-weight: 800; color: #1E2822; margin: 0;">🌾 Marge et Rentabilité Détaillée par Cycle</h3>
+          </div>
+
+          <!-- Liste des fiches de marge par cycle -->
+          <div id="financesCyclesList">
+            <!-- Injecté dynamiquement par JavaScript -->
+          </div>
+
+          <div id="financesCyclesEmpty" class="hidden" style="text-align: center; padding: 32px; background: #FFFFFF; border-radius: 12px; border: 1.5px dashed #D5E0D5;">
+            <p style="font-size: 14px; font-weight: 700; color: #1E2822; margin: 0 0 4px;">Aucune donnée financière pour le moment</p>
+            <p style="font-size: 12px; color: #7C8781; margin: 0;">Enregistrez votre première dépense ou encaissement de récolte pour visualiser vos marges réelles.</p>
           </div>
         </div>
 
@@ -3091,31 +3298,32 @@
 
         <div class="form-row">
           <div class="form-group flex-1">
-            <label for="parcelRegionSelect">Votre région <span class="required">*</span></label>
+            <label for="parcelRegionSelect">Région de situation <span class="required">*</span></label>
             <select id="parcelRegionSelect" class="form-select" required>
               <option value="">-- Choisissez votre région --</option>
-              <!-- Rempli dynamiquement avec les 17 régions -->
+              <!-- Rempli dynamiquement avec les régions de la table regions -->
             </select>
           </div>
           <div class="form-group flex-1">
-            <label for="parcelArea">Superficie (en hectares) <span class="required">*</span></label>
-            <input type="number" id="parcelArea" class="form-input" placeholder="Ex: 1.0" step="0.01" min="0.01" required>
+            <label for="parcelVillage">Village <span class="required">*</span></label>
+            <input type="text" id="parcelVillage" class="form-input" placeholder="Ex: Ramongo, village de Bassy..." required>
           </div>
         </div>
 
         <div class="form-row">
           <div class="form-group flex-1">
-            <label for="parcelLocation">Village ou quartier <small style="color: var(--text-muted);">(facultatif)</small></label>
-            <input type="text" id="parcelLocation" class="form-input" placeholder="Ex: Secteur 4, Ramongo, Vallée du Kou...">
+            <label for="parcelArea">Superficie (en hectares) <span class="required">*</span></label>
+            <input type="number" id="parcelArea" class="form-input" placeholder="Ex: 1.0" step="0.01" min="0.01" required>
+            <small class="form-hint" style="color: #4A5750; font-size: 11px; margin-top: 4px; display: block;">💡 1 hectare = un carré de 100 pas sur 100 pas</small>
           </div>
           <div class="form-group flex-1">
-            <label for="parcelIrrigation">Système d'irrigation <span class="required">*</span></label>
+            <label for="parcelIrrigation">Type d'irrigation <span class="required">*</span></label>
             <select id="parcelIrrigation" class="form-select" required>
-              <option value="Irrigué (Goutte-à-goutte)" selected>Goutte-à-goutte</option>
-              <option value="Irrigué (Californien / Tuyaux)">Californien / Tuyaux</option>
-              <option value="Irrigué (Puits / Motopompe)">Puits / Motopompe</option>
-              <option value="Pluviale / Sans irrigation">Pluviale (Saison des pluies)</option>
-              <option value="Autre système">Autre système</option>
+              <option value="goutte-à-goutte" selected>Goutte-à-goutte</option>
+              <option value="pluie">Pluie (pluviale)</option>
+              <option value="arrosoir">Arrosoir</option>
+              <option value="pompe">Pompe / Motopompe</option>
+              <option value="bas-fond">Bas-fond</option>
             </select>
           </div>
         </div>
@@ -3724,6 +3932,197 @@
     </div>
   </div>
 
+  <!-- ==================== MODALE AJOUTER UNE TÂCHE / RAPPEL SUR UN CYCLE ==================== -->
+  <div class="modal-backdrop hidden" id="modalAddCycleTask">
+    <div class="modal-dialog modal-dialog-financement">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <span class="modal-icon bg-green">🔔</span>
+          <div>
+            <h3 class="modal-title">Ajouter un rappel ou une tâche</h3>
+            <p class="modal-subtitle" id="taskModalCycleInfo">Rattachez une intervention agronomique à votre cycle.</p>
+          </div>
+        </div>
+        <button class="modal-close-btn" id="btnCloseAddCycleTask">&times;</button>
+      </div>
+
+      <form id="formAddCycleTask" class="modal-form" autocomplete="off">
+        <input type="hidden" id="taskCropCycleId" value="">
+
+        <div class="form-group">
+          <label for="taskTitre">Intitulé de la tâche <span class="required">*</span></label>
+          <input type="text" id="taskTitre" class="form-input" placeholder="Ex: Sarclage et désherbage, Traitement bio au neem..." required>
+          
+          <!-- Puces de suggestion en 1 clic -->
+          <div class="task-suggestion-chips" style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px;">
+            <button type="button" class="btn-task-chip" data-task="Sarclage et désherbage">🌾 Sarclage</button>
+            <button type="button" class="btn-task-chip" data-task="Traitement bio au neem">🌿 Traitement neem</button>
+            <button type="button" class="btn-task-chip" data-task="Apport de compost / fumure">🍃 Apport compost</button>
+            <button type="button" class="btn-task-chip" data-task="Buttage des plants">⛏️ Buttage</button>
+            <button type="button" class="btn-task-chip" data-task="Irrigation et arrosage soutenu">💧 Arrosage</button>
+            <button type="button" class="btn-task-chip" data-task="Taille et tuteurage">✂️ Tuteurage</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="taskDatePrevue">Date d'intervention prévue <span class="required">*</span></label>
+          <input type="date" id="taskDatePrevue" class="form-input" required>
+          <small class="form-hint" style="color: var(--text-muted); font-size: 11.5px; margin-top: 4px; display: block;">
+            ⏰ Un rappel automatique vous sera envoyé la veille au matin dans vos notifications.
+          </small>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" id="btnCancelAddCycleTask">Annuler</button>
+          <button type="submit" class="btn-primary" id="btnSubmitAddCycleTask">
+            <span id="btnSubmitAddCycleTaskText">Enregistrer le rappel</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== MODALE COMPTE D'EXPLOITATION (CERTIFIÉ & IMPRIMABLE) ==================== -->
+  <div class="modal-backdrop hidden" id="modalCompteExploitation">
+    <div class="modal-dialog modal-dialog-compte" style="max-width: 900px; max-height: 92vh; display: flex; flex-direction: column;">
+      <div class="modal-header" style="flex-shrink: 0;">
+        <div class="modal-title-wrap">
+          <span class="modal-icon bg-green">📄</span>
+          <div>
+            <h3 class="modal-title">Compte d'exploitation certifié</h3>
+            <p class="modal-subtitle">Bilan comptable agropastoral officiel pour banques, microfinances et guichets PReCA.</p>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <button type="button" class="btn-primary no-print" id="btnPrintCompteExploitation" style="display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; font-size: 13px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            <span>Imprimer / PDF</span>
+          </button>
+          <button class="modal-close-btn no-print" id="btnCloseCompteExploitation">&times;</button>
+        </div>
+      </div>
+
+      <!-- Corps défilable -->
+      <div class="modal-body-scroll" style="overflow-y: auto; padding: 18px 24px; flex: 1; position: relative;">
+        
+        <!-- CALQUE FLOU POUR UTILISATEURS NON PRO -->
+        <div id="compteProLockGate" class="compte-pro-gate hidden" style="position: absolute; inset: 0; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); background: rgba(255,255,255,0.85); z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; text-align: center;">
+          <div style="width: 56px; height: 56px; border-radius: 50%; background: #FFF8E1; border: 2px solid #C8862A; display: flex; align-items: center; justify-content: center; font-size: 26px; margin-bottom: 12px;">
+            🔒
+          </div>
+          <h3 style="font-size: 20px; font-weight: 800; color: #1E2922; margin-bottom: 6px;">Fonctionnalité réservée aux abonnés Pro</h3>
+          <p style="max-width: 440px; font-size: 13.5px; color: #4A5750; margin-bottom: 18px; line-height: 1.5;">
+            Téléchargez et imprimez des bilans comptables certifiés avec cachet électronique horodaté, recevables auprès des institutions financières (RCPB, Coris, FBDES, PReCA).
+          </p>
+          <button type="button" class="btn-primary" id="btnGateUpgradeToPro" style="padding: 10px 22px; font-size: 14px; font-weight: 700; background: #C8862A; border-color: #B5751F;">
+            ⭐ Passer au Forfait Pro (5 000 F CFA)
+          </button>
+        </div>
+
+        <!-- DOCUMENT COMPTABLE IMPRIMABLE -->
+        <div class="compte-printable-sheet" id="comptePrintableSheet">
+          <!-- En-tête officiel du document -->
+          <div class="compte-doc-header" style="display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 16px; border-bottom: 2px solid #1E5E2A; margin-bottom: 20px;">
+            <div>
+              <span style="font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; color: #1E5E2A;">RÉPUBLIQUE DU BURKINA FASO • UN PEUPLE - UN BUT - UNE FOI</span>
+              <h2 style="font-size: 22px; font-weight: 800; color: #0E2413; margin: 4px 0 2px;">COMPTE D'EXPLOITATION AGRICOLE</h2>
+              <p style="font-size: 12.5px; color: #4A5750; margin: 0;">Plateforme Révolution Agricole — Système National de Gestion Agropastorale</p>
+            </div>
+            <div style="text-align: right;">
+              <span style="display: inline-block; padding: 4px 10px; background: #EAF4E6; border: 1px solid #C5E0BE; border-radius: 6px; font-size: 11px; font-weight: 800; color: #1E5E2A;">
+                CERTIFICAT DE GESTION NUMÉRO <span id="compteCertifId">RA-2026-BF</span>
+              </span>
+              <div style="font-size: 12px; color: #4A5750; margin-top: 6px;">Édité le : <strong id="compteDateEmission">21/10/2026</strong></div>
+            </div>
+          </div>
+
+          <!-- Données du producteur -->
+          <div class="compte-producer-info" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; background: #F8FAF6; border: 1px solid #E6EAE3; border-radius: 8px; padding: 12px 16px; margin-bottom: 20px; font-size: 12.5px;">
+            <div>
+              <span style="color: #6B7C72; display: block; font-size: 11px;">EXPLOITANT AGRICOLE</span>
+              <strong id="compteProducerName" style="font-size: 14px; color: #1E2922;">Fabrice ZOMAHOUN</strong>
+            </div>
+            <div>
+              <span style="color: #6B7C72; display: block; font-size: 11px;">COMMUNE & CONTACT</span>
+              <strong id="compteProducerLoc" style="color: #1E2922;">Koudougou • +226 70 00 00 00</strong>
+            </div>
+            <div>
+              <span style="color: #6B7C72; display: block; font-size: 11px;">STATUT D'ADHÉSION</span>
+              <strong id="compteProducerStatus" style="color: #1E5E2A;">⭐ Forfait Pro Actif</strong>
+            </div>
+          </div>
+
+          <!-- 1. Bilan Financier Synthétique -->
+          <h4 style="font-size: 14px; font-weight: 800; color: #1E5E2A; margin: 0 0 10px; text-transform: uppercase;">1. Bilan Financier Global</h4>
+          <div class="compte-metrics-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 22px;">
+            <div style="background: #FFF; border: 1px solid #E6EAE3; border-radius: 8px; padding: 12px; text-align: center;">
+              <span style="font-size: 11px; color: #6B7C72; font-weight: 600; display: block;">Recettes totales</span>
+              <strong id="compteTotalRevenues" style="font-size: 17px; font-family: 'JetBrains Mono', monospace; color: #1E5E2A;">0 F CFA</strong>
+            </div>
+            <div style="background: #FFF; border: 1px solid #E6EAE3; border-radius: 8px; padding: 12px; text-align: center;">
+              <span style="font-size: 11px; color: #6B7C72; font-weight: 600; display: block;">Dépenses engagées</span>
+              <strong id="compteTotalExpenses" style="font-size: 17px; font-family: 'JetBrains Mono', monospace; color: #9A2C2C;">0 F CFA</strong>
+            </div>
+            <div style="background: #FFF; border: 1px solid #E6EAE3; border-radius: 8px; padding: 12px; text-align: center;">
+              <span style="font-size: 11px; color: #6B7C72; font-weight: 600; display: block;">Marge Nette Réelle</span>
+              <strong id="compteNetMargin" style="font-size: 17px; font-family: 'JetBrains Mono', monospace; color: #1E5E2A;">0 F CFA</strong>
+            </div>
+            <div style="background: #FFF; border: 1px solid #E6EAE3; border-radius: 8px; padding: 12px; text-align: center;">
+              <span style="font-size: 11px; color: #6B7C72; font-weight: 600; display: block;">Taux de rentabilité</span>
+              <strong id="compteMarginRate" style="font-size: 17px; font-family: 'JetBrains Mono', monospace; color: #1E5E2A;">0%</strong>
+            </div>
+          </div>
+
+          <!-- 2. Ventilation des Dépenses par Catégorie -->
+          <h4 style="font-size: 14px; font-weight: 800; color: #1E5E2A; margin: 0 0 10px; text-transform: uppercase;">2. Ventilation des charges par catégorie</h4>
+          <table class="compte-table" style="width: 100%; border-collapse: collapse; margin-bottom: 22px; font-size: 12.5px;">
+            <thead>
+              <tr style="background: #F1F5EF; text-align: left; border-bottom: 1.5px solid #D5E0D2;">
+                <th style="padding: 8px 10px;">Poste de dépense</th>
+                <th style="padding: 8px 10px; text-align: right;">Montant engagé (F CFA)</th>
+                <th style="padding: 8px 10px; text-align: right;">Part relative</th>
+              </tr>
+            </thead>
+            <tbody id="compteExpenseCategoriesBody">
+              <!-- Rempli dynamiquement -->
+            </tbody>
+          </table>
+
+          <!-- 3. Rentabilité détaillée par parcelle et culture -->
+          <h4 style="font-size: 14px; font-weight: 800; color: #1E5E2A; margin: 0 0 10px; text-transform: uppercase;">3. Marge dégagée par culture & parcelle</h4>
+          <table class="compte-table" style="width: 100%; border-collapse: collapse; margin-bottom: 26px; font-size: 12.5px;">
+            <thead>
+              <tr style="background: #F1F5EF; text-align: left; border-bottom: 1.5px solid #D5E0D2;">
+                <th style="padding: 8px 10px;">Culture / Parcelle</th>
+                <th style="padding: 8px 10px;">Surface</th>
+                <th style="padding: 8px 10px; text-align: right;">Dépenses</th>
+                <th style="padding: 8px 10px; text-align: right;">Recettes</th>
+                <th style="padding: 8px 10px; text-align: right;">Marge nette</th>
+                <th style="padding: 8px 10px; text-align: center;">Statut</th>
+              </tr>
+            </thead>
+            <tbody id="compteCropsBreakdownBody">
+              <!-- Rempli dynamiquement -->
+            </tbody>
+          </table>
+
+          <!-- Pied de page officiel avec cachet électronique -->
+          <div class="compte-doc-footer" style="display: flex; justify-content: space-between; align-items: flex-end; padding-top: 14px; border-top: 1px solid #D5E0D2; font-size: 11.5px; color: #6B7C72;">
+            <div style="max-width: 480px; line-height: 1.45;">
+              <p style="margin: 0 0 4px;"><strong>Mention légale :</strong> Document généré électroniquement par Révolution Agricole à partir des écritures certifiées réelles enregistrées sur la plateforme. Recevable pour instruction de dossier de financement auprès des banques partenaires, IMF et projets de résilience (PReCA).</p>
+            </div>
+            <div style="text-align: center; border: 1.5px dashed #1E5E2A; padding: 8px 16px; border-radius: 8px; background: #FAFDF9;">
+              <span style="font-size: 10px; font-weight: 800; color: #1E5E2A; display: block;">SIGNATURE ÉLECTRONIQUE VALIDE</span>
+              <span style="font-size: 12px; font-weight: 700; color: #0E2413;">RÉVOLUTION AGRICOLE SA</span>
+              <span style="font-size: 9.5px; color: #4A5750; display: block;" id="compteStampDate">Vérifié le 21/10/2026</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- TOAST DE NOTIFICATION FLOTTANT -->
   <div class="toast-notification hidden" id="toastNotification">
     <div class="toast-icon" id="toastIcon">✅</div>
@@ -3738,6 +4137,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <!-- SCRIPT APPLICATION -->
-  <script src="scripts/app.js?v=20261021.6"></script>
+  <script src="scripts/app.js?v=20261021.7"></script>
 </body>
 </html>

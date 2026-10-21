@@ -57,12 +57,20 @@ document.addEventListener('DOMContentLoaded', () => {
   let cachedExpenses = [];
   let cachedRevenues = [];
   let cachedCropCycles = [];
+  let cachedCycleTasks = [];
   let activeAdminModelesTab = 'all';
   let activeCropSpeechBtn = null;
   let activeParcelSpeechBtn = null;
+  let cyclesActiveStatusFilter = 'all';
   const modalAddParcel = document.getElementById('modalAddParcel');
   const formAddParcel = document.getElementById('formAddParcel');
   const parcelRegionSelect = document.getElementById('parcelRegionSelect');
+  const pageSynthese = document.getElementById('pageSynthese');
+  const pageCycles = document.getElementById('pageCycles');
+  const pageFinances = document.getElementById('pageFinances');
+  const modalAddCycleTask = document.getElementById('modalAddCycleTask');
+  const formAddCycleTask = document.getElementById('formAddCycleTask');
+  const modalCompteExploitation = document.getElementById('modalCompteExploitation');
 
   // Variables d'état et sélecteurs DOM pour Matériel & Services
   let cachedMateriels = [];
@@ -1960,10 +1968,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const href = link.getAttribute('href');
         if (href && href.startsWith('#')) {
           const target = href.replace(/^#/, '');
-          if (target === 'opportunites' || target === 'admin-financements' || target === 'conseils' || target === 'admin-conseils' || target === 'admin-modeles' || target === 'parcelles' || target === 'cycles' || target === 'dashboard' || target === 'meteo' || target === 'notifications' || target === 'materiel-services' || target === 'admin-materiels') {
+          const allowedTargets = [
+            'synthese', 'parcelles', 'cycles', 'finances',
+            'opportunites', 'admin-financements', 'conseils', 'admin-conseils', 'admin-modeles',
+            'dashboard', 'meteo', 'notifications', 'materiel-services', 'admin-materiels',
+            'marche', 'mes-annonces', 'admin-queue', 'admin-moderation'
+          ];
+          if (allowedTargets.includes(target)) {
             e.preventDefault();
             closeMobileDrawer();
-            const routeTarget = (target === 'cycles') ? 'parcelles' : target;
+            const routeTarget = (target === 'admin-moderation') ? 'admin-queue' : target;
             window.location.hash = routeTarget;
             navigateToPage(routeTarget);
           }
@@ -2294,9 +2308,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   btnHeaderAction.addEventListener('click', handlePrimaryAction);
 
-  // Suivi dynamique des finances de la productrice connecté à Supabase
-  let currentExpenseTotal = 185000;
-  let currentRevenueTotal = 420000;
+  // Suivi dynamique des finances de l'exploitant connecté à Supabase (zéro donnée démo)
+  let currentExpenseTotal = 0;
+  let currentRevenueTotal = 0;
+  let currentMonthExpenseTotal = 0;
+  let currentMonthRevenueTotal = 0;
 
   async function syncFinancialsFromSupabase(profileId = currentProfileKey) {
     if (!supabaseClient) {
@@ -2313,11 +2329,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (!expError && expData) {
         cachedExpenses = expData;
-        if (expData.length > 0) {
-          currentExpenseTotal = expData.reduce((acc, row) => acc + (parseFloat(row.amount) || 0), 0);
-        } else {
-          currentExpenseTotal = 0;
-        }
+        currentExpenseTotal = expData.reduce((acc, row) => acc + (parseFloat(row.amount) || 0), 0);
+      } else {
+        cachedExpenses = [];
+        currentExpenseTotal = 0;
       }
 
       // 2. Charger les recettes réelles depuis Supabase
@@ -2328,16 +2343,41 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (!revError && revData) {
         cachedRevenues = revData;
-        if (revData.length > 0) {
-          currentRevenueTotal = revData.reduce((acc, row) => acc + (parseFloat(row.amount) || 0), 0);
-        } else {
-          currentRevenueTotal = 0;
-        }
+        currentRevenueTotal = revData.reduce((acc, row) => acc + (parseFloat(row.amount) || 0), 0);
+      } else {
+        cachedRevenues = [];
+        currentRevenueTotal = 0;
       }
 
+      // Calcul des flux spécifiques du mois en cours
+      const now = new Date();
+      const curYear = now.getFullYear();
+      const curMonth = now.getMonth();
+
+      const thisMonthExpenses = (cachedExpenses || []).filter(e => {
+        if (!e.expense_date) return false;
+        const d = new Date(e.expense_date);
+        return !isNaN(d.getTime()) && d.getFullYear() === curYear && d.getMonth() === curMonth;
+      });
+      currentMonthExpenseTotal = thisMonthExpenses.reduce((acc, row) => acc + (parseFloat(row.amount) || 0), 0);
+
+      const thisMonthRevenues = (cachedRevenues || []).filter(r => {
+        if (!r.revenue_date) return false;
+        const d = new Date(r.revenue_date);
+        return !isNaN(d.getTime()) && d.getFullYear() === curYear && d.getMonth() === curMonth;
+      });
+      currentMonthRevenueTotal = thisMonthRevenues.reduce((acc, row) => acc + (parseFloat(row.amount) || 0), 0);
+
       updateFinancialMetrics();
+
       if (currentRoutePage === 'parcelles') {
         renderParcellesPage();
+      } else if (currentRoutePage === 'synthese') {
+        renderSynthesePage();
+      } else if (currentRoutePage === 'cycles') {
+        renderCyclesPage(cyclesActiveStatusFilter || 'all');
+      } else if (currentRoutePage === 'finances') {
+        renderFinancesPage();
       }
     } catch (err) {
       console.warn('⚠️ Synchronisation financière Supabase :', err);
@@ -2367,7 +2407,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (item.status && item.status.includes('Récolte')) {
               dotClass = 'dot-orange';
               statusClass = 'state-harvest';
-            } else if (item.status && (item.status.includes('Repiquage') || item.status.includes('nouveau'))) {
+            } else if (item.status && (item.status.includes('Repiquage') || item.status.includes('nouveau') || item.status.includes('pépinière'))) {
               dotClass = 'dot-blue';
               statusClass = 'state-new';
             }
@@ -2441,28 +2481,58 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function updateFinancialMetrics() {
     const netMargin = currentRevenueTotal - currentExpenseTotal;
-    const formattedRev = new Intl.NumberFormat('fr-FR').format(currentRevenueTotal);
-    const formattedExp = new Intl.NumberFormat('fr-FR').format(currentExpenseTotal);
-    const marginSign = netMargin >= 0 ? '+' : '';
-    const formattedMargin = `${marginSign}${new Intl.NumberFormat('fr-FR').format(netMargin)} F CFA`;
+    const monthMargin = currentMonthRevenueTotal - currentMonthExpenseTotal;
 
-    // 1. Mettre à jour les stats des cartes bureau
-    const stat1 = document.getElementById('statValue1'); // Dépenses
-    const stat2 = document.getElementById('statValue2'); // Recettes
+    const formattedMonthRev = new Intl.NumberFormat('fr-FR').format(currentMonthRevenueTotal);
+    const formattedMonthExp = new Intl.NumberFormat('fr-FR').format(currentMonthExpenseTotal);
+    const formattedTotalRev = new Intl.NumberFormat('fr-FR').format(currentRevenueTotal);
+    const formattedTotalExp = new Intl.NumberFormat('fr-FR').format(currentExpenseTotal);
+
+    const marginSign = monthMargin >= 0 ? '+' : '';
+    const formattedMargin = `${marginSign}${new Intl.NumberFormat('fr-FR').format(monthMargin)} F CFA`;
+
+    // 1. Mettre à jour les stats des cartes bureau (Données réelles du mois)
+    const stat1 = document.getElementById('statValue1'); // Dépenses du mois
+    const stat2 = document.getElementById('statValue2'); // Recettes du mois
+    const stat3 = document.getElementById('statValue3'); // Cycles en cours
+    const statComp1 = document.getElementById('statComp1');
+    const statComp2 = document.getElementById('statComp2');
+
     if (stat1) {
-      stat1.innerHTML = `${formattedExp} <small>F CFA</small>`;
+      stat1.innerHTML = `${formattedMonthExp} <small>F CFA</small>`;
     }
     if (stat2) {
-      stat2.innerHTML = `${formattedRev} <small>F CFA</small>`;
+      stat2.innerHTML = `${formattedMonthRev} <small>F CFA</small>`;
+    }
+    if (statComp1) {
+      const expCount = (cachedExpenses || []).filter(e => {
+        if (!e.expense_date) return false;
+        const d = new Date(e.expense_date);
+        return d.getMonth() === new Date().getMonth() && d.getFullYear() === new Date().getFullYear();
+      }).length;
+      statComp1.textContent = `${expCount} dépense${expCount > 1 ? 's' : ''} ce mois`;
+    }
+    if (statComp2) {
+      const revCount = (cachedRevenues || []).filter(r => {
+        if (!r.revenue_date) return false;
+        const d = new Date(r.revenue_date);
+        return d.getMonth() === new Date().getMonth() && d.getFullYear() === new Date().getFullYear();
+      }).length;
+      statComp2.textContent = `${revCount} encaissement${revCount > 1 ? 's' : ''} ce mois`;
+    }
+
+    if (stat3) {
+      const activeCycles = (cachedCropCycles || []).filter(c => c.status !== 'Terminé' && c.status !== 'Récolté');
+      stat3.innerHTML = `${activeCycles.length} <small>actif${activeCycles.length > 1 ? 's' : ''}</small>`;
     }
 
     // Mettre à jour l'objet de profil en mémoire
     if (PROFILES_DATA[currentProfileKey] && PROFILES_DATA[currentProfileKey].stats) {
       if (PROFILES_DATA[currentProfileKey].stats[0]) {
-        PROFILES_DATA[currentProfileKey].stats[0].value = formattedExp;
+        PROFILES_DATA[currentProfileKey].stats[0].value = formattedMonthExp;
       }
       if (PROFILES_DATA[currentProfileKey].stats[1]) {
-        PROFILES_DATA[currentProfileKey].stats[1].value = formattedRev;
+        PROFILES_DATA[currentProfileKey].stats[1].value = formattedMonthRev;
       }
     }
 
@@ -2476,49 +2546,36 @@ document.addEventListener('DOMContentLoaded', () => {
     const fRev = document.getElementById('formulaRecettes');
     const fExp = document.getElementById('formulaDepenses');
     const fMarge = document.getElementById('formulaMarge');
-    if (fRev) fRev.textContent = `+${formattedRev} F CFA`;
-    if (fExp) fExp.textContent = `−${formattedExp} F CFA`;
+    if (fRev) fRev.textContent = `+${formattedMonthRev} F CFA`;
+    if (fExp) fExp.textContent = `−${formattedMonthExp} F CFA`;
     if (fMarge) fMarge.textContent = formattedMargin;
 
-    // 4. Mettre à jour l'info-bulle et barres d'octobre dans le graphique
+    // 4. Mettre à jour le graphique SVG du tableau de bord
     const octCol = document.querySelector('.chart-col.active-month');
     if (octCol) {
-      octCol.setAttribute('data-rev', formattedRev);
-      octCol.setAttribute('data-exp', formattedExp);
+      octCol.setAttribute('data-rev', formattedMonthRev);
+      octCol.setAttribute('data-exp', formattedMonthExp);
       octCol.setAttribute('data-margin', formattedMargin);
       const revBar = octCol.querySelector('.bar-revenue');
       const expBar = octCol.querySelector('.bar-expense');
       if (revBar && expBar) {
-        if (currentRevenueTotal === 0 && currentExpenseTotal === 0) {
-          document.querySelectorAll('.chart-col').forEach(col => {
-            col.setAttribute('data-rev', '0');
-            col.setAttribute('data-exp', '0');
-            col.setAttribute('data-margin', '0 F CFA');
-            const rB = col.querySelector('.bar-revenue');
-            const eB = col.querySelector('.bar-expense');
-            if (rB) rB.style.height = '4px';
-            if (eB) eB.style.height = '4px';
-          });
+        if (currentMonthRevenueTotal === 0 && currentMonthExpenseTotal === 0) {
+          revBar.style.height = '4px';
+          expBar.style.height = '4px';
         } else {
-          const maxVal = Math.max(currentRevenueTotal, currentExpenseTotal, 100000);
-          revBar.style.height = `${Math.min(95, Math.max(6, Math.round((currentRevenueTotal / maxVal) * 90)))}%`;
-          expBar.style.height = `${Math.min(95, Math.max(6, Math.round((currentExpenseTotal / maxVal) * 90)))}%`;
+          const maxVal = Math.max(currentMonthRevenueTotal, currentMonthExpenseTotal, 50000);
+          revBar.style.height = `${Math.min(95, Math.max(6, Math.round((currentMonthRevenueTotal / maxVal) * 90)))}%`;
+          expBar.style.height = `${Math.min(95, Math.max(6, Math.round((currentMonthExpenseTotal / maxVal) * 90)))}%`;
         }
       }
     }
-    const tooltipRev = document.getElementById('tooltipRev');
-    const tooltipExp = document.getElementById('tooltipExp');
-    const tooltipMargin = document.getElementById('tooltipMargin');
-    if (tooltipRev) tooltipRev.textContent = `${formattedRev} F CFA`;
-    if (tooltipExp) tooltipExp.textContent = `${formattedExp} F CFA`;
-    if (tooltipMargin) tooltipMargin.textContent = formattedMargin;
 
     // 5. Synchroniser immédiatement la vue mobile si active ou sur écran mobile
     if (currentViewMode === 'mobile' || window.innerWidth < 1024) {
       renderMobileView();
     }
 
-    return { netMargin, formattedMargin, formattedRev, formattedExp };
+    return { netMargin, formattedMargin, formattedRev: formattedMonthRev, formattedExp: formattedMonthExp };
   }
 
   // ==========================================
@@ -3899,6 +3956,10 @@ document.addEventListener('DOMContentLoaded', () => {
   function navigateToPage(page) {
     currentRoutePage = page;
 
+    if (pageSynthese) pageSynthese.classList.toggle('hidden', page !== 'synthese');
+    if (pageParcelles) pageParcelles.classList.toggle('hidden', page !== 'parcelles');
+    if (pageCycles) pageCycles.classList.toggle('hidden', page !== 'cycles');
+    if (pageFinances) pageFinances.classList.toggle('hidden', page !== 'finances');
     if (pageFinancements) pageFinancements.classList.toggle('hidden', page !== 'opportunites');
     if (pageAdminFinancements) pageAdminFinancements.classList.toggle('hidden', page !== 'admin-financements');
     if (pageConseils) pageConseils.classList.toggle('hidden', page !== 'conseils');
@@ -3906,7 +3967,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (pageAdminModeles) pageAdminModeles.classList.toggle('hidden', page !== 'admin-modeles');
     if (pageMaterielServices) pageMaterielServices.classList.toggle('hidden', page !== 'materiel-services');
     if (pageAdminMateriels) pageAdminMateriels.classList.toggle('hidden', page !== 'admin-materiels');
-    if (pageParcelles) pageParcelles.classList.toggle('hidden', page !== 'parcelles');
     if (pageMeteo) pageMeteo.classList.toggle('hidden', page !== 'meteo');
     if (pageNotifications) pageNotifications.classList.toggle('hidden', page !== 'notifications');
     if (pageMarche) pageMarche.classList.toggle('hidden', page !== 'marche');
@@ -3916,7 +3976,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.querySelectorAll('.sidebar-nav .nav-item').forEach(item => {
       const itemPage = item.getAttribute('data-page');
-      if (itemPage === page || (page === 'dashboard' && itemPage === 'dashboard') || (page === 'parcelles' && (itemPage === 'parcelles' || itemPage === 'cycles')) || ((page === 'admin-queue' || page === 'admin-moderation') && itemPage === 'admin-queue')) {
+      if (itemPage === page || (page === 'dashboard' && itemPage === 'dashboard') || ((page === 'admin-queue' || page === 'admin-moderation') && itemPage === 'admin-queue')) {
         item.classList.add('active');
       } else {
         item.classList.remove('active');
@@ -3927,7 +3987,15 @@ document.addEventListener('DOMContentLoaded', () => {
       renderMobileView();
     }
 
-    if (page === 'opportunites') {
+    if (page === 'synthese') {
+      renderSynthesePage();
+    } else if (page === 'parcelles') {
+      renderParcellesPage();
+    } else if (page === 'cycles') {
+      renderCyclesPage(cyclesActiveStatusFilter || 'all');
+    } else if (page === 'finances') {
+      renderFinancesPage();
+    } else if (page === 'opportunites') {
       renderUserFinancements();
     } else if (page === 'admin-financements') {
       renderAdminFinancements();
@@ -3947,8 +4015,6 @@ document.addEventListener('DOMContentLoaded', () => {
       renderMesAnnoncesPage();
     } else if (page === 'admin-queue' || page === 'admin-moderation') {
       renderAdminQueuePage();
-    } else if (page === 'parcelles') {
-      renderParcellesPage();
     } else if (page === 'meteo') {
       if (cachedWeatherResult) {
         renderMeteoPage(cachedWeatherResult);
@@ -3964,7 +4030,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function handleRoute() {
     const hash = (window.location.hash || '').replace(/^#/, '');
-    if (hash === 'opportunites') {
+    if (hash === 'synthese') {
+      navigateToPage('synthese');
+    } else if (hash === 'parcelles') {
+      navigateToPage('parcelles');
+    } else if (hash === 'cycles') {
+      navigateToPage('cycles');
+    } else if (hash === 'finances') {
+      navigateToPage('finances');
+    } else if (hash === 'opportunites') {
       navigateToPage('opportunites');
     } else if (hash === 'admin-financements') {
       navigateToPage('admin-financements');
@@ -3984,8 +4058,6 @@ document.addEventListener('DOMContentLoaded', () => {
       navigateToPage('mes-annonces');
     } else if (hash === 'admin-queue' || hash === 'admin-moderation') {
       navigateToPage('admin-queue');
-    } else if (hash === 'parcelles' || hash === 'cycles' || hash === 'tous-les-cycles') {
-      navigateToPage('parcelles');
     } else if (hash === 'meteo' || hash === 'meteo-details') {
       navigateToPage('meteo');
     } else if (hash === 'notifications') {
@@ -4003,9 +4075,15 @@ document.addEventListener('DOMContentLoaded', () => {
       const href = link.getAttribute('href');
       if (href && href.startsWith('#')) {
         const page = href.replace(/^#/, '');
-        if (page === 'opportunites' || page === 'admin-financements' || page === 'conseils' || page === 'admin-conseils' || page === 'admin-modeles' || page === 'parcelles' || page === 'cycles' || page === 'dashboard' || page === 'meteo' || page === 'notifications' || page === 'materiel-services' || page === 'admin-materiels' || page === 'marche' || page === 'mes-annonces' || page === 'admin-queue' || page === 'admin-moderation') {
+        const validPages = [
+          'synthese', 'parcelles', 'cycles', 'finances',
+          'opportunites', 'admin-financements', 'conseils', 'admin-conseils', 'admin-modeles',
+          'dashboard', 'meteo', 'notifications', 'materiel-services', 'admin-materiels',
+          'marche', 'mes-annonces', 'admin-queue', 'admin-moderation'
+        ];
+        if (validPages.includes(page)) {
           e.preventDefault();
-          const routeTarget = (page === 'cycles') ? 'parcelles' : ((page === 'admin-moderation') ? 'admin-queue' : page);
+          const routeTarget = (page === 'admin-moderation') ? 'admin-queue' : page;
           window.location.hash = routeTarget;
           navigateToPage(routeTarget);
         }
@@ -5758,7 +5836,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const nameInput = document.getElementById('parcelName');
     const regionSelect = document.getElementById('parcelRegionSelect');
     const areaInput = document.getElementById('parcelArea');
-    const locationInput = document.getElementById('parcelLocation');
+    const villageInput = document.getElementById('parcelVillage') || document.getElementById('parcelLocation');
     const irrigationSelect = document.getElementById('parcelIrrigation');
 
     if (parcelId) {
@@ -5770,15 +5848,15 @@ document.addEventListener('DOMContentLoaded', () => {
         if (nameInput) nameInput.value = p.name || '';
         if (regionSelect) regionSelect.value = p.region_id || '';
         if (areaInput) areaInput.value = p.area_ha || '';
-        if (locationInput) locationInput.value = p.location || '';
-        if (irrigationSelect) irrigationSelect.value = p.irrigation_type || 'Irrigué (Goutte-à-goutte)';
+        if (villageInput) villageInput.value = p.village || p.location || '';
+        if (irrigationSelect) irrigationSelect.value = p.irrigation_type || 'goutte-à-goutte';
       }
     } else {
       if (pIdInput) pIdInput.value = '';
       if (titleEl) titleEl.textContent = 'Ajouter une parcelle';
       if (submitBtnText) submitBtnText.textContent = 'Enregistrer la parcelle';
       if (formAddParcel) formAddParcel.reset();
-      if (irrigationSelect) irrigationSelect.value = 'Irrigué (Goutte-à-goutte)';
+      if (irrigationSelect) irrigationSelect.value = 'goutte-à-goutte';
     }
 
     modalAddParcel.classList.remove('hidden');
@@ -5814,7 +5892,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const name = document.getElementById('parcelName')?.value?.trim();
     const regionId = document.getElementById('parcelRegionSelect')?.value;
     const area = parseFloat(document.getElementById('parcelArea')?.value);
-    const location = document.getElementById('parcelLocation')?.value?.trim();
+    const village = (document.getElementById('parcelVillage')?.value || document.getElementById('parcelLocation')?.value || '').trim();
     const irrigation = document.getElementById('parcelIrrigation')?.value;
     const btnSubmit = document.getElementById('btnSubmitAddParcel');
     const btnText = document.getElementById('btnSubmitAddParcelText');
@@ -5841,8 +5919,9 @@ document.addEventListener('DOMContentLoaded', () => {
         name: name,
         region_id: regionId,
         area_ha: area,
-        location: location || null,
-        irrigation_type: irrigation || null
+        village: village || null,
+        location: village || null,
+        irrigation_type: irrigation || 'goutte-à-goutte'
       };
 
       if (parcelId) {
@@ -5865,6 +5944,8 @@ document.addEventListener('DOMContentLoaded', () => {
       await fetchUserParcels(profileId);
       if (currentRoutePage === 'parcelles') {
         renderParcellesPage();
+      } else if (currentRoutePage === 'synthese') {
+        renderSynthesePage();
       }
       renderUserConseils();
       renderUserFinancements();
@@ -6401,6 +6482,44 @@ document.addEventListener('DOMContentLoaded', () => {
         await fetchUserParcels(profileId);
       }
 
+      let variete = null;
+      let conseilCourt = null;
+      let repiquageDate = null;
+      let harvestDateMin = null;
+      let harvestDateMax = null;
+
+      if (modeleId) {
+        const selectedModel = (cachedModelesCultures || []).find(m => String(m.id) === String(modeleId));
+        if (selectedModel) {
+          variete = selectedModel.variete || null;
+          conseilCourt = selectedModel.conseil_court || null;
+          const pParts = plantingDate.split('-');
+          const pDate = new Date(Number(pParts[0]), Number(pParts[1]) - 1, Number(pParts[2]));
+
+          if (selectedModel.mode_depart === 'pepiniere' && selectedModel.pepiniere_jours_min) {
+            const rMin = addDaysToDate(pDate, selectedModel.pepiniere_jours_min);
+            repiquageDate = formatDateForInput(rMin);
+          }
+          if (selectedModel.recolte_jours_min) {
+            const hMin = addDaysToDate(pDate, selectedModel.recolte_jours_min);
+            harvestDateMin = formatDateForInput(hMin);
+          }
+          if (selectedModel.recolte_jours_max) {
+            const hMax = addDaysToDate(pDate, selectedModel.recolte_jours_max);
+            harvestDateMax = formatDateForInput(hMax);
+          } else if (harvestDateMin) {
+            harvestDateMax = harvestDateMin;
+          }
+        }
+      }
+
+      if (!harvestDateMin && harvestDate) {
+        harvestDateMin = harvestDate;
+        harvestDateMax = harvestDate;
+      }
+
+      const initialStatus = repiquageDate ? 'En pépinière' : 'En croissance';
+
       const payload = {
         profile_id: profileId,
         parcel_id: parcelId,
@@ -6408,8 +6527,13 @@ document.addEventListener('DOMContentLoaded', () => {
         crop_name: cropName,
         category: category || 'maraîchage',
         planting_date: plantingDate,
-        estimated_harvest_date: harvestDate,
-        status: 'En végétation'
+        estimated_harvest_date: harvestDate || harvestDateMin,
+        repiquage_date: repiquageDate,
+        harvest_date_min: harvestDateMin,
+        harvest_date_max: harvestDateMax,
+        variete: variete,
+        conseil_court: conseilCourt,
+        status: initialStatus
       };
 
       const { error: cycleErr } = await supabaseClient
@@ -6424,6 +6548,10 @@ document.addEventListener('DOMContentLoaded', () => {
       await syncCropCyclesFromSupabase(profileId);
       if (currentRoutePage === 'parcelles') {
         renderParcellesPage();
+      } else if (currentRoutePage === 'cycles') {
+        renderCyclesPage(cyclesActiveStatusFilter || 'all');
+      } else if (currentRoutePage === 'synthese') {
+        renderSynthesePage();
       }
     } catch (err) {
       console.error('Erreur handleSaveCropCycle :', err);
@@ -6676,6 +6804,1013 @@ document.addEventListener('DOMContentLoaded', () => {
       `;
     }).join('');
   }
+
+  // ==========================================
+  // MODULE CYCLES CULTURAUX, TÂCHES ET MARGES RÉELLES
+  // ==========================================
+
+  async function fetchCycleTasks(profileId = currentProfileKey) {
+    if (!supabaseClient || !profileId) return [];
+    try {
+      const { data, error } = await supabaseClient
+        .from('cycle_tasks')
+        .select('*')
+        .eq('profile_id', profileId)
+        .order('date_prevue', { ascending: true });
+      if (!error && data) {
+        cachedCycleTasks = data;
+        return data;
+      }
+    } catch (err) {
+      console.warn('⚠️ Erreur fetchCycleTasks :', err);
+    }
+    return [];
+  }
+
+  function openAddCycleTaskModal(cycleId) {
+    if (!modalAddCycleTask) return;
+    const cycle = (cachedCropCycles || []).find(c => String(c.id) === String(cycleId));
+    const cycleInfo = document.getElementById('taskModalCycleInfo');
+    const inputCycleId = document.getElementById('taskCropCycleId');
+    const inputTitre = document.getElementById('taskTitre');
+    const inputDate = document.getElementById('taskDatePrevue');
+
+    if (inputCycleId) inputCycleId.value = cycleId;
+    if (cycleInfo && cycle) {
+      cycleInfo.textContent = `Intervention pour : ${cycle.crop_name} (${cycle.parcels?.name || 'Parcelle'})`;
+    }
+    if (inputTitre) inputTitre.value = '';
+    if (inputDate) {
+      const defaultDate = new Date();
+      defaultDate.setDate(defaultDate.getDate() + 7);
+      inputDate.value = formatDateForInput(defaultDate);
+    }
+    modalAddCycleTask.classList.remove('hidden');
+  }
+
+  function closeAddCycleTaskModal() {
+    if (modalAddCycleTask) modalAddCycleTask.classList.add('hidden');
+    if (formAddCycleTask) formAddCycleTask.reset();
+  }
+
+  async function handleSaveCycleTask(e) {
+    e.preventDefault();
+    if (!supabaseClient) return;
+
+    const profileId = currentProfileKey;
+    const cropCycleId = document.getElementById('taskCropCycleId')?.value;
+    const titre = document.getElementById('taskTitre')?.value?.trim();
+    const datePrevue = document.getElementById('taskDatePrevue')?.value;
+    const btnSubmit = document.getElementById('btnSubmitAddCycleTask');
+    const btnText = document.getElementById('btnSubmitAddCycleTaskText');
+
+    if (!titre) {
+      alert('Veuillez indiquer le titre de la tâche.');
+      return;
+    }
+    if (!datePrevue) {
+      alert('Veuillez indiquer la date prévue.');
+      return;
+    }
+
+    try {
+      if (btnSubmit) btnSubmit.disabled = true;
+      if (btnText) btnText.textContent = 'Enregistrement...';
+
+      const { error } = await supabaseClient
+        .from('cycle_tasks')
+        .insert([{
+          profile_id: profileId,
+          crop_cycle_id: cropCycleId,
+          titre: titre,
+          date_prevue: datePrevue,
+          statut: 'a_faire'
+        }]);
+
+      if (error) throw error;
+
+      showToast('Rappel enregistré', `Le rappel « ${titre} » a été planifié.`);
+      closeAddCycleTaskModal();
+      await fetchCycleTasks(profileId);
+
+      if (currentRoutePage === 'cycles') {
+        renderCyclesPage(cyclesActiveStatusFilter || 'all');
+      } else if (currentRoutePage === 'synthese') {
+        renderSynthesePage();
+      }
+    } catch (err) {
+      console.error('Erreur handleSaveCycleTask :', err);
+      showToast('Erreur', err.message || 'Impossible d\'enregistrer la tâche.');
+    } finally {
+      if (btnSubmit) btnSubmit.disabled = false;
+      if (btnText) btnText.textContent = 'Enregistrer le rappel';
+    }
+  }
+
+  async function toggleCycleTaskStatus(taskId, currentStatus) {
+    if (!supabaseClient) return;
+    const newStatus = (currentStatus === 'fait') ? 'a_faire' : 'fait';
+
+    try {
+      const { error } = await supabaseClient
+        .from('cycle_tasks')
+        .update({ statut: newStatus })
+        .eq('id', taskId);
+
+      if (!error) {
+        const t = (cachedCycleTasks || []).find(item => String(item.id) === String(taskId));
+        if (t) t.statut = newStatus;
+        if (newStatus === 'fait') {
+          showToast('Tâche terminée', 'Bravo pour la réalisation de cette intervention !');
+        }
+        if (currentRoutePage === 'cycles') {
+          renderCyclesPage(cyclesActiveStatusFilter || 'all');
+        } else if (currentRoutePage === 'synthese') {
+          renderSynthesePage();
+        }
+      }
+    } catch (err) {
+      console.error('Erreur toggleCycleTaskStatus :', err);
+    }
+  }
+
+  async function deleteCycleTask(taskId) {
+    if (!confirm('Voulez-vous supprimer ce rappel ?')) return;
+    if (!supabaseClient) return;
+
+    try {
+      const { error } = await supabaseClient
+        .from('cycle_tasks')
+        .delete()
+        .eq('id', taskId);
+
+      if (!error) {
+        showToast('Rappel supprimé', 'Le rappel a été retiré.');
+        cachedCycleTasks = (cachedCycleTasks || []).filter(item => String(item.id) !== String(taskId));
+        if (currentRoutePage === 'cycles') {
+          renderCyclesPage(cyclesActiveStatusFilter || 'all');
+        } else if (currentRoutePage === 'synthese') {
+          renderSynthesePage();
+        }
+      }
+    } catch (err) {
+      console.error('Erreur deleteCycleTask :', err);
+    }
+  }
+
+  async function markCropCycleHarvested(cycleId) {
+    if (!confirm('Confirmez-vous que la récolte de ce cycle est entièrement terminée ? Le cycle passera au statut Archivé/Terminé.')) {
+      return;
+    }
+    if (!supabaseClient) return;
+
+    try {
+      const { error } = await supabaseClient
+        .from('crop_cycles')
+        .update({ status: 'Terminé' })
+        .eq('id', cycleId);
+
+      if (!error) {
+        showToast('Récolte clôturée', 'Le cycle cultural a été marqué comme terminé avec succès.');
+        await syncCropCyclesFromSupabase(currentProfileKey);
+        if (currentRoutePage === 'cycles') {
+          renderCyclesPage(cyclesActiveStatusFilter || 'all');
+        } else if (currentRoutePage === 'synthese') {
+          renderSynthesePage();
+        } else if (currentRoutePage === 'parcelles') {
+          renderParcellesPage();
+        }
+      } else {
+        showToast('Erreur', error.message || 'Impossible de mettre à jour le cycle.');
+      }
+    } catch (err) {
+      console.error('Erreur markCropCycleHarvested :', err);
+    }
+  }
+
+  async function editCycleHarvestDate(cycleId) {
+    const cycle = (cachedCropCycles || []).find(c => String(c.id) === String(cycleId));
+    if (!cycle) return;
+
+    const cur = cycle.estimated_harvest_date || cycle.harvest_date_max || formatDateForInput(new Date());
+    const newDate = prompt('Ajuster la date de récolte estimée (Format AAAA-MM-JJ) :', cur);
+    if (!newDate || newDate.trim() === '' || newDate === cur) return;
+
+    if (!supabaseClient) return;
+    try {
+      const { error } = await supabaseClient
+        .from('crop_cycles')
+        .update({
+          estimated_harvest_date: newDate.trim(),
+          harvest_date_max: newDate.trim()
+        })
+        .eq('id', cycleId);
+
+      if (!error) {
+        showToast('Date ajustée', `La date de récolte a été mise à jour au ${newDate}.`);
+        await syncCropCyclesFromSupabase(currentProfileKey);
+        if (currentRoutePage === 'cycles') {
+          renderCyclesPage(cyclesActiveStatusFilter || 'all');
+        } else if (currentRoutePage === 'synthese') {
+          renderSynthesePage();
+        }
+      }
+    } catch (err) {
+      console.error('Erreur editCycleHarvestDate :', err);
+    }
+  }
+
+  function calculateCycleStatus(cycle) {
+    if (cycle.status === 'Terminé' || cycle.status === 'Récolté') {
+      return { key: 'termine', label: 'Terminé', badgeClass: 'badge-status-termine', dotClass: 'dot-gray' };
+    }
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const planting = cycle.planting_date ? new Date(cycle.planting_date) : null;
+    const repiquage = cycle.repiquage_date ? new Date(cycle.repiquage_date) : null;
+    const harvestMin = cycle.harvest_date_min ? new Date(cycle.harvest_date_min) : (cycle.estimated_harvest_date ? new Date(cycle.estimated_harvest_date) : null);
+    const harvestMax = cycle.harvest_date_max ? new Date(cycle.harvest_date_max) : harvestMin;
+
+    if (repiquage && today < repiquage) {
+      return { key: 'pepiniere', label: 'En pépinière', badgeClass: 'badge-status-pepiniere', dotClass: 'dot-blue' };
+    }
+    if (harvestMin && harvestMax && today >= harvestMin && today <= harvestMax) {
+      return { key: 'recolte', label: 'À récolter', badgeClass: 'badge-status-recolte', dotClass: 'dot-orange' };
+    }
+    if (harvestMax && today > harvestMax) {
+      return { key: 'recolte', label: 'À récolter (Récolte en cours)', badgeClass: 'badge-status-recolte', dotClass: 'dot-red' };
+    }
+    if (harvestMin) {
+      const diffDays = Math.ceil((harvestMin.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+      if (diffDays > 0 && diffDays <= 15) {
+        return { key: 'recolte_proche', label: `Récolte proche (${diffDays}j)`, badgeClass: 'badge-status-proche', dotClass: 'dot-amber' };
+      }
+    }
+    return { key: 'croissance', label: 'En croissance', badgeClass: 'badge-status-croissance', dotClass: 'dot-green' };
+  }
+
+  function renderCycleTimelineHtml(cycle) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const planting = cycle.planting_date ? new Date(cycle.planting_date) : null;
+    const repiquage = cycle.repiquage_date ? new Date(cycle.repiquage_date) : null;
+    const harvestMin = cycle.harvest_date_min ? new Date(cycle.harvest_date_min) : (cycle.estimated_harvest_date ? new Date(cycle.estimated_harvest_date) : null);
+    const harvestMax = cycle.harvest_date_max ? new Date(cycle.harvest_date_max) : harvestMin;
+
+    if (!planting) return '';
+
+    const startMs = planting.getTime();
+    let endMs = harvestMax ? harvestMax.getTime() : (harvestMin ? harvestMin.getTime() : startMs + 90 * 86400000);
+    if (endMs <= startMs) endMs = startMs + 60 * 86400000;
+    const totalDuration = endMs - startMs;
+
+    const repiqPct = repiquage ? Math.min(90, Math.max(10, ((repiquage.getTime() - startMs) / totalDuration) * 100)) : null;
+    const harvestMinPct = harvestMin ? Math.min(95, Math.max(15, ((harvestMin.getTime() - startMs) / totalDuration) * 100)) : 100;
+    const harvestMaxPct = harvestMax ? Math.min(100, Math.max(harvestMinPct, ((harvestMax.getTime() - startMs) / totalDuration) * 100)) : harvestMinPct;
+
+    const todayMs = today.getTime();
+    const todayPct = Math.min(100, Math.max(0, ((todayMs - startMs) / totalDuration) * 100));
+
+    const plantingLabel = formatDateEnToutesLettres(planting);
+    const repiquageLabel = repiquage ? formatDateEnToutesLettres(repiquage) : '';
+    const harvestLabel = harvestMin ? formatDateEnToutesLettres(harvestMin) : '';
+
+    return `
+      <div class="crop-timeline-widget">
+        <div class="crop-timeline-track">
+          ${repiqPct ? `<div class="timeline-segment-pepiniere" style="left: 0; width: ${repiqPct}%;"></div>` : ''}
+          <div class="timeline-segment-harvest" style="left: ${harvestMinPct}%; width: ${Math.max(4, harvestMaxPct - harvestMinPct)}%;"></div>
+
+          <!-- Jalon Semis -->
+          <div class="timeline-milestone" style="left: 0;">
+            <div class="milestone-dot dot-start">🌱</div>
+            <span class="milestone-label">Semis<br><strong>${plantingLabel}</strong></span>
+          </div>
+
+          <!-- Jalon Repiquage -->
+          ${repiquage ? `
+            <div class="timeline-milestone" style="left: ${repiqPct}%;">
+              <div class="milestone-dot dot-repiquage">🪴</div>
+              <span class="milestone-label">Repiquage<br><strong>${repiquageLabel}</strong></span>
+            </div>
+          ` : ''}
+
+          <!-- Jalon Récolte -->
+          <div class="timeline-milestone" style="left: ${harvestMinPct}%;">
+            <div class="milestone-dot dot-harvest">🌾</div>
+            <span class="milestone-label">Récolte<br><strong>${harvestLabel}</strong></span>
+          </div>
+
+          <!-- Repère Aujourd'hui -->
+          <div class="timeline-today-marker" style="left: ${todayPct}%;" title="Aujourd'hui (${formatDateEnToutesLettres(today)})">
+            <span class="today-marker-pin">▼</span>
+            <span class="today-marker-bubble">Aujourd'hui</span>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderCycleTasksHtml(cycleId) {
+    const tasks = (cachedCycleTasks || []).filter(t => String(t.crop_cycle_id) === String(cycleId));
+    let tasksListHtml = '';
+    if (tasks.length === 0) {
+      tasksListHtml = `<p class="cycle-tasks-empty">Aucun rappel ou travail programmé pour ce cycle.</p>`;
+    } else {
+      tasksListHtml = tasks.map(t => {
+        const isDone = t.statut === 'fait';
+        const d = t.date_prevue ? new Date(t.date_prevue) : null;
+        const dateStr = d ? formatDateEnToutesLettres(d) : 'Date libre';
+        return `
+          <div class="cycle-task-item ${isDone ? 'is-done' : ''}">
+            <label class="cycle-task-label">
+              <input type="checkbox" ${isDone ? 'checked' : ''} onchange="toggleCycleTaskStatus('${t.id}', '${t.statut}')">
+              <span class="task-title-text">${escapeHtml(t.titre)}</span>
+            </label>
+            <div class="cycle-task-meta">
+              <span class="task-date-badge">📅 ${dateStr}</span>
+              <button type="button" class="btn-del-task" onclick="deleteCycleTask('${t.id}')" title="Supprimer ce rappel">&times;</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    return `
+      <div class="cycle-tasks-box">
+        <div class="cycle-tasks-header">
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <span style="font-size: 14px;">🔔</span>
+            <strong style="font-size: 13px; color: #1E2922;">Rappels & Travaux agronomiques</strong>
+            <span class="nav-pill-count">${tasks.filter(t => t.statut !== 'fait').length}</span>
+          </div>
+          <button type="button" class="btn-add-task-quick" onclick="openAddCycleTaskModal('${cycleId}')">
+            + Ajouter un rappel
+          </button>
+        </div>
+        <div class="cycle-tasks-list">
+          ${tasksListHtml}
+        </div>
+      </div>
+    `;
+  }
+
+  function renderCyclesPage(statusFilter = 'all') {
+    cyclesActiveStatusFilter = statusFilter;
+    const container = document.getElementById('cyclesCardsGrid');
+    const emptyState = document.getElementById('cyclesEmptyState');
+    if (!container) return;
+
+    // Mise à jour de l'apparence des puces de filtre
+    document.querySelectorAll('#filterCyclesStatusContainer .type-filter-chip').forEach(chip => {
+      const f = chip.getAttribute('data-status');
+      if (f === statusFilter) {
+        chip.classList.add('active');
+      } else {
+        chip.classList.remove('active');
+      }
+    });
+
+    const cycles = cachedCropCycles || [];
+    if (cycles.length === 0) {
+      container.innerHTML = '';
+      if (emptyState) emptyState.classList.remove('hidden');
+      return;
+    }
+
+    // Filtrer par statut calculé
+    const itemsWithStatus = cycles.map(c => ({
+      cycle: c,
+      statusInfo: calculateCycleStatus(c)
+    }));
+
+    const filtered = itemsWithStatus.filter(item => {
+      if (statusFilter === 'all') return true;
+      return item.statusInfo.key === statusFilter;
+    });
+
+    if (filtered.length === 0) {
+      container.innerHTML = `
+        <div style="text-align: center; padding: 36px 20px; background: #FFFFFF; border-radius: 12px; border: 1.5px dashed #D5E0D5;">
+          <p style="font-size: 14px; font-weight: 700; color: #1E2922; margin: 0 0 4px;">Aucun cycle dans cette catégorie</p>
+          <p style="font-size: 12px; color: #7C8781; margin: 0;">Changez le filtre ci-dessus ou démarrez un nouveau cycle.</p>
+        </div>
+      `;
+      if (emptyState) emptyState.classList.add('hidden');
+      return;
+    }
+
+    if (emptyState) emptyState.classList.add('hidden');
+
+    container.innerHTML = filtered.map(item => {
+      const c = item.cycle;
+      const s = item.statusInfo;
+      const p = c.parcels;
+      const parcelDesc = p ? `${escapeHtml(p.name)} (${p.area_ha || 1} ha)` : 'Parcelle';
+      const varieteHtml = c.variete ? `<span class="cycle-variete-badge">Variété : ${escapeHtml(c.variete)}</span>` : '';
+
+      // Calcul des finances de ce cycle
+      const cycleExp = (cachedExpenses || []).filter(e => e.crop_cycle_id === c.id).reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
+      const cycleRev = (cachedRevenues || []).filter(r => r.crop_cycle_id === c.id).reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0);
+      const cycleMargin = cycleRev - cycleExp;
+
+      let marginBadgeHtml = '';
+      if (cycleMargin > 0) {
+        marginBadgeHtml = `<span style="color: #1E5E2A; font-weight: 800; font-family: 'JetBrains Mono', monospace;">+${formatFrancsCFA(cycleMargin)} (Bénéfice)</span>`;
+      } else if (cycleMargin < 0) {
+        marginBadgeHtml = `<span style="color: #C53030; font-weight: 800; font-family: 'JetBrains Mono', monospace;">-${formatFrancsCFA(Math.abs(cycleMargin))} (Déficit)</span>`;
+      } else {
+        marginBadgeHtml = `<span style="color: #5D6C63; font-weight: 600; font-family: 'JetBrains Mono', monospace;">0 F CFA (Équilibre)</span>`;
+      }
+
+      return `
+        <div class="cycle-card-pro">
+          <div class="cycle-card-header">
+            <div>
+              <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 6px;">
+                <span class="cycle-badge-status ${s.badgeClass}">${s.label}</span>
+                <span class="fin-badge-region">📍 ${parcelDesc}</span>
+                ${varieteHtml}
+              </div>
+              <h3 class="cycle-card-title">🌱 ${escapeHtml(c.crop_name)}</h3>
+            </div>
+            <div class="cycle-card-margin-chip">
+              <span style="font-size: 11px; color: #5D6C63; text-transform: uppercase;">Marge dégagée</span>
+              ${marginBadgeHtml}
+            </div>
+          </div>
+
+          <!-- Frise chronologique visuelle -->
+          ${renderCycleTimelineHtml(c)}
+
+          <!-- Conseil agronomique court INERA -->
+          ${c.conseil_court ? `
+            <div class="cycle-advice-box">
+              <span style="font-size: 15px;">💡</span>
+              <div>
+                <strong>Conseil agronomique INERA :</strong>
+                <p style="margin: 2px 0 0; font-size: 12.5px; color: #2A362E;">${escapeHtml(c.conseil_court)}</p>
+              </div>
+            </div>
+          ` : ''}
+
+          <!-- Section des travaux et rappels -->
+          ${renderCycleTasksHtml(c.id)}
+
+          <!-- Actions sur le cycle -->
+          <div class="cycle-card-footer">
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              ${s.key !== 'termine' ? `
+                <button type="button" class="btn-cycle-harvest-done" onclick="markCropCycleHarvested('${c.id}')">
+                  🌾 Récolte terminée
+                </button>
+              ` : ''}
+              <button type="button" class="btn-cycle-action" onclick="editCycleHarvestDate('${c.id}')">
+                ✏️ Ajuster date récolte
+              </button>
+              <button type="button" class="btn-cycle-action" onclick="deleteCropCycle('${c.id}')" style="color: #C53030; border-color: #F8B4B0;">
+                🗑️ Supprimer
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function renderFinancesPage() {
+    const monthExpEl = document.getElementById('financesMonthExpenses');
+    const monthRevEl = document.getElementById('financesMonthRevenues');
+    const globalMarginEl = document.getElementById('financesGlobalMargin');
+    const monthExpCountEl = document.getElementById('financesMonthExpensesCount');
+    const monthRevCountEl = document.getElementById('financesMonthRevenuesCount');
+    const barsContainer = document.getElementById('sixMonthsBarsContainer');
+    const cyclesListEl = document.getElementById('financesCyclesList');
+    const cyclesEmptyEl = document.getElementById('financesCyclesEmpty');
+
+    const curExp = currentMonthExpenseTotal || 0;
+    const curRev = currentMonthRevenueTotal || 0;
+    const totalExp = currentExpenseTotal || 0;
+    const totalRev = currentRevenueTotal || 0;
+    const campaignMargin = totalRev - totalExp;
+
+    if (monthExpEl) monthExpEl.textContent = `${new Intl.NumberFormat('fr-FR').format(curExp)} F CFA`;
+    if (monthRevEl) monthRevEl.textContent = `${new Intl.NumberFormat('fr-FR').format(curRev)} F CFA`;
+    if (globalMarginEl) {
+      const sign = campaignMargin >= 0 ? '+' : '';
+      globalMarginEl.textContent = `${sign}${new Intl.NumberFormat('fr-FR').format(campaignMargin)} F CFA`;
+      globalMarginEl.style.color = campaignMargin >= 0 ? '#1E5E2A' : '#C53030';
+    }
+
+    if (monthExpCountEl) {
+      const expCount = (cachedExpenses || []).filter(e => {
+        if (!e.expense_date) return false;
+        const d = new Date(e.expense_date);
+        return d.getMonth() === new Date().getMonth() && d.getFullYear() === new Date().getFullYear();
+      }).length;
+      monthExpCountEl.textContent = `${expCount} dépense${expCount > 1 ? 's' : ''} ce mois`;
+    }
+
+    if (monthRevCountEl) {
+      const revCount = (cachedRevenues || []).filter(r => {
+        if (!r.revenue_date) return false;
+        const d = new Date(r.revenue_date);
+        return d.getMonth() === new Date().getMonth() && d.getFullYear() === new Date().getFullYear();
+      }).length;
+      monthRevCountEl.textContent = `${revCount} vente${revCount > 1 ? 's' : ''} ce mois`;
+    }
+
+    // Graphique sur les 6 derniers mois
+    if (barsContainer) {
+      const monthNames = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sept', 'Oct', 'Nov', 'Déc'];
+      const today = new Date();
+      const monthsData = [];
+
+      for (let i = 5; i >= 0; i--) {
+        const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
+        const y = d.getFullYear();
+        const m = d.getMonth();
+
+        const mExp = (cachedExpenses || []).filter(e => {
+          if (!e.expense_date) return false;
+          const ed = new Date(e.expense_date);
+          return ed.getFullYear() === y && ed.getMonth() === m;
+        }).reduce((acc, row) => acc + (parseFloat(row.amount) || 0), 0);
+
+        const mRev = (cachedRevenues || []).filter(r => {
+          if (!r.revenue_date) return false;
+          const rd = new Date(r.revenue_date);
+          return rd.getFullYear() === y && rd.getMonth() === m;
+        }).reduce((acc, row) => acc + (parseFloat(row.amount) || 0), 0);
+
+        monthsData.push({
+          label: `${monthNames[m]} ${y !== today.getFullYear() ? "'" + String(y).slice(2) : ''}`,
+          expense: mExp,
+          revenue: mRev,
+          isCurrent: i === 0
+        });
+      }
+
+      const allAmounts = monthsData.flatMap(d => [d.expense, d.revenue]);
+      const maxAmount = Math.max(...allAmounts, 50000);
+
+      barsContainer.innerHTML = monthsData.map(m => {
+        const revPct = Math.min(100, Math.max(m.revenue > 0 ? 8 : 2, Math.round((m.revenue / maxAmount) * 95)));
+        const expPct = Math.min(100, Math.max(m.expense > 0 ? 8 : 2, Math.round((m.expense / maxAmount) * 95)));
+
+        return `
+          <div class="six-month-col ${m.isCurrent ? 'is-active-col' : ''}">
+            <div class="bars-pair">
+              <div class="bar-rev" style="height: ${revPct}%;" title="Recettes : ${formatFrancsCFA(m.revenue)}"></div>
+              <div class="bar-exp" style="height: ${expPct}%;" title="Dépenses : ${formatFrancsCFA(m.expense)}"></div>
+            </div>
+            <span class="month-col-label">${m.label}</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Fiches de rentabilité par cycle
+    if (cyclesListEl) {
+      const cycles = cachedCropCycles || [];
+      if (cycles.length === 0 && (cachedExpenses.length === 0 && cachedRevenues.length === 0)) {
+        cyclesListEl.innerHTML = '';
+        if (cyclesEmptyEl) cyclesEmptyEl.classList.remove('hidden');
+        return;
+      }
+
+      if (cyclesEmptyEl) cyclesEmptyEl.classList.add('hidden');
+
+      // Ventes et dépenses hors cycles
+      const unassignedExp = (cachedExpenses || []).filter(e => !e.crop_cycle_id).reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
+      const unassignedRev = (cachedRevenues || []).filter(r => !r.crop_cycle_id).reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0);
+      const unassignedMargin = unassignedRev - unassignedExp;
+
+      let cyclesHtml = cycles.map(c => {
+        const cExp = (cachedExpenses || []).filter(e => e.crop_cycle_id === c.id).reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
+        const cRev = (cachedRevenues || []).filter(r => r.crop_cycle_id === c.id).reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0);
+        const cMargin = cRev - cExp;
+
+        let marginColor = '#5D6C63';
+        let marginLabel = 'À l\'équilibre';
+        if (cMargin > 0) {
+          marginColor = '#1E5E2A';
+          marginLabel = `+${formatFrancsCFA(cMargin)} (Bénéfice net)`;
+        } else if (cMargin < 0) {
+          marginColor = '#C53030';
+          marginLabel = `-${formatFrancsCFA(Math.abs(cMargin))} (Déficit)`;
+        }
+
+        const parcelName = c.parcels?.name || 'Parcelle non spécifiée';
+        const areaHa = c.parcels?.area_ha || 1;
+
+        return `
+          <div class="finance-cycle-card">
+            <div class="finance-cycle-info">
+              <div>
+                <span class="fin-badge-region">📍 ${escapeHtml(parcelName)} (${areaHa} ha)</span>
+                <h4 style="font-size: 16px; font-weight: 800; color: #1E2922; margin: 4px 0 2px;">🌱 ${escapeHtml(c.crop_name)}</h4>
+                <span style="font-size: 12px; color: #7C8781;">Semé le ${c.planting_date ? formatDateEnToutesLettres(new Date(c.planting_date)) : '-'}</span>
+              </div>
+              <div style="text-align: right;">
+                <span style="font-size: 11px; text-transform: uppercase; color: #5D6C63; font-weight: 700; display: block;">Marge Nette</span>
+                <strong style="font-size: 17px; font-family: 'JetBrains Mono', monospace; color: ${marginColor};">${marginLabel}</strong>
+              </div>
+            </div>
+
+            <div class="finance-cycle-bars-row">
+              <div class="finance-flow-chip exp-chip">
+                <span>Dépenses :</span>
+                <strong>${formatFrancsCFA(cExp)}</strong>
+              </div>
+              <div class="finance-flow-chip rev-chip">
+                <span>Recettes :</span>
+                <strong>${formatFrancsCFA(cRev)}</strong>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Ajouter la carte des frais généraux / ventes libres
+      if (unassignedExp > 0 || unassignedRev > 0) {
+        cyclesHtml += `
+          <div class="finance-cycle-card" style="border-left: 4px solid #8E44AD;">
+            <div class="finance-cycle-info">
+              <div>
+                <span class="fin-badge-type">Général & Ventes ponctuelles</span>
+                <h4 style="font-size: 16px; font-weight: 800; color: #1E2922; margin: 4px 0 2px;">📦 Frais généraux & Ventes libres</h4>
+                <span style="font-size: 12px; color: #7C8781;">Opérations non affectées à une culture</span>
+              </div>
+              <div style="text-align: right;">
+                <span style="font-size: 11px; text-transform: uppercase; color: #5D6C63; font-weight: 700; display: block;">Résultat Net</span>
+                <strong style="font-size: 17px; font-family: 'JetBrains Mono', monospace; color: ${unassignedMargin >= 0 ? '#1E5E2A' : '#C53030'};">
+                  ${unassignedMargin >= 0 ? '+' : ''}${formatFrancsCFA(unassignedMargin)}
+                </strong>
+              </div>
+            </div>
+            <div class="finance-cycle-bars-row">
+              <div class="finance-flow-chip exp-chip">
+                <span>Dépenses :</span>
+                <strong>${formatFrancsCFA(unassignedExp)}</strong>
+              </div>
+              <div class="finance-flow-chip rev-chip">
+                <span>Recettes :</span>
+                <strong>${formatFrancsCFA(unassignedRev)}</strong>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      cyclesListEl.innerHTML = cyclesHtml;
+    }
+  }
+
+  function renderSynthesePage() {
+    const surfaceEl = document.getElementById('syntheseSurfaceCultivee');
+    const parcelsSubEl = document.getElementById('syntheseSurfaceTotalParcelles');
+    const cyclesCountEl = document.getElementById('syntheseCyclesCount');
+    const margeCampagneEl = document.getElementById('syntheseMargeCampagne');
+    const topCropEl = document.getElementById('syntheseTopCrop');
+    const topCropGainEl = document.getElementById('syntheseTopCropGain');
+    const echeancesCountEl = document.getElementById('syntheseEcheancesCount');
+    const echeancesListEl = document.getElementById('syntheseEcheancesList');
+    const echeancesEmptyEl = document.getElementById('syntheseEcheancesEmpty');
+
+    const parcels = cachedUserParcels || [];
+    const cycles = cachedCropCycles || [];
+    const tasks = cachedCycleTasks || [];
+
+    // 1. Surface cultivée
+    const totalHa = parcels.reduce((sum, p) => sum + (parseFloat(p.area_ha) || 0), 0);
+    if (surfaceEl) surfaceEl.textContent = `${totalHa.toFixed(1)} ha`;
+    if (parcelsSubEl) parcelsSubEl.textContent = `${parcels.length} parcelle${parcels.length > 1 ? 's' : ''} active${parcels.length > 1 ? 's' : ''}`;
+
+    // 2. Cycles en cours
+    const activeCycles = cycles.filter(c => c.status !== 'Terminé' && c.status !== 'Récolté');
+    if (cyclesCountEl) cyclesCountEl.textContent = activeCycles.length;
+
+    // 3. Marge de campagne
+    const campaignMargin = (currentRevenueTotal || 0) - (currentExpenseTotal || 0);
+    if (margeCampagneEl) {
+      const sign = campaignMargin >= 0 ? '+' : '';
+      margeCampagneEl.textContent = `${sign}${new Intl.NumberFormat('fr-FR').format(campaignMargin)} F CFA`;
+      margeCampagneEl.style.color = campaignMargin >= 0 ? '#1E5E2A' : '#C53030';
+    }
+
+    // 4. Culture la plus rentable
+    let bestCrop = null;
+    let maxGain = 0;
+
+    cycles.forEach(c => {
+      const exp = (cachedExpenses || []).filter(e => e.crop_cycle_id === c.id).reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
+      const rev = (cachedRevenues || []).filter(r => r.crop_cycle_id === c.id).reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0);
+      const gain = rev - exp;
+      if (gain > maxGain) {
+        maxGain = gain;
+        bestCrop = c;
+      }
+    });
+
+    if (topCropEl) {
+      if (bestCrop && maxGain > 0) {
+        topCropEl.textContent = `🌱 ${bestCrop.crop_name}`;
+        if (topCropGainEl) topCropGainEl.textContent = `Bénéfice : +${formatFrancsCFA(maxGain)}`;
+      } else {
+        topCropEl.textContent = '--';
+        if (topCropGainEl) topCropGainEl.textContent = 'Enregistrez vos récoltes';
+      }
+    }
+
+    // 5. Prochaines échéances (30 prochains jours)
+    if (echeancesListEl) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const horizon = new Date();
+      horizon.setDate(horizon.getDate() + 30);
+
+      const deadlines = [];
+
+      // Échéances de tâches programmées
+      tasks.filter(t => t.statut !== 'fait' && t.date_prevue).forEach(t => {
+        const d = new Date(t.date_prevue);
+        if (d >= today && d <= horizon) {
+          const cycleObj = cycles.find(c => String(c.id) === String(t.crop_cycle_id));
+          deadlines.push({
+            date: d,
+            type: 'tache',
+            icon: '🔔',
+            title: t.titre,
+            sub: cycleObj ? `Cycle : ${cycleObj.crop_name}` : 'Travail agricole',
+            badge: 'Tâche'
+          });
+        }
+      });
+
+      // Échéances de repiquage
+      activeCycles.filter(c => c.repiquage_date).forEach(c => {
+        const d = new Date(c.repiquage_date);
+        if (d >= today && d <= horizon) {
+          deadlines.push({
+            date: d,
+            type: 'repiquage',
+            icon: '🪴',
+            title: `Repiquage : ${c.crop_name}`,
+            sub: c.parcels?.name || 'Parcelle',
+            badge: 'Repiquage'
+          });
+        }
+      });
+
+      // Échéances de début de récolte
+      activeCycles.filter(c => c.harvest_date_min || c.estimated_harvest_date).forEach(c => {
+        const d = new Date(c.harvest_date_min || c.estimated_harvest_date);
+        if (d >= today && d <= horizon) {
+          deadlines.push({
+            date: d,
+            type: 'recolte',
+            icon: '🌾',
+            title: `Début récolte : ${c.crop_name}`,
+            sub: c.parcels?.name || 'Parcelle',
+            badge: 'Récolte'
+          });
+        }
+      });
+
+      deadlines.sort((a, b) => a.date - b.date);
+
+      if (echeancesCountEl) echeancesCountEl.textContent = deadlines.length;
+
+      if (deadlines.length === 0) {
+        echeancesListEl.innerHTML = '';
+        if (echeancesEmptyEl) echeancesEmptyEl.classList.remove('hidden');
+      } else {
+        if (echeancesEmptyEl) echeancesEmptyEl.classList.add('hidden');
+        echeancesListEl.innerHTML = deadlines.map(item => `
+          <div class="synthese-echeance-row">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span style="font-size: 20px;">${item.icon}</span>
+              <div>
+                <strong style="font-size: 13.5px; color: #1E2822; display: block;">${escapeHtml(item.title)}</strong>
+                <span style="font-size: 12px; color: #7C8781;">${escapeHtml(item.sub)}</span>
+              </div>
+            </div>
+            <div style="text-align: right;">
+              <span class="echeance-date-badge">${formatDateEnToutesLettres(item.date)}</span>
+            </div>
+          </div>
+        `).join('');
+      }
+    }
+  }
+
+  // ==========================================
+  // COMPTE D'EXPLOITATION CERTIFIÉ & IMPRIMABLE
+  // ==========================================
+
+  function openCompteExploitationModal() {
+    if (!modalCompteExploitation) return;
+
+    const profileData = PROFILES_DATA[currentProfileKey] || {};
+    const isPro = userSubscriptionStatus[currentProfileKey] === true || profileData.is_pro === true;
+    const lockGate = document.getElementById('compteProLockGate');
+
+    // Document header info
+    const prodNameEl = document.getElementById('compteProducerName');
+    const prodLocEl = document.getElementById('compteProducerLoc');
+    const prodStatusEl = document.getElementById('compteProducerStatus');
+    const dateEmissionEl = document.getElementById('compteDateEmission');
+    const stampDateEl = document.getElementById('compteStampDate');
+    const certifIdEl = document.getElementById('compteCertifId');
+
+    const today = new Date();
+    const dateFormatted = `${String(today.getDate()).padStart(2, '0')}/${String(today.getMonth() + 1).padStart(2, '0')}/${today.getFullYear()}`;
+
+    if (dateEmissionEl) dateEmissionEl.textContent = dateFormatted;
+    if (stampDateEl) stampDateEl.textContent = `Vérifié le ${dateFormatted}`;
+    if (certifIdEl) {
+      certifIdEl.textContent = `RA-${today.getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
+    }
+
+    if (prodNameEl) prodNameEl.textContent = profileData.name || 'Fabrice ZOMAHOUN';
+    if (prodLocEl) prodLocEl.textContent = `${profileData.location || 'Koudougou'} • ${profileData.phone || '+226 70 00 00 00'}`;
+    if (prodStatusEl) {
+      prodStatusEl.textContent = isPro ? '⭐ Forfait Pro Actif' : 'Compte Découverte (Gratuit)';
+      prodStatusEl.style.color = isPro ? '#1E5E2A' : '#C8862A';
+    }
+
+    // Gestion du flou pour utilisateurs gratuits
+    if (!isPro) {
+      if (lockGate) lockGate.classList.remove('hidden');
+    } else {
+      if (lockGate) lockGate.classList.add('hidden');
+    }
+
+    // Remplissage des bilans financiers réels
+    const totalExp = currentExpenseTotal || 0;
+    const totalRev = currentRevenueTotal || 0;
+    const netMarge = totalRev - totalExp;
+    const rate = totalExp > 0 ? Math.round((netMarge / totalExp) * 100) : (totalRev > 0 ? 100 : 0);
+
+    const revEl = document.getElementById('compteTotalRevenues');
+    const expEl = document.getElementById('compteTotalExpenses');
+    const marginEl = document.getElementById('compteNetMargin');
+    const rateEl = document.getElementById('compteMarginRate');
+
+    if (revEl) revEl.textContent = `${formatFrancsCFA(totalRev)}`;
+    if (expEl) expEl.textContent = `${formatFrancsCFA(totalExp)}`;
+    if (marginEl) {
+      const sign = netMarge >= 0 ? '+' : '';
+      marginEl.textContent = `${sign}${formatFrancsCFA(netMarge)}`;
+      marginEl.style.color = netMarge >= 0 ? '#1E5E2A' : '#C53030';
+    }
+    if (rateEl) {
+      rateEl.textContent = `${rate}%`;
+      rateEl.style.color = rate >= 0 ? '#1E5E2A' : '#C53030';
+    }
+
+    // 2. Ventilation des dépenses par catégorie
+    const expTbody = document.getElementById('compteExpenseCategoriesBody');
+    if (expTbody) {
+      const catMap = {};
+      (cachedExpenses || []).forEach(e => {
+        const cat = e.category || 'Autres charges';
+        catMap[cat] = (catMap[cat] || 0) + (parseFloat(e.amount) || 0);
+      });
+
+      const catEntries = Object.entries(catMap);
+      if (catEntries.length === 0) {
+        expTbody.innerHTML = `<tr><td colspan="3" style="padding: 10px; text-align: center; color: #7C8781;">Aucune dépense enregistrée</td></tr>`;
+      } else {
+        expTbody.innerHTML = catEntries.map(([cat, amt]) => {
+          const partPct = totalExp > 0 ? Math.round((amt / totalExp) * 100) : 0;
+          return `
+            <tr style="border-bottom: 1px solid #E6EAE3;">
+              <td style="padding: 8px 10px; font-weight: 600;">${escapeHtml(cat)}</td>
+              <td style="padding: 8px 10px; text-align: right; font-family: 'JetBrains Mono', monospace;">${formatFrancsCFA(amt)}</td>
+              <td style="padding: 8px 10px; text-align: right; color: #5D6C63;">${partPct}%</td>
+            </tr>
+          `;
+        }).join('');
+      }
+    }
+
+    // 3. Rentabilité par culture et parcelle
+    const cropsTbody = document.getElementById('compteCropsBreakdownBody');
+    if (cropsTbody) {
+      const cycles = cachedCropCycles || [];
+      if (cycles.length === 0) {
+        cropsTbody.innerHTML = `<tr><td colspan="6" style="padding: 10px; text-align: center; color: #7C8781;">Aucun cycle cultural enregistré</td></tr>`;
+      } else {
+        cropsTbody.innerHTML = cycles.map(c => {
+          const exp = (cachedExpenses || []).filter(e => e.crop_cycle_id === c.id).reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
+          const rev = (cachedRevenues || []).filter(r => r.crop_cycle_id === c.id).reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0);
+          const marge = rev - exp;
+          const status = c.status || 'En production';
+
+          return `
+            <tr style="border-bottom: 1px solid #E6EAE3;">
+              <td style="padding: 8px 10px;"><strong>🌱 ${escapeHtml(c.crop_name)}</strong><br><small style="color: #7C8781;">${c.parcels?.name || 'Parcelle'}</small></td>
+              <td style="padding: 8px 10px;">${c.parcels?.area_ha || 1} ha</td>
+              <td style="padding: 8px 10px; text-align: right; font-family: 'JetBrains Mono', monospace;">${formatFrancsCFA(exp)}</td>
+              <td style="padding: 8px 10px; text-align: right; font-family: 'JetBrains Mono', monospace;">${formatFrancsCFA(rev)}</td>
+              <td style="padding: 8px 10px; text-align: right; font-family: 'JetBrains Mono', monospace; font-weight: 700; color: ${marge >= 0 ? '#1E5E2A' : '#C53030'};">
+                ${marge >= 0 ? '+' : ''}${formatFrancsCFA(marge)}
+              </td>
+              <td style="padding: 8px 10px; text-align: center;"><span style="font-size: 11px; padding: 2px 6px; border-radius: 4px; background: #EAF4E6; color: #1E5E2A;">${escapeHtml(status)}</span></td>
+            </tr>
+          `;
+        }).join('');
+      }
+    }
+
+    modalCompteExploitation.classList.remove('hidden');
+  }
+
+  function closeCompteExploitationModal() {
+    if (modalCompteExploitation) modalCompteExploitation.classList.add('hidden');
+  }
+
+  // Écouteurs pour le compte d'exploitation et tâches
+  const btnCloseCompte = document.getElementById('btnCloseCompteExploitation');
+  if (btnCloseCompte) btnCloseCompte.addEventListener('click', closeCompteExploitationModal);
+
+  const btnPrintCompte = document.getElementById('btnPrintCompteExploitation');
+  if (btnPrintCompte) {
+    btnPrintCompte.addEventListener('click', () => {
+      window.print();
+    });
+  }
+
+  const btnGateUpgrade = document.getElementById('btnGateUpgradeToPro');
+  if (btnGateUpgrade) {
+    btnGateUpgrade.addEventListener('click', () => {
+      closeCompteExploitationModal();
+      openPricingModal();
+    });
+  }
+
+  const btnOpenComptePdf = document.getElementById('btnOpenExportCompteExploitation');
+  if (btnOpenComptePdf) btnOpenComptePdf.addEventListener('click', openCompteExploitationModal);
+
+  const btnCloseTaskModal = document.getElementById('btnCloseAddCycleTask');
+  if (btnCloseTaskModal) btnCloseTaskModal.addEventListener('click', closeAddCycleTaskModal);
+  const btnCancelTaskModal = document.getElementById('btnCancelAddCycleTask');
+  if (btnCancelTaskModal) btnCancelTaskModal.addEventListener('click', closeAddCycleTaskModal);
+
+  if (formAddCycleTask) formAddCycleTask.addEventListener('submit', handleSaveCycleTask);
+
+  // Puces de suggestions de tâches en 1 clic
+  document.querySelectorAll('.btn-task-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const val = chip.getAttribute('data-task');
+      const input = document.getElementById('taskTitre');
+      if (input && val) {
+        input.value = val;
+        input.focus();
+      }
+    });
+  });
+
+  // Filtres de statut de cycles
+  document.querySelectorAll('#filterCyclesStatusContainer .type-filter-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const status = chip.getAttribute('data-status');
+      renderCyclesPage(status);
+    });
+  });
+
+  // Boutons d'ajout de cycle depuis la page cycles
+  const btnAddCyclePage = document.getElementById('btnOpenAddCropCycleFromCycles');
+  if (btnAddCyclePage) btnAddCyclePage.addEventListener('click', () => openAddCropCycleModal());
+  const btnEmptyAddCycle = document.getElementById('btnEmptyStateAddCycle');
+  if (btnEmptyAddCycle) btnEmptyAddCycle.addEventListener('click', () => openAddCropCycleModal());
+
+  // Boutons sur la page finances
+  const btnFinAddExp = document.getElementById('btnFinancesAddExpense');
+  if (btnFinAddExp) btnFinAddExp.addEventListener('click', openExpenseModal);
+  const btnFinAddRev = document.getElementById('btnFinancesAddRevenue');
+  if (btnFinAddRev) btnFinAddRev.addEventListener('click', openRevenueModal);
+
+  // Bouton de passage synthèse -> finances
+  const btnSynthToFin = document.getElementById('btnSyntheseGoToFinances');
+  if (btnSynthToFin) {
+    btnSynthToFin.addEventListener('click', () => {
+      window.location.hash = 'finances';
+      navigateToPage('finances');
+    });
+  }
+
+  // Exposition des fonctions sur window
+  window.openAddCycleTaskModal = openAddCycleTaskModal;
+  window.toggleCycleTaskStatus = toggleCycleTaskStatus;
+  window.deleteCycleTask = deleteCycleTask;
+  window.markCropCycleHarvested = markCropCycleHarvested;
+  window.editCycleHarvestDate = editCycleHarvestDate;
+  window.openCompteExploitationModal = openCompteExploitationModal;
 
   let cachedDeclaredCrops = [];
 
