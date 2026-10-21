@@ -2209,6 +2209,37 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
 
+    // 1b. Écouteurs de la vue Finances & Marges mobile
+    const btnMobFinAddExp = document.getElementById('btnMobFinAddExpense');
+    if (btnMobFinAddExp) {
+      btnMobFinAddExp.addEventListener('click', () => openExpenseModal());
+    }
+    const btnMobFinAddRev = document.getElementById('btnMobFinAddRevenue');
+    if (btnMobFinAddRev) {
+      btnMobFinAddRev.addEventListener('click', () => openRevenueModal());
+    }
+
+    if (document.getElementById('mobileFinancesTransactionsList')) {
+      renderTransactionsList(currentTransFilter, 'mobileFinancesTransactionsList');
+
+      const mobFAll = document.getElementById('mobFilterTransAll');
+      const mobFExp = document.getElementById('mobFilterTransExp');
+      const mobFRev = document.getElementById('mobFilterTransRev');
+
+      if (mobFAll) mobFAll.addEventListener('click', () => {
+        setTransFilter('all');
+        renderTransactionsList('all', 'mobileFinancesTransactionsList');
+      });
+      if (mobFExp) mobFExp.addEventListener('click', () => {
+        setTransFilter('expenses');
+        renderTransactionsList('expenses', 'mobileFinancesTransactionsList');
+      });
+      if (mobFRev) mobFRev.addEventListener('click', () => {
+        setTransFilter('revenues');
+        renderTransactionsList('revenues', 'mobileFinancesTransactionsList');
+      });
+    }
+
     // 2. Lien "Voir tout" des échéances urgentes
     const linkMobAllDeadlines = document.getElementById('linkMobileAllDeadlines');
     if (linkMobAllDeadlines) {
@@ -2548,11 +2579,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // ACTION PRINCIPALE CONTEXTUELLE
   // ==========================================
   function handlePrimaryAction() {
-    if (currentProfileKey === 'producer') {
-      openExpenseModal();
-    } else {
-      showToast('Action contextuelle', `Ouverture du module : ${PROFILES_DATA[currentProfileKey].actionLabel}`);
-    }
+    openExpenseModal();
   }
 
   if (btnHeaderAction) {
@@ -2578,7 +2605,7 @@ document.addEventListener('DOMContentLoaded', () => {
       // 1. Charger les dépenses réelles depuis Supabase
       const { data: expData, error: expError } = await supabaseClient
         .from('expenses')
-        .select('id, crop_cycle_id, amount, category, expense_date, notes')
+        .select('*')
         .eq('profile_id', profileId);
 
       if (!expError && expData) {
@@ -2592,7 +2619,7 @@ document.addEventListener('DOMContentLoaded', () => {
       // 2. Charger les recettes réelles depuis Supabase
       const { data: revData, error: revError } = await supabaseClient
         .from('revenues')
-        .select('id, crop_cycle_id, amount, crop_name, revenue_date')
+        .select('*')
         .eq('profile_id', profileId);
 
       if (!revError && revData) {
@@ -2837,16 +2864,63 @@ document.addEventListener('DOMContentLoaded', () => {
   // ==========================================
   function openExpenseModal() {
     if (modalExpense) {
+      const editInput = document.getElementById('editingExpenseId');
+      if (editInput) editInput.value = '';
+      const titleEl = document.getElementById('expenseModalTitle');
+      if (titleEl) titleEl.textContent = 'Enregistrer une dépense';
+      const btnTextEl = document.getElementById('btnSubmitExpenseText');
+      if (btnTextEl) btnTextEl.textContent = 'Enregistrer la dépense';
+
       modalExpense.classList.remove('hidden');
       const input = document.getElementById('expenseAmount');
       if (input) input.focus();
     }
   }
 
+  function openEditExpenseModal(expenseId) {
+    if (!modalExpense) return;
+    const exp = (cachedExpenses || []).find(e => String(e.id) === String(expenseId));
+    if (!exp) {
+      showToast('⚠️ Dépense introuvable', 'Impossible de charger la dépense à modifier.');
+      return;
+    }
+
+    const editInput = document.getElementById('editingExpenseId');
+    if (editInput) editInput.value = exp.id;
+    const titleEl = document.getElementById('expenseModalTitle');
+    if (titleEl) titleEl.textContent = 'Modifier la dépense';
+    const btnTextEl = document.getElementById('btnSubmitExpenseText');
+    if (btnTextEl) btnTextEl.textContent = 'Enregistrer les modifications';
+
+    const amtInput = document.getElementById('expenseAmount');
+    if (amtInput) amtInput.value = Math.round(parseFloat(exp.amount) || 0);
+
+    const catSelect = document.getElementById('expenseCategory');
+    if (catSelect && exp.category) catSelect.value = exp.category;
+
+    const cycleSelect = document.getElementById('expenseCycle');
+    if (cycleSelect) cycleSelect.value = exp.crop_cycle_id || exp.cycle_code || '';
+
+    const dateInput = document.getElementById('expenseDate');
+    if (dateInput && exp.expense_date) dateInput.value = exp.expense_date;
+
+    const noteInput = document.getElementById('expenseNote');
+    if (noteInput) noteInput.value = exp.notes || '';
+
+    modalExpense.classList.remove('hidden');
+    if (amtInput) amtInput.focus();
+  }
+
   function closeExpenseModal() {
     if (modalExpense) {
       modalExpense.classList.add('hidden');
       if (formAddExpense) formAddExpense.reset();
+      const editInput = document.getElementById('editingExpenseId');
+      if (editInput) editInput.value = '';
+      const titleEl = document.getElementById('expenseModalTitle');
+      if (titleEl) titleEl.textContent = 'Enregistrer une dépense';
+      const btnTextEl = document.getElementById('btnSubmitExpenseText');
+      if (btnTextEl) btnTextEl.textContent = 'Enregistrer la dépense';
     }
   }
 
@@ -2871,6 +2945,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (formAddExpense) {
     formAddExpense.addEventListener('submit', async (e) => {
       e.preventDefault();
+      const editingId = document.getElementById('editingExpenseId') ? document.getElementById('editingExpenseId').value : '';
       const amountVal = document.getElementById('expenseAmount').value;
       const cat = document.getElementById('expenseCategory');
       const catVal = cat ? cat.value : 'autre';
@@ -2885,19 +2960,38 @@ document.addEventListener('DOMContentLoaded', () => {
       // Sauvegarde dans Supabase si connecté
       if (supabaseClient) {
         try {
-          const { error } = await supabaseClient.from('expenses').insert([{
-            profile_id: currentProfileKey,
-            crop_cycle_id: cropCycleId,
-            cycle_code: cycleVal || null,
-            amount: numericAmount,
-            category: catVal,
-            expense_date: expenseDate,
-            notes: expenseNotes || `${catText}${cycleVal ? ' - ' + cycleVal : ''}`
-          }]);
-          if (error) {
-            console.error('Erreur Supabase insert expense:', error);
+          if (editingId) {
+            // Mode Modification
+            const { error } = await supabaseClient.from('expenses').update({
+              crop_cycle_id: cropCycleId,
+              cycle_code: cycleVal || null,
+              amount: numericAmount,
+              category: catVal,
+              expense_date: expenseDate,
+              notes: expenseNotes || `${catText}${cycleVal ? ' - ' + cycleVal : ''}`
+            }).eq('id', editingId);
+
+            if (error) {
+              console.error('Erreur Supabase update expense:', error);
+            } else {
+              console.log('✅ Dépense mise à jour dans Supabase');
+            }
           } else {
-            console.log('✅ Dépense enregistrée dans Supabase');
+            // Mode Ajout
+            const { error } = await supabaseClient.from('expenses').insert([{
+              profile_id: currentProfileKey,
+              crop_cycle_id: cropCycleId,
+              cycle_code: cycleVal || null,
+              amount: numericAmount,
+              category: catVal,
+              expense_date: expenseDate,
+              notes: expenseNotes || `${catText}${cycleVal ? ' - ' + cycleVal : ''}`
+            }]);
+            if (error) {
+              console.error('Erreur Supabase insert expense:', error);
+            } else {
+              console.log('✅ Dépense enregistrée dans Supabase');
+            }
           }
         } catch (err) {
           console.warn('Erreur réseau enregistrement dépense :', err);
@@ -2909,8 +3003,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
       closeExpenseModal();
       showToast(
-        '💾 Dépense enregistrée sur Supabase !',
-        `${new Intl.NumberFormat('fr-FR').format(numericAmount)} F CFA rattaché à « ${catText} ». Marge recalculée : ${formattedMargin}.`
+        editingId ? 'Dépense modifiée' : 'Dépense ajoutée',
+        `${new Intl.NumberFormat('fr-FR').format(numericAmount)} F CFA • Marge actualisée : ${formattedMargin}.`
       );
     });
   }
@@ -3247,6 +3341,13 @@ document.addEventListener('DOMContentLoaded', () => {
   // Ouverture et fermeture de la modale d'encaissement
   function openRevenueModal() {
     if (modalRevenue) {
+      const editInput = document.getElementById('editingRevenueId');
+      if (editInput) editInput.value = '';
+      const titleEl = document.getElementById('revenueModalTitle');
+      if (titleEl) titleEl.textContent = 'Enregistrer une Vente de Récolte';
+      const btnText = document.getElementById('btnSubmitRevenueText');
+      if (btnText) btnText.textContent = 'Encaisser la recette';
+
       modalRevenue.classList.remove('hidden');
       refreshRevenueLivePreview();
       renderCustomCalendar();
@@ -3254,11 +3355,73 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  function openEditRevenueModal(revenueId) {
+    if (!modalRevenue) return;
+    const rev = (cachedRevenues || []).find(r => String(r.id) === String(revenueId));
+    if (!rev) {
+      showToast('⚠️ Vente introuvable', 'Impossible de charger la vente à modifier.');
+      return;
+    }
+
+    const editInput = document.getElementById('editingRevenueId');
+    if (editInput) editInput.value = rev.id;
+    const titleEl = document.getElementById('revenueModalTitle');
+    if (titleEl) titleEl.textContent = 'Modifier la Vente de Récolte';
+    const btnText = document.getElementById('btnSubmitRevenueText');
+    if (btnText) btnText.textContent = 'Enregistrer les modifications';
+
+    if (revenueAmountInput) {
+      revenueAmountInput.value = Math.round(parseFloat(rev.amount) || 0);
+    }
+
+    if (rev.is_custom_crop) {
+      setCropMode(true);
+      if (revenueCustomCropInput) revenueCustomCropInput.value = rev.crop_name || '';
+      if (revenueCustomOrigin && rev.custom_origin) revenueCustomOrigin.value = rev.custom_origin;
+    } else {
+      setCropMode(false);
+      const cycleSelect = document.getElementById('revenueCycle');
+      if (cycleSelect) cycleSelect.value = rev.crop_cycle_id || '';
+    }
+
+    if (revenuePaymentVal && rev.payment_method) {
+      revenuePaymentVal.value = rev.payment_method;
+      payCardOptions.forEach(card => {
+        if (card.getAttribute('data-pay') === rev.payment_method) card.classList.add('active');
+        else card.classList.remove('active');
+      });
+    }
+
+    const qtyInput = document.getElementById('revenueQty');
+    if (qtyInput) qtyInput.value = rev.quantity || '';
+
+    const buyerInput = document.getElementById('revenueBuyer');
+    if (buyerInput) buyerInput.value = rev.buyer_name || '';
+
+    if (revenueDateInput && rev.revenue_date) {
+      revenueDateInput.value = rev.revenue_date;
+      if (dateFormattedText) {
+        const d = new Date(rev.revenue_date);
+        dateFormattedText.textContent = formatDateEnToutesLettres(d);
+      }
+    }
+
+    modalRevenue.classList.remove('hidden');
+    refreshRevenueLivePreview();
+    if (revenueAmountInput) revenueAmountInput.focus();
+  }
+
   function closeRevenueModal() {
     if (modalRevenue) {
       modalRevenue.classList.add('hidden');
       closeCalendarPopover();
       if (formAddRevenue) formAddRevenue.reset();
+      const editInput = document.getElementById('editingRevenueId');
+      if (editInput) editInput.value = '';
+      const titleEl = document.getElementById('revenueModalTitle');
+      if (titleEl) titleEl.textContent = 'Enregistrer une Vente de Récolte';
+      const btnText = document.getElementById('btnSubmitRevenueText');
+      if (btnText) btnText.textContent = 'Encaisser la recette';
       setCropMode(false);
     }
   }
@@ -3291,6 +3454,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (formAddRevenue) {
     formAddRevenue.addEventListener('submit', async (e) => {
       e.preventDefault();
+      const editingId = document.getElementById('editingRevenueId') ? document.getElementById('editingRevenueId').value : '';
       const amountVal = revenueAmountInput ? revenueAmountInput.value : '0';
       const numericAmount = parseInt(amountVal, 10) || 0;
 
@@ -3330,22 +3494,44 @@ document.addEventListener('DOMContentLoaded', () => {
       // Sauvegarde dans Supabase si connecté
       if (supabaseClient) {
         try {
-          const { error } = await supabaseClient.from('revenues').insert([{
-            profile_id: currentProfileKey,
-            crop_cycle_id: revenueCropCycleId,
-            amount: numericAmount,
-            crop_name: finalCropName,
-            is_custom_crop: isCustomCropMode,
-            custom_origin: isCustomCropMode ? originVal : null,
-            payment_method: currentPayMethod,
-            quantity: qty,
-            buyer_name: buyer,
-            revenue_date: rawDate
-          }]);
-          if (error) {
-            console.error('Erreur Supabase insert revenue:', error);
+          if (editingId) {
+            // Mode Modification
+            const { error } = await supabaseClient.from('revenues').update({
+              crop_cycle_id: revenueCropCycleId,
+              amount: numericAmount,
+              crop_name: finalCropName,
+              is_custom_crop: isCustomCropMode,
+              custom_origin: isCustomCropMode ? originVal : null,
+              payment_method: currentPayMethod,
+              quantity: qty,
+              buyer_name: buyer,
+              revenue_date: rawDate
+            }).eq('id', editingId);
+
+            if (error) {
+              console.error('Erreur Supabase update revenue:', error);
+            } else {
+              console.log('✅ Recette mise à jour dans Supabase');
+            }
           } else {
-            console.log('✅ Recette enregistrée dans Supabase');
+            // Mode Ajout
+            const { error } = await supabaseClient.from('revenues').insert([{
+              profile_id: currentProfileKey,
+              crop_cycle_id: revenueCropCycleId,
+              amount: numericAmount,
+              crop_name: finalCropName,
+              is_custom_crop: isCustomCropMode,
+              custom_origin: isCustomCropMode ? originVal : null,
+              payment_method: currentPayMethod,
+              quantity: qty,
+              buyer_name: buyer,
+              revenue_date: rawDate
+            }]);
+            if (error) {
+              console.error('Erreur Supabase insert revenue:', error);
+            } else {
+              console.log('✅ Recette enregistrée dans Supabase');
+            }
           }
         } catch (err) {
           console.warn('Erreur réseau enregistrement recette :', err);
@@ -3357,8 +3543,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
       closeRevenueModal();
       showToast(
-        '🎉 Vente enregistrée sur Supabase !',
-        `+${new Intl.NumberFormat('fr-FR').format(numericAmount)} F CFA (${qty} - ${finalCropName}) vendus à « ${buyer} » le ${formattedDate} via ${payName}. Recettes du mois : ${formattedRev} F • Marge nette : ${formattedMargin}.`
+        editingId ? 'Vente modifiée' : 'Vente ajoutée',
+        `+${new Intl.NumberFormat('fr-FR').format(numericAmount)} F CFA • Recettes : ${formattedRev} F • Marge : ${formattedMargin}.`
       );
     });
   }
@@ -7617,11 +7803,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
       let marginBadgeHtml = '';
       if (cycleMargin > 0) {
-        marginBadgeHtml = `<span style="color: #1E5E2A; font-weight: 800; font-family: 'JetBrains Mono', monospace;">+${formatFrancsCFA(cycleMargin)} (Bénéfice)</span>`;
+        marginBadgeHtml = `<span style="color: #1E5E2A; font-weight: 800; font-family: inherit;">+${formatFrancsCFA(cycleMargin)} (Bénéfice)</span>`;
       } else if (cycleMargin < 0) {
-        marginBadgeHtml = `<span style="color: #C53030; font-weight: 800; font-family: 'JetBrains Mono', monospace;">-${formatFrancsCFA(Math.abs(cycleMargin))} (Déficit)</span>`;
+        marginBadgeHtml = `<span style="color: #C53030; font-weight: 800; font-family: inherit;">-${formatFrancsCFA(Math.abs(cycleMargin))} (Déficit)</span>`;
       } else {
-        marginBadgeHtml = `<span style="color: #5D6C63; font-weight: 600; font-family: 'JetBrains Mono', monospace;">0 F CFA (Équilibre)</span>`;
+        marginBadgeHtml = `<span style="color: #5D6C63; font-weight: 600; font-family: inherit;">0 F CFA (Équilibre)</span>`;
       }
 
       return `
@@ -7802,20 +7988,19 @@ document.addEventListener('DOMContentLoaded', () => {
           marginLabel = `-${formatFrancsCFA(Math.abs(cMargin))} (Déficit)`;
         }
 
-        const parcelName = c.parcels?.name || 'Parcelle non spécifiée';
-        const areaHa = c.parcels?.area_ha || 1;
+        const secondaryInfo = getCycleSecondaryInfo(c);
 
         return `
           <div class="finance-cycle-card">
             <div class="finance-cycle-info">
               <div>
-                <span class="fin-badge-region">📍 ${escapeHtml(parcelName)} (${areaHa} ha)</span>
+                ${secondaryInfo ? `<span class="fin-badge-region">📍 ${escapeHtml(secondaryInfo)}</span>` : '<span class="fin-badge-region">🌾 Cycle cultural</span>'}
                 <h4 style="font-size: 16px; font-weight: 800; color: #1E2922; margin: 4px 0 2px;">🌱 ${escapeHtml(c.crop_name)}</h4>
                 <span style="font-size: 12px; color: #7C8781;">Semé le ${c.planting_date ? formatDateEnToutesLettres(new Date(c.planting_date)) : '-'}</span>
               </div>
               <div style="text-align: right;">
                 <span style="font-size: 11px; text-transform: uppercase; color: #5D6C63; font-weight: 700; display: block;">Marge Nette</span>
-                <strong style="font-size: 17px; font-family: 'JetBrains Mono', monospace; color: ${marginColor};">${marginLabel}</strong>
+                <strong style="font-size: 17px; font-weight: 800; color: ${marginColor};">${marginLabel}</strong>
               </div>
             </div>
 
@@ -7845,7 +8030,7 @@ document.addEventListener('DOMContentLoaded', () => {
               </div>
               <div style="text-align: right;">
                 <span style="font-size: 11px; text-transform: uppercase; color: #5D6C63; font-weight: 700; display: block;">Résultat Net</span>
-                <strong style="font-size: 17px; font-family: 'JetBrains Mono', monospace; color: ${unassignedMargin >= 0 ? '#1E5E2A' : '#C53030'};">
+                <strong style="font-size: 17px; font-weight: 800; color: ${unassignedMargin >= 0 ? '#1E5E2A' : '#C53030'};">
                   ${unassignedMargin >= 0 ? '+' : ''}${formatFrancsCFA(unassignedMargin)}
                 </strong>
               </div>
@@ -7866,7 +8051,257 @@ document.addEventListener('DOMContentLoaded', () => {
 
       cyclesListEl.innerHTML = cyclesHtml;
     }
+
+    // Afficher la liste des transactions
+    renderTransactionsList(currentTransFilter);
   }
+
+  // ==========================================
+  // GESTION DES TRANSACTIONS FINANCIÈRES (MODIFIER / SUPPRIMER)
+  // ==========================================
+  let currentTransFilter = 'all'; // 'all' | 'expenses' | 'revenues'
+  let pendingDeleteType = null;   // 'expense' | 'revenue'
+  let pendingDeleteId = null;
+
+  function getCycleSecondaryInfo(c) {
+    if (!c) return '';
+    if (c.variete && c.variete.trim()) return c.variete.trim();
+    if (c.variety && c.variety.trim()) return c.variety.trim();
+    if (c.crop_name && c.crop_name.includes('(')) {
+      const match = c.crop_name.match(/\((.*?)\)/);
+      if (match && match[1] && match[1].trim()) return match[1].trim();
+    }
+    if (c.parcels && c.parcels.name && c.parcels.name.trim()) {
+      const pName = c.parcels.name.trim();
+      const pLower = pName.toLowerCase();
+      const cropLower = (c.crop_name || '').toLowerCase();
+      if (pLower.includes('maïs') && !cropLower.includes('maïs')) {
+        return '';
+      }
+      return pName;
+    }
+    return '';
+  }
+
+  function _renderSingleTransContainer(filter, containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    const isMobile = containerId === 'mobileFinancesTransactionsList';
+    const emptyEl = document.getElementById(isMobile ? 'mobileFinancesTransactionsEmpty' : 'financesTransactionsEmpty');
+    const countAllEl = document.getElementById(isMobile ? 'mobCountTransAll' : 'countTransAll');
+    const countExpEl = document.getElementById(isMobile ? 'mobCountTransExp' : 'countTransExp');
+    const countRevEl = document.getElementById(isMobile ? 'mobCountTransRev' : 'countTransRev');
+
+    const expList = (cachedExpenses || []).map(e => ({
+      type: 'expense',
+      id: e.id,
+      date: e.expense_date,
+      amount: parseFloat(e.amount) || 0,
+      title: e.notes || (e.category ? (e.category.charAt(0).toUpperCase() + e.category.slice(1)) : 'Dépense d\'exploitation'),
+      sub: `${e.category ? 'Charge : ' + e.category : 'Dépense'} • ${e.expense_date ? formatDateEnToutesLettres(new Date(e.expense_date)) : '-'}`,
+      icon: '💸'
+    }));
+
+    const revList = (cachedRevenues || []).map(r => ({
+      type: 'revenue',
+      id: r.id,
+      date: r.revenue_date,
+      amount: parseFloat(r.amount) || 0,
+      title: r.crop_name || 'Vente de récolte',
+      sub: `${r.buyer_name ? 'Acheteur : ' + r.buyer_name : 'Vente récolte'} • ${r.revenue_date ? formatDateEnToutesLettres(new Date(r.revenue_date)) : '-'}`,
+      icon: '🌾'
+    }));
+
+    if (countAllEl) countAllEl.textContent = expList.length + revList.length;
+    if (countExpEl) countExpEl.textContent = expList.length;
+    if (countRevEl) countRevEl.textContent = revList.length;
+
+    let combined = [];
+    if (filter === 'expenses') {
+      combined = expList;
+    } else if (filter === 'revenues') {
+      combined = revList;
+    } else {
+      combined = [...expList, ...revList];
+    }
+
+    combined.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+
+    if (combined.length === 0) {
+      container.innerHTML = '';
+      if (emptyEl) emptyEl.classList.remove('hidden');
+      return;
+    }
+
+    if (emptyEl) emptyEl.classList.add('hidden');
+
+    container.innerHTML = combined.map(item => {
+      const isExp = item.type === 'expense';
+      const formattedAmtFCFA = `${new Intl.NumberFormat('fr-FR').format(item.amount)} FCFA`;
+      const amtDisplay = `${isExp ? '− ' : '+ '}${new Intl.NumberFormat('fr-FR').format(item.amount)} F CFA`;
+
+      return `
+        <div class="transaction-item-row ${isExp ? 'is-expense' : 'is-revenue'}">
+          <div class="trans-icon-badge ${isExp ? 'is-expense' : 'is-revenue'}">
+            ${item.icon}
+          </div>
+          <div class="trans-info-col">
+            <h4 class="trans-title">${escapeHtml(item.title)}</h4>
+            <span class="trans-meta">${escapeHtml(item.sub)}</span>
+          </div>
+          <div class="trans-amount-col">
+            <span class="trans-amount-val ${isExp ? 'is-expense' : 'is-revenue'}">${amtDisplay}</span>
+          </div>
+          <div class="trans-actions-col">
+            <button type="button" class="btn-trans-action btn-trans-edit" data-id="${item.id}" data-type="${item.type}" aria-label="Modifier cette ${isExp ? 'dépense' : 'vente'} de ${formattedAmtFCFA}" title="Modifier">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 20h9"></path>
+                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+              </svg>
+            </button>
+            <button type="button" class="btn-trans-action btn-trans-delete" data-id="${item.id}" data-type="${item.type}" aria-label="Supprimer cette ${isExp ? 'dépense' : 'vente'} de ${formattedAmtFCFA}" title="Supprimer">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                <line x1="10" y1="11" x2="10" y2="17"></line>
+                <line x1="14" y1="11" x2="14" y2="17"></line>
+              </svg>
+            </button>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    container.querySelectorAll('.btn-trans-edit').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const id = btn.getAttribute('data-id');
+        const type = btn.getAttribute('data-type');
+        if (type === 'expense') openEditExpenseModal(id);
+        else openEditRevenueModal(id);
+      });
+    });
+
+    container.querySelectorAll('.btn-trans-delete').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const id = btn.getAttribute('data-id');
+        const type = btn.getAttribute('data-type');
+        confirmDeleteTransaction(type, id);
+      });
+    });
+  }
+
+  function renderTransactionsList(filter = currentTransFilter, containerId = 'financesTransactionsList') {
+    currentTransFilter = filter;
+    _renderSingleTransContainer(filter, containerId);
+
+    // Synchronisation multi-vues
+    if (containerId === 'financesTransactionsList' && document.getElementById('mobileFinancesTransactionsList')) {
+      _renderSingleTransContainer(filter, 'mobileFinancesTransactionsList');
+    }
+    if (containerId === 'mobileFinancesTransactionsList' && document.getElementById('financesTransactionsList')) {
+      _renderSingleTransContainer(filter, 'financesTransactionsList');
+    }
+  }
+
+  function confirmDeleteTransaction(type, id) {
+    pendingDeleteType = type;
+    pendingDeleteId = id;
+    const modal = document.getElementById('modalConfirmDeleteTransaction');
+    const msgEl = document.getElementById('confirmDeleteTransactionMessage');
+
+    const isExp = type === 'expense';
+    let amtFormatted = '0 FCFA';
+    if (isExp) {
+      const item = (cachedExpenses || []).find(e => String(e.id) === String(id));
+      const amt = item ? (parseFloat(item.amount) || 0) : 0;
+      amtFormatted = `${new Intl.NumberFormat('fr-FR').format(amt)} FCFA`;
+    } else {
+      const item = (cachedRevenues || []).find(r => String(r.id) === String(id));
+      const amt = item ? (parseFloat(item.amount) || 0) : 0;
+      amtFormatted = `${new Intl.NumberFormat('fr-FR').format(amt)} FCFA`;
+    }
+
+    if (msgEl) {
+      msgEl.textContent = isExp
+        ? `Supprimer cette dépense de ${amtFormatted} ? Cette action est définitive.`
+        : `Supprimer cette vente de ${amtFormatted} ? Cette action est définitive.`;
+    }
+
+    if (modal) modal.classList.remove('hidden');
+  }
+
+  function closeConfirmDeleteModal() {
+    const modal = document.getElementById('modalConfirmDeleteTransaction');
+    if (modal) modal.classList.add('hidden');
+    pendingDeleteType = null;
+    pendingDeleteId = null;
+  }
+
+  const btnConfirmDelTrans = document.getElementById('btnConfirmDeleteTransaction');
+  const btnCancelDelTrans = document.getElementById('btnCancelDeleteTransaction');
+  const modalConfirmDel = document.getElementById('modalConfirmDeleteTransaction');
+
+  if (btnCancelDelTrans) btnCancelDelTrans.addEventListener('click', closeConfirmDeleteModal);
+  if (modalConfirmDel) {
+    modalConfirmDel.addEventListener('click', (e) => {
+      if (e.target === modalConfirmDel) closeConfirmDeleteModal();
+    });
+  }
+
+  if (btnConfirmDelTrans) {
+    btnConfirmDelTrans.addEventListener('click', async () => {
+      if (!pendingDeleteType || !pendingDeleteId) {
+        closeConfirmDeleteModal();
+        return;
+      }
+
+      const type = pendingDeleteType;
+      const id = pendingDeleteId;
+      closeConfirmDeleteModal();
+
+      if (supabaseClient) {
+        try {
+          const table = type === 'expense' ? 'expenses' : 'revenues';
+          const { error } = await supabaseClient.from(table).delete().eq('id', id);
+          if (error) {
+            console.error(`Erreur suppression ${table} :`, error);
+            showToast('Erreur', 'Impossible de supprimer cette opération.');
+            return;
+          }
+        } catch (err) {
+          console.warn('Erreur réseau suppression transaction :', err);
+        }
+      }
+
+      await syncFinancialsFromSupabase(currentProfileKey);
+      const { formattedMargin } = updateFinancialMetrics();
+
+      showToast(
+        type === 'expense' ? 'Dépense supprimée' : 'Vente supprimée',
+        `Opération supprimée avec succès. Marge nette : ${formattedMargin}.`
+      );
+    });
+  }
+
+  // Onglets de filtre des transactions bureau
+  const fAll = document.getElementById('filterTransAll');
+  const fExp = document.getElementById('filterTransExp');
+  const fRev = document.getElementById('filterTransRev');
+
+  function setTransFilter(filter) {
+    [fAll, fExp, fRev].forEach(b => { if (b) b.classList.remove('active'); });
+    if (filter === 'all' && fAll) fAll.classList.add('active');
+    if (filter === 'expenses' && fExp) fExp.classList.add('active');
+    if (filter === 'revenues' && fRev) fRev.classList.add('active');
+    renderTransactionsList(filter);
+  }
+
+  if (fAll) fAll.addEventListener('click', () => setTransFilter('all'));
+  if (fExp) fExp.addEventListener('click', () => setTransFilter('expenses'));
+  if (fRev) fRev.addEventListener('click', () => setTransFilter('revenues'));
 
   function renderSynthesePage() {
     const surfaceEl = document.getElementById('syntheseSurfaceCultivee');
@@ -8110,13 +8545,14 @@ document.addEventListener('DOMContentLoaded', () => {
           const marge = rev - exp;
           const status = c.status || 'En production';
 
+          const secInfo = getCycleSecondaryInfo(c);
           return `
             <tr style="border-bottom: 1px solid #E6EAE3;">
-              <td style="padding: 8px 10px;"><strong>🌱 ${escapeHtml(c.crop_name)}</strong><br><small style="color: #7C8781;">${c.parcels?.name || 'Parcelle'}</small></td>
+              <td style="padding: 8px 10px;"><strong>🌱 ${escapeHtml(c.crop_name)}</strong>${secInfo ? `<br><small style="color: #7C8781;">${escapeHtml(secInfo)}</small>` : ''}</td>
               <td style="padding: 8px 10px;">${c.parcels?.area_ha || 1} ha</td>
-              <td style="padding: 8px 10px; text-align: right; font-family: 'JetBrains Mono', monospace;">${formatFrancsCFA(exp)}</td>
-              <td style="padding: 8px 10px; text-align: right; font-family: 'JetBrains Mono', monospace;">${formatFrancsCFA(rev)}</td>
-              <td style="padding: 8px 10px; text-align: right; font-family: 'JetBrains Mono', monospace; font-weight: 700; color: ${marge >= 0 ? '#1E5E2A' : '#C53030'};">
+              <td style="padding: 8px 10px; text-align: right; font-family: inherit;">${formatFrancsCFA(exp)}</td>
+              <td style="padding: 8px 10px; text-align: right; font-family: inherit;">${formatFrancsCFA(rev)}</td>
+              <td style="padding: 8px 10px; text-align: right; font-family: inherit; font-weight: 700; color: ${marge >= 0 ? '#1E5E2A' : '#C53030'};">
                 ${marge >= 0 ? '+' : ''}${formatFrancsCFA(marge)}
               </td>
               <td style="padding: 8px 10px; text-align: center;"><span style="font-size: 11px; padding: 2px 6px; border-radius: 4px; background: #EAF4E6; color: #1E5E2A;">${escapeHtml(status)}</span></td>
@@ -8210,6 +8646,12 @@ document.addEventListener('DOMContentLoaded', () => {
   window.markCropCycleHarvested = markCropCycleHarvested;
   window.editCycleHarvestDate = editCycleHarvestDate;
   window.openCompteExploitationModal = openCompteExploitationModal;
+  window.openExpenseModal = openExpenseModal;
+  window.openRevenueModal = openRevenueModal;
+  window.openEditExpenseModal = openEditExpenseModal;
+  window.openEditRevenueModal = openEditRevenueModal;
+  window.confirmDeleteTransaction = confirmDeleteTransaction;
+  window.renderTransactionsList = renderTransactionsList;
 
   let cachedDeclaredCrops = [];
 
@@ -8951,7 +9393,7 @@ document.addEventListener('DOMContentLoaded', () => {
               <!-- Marge du cycle -->
               <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; border-top: 1px solid #EEE; padding-top: 8px;">
                 <span style="color: #5D6C63;">Marge nette :</span>
-                <strong style="font-family: 'JetBrains Mono', monospace; color: ${gain >= 0 ? '#1E5E2A' : '#C53030'};">${gain >= 0 ? '+' : ''}${formatFrancsCFA(gain)}</strong>
+                <strong style="font-family: inherit; font-weight: 800; color: ${gain >= 0 ? '#1E5E2A' : '#C53030'};">${gain >= 0 ? '+' : ''}${formatFrancsCFA(gain)}</strong>
               </div>
 
               <!-- Actions du cycle -->
@@ -9010,8 +9452,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
       <!-- Actions rapides mobile -->
       <div style="display: flex; gap: 8px; margin-bottom: 16px;">
-        <button type="button" class="btn-primary" onclick="openExpenseModal()" style="flex: 1; padding: 9px; font-size: 12px; font-weight: 700;">💸 + Dépense</button>
-        <button type="button" class="btn-revenue-action" onclick="openRevenueModal()" style="flex: 1; padding: 9px; font-size: 12px; font-weight: 700;">🌾 + Vente récolte</button>
+        <button type="button" class="btn-primary" id="btnMobFinAddExpense" onclick="openExpenseModal()" style="flex: 1; padding: 9px; font-size: 12px; font-weight: 700;">💸 + Dépense</button>
+        <button type="button" class="btn-revenue-action" id="btnMobFinAddRevenue" onclick="openRevenueModal()" style="flex: 1; padding: 9px; font-size: 12px; font-weight: 700;">🌾 + Vente récolte</button>
       </div>
 
       <!-- Détail de rentabilité par culture -->
@@ -9025,12 +9467,13 @@ document.addEventListener('DOMContentLoaded', () => {
           const exp = (cachedExpenses || []).filter(e => e.crop_cycle_id === c.id).reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
           const rev = (cachedRevenues || []).filter(r => r.crop_cycle_id === c.id).reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0);
           const gain = rev - exp;
+          const secondaryInfo = getCycleSecondaryInfo(c);
 
           return `
             <div style="background: #FFF; border: 1px solid #E2E8F0; border-radius: 10px; padding: 12px;">
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
                 <strong style="font-size: 13.5px; color: #1E2822;">🌱 ${escapeHtml(c.crop_name)}</strong>
-                <span style="font-size: 11px; color: #5D6C63;">${escapeHtml(c.parcels?.name || 'Parcelle')}</span>
+                ${secondaryInfo ? `<span style="font-size: 11px; color: #5D6C63;">${escapeHtml(secondaryInfo)}</span>` : ''}
               </div>
               <div style="display: flex; justify-content: space-between; font-size: 11.5px; color: #5D6C63; margin-bottom: 4px;">
                 <span>Dépenses : <strong style="color: #C53030;">${formatFrancsCFA(exp)}</strong></span>
@@ -9038,11 +9481,30 @@ document.addEventListener('DOMContentLoaded', () => {
               </div>
               <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #EEE; padding-top: 6px; margin-top: 4px;">
                 <span style="font-size: 11px; font-weight: 700; color: #1E2822;">Gain net :</span>
-                <strong style="font-size: 12.5px; font-family: 'JetBrains Mono', monospace; color: ${gain >= 0 ? '#1E5E2A' : '#C53030'};">${gain >= 0 ? '+' : ''}${formatFrancsCFA(gain)}</strong>
+                <strong style="font-size: 13px; font-family: inherit; font-weight: 800; color: ${gain >= 0 ? '#1E5E2A' : '#C53030'};">${gain >= 0 ? '+' : ''}${formatFrancsCFA(gain)}</strong>
               </div>
             </div>
           `;
         }).join('')}
+      </div>
+
+      <!-- Historique des Dépenses & Ventes Mobile -->
+      <div style="background: #FFFFFF; border-radius: 12px; border: 1px solid #E2E8F0; padding: 14px; margin-bottom: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+          <div>
+            <h3 style="font-size: 14px; font-weight: 800; color: #1E2822; margin: 0 0 2px;">📋 Historique des Opérations</h3>
+            <p style="font-size: 11px; color: #7C8781; margin: 0;">Modifier ou supprimer une charge ou vente</p>
+          </div>
+          <div class="finances-filter-pills" style="display: flex; gap: 4px;">
+            <button type="button" class="fin-tab-filter ${currentTransFilter === 'all' ? 'active' : ''}" data-filter="all" id="mobFilterTransAll" style="padding: 4px 8px; font-size: 11px;">Toutes</button>
+            <button type="button" class="fin-tab-filter ${currentTransFilter === 'expenses' ? 'active' : ''}" data-filter="expenses" id="mobFilterTransExp" style="padding: 4px 8px; font-size: 11px;">💸 Dépenses</button>
+            <button type="button" class="fin-tab-filter ${currentTransFilter === 'revenues' ? 'active' : ''}" data-filter="revenues" id="mobFilterTransRev" style="padding: 4px 8px; font-size: 11px;">🌾 Ventes</button>
+          </div>
+        </div>
+        <div id="mobileFinancesTransactionsList" class="finances-transactions-list" style="display: flex; flex-direction: column; gap: 8px;"></div>
+        <div id="mobileFinancesTransactionsEmpty" class="hidden" style="text-align: center; padding: 16px; color: #7C8781; font-size: 12px;">
+          Aucune opération enregistrée pour le moment.
+        </div>
       </div>
     `;
   }

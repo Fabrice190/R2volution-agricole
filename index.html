@@ -1971,6 +1971,28 @@
             <p style="font-size: 14px; font-weight: 700; color: #1E2822; margin: 0 0 4px;">Aucune donnée financière pour le moment</p>
             <p style="font-size: 12px; color: #7C8781; margin: 0;">Enregistrez votre première dépense ou encaissement de récolte pour visualiser vos marges réelles.</p>
           </div>
+
+          <!-- Section Historique des Dépenses & Ventes avec actions Modifier / Supprimer -->
+          <div class="finances-transactions-section" style="margin-top: 24px; background: #FFFFFF; border-radius: 14px; border: 1px solid #E2E8F0; padding: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+              <div>
+                <h3 style="font-size: 16px; font-weight: 800; color: #1E2822; margin: 0 0 2px;">📋 Historique des Dépenses & Ventes</h3>
+                <p style="font-size: 12px; color: #7C8781; margin: 0;">Consultez, modifiez ou supprimez vos charges et recettes réelles</p>
+              </div>
+              <div class="finances-filter-pills" style="display: flex; gap: 8px;">
+                <button type="button" class="fin-tab-filter active" data-filter="all" id="filterTransAll">Toutes (<span id="countTransAll">0</span>)</button>
+                <button type="button" class="fin-tab-filter" data-filter="expenses" id="filterTransExp">💸 Dépenses (<span id="countTransExp">0</span>)</button>
+                <button type="button" class="fin-tab-filter" data-filter="revenues" id="filterTransRev">🌾 Ventes (<span id="countTransRev">0</span>)</button>
+              </div>
+            </div>
+            
+            <div id="financesTransactionsList" class="finances-transactions-list" style="display: flex; flex-direction: column; gap: 8px;">
+              <!-- Injecté dynamiquement par JavaScript -->
+            </div>
+            <div id="financesTransactionsEmpty" class="hidden" style="text-align: center; padding: 24px; color: #7C8781; font-size: 13px;">
+              Aucune dépense ou vente enregistrée pour le moment.
+            </div>
+          </div>
         </div>
 
         <!-- ==========================================
@@ -2235,12 +2257,13 @@
       <div class="modal-header">
         <div class="modal-title-wrap">
           <span class="modal-icon bg-green">💸</span>
-          <h3 class="modal-title">Enregistrer une dépense</h3>
+          <h3 class="modal-title" id="expenseModalTitle">Enregistrer une dépense</h3>
         </div>
         <button class="modal-close-btn" id="btnCloseModalExpense">&times;</button>
       </div>
 
       <form id="formAddExpense" class="modal-form">
+        <input type="hidden" id="editingExpenseId" value="">
         <div class="form-group">
           <label for="expenseAmount">Montant en Francs CFA (XOF) <span class="required">*</span></label>
           <div class="money-input-wrap">
@@ -2285,7 +2308,7 @@
         <div class="modal-footer">
           <button type="button" class="btn-secondary" id="btnCancelExpense">Annuler</button>
           <button type="submit" class="btn-primary" id="btnSubmitExpense">
-            <span class="btn-text">Enregistrer la dépense</span>
+            <span class="btn-text" id="btnSubmitExpenseText">Enregistrer la dépense</span>
           </button>
         </div>
       </form>
@@ -2303,13 +2326,14 @@
             <span class="pulse-dot-green"></span>
             <span>NOUVEAU FLUX ENTRANT • RÉCOLTE & VENTES</span>
           </div>
-          <h3 class="luxury-modal-title">Enregistrer une Vente de Récolte</h3>
+          <h3 class="luxury-modal-title" id="revenueModalTitle">Enregistrer une Vente de Récolte</h3>
           <p class="luxury-modal-subtitle">Enregistrez un encaissement cash ou Mobile Money pour recalculer instantanément votre marge nette d'exploitation.</p>
         </div>
         <button class="modal-close-btn" id="btnCloseModalRevenue" title="Fermer la fenêtre">&times;</button>
       </div>
 
       <form id="formAddRevenue" class="luxury-modal-body">
+        <input type="hidden" id="editingRevenueId" value="">
         
         <!-- CARTE HÉRO : MONTANT ENCAISSÉ & RACCOURCIS -->
         <div class="hero-amount-card">
@@ -2507,6 +2531,28 @@
         </div>
 
       </form>
+    </div>
+  </div>
+
+  <!-- MODAL DE CONFIRMATION DE SUPPRESSION DE TRANSACTION (DÉPENSE OU VENTE) -->
+  <div class="modal-backdrop hidden" id="modalConfirmDeleteTransaction" style="z-index: 3500;">
+    <div class="modal-dialog" style="max-width: 440px; text-align: center; padding: 24px 20px;">
+      <div style="width: 56px; height: 56px; margin: 0 auto 16px; border-radius: 50%; background: #FDE8E8; display: flex; align-items: center; justify-content: center; color: #C0392B;">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <polyline points="3 6 5 6 21 6"></polyline>
+          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+          <line x1="10" y1="11" x2="10" y2="17"></line>
+          <line x1="14" y1="11" x2="14" y2="17"></line>
+        </svg>
+      </div>
+      <h3 style="font-size: 18px; font-weight: 800; color: #1E2822; margin: 0 0 8px;">Confirmer la suppression</h3>
+      <p id="confirmDeleteTransactionMessage" style="font-size: 14px; color: #5B6660; line-height: 1.5; margin: 0 0 24px;">
+        Supprimer cette opération ? Cette action est définitive.
+      </p>
+      <div style="display: flex; gap: 12px; justify-content: center;">
+        <button type="button" class="btn-secondary" id="btnCancelDeleteTransaction" style="flex: 1; padding: 12px; font-weight: 700;">Annuler</button>
+        <button type="button" id="btnConfirmDeleteTransaction" style="flex: 1; padding: 12px; font-weight: 700; background: #C0392B; color: #FFFFFF; border: none; border-radius: 10px; cursor: pointer; transition: background 0.2s;" aria-label="Supprimer définitivement">Supprimer</button>
+      </div>
     </div>
   </div>
 
@@ -4246,6 +4292,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <!-- SCRIPT APPLICATION -->
-  <script src="scripts/app.js?v=20261021.14"></script>
+  <script src="scripts/app.js?v=20261021.15"></script>
 </body>
 </html>
