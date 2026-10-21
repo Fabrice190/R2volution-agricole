@@ -785,6 +785,57 @@ document.addEventListener('DOMContentLoaded', () => {
     return null;
   }
 
+  function isPwaInstalled() {
+    if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
+      return true;
+    }
+    try {
+      if (localStorage.getItem('pwa_installed') === '1') {
+        return true;
+      }
+    } catch (e) {}
+    return false;
+  }
+
+  function isPwaHomeCardClosed() {
+    try {
+      return localStorage.getItem('pwa_home_card_closed') === '1';
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function getMobilePwaHomeCardHtml() {
+    if (isPwaInstalled() || isPwaHomeCardClosed()) {
+      return '';
+    }
+    return `
+      <!-- CARTE D'INSTALLATION SUR L'ACCUEIL MOBILE (REFERMABLE) -->
+      <div class="pwa-mobile-home-card" id="pwaMobileHomeCard">
+        <button type="button" class="pwa-home-close-btn" id="btnClosePwaMobileHomeCard" title="Fermer" aria-label="Fermer">&times;</button>
+        <div class="pwa-home-card-content">
+          <div class="pwa-home-card-icon">
+            <img src="images/icons/icon-192x192.png" alt="Logo Révolution Agricole">
+          </div>
+          <div class="pwa-home-card-text">
+            <div class="pwa-home-card-header">
+              <span class="pwa-home-badge">Disponible hors-ligne</span>
+            </div>
+            <strong class="pwa-home-card-title">Installer l'application</strong>
+            <p class="pwa-home-card-desc">Accédez à vos parcelles, récoltes et finances en 1 clic depuis votre écran d'accueil, même sans connexion Internet.</p>
+          </div>
+        </div>
+        <div class="pwa-home-card-actions">
+          <button type="button" class="btn-pwa-home-dismiss" id="btnDismissPwaMobileHomeCard">Plus tard</button>
+          <button type="button" class="btn-pwa-home-install" id="btnInstallPwaMobileHomeCard">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span>Installer l'application</span>
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
   function getMobileDashboardWeatherCardHtml() {
     const w = cachedWeatherResult;
     if (!w) {
@@ -1532,6 +1583,9 @@ document.addEventListener('DOMContentLoaded', () => {
           `).join('')}
         </div>
 
+        <!-- Carte d'installation PWA sur l'accueil mobile (refermable) -->
+        ${getMobilePwaHomeCardHtml()}
+
         <!-- 3. Ensuite : Carte météo simplifiée -->
         ${getMobileDashboardWeatherCardHtml()}
 
@@ -2063,6 +2117,49 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
+    // Bouton installer PWA dans le tiroir mobile
+    const btnMobDrawerPwa = document.getElementById('btnMobileDrawerInstallPwa');
+    if (btnMobDrawerPwa) {
+      btnMobDrawerPwa.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        closeMobileDrawer();
+        triggerPwaInstallFlow();
+      });
+    }
+
+    // Carte d'installation PWA sur l'accueil mobile (refermable)
+    const btnInstallMobHome = document.getElementById('btnInstallPwaMobileHomeCard');
+    if (btnInstallMobHome) {
+      btnInstallMobHome.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        triggerPwaInstallFlow();
+      });
+    }
+
+    const btnCloseMobHome = document.getElementById('btnClosePwaMobileHomeCard');
+    if (btnCloseMobHome) {
+      btnCloseMobHome.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const card = document.getElementById('pwaMobileHomeCard');
+        if (card) card.remove();
+        try { localStorage.setItem('pwa_home_card_closed', '1'); } catch (err) {}
+      });
+    }
+
+    const btnDismissMobHome = document.getElementById('btnDismissPwaMobileHomeCard');
+    if (btnDismissMobHome) {
+      btnDismissMobHome.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const card = document.getElementById('pwaMobileHomeCard');
+        if (card) card.remove();
+        try { localStorage.setItem('pwa_home_card_closed', '1'); } catch (err) {}
+      });
+    }
+
     // Liens du tiroir mobile (Routing avec fermeture automatique)
     document.querySelectorAll('.mobile-drawer-link').forEach(link => {
       link.addEventListener('click', (e) => {
@@ -2345,6 +2442,11 @@ document.addEventListener('DOMContentLoaded', () => {
         e.stopPropagation();
         speakWeatherInterpretation(interp, btnListenMobMeteo);
       });
+    }
+
+    // Mise à jour de la visibilité des boutons et cartes PWA
+    if (typeof updatePwaVisibility === 'function') {
+      updatePwaVisibility();
     }
     } catch (err) {
       console.error('Erreur renderMobileView:', err);
@@ -13161,7 +13263,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setInterval(updateDashboardDateTime, 10000);
 
   // ==========================================
-  // MODULE PWA : SERVICE WORKER, INSTALLATION & MISES À JOUR
+  // MODULE PWA : SERVICE WORKER, INSTALLATION & GESTION VISIBILITÉ
   // ==========================================
   let deferredPwaPrompt = null;
 
@@ -13180,21 +13282,66 @@ document.addEventListener('DOMContentLoaded', () => {
     ) && !window.MSStream;
   }
 
+  function updatePwaVisibility() {
+    const installed = isPwaInstalled();
+    const homeCardClosed = isPwaHomeCardClosed();
+
+    // 1. Bouton menu bureau
+    const navItemInstall = document.getElementById('navItemInstallPwa');
+    if (navItemInstall) {
+      navItemInstall.style.display = installed ? 'none' : '';
+    }
+
+    // 2. Bouton tiroir mobile
+    const btnMobDrawerPwa = document.getElementById('btnMobileDrawerInstallPwa');
+    if (btnMobDrawerPwa) {
+      btnMobDrawerPwa.style.display = installed ? 'none' : '';
+    }
+
+    // 3. Carte d'installation sur l'accueil bureau
+    const homeCard = document.getElementById('pwaHomeCard');
+    if (homeCard) {
+      if (installed || homeCardClosed) {
+        homeCard.classList.add('hidden');
+      } else {
+        homeCard.classList.remove('hidden');
+      }
+    }
+
+    // 4. Carte d'installation sur l'accueil mobile
+    const mobHomeCard = document.getElementById('pwaMobileHomeCard');
+    if (mobHomeCard) {
+      if (installed || homeCardClosed) {
+        mobHomeCard.style.display = 'none';
+      } else {
+        mobHomeCard.style.display = '';
+      }
+    }
+
+    // 5. Bandeau flottant
+    const banner = document.getElementById('pwaInstallBanner');
+    if (banner && installed) {
+      banner.classList.add('hidden');
+    }
+  }
+
   function triggerPwaInstallFlow() {
-    if (isRunningInStandaloneMode()) {
+    if (isPwaInstalled()) {
       showToast('Application déjà installée', 'Révolution Agricole est déjà installée sur votre appareil !');
+      updatePwaVisibility();
       return;
     }
 
     if (deferredPwaPrompt) {
-      // Déclencher l'invite native du navigateur (Android / Chrome Desktop)
+      // Déclencher directement l'invite native du navigateur (Android / Chrome Desktop)
       deferredPwaPrompt.prompt();
       deferredPwaPrompt.userChoice.then((choiceResult) => {
         if (choiceResult.outcome === 'accepted') {
-          showToast('Installation confirmée', 'L\'application Révolution Agricole s\'installe sur votre appareil.');
-          const banner = document.getElementById('pwaInstallBanner');
-          if (banner) banner.classList.add('hidden');
-          try { localStorage.setItem('pwa_installed', '1'); } catch (e) {}
+          showToast('Installation confirmée', 'L\'application Révolution Agricole s\'installe sur votre écran d\'accueil.');
+          try {
+            localStorage.setItem('pwa_installed', '1');
+          } catch (e) {}
+          updatePwaVisibility();
         }
         deferredPwaPrompt = null;
       });
@@ -13202,7 +13349,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (isIosDevice()) {
-      // Afficher les explications spécifiques iPhone (iOS Safari)
+      // Afficher les explications illustrées spécifiques iPhone (iOS Safari)
       const modalIos = document.getElementById('modalIosInstall');
       if (modalIos) {
         modalIos.classList.remove('hidden');
@@ -13211,7 +13358,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // Autres cas (navigateur sans invite déclenchable ou déjà installée)
+    // Autres cas (navigateur sans invite déclenchable ou desktop sans prompt)
     showToast('Installer l\'application', 'Ouvrez le menu de votre navigateur (⋮ ou Partager) et choisissez « Installer » ou « Sur l\'écran d\'accueil ».');
   }
 
@@ -13257,19 +13404,20 @@ document.addEventListener('DOMContentLoaded', () => {
       deferredPwaPrompt = e;
       console.log('📲 [PWA] Invite d\'installation native capturée.');
 
-      // Afficher le bandeau à la première visite si non rejeté et non standalone
+      // Si l'application n'est pas déjà installée, mettre à jour la visibilité
+      updatePwaVisibility();
       checkAndShowPwaBanner();
     });
 
-    // 3. Événement appinstalled (Installation terminée)
+    // 3. Événement appinstalled (Installation terminée -> disparition des boutons)
     window.addEventListener('appinstalled', () => {
       console.log('🎉 [PWA] Application installée avec succès sur l\'appareil !');
       showToast('Application installée', 'Retrouvez Révolution Agricole directement sur votre écran d\'accueil.');
-      const banner = document.getElementById('pwaInstallBanner');
-      if (banner) banner.classList.add('hidden');
       try {
         localStorage.setItem('pwa_installed', '1');
       } catch (e) {}
+      // Le bouton et la carte disparaissent immédiatement
+      updatePwaVisibility();
     });
 
     // 4. Gestion du bandeau à la première visite
@@ -13278,7 +13426,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnInstall = document.getElementById('btnPwaInstall');
 
     function checkAndShowPwaBanner() {
-      if (isRunningInStandaloneMode()) return;
+      if (isPwaInstalled()) return;
       try {
         if (localStorage.getItem('pwa_dismissed') === '1' || localStorage.getItem('pwa_installed') === '1') {
           return;
@@ -13287,14 +13435,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Délai de 3s pour ne pas gêner le premier affichage
       setTimeout(() => {
-        if (!isRunningInStandaloneMode() && banner) {
+        if (!isPwaInstalled() && banner) {
           banner.classList.remove('hidden');
         }
       }, 3000);
     }
 
     // Vérifier pour iOS à la première visite
-    if (isIosDevice() && !isRunningInStandaloneMode()) {
+    if (isIosDevice() && !isPwaInstalled()) {
       checkAndShowPwaBanner();
     }
 
@@ -13312,17 +13460,48 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    // 5. Fermeture de la modale iOS
-    const btnCloseIos = document.getElementById('btnCloseIosInstall');
-    const modalIos = document.getElementById('modalIosInstall');
-    if (btnCloseIos && modalIos) {
-      btnCloseIos.addEventListener('click', () => {
-        modalIos.classList.add('hidden');
-        syncBodyModalScrollLock();
+    // 5. Carte d'installation sur l'accueil bureau (refermable)
+    const btnInstallHome = document.getElementById('btnInstallPwaHomeCard');
+    if (btnInstallHome) {
+      btnInstallHome.addEventListener('click', () => {
+        triggerPwaInstallFlow();
       });
     }
 
-    // 6. Liens de navigation vers #installer dans la sidebar et le drawer
+    const btnCloseHome = document.getElementById('btnClosePwaHomeCard');
+    if (btnCloseHome) {
+      btnCloseHome.addEventListener('click', () => {
+        const homeCard = document.getElementById('pwaHomeCard');
+        if (homeCard) homeCard.classList.add('hidden');
+        try { localStorage.setItem('pwa_home_card_closed', '1'); } catch (e) {}
+      });
+    }
+
+    const btnDismissHome = document.getElementById('btnDismissPwaHomeCard');
+    if (btnDismissHome) {
+      btnDismissHome.addEventListener('click', () => {
+        const homeCard = document.getElementById('pwaHomeCard');
+        if (homeCard) homeCard.classList.add('hidden');
+        try { localStorage.setItem('pwa_home_card_closed', '1'); } catch (e) {}
+      });
+    }
+
+    // 6. Fermeture de la modale iOS (Bouton et Croix)
+    const btnCloseIos = document.getElementById('btnCloseIosInstall');
+    const btnCloseIosCross = document.getElementById('btnCloseIosInstallCross');
+    const modalIos = document.getElementById('modalIosInstall');
+
+    function closeIosModal() {
+      if (modalIos) {
+        modalIos.classList.add('hidden');
+        syncBodyModalScrollLock();
+      }
+    }
+
+    if (btnCloseIos) btnCloseIos.addEventListener('click', closeIosModal);
+    if (btnCloseIosCross) btnCloseIosCross.addEventListener('click', closeIosModal);
+
+    // 7. Liens de navigation vers #installer dans la sidebar et le drawer
     const navItemInstall = document.getElementById('navItemInstallPwa');
     if (navItemInstall) {
       navItemInstall.addEventListener('click', (e) => {
@@ -13330,6 +13509,9 @@ document.addEventListener('DOMContentLoaded', () => {
         triggerPwaInstallFlow();
       });
     }
+
+    // Initialiser immédiatement la visibilité selon l'état actuel (installé ou non)
+    updatePwaVisibility();
   }
 
   initPwaModule();

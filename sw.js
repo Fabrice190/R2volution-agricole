@@ -4,7 +4,7 @@
  * Stratégie de mise en cache rapide, résiliente et sécurisée (Zéro mise en cache Supabase/Auth)
  */
 
-const CACHE_NAME = 'revolution-agricole-v20261021.1';
+const CACHE_NAME = 'revolution-agricole-v20261021.2';
 const OFFLINE_URL = 'offline.html';
 
 // Ressources applicatives critiques à pré-cacher pour un démarrage ultra-rapide
@@ -20,7 +20,9 @@ const PRECACHE_ASSETS = [
   'images/icons/icon-512x512.png',
   'images/icons/icon-maskable-192x192.png',
   'images/icons/icon-maskable-512x512.png',
-  'images/icons/apple-touch-icon.png'
+  'images/icons/apple-touch-icon.png',
+  'images/icons/ios-step1-share.png',
+  'images/icons/ios-step2-home.png'
 ];
 
 // 1. INSTALLATION : Pré-chargement des fichiers du cœur d'application

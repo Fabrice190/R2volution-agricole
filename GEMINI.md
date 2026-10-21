@@ -681,14 +681,18 @@ Depuis la version 2.9, l'application est entièrement Full Stack connectée au p
   - Cycle de vie avec `self.skipWaiting()` lors de l'installation et `clients.claim()` lors de l'activation.
   - Écouteur `navigator.serviceWorker.addEventListener('controllerchange')` dans `app.js` qui détecte la nouvelle version et recharge en douceur la page au lancement suivant avec un toast discret *« Application mise à jour vers la dernière version »*.
 - **4. Installation Ergonomique Multi-Plateforme (Android & iPhone)** :
-  - **Bouton « 📲 Installer l'application »** intégré dans les menus (section *COMPTE* de la barre latérale bureau et du tiroir latéral mobile).
-  - **Bandeau discret à la première visite** (`#pwaInstallBanner`) avec délai de 3 secondes pour ne pas surprendre l'utilisateur, mémorisé via `localStorage.getItem('pwa_dismissed')`.
-  - **Expérience Android / Chrome** : Interception de l'événement natif `beforeinstallprompt` et déclenchement de l'invite d'installation système en un clic.
-  - **Expérience iPhone / iPad (iOS Safari)** : Détection de l'appareil iOS et affichage d'une modale explicative claire et intuitive avec les 2 étapes simples : *« 1. Touchez Partager [icône Safari] »* puis *« 2. Touchez Sur l'écran d'accueil [icône +] »*.
+  - **Bouton visible « 📲 Installer l'application »** intégré en évidence dans les menus (barre latérale bureau et tiroir mobile avec style pastel vert sahélo-tech `#EAF4E6`, bordure `#1F5E3B`, icône colorée).
+  - **Bannière d'installation sur l'accueil (Desktop & Mobile)** : Carte d'information refermable (`#pwaHomeCard` et `#pwaMobileHomeCard`) avec bouton de fermeture en croix et bouton « Plus tard », dont la fermeture est mémorisée (`localStorage.getItem('pwa_home_card_closed')`).
+  - **Disparition automatique après installation** : Dès que l'application est reconnue installée (`display-mode: standalone`, `navigator.standalone === true` ou événement `appinstalled`), **tous les boutons d'installation et cartes de l'accueil disparaissent automatiquement de l'interface**.
+  - **Expérience Android / Chrome** : Interception de l'événement natif `beforeinstallprompt` et déclenchement direct de l'invite d'installation système en un clic.
+  - **Expérience iPhone / iPad (iOS Safari)** : Modale explicative dédiée avec **2 images simples et concrètes** (`ios-step1-share.png` et `ios-step2-home.png`) guidant l'exploitant :
+    1. *Étape 1* : Toucher le bouton **Partager** de Safari (icône carrée avec flèche sortante en bas de l'écran).
+    2. *Étape 2* : Défiler vers le bas et toucher **« Sur l'écran d'accueil »** (icône carrée avec le signe `+`).
 
 ---
 
 *Fin du document de spécification système — Version 6.6 • Révolution Agricole Burkina Faso.*
+
 
 
 

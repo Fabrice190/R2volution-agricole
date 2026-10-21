@@ -8593,12 +8593,247 @@ body.drawer-open {
   transform: translateY(-1px);
 }
 
-@media (max-width: 480px) {
-  .pwa-install-banner {
-    bottom: 12px;
-    width: calc(100% - 24px);
-    padding: 12px 14px;
+/* BOUTON INSTALLER DANS LE MENU (BIEN VISIBLE) */
+#navItemInstallPwa,
+#btnMobileDrawerInstallPwa {
+  background: #EAF4E6 !important;
+  border: 1px solid #C5DFC0 !important;
+  border-radius: 10px !important;
+  margin: 6px 10px !important;
+  padding: 9px 12px !important;
+  color: #1F5E3B !important;
+  font-weight: 700 !important;
+  box-shadow: 0 2px 6px rgba(31, 94, 59, 0.08) !important;
+  transition: all 0.2s ease !important;
+}
+
+#navItemInstallPwa:hover,
+#btnMobileDrawerInstallPwa:hover {
+  background: #DCEDD6 !important;
+  border-color: #1F5E3B !important;
+  transform: translateY(-1px);
+}
+
+#navItemInstallPwa .nav-icon svg,
+#btnMobileDrawerInstallPwa .nav-icon svg {
+  stroke: #1F5E3B !important;
+}
+
+/* CARTE PWA SUR L'ACCUEIL (REFERMABLE) */
+.pwa-home-card {
+  background: linear-gradient(135deg, #FFFFFF 0%, #F5F9F3 100%);
+  border: 1.5px solid #C8DEC3;
+  border-radius: 16px;
+  padding: 16px 20px;
+  margin-bottom: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  box-shadow: 0 4px 16px rgba(31, 94, 59, 0.08);
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.pwa-home-card-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 1;
+}
+
+.pwa-home-card-icon img {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  box-shadow: 0 3px 10px rgba(31, 94, 59, 0.2);
+  display: block;
+}
+
+.pwa-home-card-text {
+  flex: 1;
+}
+
+.pwa-home-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.pwa-home-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 800;
+  color: #1F5E3B;
+  background: #EAF4E6;
+  padding: 2px 8px;
+  border-radius: 20px;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+.pwa-home-card-title {
+  font-size: 15.5px;
+  font-weight: 800;
+  color: #0E3615;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.pwa-home-card-desc {
+  font-size: 12.5px;
+  color: #55635B;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.pwa-home-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.btn-pwa-home-dismiss {
+  background: transparent;
+  border: 1px solid #D5E1D2;
+  color: #5D6C63;
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-pwa-home-dismiss:hover {
+  background: #EAF4E6;
+  color: #1F5E3B;
+}
+
+.btn-pwa-home-install {
+  background: #1F5E3B;
+  color: #FFFFFF;
+  border: none;
+  padding: 9px 18px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 12px rgba(31, 94, 59, 0.25);
+  transition: all 0.2s ease;
+}
+
+.btn-pwa-home-install:hover {
+  background: #15452A;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(31, 94, 59, 0.35);
+}
+
+.pwa-home-close-btn {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  background: none;
+  border: none;
+  font-size: 20px;
+  line-height: 1;
+  color: #8C9991;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 50%;
+  transition: color 0.2s ease, background 0.2s ease;
+}
+
+.pwa-home-close-btn:hover {
+  color: #0E3615;
+  background: #EAF4E6;
+}
+
+/* CARTE D'ACCUEIL SUR MOBILE */
+.pwa-mobile-home-card {
+  background: linear-gradient(135deg, #FFFFFF 0%, #F5F9F3 100%);
+  border: 1.5px solid #C8DEC3;
+  border-radius: 16px;
+  padding: 14px 16px;
+  margin: 12px 0 16px;
+  position: relative;
+  box-shadow: 0 3px 12px rgba(31, 94, 59, 0.08);
+}
+
+.pwa-mobile-home-card .pwa-home-card-content {
+  margin-bottom: 12px;
+}
+
+.pwa-mobile-home-card .pwa-home-card-icon img {
+  width: 44px;
+  height: 44px;
+}
+
+.pwa-mobile-home-card .pwa-home-card-title {
+  font-size: 14px;
+}
+
+.pwa-mobile-home-card .pwa-home-card-desc {
+  font-size: 11.5px;
+}
+
+.pwa-mobile-home-card .pwa-home-card-actions {
+  width: 100%;
+  display: flex;
+  gap: 8px;
+}
+
+.pwa-mobile-home-card .btn-pwa-home-install {
+  flex: 1;
+  justify-content: center;
+  padding: 9px 12px;
+  font-size: 12.5px;
+}
+
+.pwa-mobile-home-card .btn-pwa-home-dismiss {
+  padding: 9px 12px;
+  font-size: 12.5px;
+}
+
+@media (max-width: 900px) {
+  .pwa-home-card {
+    flex-direction: column;
+    align-items: flex-start;
   }
+  .pwa-home-card-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+
+/* MODALE IOS AVEC IMAGES */
+.ios-pwa-dialog {
+  max-width: 440px !important;
+  border-radius: 20px !important;
+  background: #FFFFFF !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25) !important;
+}
+
+.ios-step-card {
+  background: #F6F8F4;
+  border: 1px solid #E6EAE3;
+  border-radius: 14px;
+  overflow: hidden;
+  text-align: left;
+  transition: transform 0.2s ease;
+}
+
+.ios-step-card img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-bottom: 1px solid #E6EAE3;
 }
 
 /* RÈGLE ABSOLUE DE SÉCURITÉ D'AFFICHAGE */
@@ -8607,6 +8842,7 @@ body.drawer-open {
 .hidden {
   display: none !important;
 }
+
 
 
 
