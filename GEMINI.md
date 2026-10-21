@@ -115,68 +115,98 @@ REVOLUTION AGRICOLE/
    - Manipulation directe et optimisée du DOM.
    - Internationalisation native des devises et dates via `Intl.NumberFormat` et tableaux calendaires français.
 4. **Google Fonts** :
-   - `Plus Jakarta Sans` : Police géométrique moderne choisie pour sa clarté exceptionnelle en conditions de forte luminosité extérieure.
-   - `JetBrains Mono` : Typographie à chasse fixe pour les chiffres et les alignements comptables.
-5. **PowerShell 5.1+ / .NET** :
+   - `Plus Jakarta Sans` (400, 500, 600, 700, 800) : Typographie géométrique moderne unique utilisée partout dans l'application, y compris pour les chiffres et les montants (remplace définitivement JetBrains Mono pour une harmonie parfaite).
+5. **Icônes Lucide** :
+   - Bibliothèque d'icônes vectorielles au trait via le CDN fixe v0.453.0. Aucun emoji n'est utilisé dans l'interface.
+6. **PowerShell 5.1+ / .NET** :
    - Moteur du serveur local de développement via `System.Net.HttpListener`.
 
 ---
 
 ## 🎨 5. Décisions de Design & Identité Sahélo-Tech
 
-Le design a été conçu pour allier l'élégance des plateformes SaaS internationales (type *Stripe*, *Linear*, *AgriVision*) et les impératifs du terrain agricole sahélien :
+Le design a été conçu pour allier l'élégance des plateformes SaaS internationales et les impératifs du terrain agricole sahélien :
 
-1. **Palette Sahélo-Tech à fort contraste (Conforme WCAG AAA)** :
-   - **Vert Forêt profond** (`--primary-700: #1E5E2A`, `--primary-900: #0E3615`) : Évoque l'agriculture florissante, les cultures irriguées et sert de couleur d'accentuation principale.
-   - **Ocre & Or du Sahel** (`--sahel-ochre: #C8862A`) : Rappelle la terre nourricière latéritique burkinabè, utilisé pour les forfaits Pro et les alertes temporelles.
-   - **Fond Vert-Gris reposant** (`--background: #F6F8F4`) : Réduit la fatigue oculaire lors des consultations en plein soleil.
-2. **Règle financière métier stricte** :
-   - Contrairement aux tableaux de bord financiers classiques où le rouge est toujours synonyme de baisse, ici :
-     - **Hausse des dépenses = Rouge terre (Défavorable)**.
-     - **Hausse des recettes = Vert forêt (Favorable)**.
-3. **Plein écran mobile & Ergonomie tactile** :
-   - Toutes les zones de toucher font au minimum `44×44 px`.
-   - Pas de barre de navigation fixe coupant le bas de l'écran : priorité au contenu grâce au tiroir latéral (Drawer).
-4. **Monnaie locale obligatoire** :
-   - Tous les montants sont libellés en **Francs CFA (F CFA / XOF)** avec séparateur de milliers par espace insécable.
+1. **Typographie Exclusive** :
+   - Police unique `Plus Jakarta Sans` partout, y compris pour les montants financiers.
+   - Hiérarchie stricte : Titres d'écran `26px` gras 800, sous-titres `18px` 700, texte courant `16px` minimum, petites informations `13px`.
+2. **Palette Officielle Sahélo-Tech (`styles/theme.css`)** :
+   - **Vert principal** (`#1F5E3B`) : Couleur d'accentuation dominante, boutons secondaires, barres et navigation.
+   - **Vert clair** (`#E8F0EA`) : Fonds d'icônes, pastilles et boutons légers.
+   - **Ocre** (`#A85A1C` avec texte blanc) : Réservé **STRICTEMENT ET EXCLUSIVEMENT au bouton le plus important de chaque écran** (Call To Action principal).
+   - **Ocre clair** (`#F6EADF`) : Fonds d'alerte douce et puces d'échéance.
+   - **Jaune soleil** (`#E0A526`, texte `#1A1A1A`) : Badges de mise en avant et montants de résultat négatif (perte de saison).
+   - **Jaune clair** (`#FBF1D6`) : Fonds de badges et conseils agronomiques.
+   - **Fond de page crème** (`#FAF7F0`) : Réduit drastiquement la fatigue oculaire lors des consultations en plein soleil.
+   - **Cartes blanches** (`#FFFFFF`) avec bordure discrète 1px (`#ECE6D9`) et coins arrondis à `20px`.
+   - **Texte principal** (`#1A1A1A`), **texte secondaire** (`#4A4A4A`, jamais plus clair pour préserver le contraste en extérieur).
+   - **Rouge alerte** (`#C0392B`, fond `#FBE9E7`) : Réservé **uniquement** aux alertes critiques et aux actions de suppression.
+3. **Zéro Emoji & Icônes Lucide au Trait** :
+   - Aucun emoji n'est toléré dans le code HTML, JS ou CSS. Toutes les illustrations s'appuient sur Lucide Icons au trait fin.
+4. **Ergonomie Mobile & Accessibilité** :
+   - Zones cliquables de **44px minimum** de hauteur et largeur.
+   - Boutons principaux d'une hauteur généreuse de **52px** avec rayon de courbure de **14px**. Badges à rayon de **999px**.
+   - Navigation mobile : Barre basse fixe à 4 onglets (`#mobileBottomNav` : Accueil, Exploitation, Marché, Profil) complétée par le tiroir latéral hamburger (`☰`) pour les rubriques complémentaires.
+5. **Gestion Métier des Montants Financiers** :
+   - Affichage complet avec espaces séparateurs de milliers (ex: `485 000 F CFA`).
+   - Règle anti-débordement garantie même sur écran étroit de 360px : réduction automatique de la taille de police (34px ≤ 7 chiffres, 28px pour 9 chiffres, 24px au-delà de 9 chiffres).
+   - L'unité `F CFA` passe automatiquement à la ligne sans couper le nombre.
 
 ---
 
-## 🧠 6. Instructions critiques pour tout futur modèle IA
+## 🧠 6. Directives permanentes et impératives (Règles d'or)
 
-Si vous êtes un modèle IA invité à maintenir, étendre ou modifier ce projet, vous **DEVEZ IMPÉRATIVEMENT** respecter les règles suivantes :
+Ces directives constituent le socle inaltérable du projet. Tout modèle IA ou développeur intervenant sur la plateforme **DOIT LES RESPECTER STRICTEMENT ET SANS AUCUNE EXCEPTION** :
 
-### Règle 1 : Préservation de l'architecture Vanilla & Zéro Framework
-- **Ne convertissez pas ce projet vers React, Vue, Next.js ou Vite** sauf demande explicite et univoque de l'utilisateur. L'un des atouts majeurs du projet est son autonomie totale, sa rapidité d'exécution sans compilation et sa lisibilité directe en fichiers plats.
-- N'installez pas de dépendances npm inutiles.
+### Règle 1 : Identité du Projet, Production & Base de Données
+- **Projet** : *Révolution Agricole*, application web et mobile SaaS pour les producteurs et acteurs agropastoraux du **Burkina Faso**.
+- **Site en production** : **`https://r2volution-agricole.vercel.app`**.
+- **Base de données** : **Supabase** (tables réelles : `profiles`, `parcels`, `crop_cycles`, `expenses`, `revenues`, `financements`, `conseils`, `materiels`, `annonces`, `subscriptions`).
+- **Météo** : API réelle Open-Meteo temps réel pour les communes burkinabè.
 
-### Règle 2 : Gestion stricte du Cache du Navigateur
-- Lorsque vous modifiez `styles/main.css` ou `scripts/app.js`, **vous devez obligatoirement incrémenter le paramètre de version dans `index.html`** (ex : passer de `scripts/app.js?v=2.6` à `scripts/app.js?v=2.7`).
-- Sans cette précaution, les navigateurs modernes (Chrome, Edge) risquent de servir l'ancienne version en cache mémoire.
+### Règle 2 : Zéro Donnée Factice en Dur (Données 100% Réelles)
+- **Ne jamais écrire de faux texte, faux chiffre ou faux exemple en dur dans le code**.
+- Tout contenu (conseils, financements, matériels, annonces, météo, montants de dépenses/ventes) vient impérativement de **Supabase** ou de l'API **Open-Meteo**.
 
-### Règle 3 : Portée des variables JavaScript (Scope Safety)
-- Le code dans `scripts/app.js` est encapsulé dans l'écouteur `document.addEventListener('DOMContentLoaded', () => { ... })`.
-- **Veillez à ne jamais redéclarer un identifiant avec `const` ou `let` dans la même portée globale de fonction**, car cela génère un `SyntaxError: Identifier has already been declared` qui paralyse instantanément l'exécution de l'ensemble du script.
-- Vérifiez systématiquement en amont si une variable de sélection DOM n'a pas déjà été déclarée dans le bloc supérieur.
+### Règle 3 : Protection & Accord Préalable Base de Données
+- **Ne jamais modifier les tables, les règles RLS ou les fonctions Supabase sans le demander d'abord et obtenir l'accord explicite de l'utilisateur**.
 
-### Règle 4 : Respect des prix et forfaits
-- Les prix des abonnements sont strictement fixés à **5 000 F CFA/mois** (Pro Producteur) et **10 000 F CFA/mois** (Business Coopérative), avec une remise de **-15% sur la formule 6 mois (Campagne agricole)** soit `25 500 F CFA` et `51 000 F CFA`. Ne modifiez pas ces valeurs sans accord explicite.
+### Règle 4 : Préservation Stricte des Corrections Acquises (Zéro Régression)
+- **Ne jamais annuler une correction déjà validée**.
+- Les fonctionnalités et corrections suivantes doivent être impérativement préservées :
+  1. **Compteur "Opportunités disponibles"** : dénombre formellement les financements avec `statut = 'publie'` et (`date_limite` vide/nulle ou `date_limite >= aujourd'hui`).
+  2. **Gestion financière complète** : ajout, modification et suppression réels des dépenses et des ventes de récoltes avec synchronisation Supabase.
+  3. **Installation de l'application (PWA)** : Web App Manifest (`manifest.json`) + Service Worker (`sw.js`) pour le support hors-ligne et l'installation mobile/bureau.
+  4. **Conseil du jour** : affichage dynamique du dernier conseil publié de la table `conseils` (avec bouton d'écoute audio par synthèse vocale).
 
-### Règle 5 : Contexte territorial & agronome Burkinabè
-- Lors de l'ajout d'exemples ou de nouvelles fonctionnalités, conservez la cohérence avec le Burkina Faso :
-  - *Villes et régions* : Koudougou (Boulkiemdé), Bobo-Dioulasso (Hauts-Bassins), Ouagadougou (Kadiogo), Ouahigouya (Yatenga), Dédougou (Boucle du Mouhoun).
-  - *Cultures fréquentes* : Tomate Mongal, Oignon Violet de Galmi, Chou Marché, Maïs pluvial, Gombo, Niébé, Sésame, Mangues Amélie.
-  - *Opérateurs de paiement* : Orange Money (`*144*4*6#`) et Moov Money Flooz (`*555*6#`), indicatif téléphonique `+226`.
-  - *Programmes publics réels* : PReCA (Projet de Résilience et de Compétitivité Agricole), Ministère de l'Agriculture.
+### Règle 5 : Respect Intégral de la Charte Graphique & Design
+- **Typographie** : `Plus Jakarta Sans` partout, y compris pour tous les montants.
+- **Palette** : vert `#1F5E3B`, vert clair `#E8F0EA`, ocre `#A85A1C` (SEULEMENT bouton principal), ocre clair `#F6EADF`, jaune soleil `#E0A526`, jaune clair `#FBF1D6`, fond crème `#FAF7F0`, cartes blanches bordure `#ECE6D9`, texte `#1A1A1A` et `#4A4A4A`, rouge `#C0392B` (alertes/suppressions).
+- **Icônes** : Lucide au trait, **aucun emoji**.
+- **Dimensions & Clic** : zones tactiles 44px minimum, montants complets avec espaces et zéro débordement sur 360px.
 
-### Règle 6 : Modifications de Base de Données Réelles dans Supabase
-- **Toute modification de base de données doit être faite réellement dans Supabase avec l'outil Supabase**, jamais seulement dans le code ou en `localStorage`. Aucune simulation ou persistance factice locale n'est tolérée pour les entités métier.
+### Règle 6 : Langage de l'Interface
+- **Français simple, clair et percutant**, avec des phrases courtes, adapté à des exploitants agricoles qui lisent peu ou consultent leur téléphone rapidement sur le terrain.
 
-### Règle 7 : Vérification & Preuve Supabase Avant Clôture
-- **Avant de dire qu'une tâche est terminée, vérifiez systématiquement dans Supabase que les tables, colonnes, règles RLS et espaces Storage demandés existent vraiment**, et affichez-les formellement à l'utilisateur comme preuve d'exécution.
+### Règle 7 : Protocole de Livraison & Validation en Ligne Obligatoire
+- **Après chaque travail réalisé, exécuter systématiquement la séquence suivante** :
+  1. Incrémenter la version du cache dans le Service Worker (`sw.js`) et les paramètres de version dans `index.html`.
+  2. Effectuer le `git commit` et le `git push origin main`.
+  3. Vérifier que le déploiement sur Vercel est bien **"Ready"**.
+  4. **Prendre et afficher des captures d'écran réelles du site EN LIGNE (`https://r2volution-agricole.vercel.app`) avant de déclarer la tâche terminée**.
 
-### Règle 8 : Transparence sur les Attentes d'Accord Utilisateur
-- **Si une étape attend l'accord de l'utilisateur, indiquez-le clairement et sans ambiguïté** au lieu d'annoncer prématurément que la tâche est terminée.
+### Règle 8 : Sécurité & Hygiène du Dépôt Git
+- **Ne jamais envoyer le dossier `temp_chrome`, `chrome_profile`, ni aucun fichier temporaire sur GitHub**.
+- **Ne jamais commiter aucun mot de passe, clé secrète Supabase (service_role) ou token d'accès**.
+
+### Règle 9 : Préservation de l'Architecture Vanilla & Zéro Framework
+- Ne pas convertir le projet vers React, Vue, Next.js ou Vite. Conserver l'architecture Vanilla HTML/CSS/JS directe, ultra-rapide et autonome.
+
+### Règle 10 : Portée des Variables JavaScript (Scope Safety)
+- Éviter formellement toute redéclaration d'identifiant `const` ou `let` dans la même portée globale pour prévenir tout `SyntaxError` paralysant le script.
+
+### Règle 11 : Tarifs d'Abonnement Officiels
+- Prix strictement fixés à **5 000 F CFA/mois** (Pro Producteur) et **10 000 F CFA/mois** (Business Coopérative), avec remise de -15% sur la formule 6 mois (`25 500 F` et `51 000 F CFA`).
 
 ---
 
@@ -700,11 +730,37 @@ Depuis la version 2.9, l'application est entièrement Full Stack connectée au p
   - `renderProfile(key)` recalcule dynamiquement le nombre frais via `filterOpenFinancementsForUsers(cachedFinancements)` pour éviter tout ré-écrasement intempestif à zéro lors de la synchronisation des cycles culturaux ou de l'abonnement.
   - `activateUserSession()` appelle formellement `await fetchFinancements()` au démarrage pour alimenter instantanément le compteur dès la connexion.
   - La page Financements et le Tableau de Bord partagent strictement la même source de vérité et affichent en permanence un chiffre identique (7 offres).
-- **Service Worker** : Incrémentation du cache vers `revolution-agricole-v20261021.3`.
+### AC. Refonte Visuelle Sahélo-Tech V7 Pro (Zero Emoji, Lucide, Carte Saison 2026, Navigation Basse Fixe, Fiches Matériel Pro)
+- **1. Typographie & Design System Harmonisé** :
+  - Intégration exclusive de `Plus Jakarta Sans` (graisses 400 à 800) sur l'ensemble de l'interface (remplacement définitif de JetBrains Mono).
+  - Normalisation des cartes (`border-radius: 20px`, bordure `1px solid #ECE6D9`, fond blanc pur `#FFFFFF`).
+  - Boutons de hauteur tactile généreuse (52px pour les boutons primaires avec `border-radius: 14px`).
+  - Bouton ocre (`#A85A1C`, texte blanc) réservé strictement à l'action principale de chaque écran.
+- **2. Élimination Totale des Emojis & Intégration Lucide Icons** :
+  - Zéro emoji dans tout le code source (`index.html`, `scripts/app.js`, `styles/theme.css`).
+  - Utilisation systématique d'icônes vectorielles au trait fin via Lucide CDN fixe v0.453.0.
+- **3. Accueil Réinventé (Tableau de Bord Mobile & Desktop)** :
+  - **Grande carte verte Saison 2026** : Présente le bénéfice ou la perte en typographie adaptative (34px / 28px / 24px) avec gestion des montants de 0 à plus de 2,5 milliards de F CFA, sans débordement sur 360px, et mise en évidence de la perte en jaune soleil (`#E0A526`).
+  - **2 cartes blanches côte à côte** : *Cycles en cours* (avec pastille de suivi) et *Opportunités disponibles* (garanti à 7 offres ouvertes).
+  - **Carte météo courte** : Température actuelle, probabilité de pluie, vent et 2 conseils clés du jour.
+  - **Conseil du jour agronomique** : Badge jaune soleil, conseil concis issu de Supabase et bouton d'écoute audio par synthèse vocale.
+  - **4 raccourcis fonctionnels** : Icônes carrées arrondies aux coins doux permettant un accès direct aux modules métier.
+- **4. Navigation Mobile Basse Fixe (`#mobileBottomNav`)** :
+  - 4 onglets tactiles permanents en bas d'écran : *Accueil*, *Exploitation*, *Marché*, *Profil*.
+  - Onglet actif mis en valeur par une pastille vert clair (`#E8F0EA`).
+  - Préservation du menu tiroir hamburger (`☰`) pour les pages secondaires et l'administration.
+- **5. Fiches Produits & Matériels Haut de Gamme** :
+  - Photo héro généreuse de 330px recadrée avec coins arrondis remontant sur le contenu (`border-radius: 20px`).
+  - Mention *"Prix sur demande"* en ocre `#A85A1C` élégant.
+  - 3 cases d'informations techniques synthétiques.
+  - Carte vendeur avec coordonnées sécurisées.
+  - Barre d'action fixe en bas d'écran avec boutons *Appeler* et *WhatsApp* (52px ocre).
+- **6. Service Worker & Déploiement** :
+  - Cache mis à jour à `revolution-agricole-v20261021.5`.
 
 ---
 
-*Fin du document de spécification système — Version 6.7 • Révolution Agricole Burkina Faso.*
+*Fin du document de spécification système — Version 7.0 • Révolution Agricole Burkina Faso.*
 
 
 
