@@ -279,11 +279,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
       return (items || []).filter(item => {
         if (!item) return false;
-        if (String(item.statut || '').trim() !== 'publie') return false;
-        if (!item.date_limite || String(item.date_limite).trim() === '') return true; // Guichet permanent
+        // Statut strictement 'publie'
+        if (String(item.statut || '').trim().toLowerCase() !== 'publie') return false;
+        // Si date_limite est vide, nulle ou non renseignée : offre toujours ouverte
+        if (!item.date_limite || String(item.date_limite).trim() === '') return true;
         const deadline = parseLocalDate(item.date_limite);
         if (!deadline || isNaN(deadline.getTime())) return true;
-        deadline.setHours(0, 0, 0, 0);
+        deadline.setHours(23, 59, 59, 999);
         return deadline >= today;
       });
     } catch (e) {
@@ -600,9 +602,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (label) label.textContent = stat.label;
       if (value) {
-        value.innerHTML = `${stat.value} <small>${stat.unit}</small>`;
+        if (idx === 4) {
+          const openCount = filterOpenFinancementsForUsers(cachedFinancements).length;
+          stat.value = String(openCount);
+          stat.unit = 'disponibles';
+          value.innerHTML = `${openCount} <small>disponibles</small>`;
+        } else {
+          value.innerHTML = `${stat.value} <small>${stat.unit}</small>`;
+        }
       }
-      if (comp) comp.textContent = stat.comp;
+      if (comp) comp.textContent = (idx === 4) ? 'Financements actifs' : stat.comp;
 
       if (trend) {
         if (stat.trendText) {
@@ -1105,7 +1114,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <span>Tableau de bord</span>
         </a>
         <h2 style="font-size: 20px; font-weight: 800; color: #1E2822; margin: 0 0 2px;">🌾 Financements</h2>
-        <p style="font-size: 12px; color: #5B6660; margin: 0;">${openList.length} opportunité${openList.length > 1 ? 's' : ''} vérifiée${openList.length > 1 ? 's' : ''}</p>
+        <p style="font-size: 12px; color: #5B6660; margin: 0;">${openList.length} opportunité${openList.length > 1 ? 's' : ''} disponible${openList.length > 1 ? 's' : ''}</p>
       </div>
 
       <!-- Filtres types en puces horizontales -->
@@ -4611,6 +4620,14 @@ document.addEventListener('DOMContentLoaded', () => {
       countText.textContent = `${openForUsers.length} opportunité${openForUsers.length > 1 ? 's' : ''} ouverte${openForUsers.length > 1 ? 's' : ''}`;
     }
 
+    // Synchroniser l'objet de profil en mémoire pour mobile et futur renderProfile
+    Object.keys(PROFILES_DATA).forEach(pk => {
+      if (PROFILES_DATA[pk]?.stats?.[3]) {
+        PROFILES_DATA[pk].stats[3].value = String(openForUsers.length);
+        PROFILES_DATA[pk].stats[3].unit = 'disponibles';
+      }
+    });
+
     // Carte 4 Dashboard (Opportunités ouvertes pour profil non-admin)
     const isCurrentAdmin = Boolean(PROFILES_DATA[currentProfileKey]?.isAdmin);
     if (!isCurrentAdmin) {
@@ -4619,7 +4636,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const statVal4 = document.getElementById('statValue4');
       if (statVal4) {
-        statVal4.innerHTML = `${openForUsers.length} <small>vérifiées</small>`;
+        statVal4.innerHTML = `${openForUsers.length} <small>disponibles</small>`;
       }
 
       const statCard4Footer = document.querySelector('#statCard4 .stat-footer');
@@ -4648,7 +4665,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <span class="urgent-pill" style="background: #EAF4E6; color: #1E5E2A; border-color: #D2E7CC;">
               <span class="clock-icon">⏳</span> Prochaine dans ${minDiffDays} j
             </span>
-            <span class="comparison-text">Offres vérifiées</span>
+            <span class="comparison-text">Offres disponibles</span>
           `;
         } else {
           statCard4Footer.innerHTML = `
@@ -9823,7 +9840,7 @@ document.addEventListener('DOMContentLoaded', () => {
         { module: 'Exploitation', label: 'Dépenses du mois', value: '0', unit: 'F CFA', trendText: '0 dépense', trendType: 'favorable', comp: 'Données réelles', color: 'green' },
         { module: 'Recettes', label: 'Recettes du mois', value: '0', unit: 'F CFA', trendText: '0 encaissement', trendType: 'favorable', comp: 'Données réelles', color: 'blue' },
         { module: 'Production', label: 'Cycles en cours', value: '0', unit: 'actifs', badge: 'En direct', comp: 'Parcelles connectées', color: 'yellow' },
-        { module: 'Financements', label: 'Opportunités ouvertes', value: String(filterOpenFinancementsForUsers(cachedFinancements).length || 0), unit: 'vérifiées', badge: '', comp: 'Financements actifs', color: 'purple' }
+        { module: 'Financements', label: 'Opportunités ouvertes', value: String(filterOpenFinancementsForUsers(cachedFinancements).length || 0), unit: 'disponibles', badge: '', comp: 'Financements actifs', color: 'purple' }
       ],
       chartTitle: 'Dépenses et recettes',
       chartSubtitle: 'Vos flux de trésorerie réels enregistrés sur Supabase',
@@ -9872,6 +9889,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Rendu complet avec salutation personnalisée ("Bonjour, Fabrice 🌱")
     renderProfile(pKey);
+    await fetchFinancements();
     await syncFinancialsFromSupabase(pKey);
     await syncCropCyclesFromSupabase(pKey);
     await syncSubscriptionStatusFromSupabase(pKey);

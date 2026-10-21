@@ -689,9 +689,23 @@ Depuis la version 2.9, l'application est entièrement Full Stack connectée au p
     1. *Étape 1* : Toucher le bouton **Partager** de Safari (icône carrée avec flèche sortante en bas de l'écran).
     2. *Étape 2* : Défiler vers le bas et toucher **« Sur l'écran d'accueil »** (icône carrée avec le signe `+`).
 
+### AB. Compteur Dynamique d'Opportunités Ouvertes & Synchronisation Stricte (v6.7)
+- **Règle Métier & Filtrage Rigoureux** :
+  - Le compteur d'opportunités ouvertes sur le tableau de bord (bureau et mobile) dénombre exactement les fiches de la table `financements` répondant aux critères stricts :
+    $$\text{Statut} = \text{'publie'} \quad \text{ET} \quad (\text{date\_limite est vide/nulle} \quad \text{OU} \quad \text{date\_limite} \ge \text{aujourd'hui})$$
+  - Zéro dépendance à une colonne ou statut "vérifié" qui n'existe pas en base.
+  - Remplacement du mot « vérifiées » par **« disponibles »** partout dans l'interface (`statValue4`, cartes mobiles, fiches).
+- **Synchronisation Globale Multi-Supports & Zéro Écrasement** :
+  - `updateFinancementsCounters()` synchronise directement le tableau `stats[3]` de tous les profils dans `PROFILES_DATA` (`value = 7`, `unit = 'disponibles'`).
+  - `renderProfile(key)` recalcule dynamiquement le nombre frais via `filterOpenFinancementsForUsers(cachedFinancements)` pour éviter tout ré-écrasement intempestif à zéro lors de la synchronisation des cycles culturaux ou de l'abonnement.
+  - `activateUserSession()` appelle formellement `await fetchFinancements()` au démarrage pour alimenter instantanément le compteur dès la connexion.
+  - La page Financements et le Tableau de Bord partagent strictement la même source de vérité et affichent en permanence un chiffre identique (7 offres).
+- **Service Worker** : Incrémentation du cache vers `revolution-agricole-v20261021.3`.
+
 ---
 
-*Fin du document de spécification système — Version 6.6 • Révolution Agricole Burkina Faso.*
+*Fin du document de spécification système — Version 6.7 • Révolution Agricole Burkina Faso.*
+
 
 
 
