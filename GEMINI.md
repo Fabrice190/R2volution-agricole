@@ -648,9 +648,23 @@ Depuis la version 2.9, l'application est entièrement Full Stack connectée au p
   5. *Gestion résiliente des adresses inconnues avec console.warn* :
      - Toute ancre non répertoriée déclenche `console.warn('⚠️ [Navigation] Adresse inconnue demandée :', '#' + rawHash);`, redirige vers `#dashboard` et affiche le tableau de bord de secours.
 
+### Z. Simplification & Réordonnancement Mobile du Tableau de Bord (v6.5)
+- **1. Nouvel Ordre Prioritaire sur Téléphone** :
+  1. *En haut* : Salutation personnalisée *« Bonjour, [Prénom] 🌱 »* avec date du jour et commune de rattachement.
+  2. *Juste en dessous* : Grille 2 colonnes des 4 cartes d'indicateurs financiers et de production (*Dépenses du mois, Recettes du mois, Cycles en cours, Opportunités ouvertes*).
+  3. *Ensuite* : Carte météo simplifiée haute lisibilité.
+  4. *Reste dans l'ordre existant* : Échéances urgentes, suivi des cultures et graphique des flux de trésorerie.
+- **2. Simplification Ergonomique de la Carte Météo Mobile** :
+  - *Météo d'aujourd'hui* : Température en direct, probabilité et cumul de pluie, vitesse du vent.
+  - *Encadré agronomique resserré* : Voyant de couleur (vert / orange / rouge) avec phrase de synthèse *« Ce que ça veut dire pour vous »* et **strictement 2 conseils agronomiques prioritaires au maximum**.
+  - *Alerte conditionnelle pour demain* : Fonction `getTomorrowWeatherAlert(daily)` affichant un bandeau d'alerte (`🚨 Alerte` ou `⚠️ Vigilance`) **uniquement si demain est une journée orange ou rouge** (forte canicule ≥35°C/40°C, pluie abondante, vent violent).
+  - *Suppression des mini-jours encombrants* : Remplacement par un lien d'action épuré *« Voir la semaine → »* ouvrant directement la page Météo agronomique complète.
+- **3. Préservation Intégrale de la Mise en Page Ordinateur** :
+  - Aucune modification sur la version bureau (sidebar, cartes pastel, graphique large, échéances et widget météo restent inchangés).
+
 ---
 
-*Fin du document de spécification système — Version 6.4 • Révolution Agricole Burkina Faso.*
+*Fin du document de spécification système — Version 6.5 • Révolution Agricole Burkina Faso.*
 
 
 

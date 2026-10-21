@@ -736,42 +736,84 @@ document.addEventListener('DOMContentLoaded', () => {
   // ==========================================
   // VUES MOBILES POUR MÉTÉO, FINANCEMENTS ET ADMINISTRATION
   // ==========================================
+  function getTomorrowWeatherAlert(daily) {
+    if (!daily || daily.length < 2) return null;
+    const tomorrow = daily[1];
+    const rainProb = Number(tomorrow.rainProb ?? 0);
+    const rainSum = Number(tomorrow.rainSum ?? 0);
+    const tempMax = Number(tomorrow.tempMax ?? 30);
+    const gustsMax = Number(tomorrow.gustsMax ?? 0);
+
+    const redReasons = [];
+    const orangeReasons = [];
+
+    // Pluie
+    if (rainSum >= 30) {
+      redReasons.push(`très forte pluie (${rainSum} mm)`);
+    } else if (rainProb >= 60 || rainSum >= 10) {
+      orangeReasons.push(`pluie probable (${rainProb}%)`);
+    }
+
+    // Chaleur
+    if (tempMax >= 40) {
+      redReasons.push(`forte canicule (${tempMax} °C)`);
+    } else if (tempMax >= 35) {
+      orangeReasons.push(`forte chaleur (${tempMax} °C)`);
+    }
+
+    // Vent
+    if (gustsMax >= 40) {
+      redReasons.push(`vent violent (${gustsMax} km/h)`);
+    } else if (gustsMax >= 25) {
+      orangeReasons.push(`vent fort (${gustsMax} km/h)`);
+    }
+
+    if (redReasons.length > 0) {
+      return {
+        level: 'red',
+        icon: '🚨',
+        message: `Alerte demain (${tomorrow.shortDay || 'demain'}) : ${redReasons.join(', ')}. Prévoyez vos précautions.`
+      };
+    }
+    if (orangeReasons.length > 0) {
+      return {
+        level: 'orange',
+        icon: '⚠️',
+        message: `Vigilance demain (${tomorrow.shortDay || 'demain'}) : ${orangeReasons.join(', ')}.`
+      };
+    }
+    return null;
+  }
+
   function getMobileDashboardWeatherCardHtml() {
     const w = cachedWeatherResult;
     if (!w) {
       return `
-        <div class="mobile-weather-card" id="btnMobileWeatherCardClick" style="cursor: pointer;">
+        <div class="mobile-weather-card" id="btnMobileWeatherCardClick" style="cursor: pointer;" title="Voir la semaine complète">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
             <div style="display: flex; align-items: center; gap: 8px;">
               <span style="font-size: 24px;">⛅</span>
-              <strong style="font-size: 22px;">-- °C</strong>
+              <strong style="font-size: 20px;">-- °C</strong>
             </div>
-            <span style="font-size: 11px; font-weight: 700; color: #1E5E2A; background: #EAF4E6; padding: 2px 8px; border-radius: 99px;">Chargement…</span>
+            <span style="font-size: 11px; font-weight: 700; color: #1E5E2A; background: #EAF4E6; padding: 2px 8px; border-radius: 99px;">Météo en direct…</span>
           </div>
-          <div style="display: flex; justify-content: space-between; font-size: 11.5px; color: #5B6660; border-top: 1px solid #E6EAE3; padding-top: 6px; margin-top: 6px;">
-            <span>Météo agricole en direct</span>
-            <span style="font-size: 10px; color: #1E5E2A; font-weight: 700;">Prévisions 7j →</span>
+          <div style="display: flex; justify-content: flex-end; font-size: 11px; color: #1E5E2A; font-weight: 700; border-top: 1px solid #E6EAE3; padding-top: 6px; margin-top: 6px;">
+            <span>Voir la semaine →</span>
           </div>
         </div>
       `;
     }
 
-    const alerts = computeWeatherAlerts(w.current, w.daily[0]);
-    const topAlert = alerts.length > 0 ? alerts[0] : null;
-    const miniDays = (w.daily || []).slice(0, 4).map(d => `${d.shortDay} ${d.tempMax}°`).join(' • ');
     const interp = computeFarmerInterpretation(w.current, w.daily);
-    const weeklyAdvice = computeWeeklyAdvice(w.daily);
+    const tomorrowAlert = getTomorrowWeatherAlert(w.daily);
+    const maxTwoAdvices = (interp.adviceList || []).slice(0, 2);
     const speechSupported = ('speechSynthesis' in window);
 
     return `
-      ${topAlert ? `
-        <div class="weather-alert-banner alert-${topAlert.type}" style="margin-bottom: 8px; padding: 8px 10px; font-size: 11.5px; border-radius: 10px;">
-          <span class="alert-icon" style="font-size: 16px;">${topAlert.icon}</span>
-          <span class="alert-text">${topAlert.message}</span>
-        </div>
-      ` : ''}
-      <div class="mobile-weather-card" id="btnMobileWeatherCardClick" style="cursor: pointer;" title="Voir les prévisions 7 jours">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+      <!-- CARTE MÉTÉO SIMPLIFIÉE DU TABLEAU DE BORD MOBILE -->
+      <div class="mobile-weather-card" id="btnMobileWeatherCardClick" style="cursor: pointer;" title="Ouvrir la page Météo complète">
+        <!-- 1. Météo d'aujourd'hui : Température, Pluie, Vent -->
+        <div style="display: flex; justify-content: space-between; align-items: center;">
           <div style="display: flex; align-items: center; gap: 8px;">
             <span style="font-size: 26px;">${w.current.meta.icon}</span>
             <div>
@@ -787,23 +829,23 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
         </div>
 
-        <!-- Encadré Ce que ça veut dire pour vous (Mobile Dashboard) -->
+        <!-- 2. Voyant de couleur + "Ce que ça veut dire pour vous" + max 2 conseils -->
         <div class="weather-interpretation-box level-${interp.level}" style="margin: 8px 0; padding: 10px 12px;">
-          <div class="wi-header-row" style="margin-bottom: 6px;">
+          <div class="wi-header-row" style="margin-bottom: 4px;">
             <div class="wi-title-wrap">
               <span class="wi-status-light light-${interp.level}"></span>
               <span class="wi-title" style="font-size: 11px;">Ce que ça veut dire pour vous</span>
             </div>
             ${speechSupported ? `
-              <button type="button" class="wi-listen-btn" id="btnListenMobileDashWeather" style="padding: 3px 8px; font-size: 10.5px;">
+              <button type="button" class="wi-listen-btn" id="btnListenMobileDashWeather" style="padding: 2px 7px; font-size: 10px;">
                 🔊 <span>Écouter</span>
               </button>
             ` : ''}
           </div>
-          <div class="wi-headline" style="font-size: 12.5px; margin-bottom: 6px;">${interp.headline}</div>
-          <ul class="wi-advice-list" style="gap: 4px;">
-            ${interp.adviceList.map(a => `
-              <li class="wi-advice-item" style="font-size: 11.5px;">
+          <div class="wi-headline" style="font-size: 12px; margin-bottom: 6px; font-weight: 700;">${interp.headline}</div>
+          <ul class="wi-advice-list" style="gap: 4px; margin: 0; padding: 0;">
+            ${maxTwoAdvices.map(a => `
+              <li class="wi-advice-item" style="font-size: 11px;">
                 <span class="wi-advice-icon">${a.icon}</span>
                 <span>${a.text}</span>
               </li>
@@ -811,15 +853,17 @@ document.addEventListener('DOMContentLoaded', () => {
           </ul>
         </div>
 
-        <!-- Conseil de la semaine (Mobile Dashboard) -->
-        <div class="weekly-advice-banner" style="margin: 6px 0 8px; padding: 6px 10px; font-size: 11px;">
-          <span class="wab-icon" style="font-size: 14px;">💡</span>
-          <div><strong>Conseil de la semaine :</strong> <span>${weeklyAdvice}</span></div>
-        </div>
+        <!-- 3. Alerte pour demain seulement si orange ou rouge -->
+        ${tomorrowAlert ? `
+          <div class="weather-alert-banner alert-${tomorrowAlert.level === 'red' ? 'danger' : 'warning'}" style="margin: 6px 0; padding: 7px 10px; font-size: 11px; border-radius: 8px; display: flex; align-items: center; gap: 6px;">
+            <span style="font-size: 14px;">${tomorrowAlert.icon}</span>
+            <span style="font-weight: 600;">${tomorrowAlert.message}</span>
+          </div>
+        ` : ''}
 
-        <div style="display: flex; justify-content: space-between; font-size: 11.5px; color: #5B6660; border-top: 1px solid #E6EAE3; padding-top: 6px; margin-top: 6px;">
-          <span>${miniDays}</span>
-          <span style="font-size: 10px; color: #1E5E2A; font-weight: 700;">Prévisions 7j →</span>
+        <!-- 4. Lien "Voir la semaine →" ouvrant la page Météo -->
+        <div style="display: flex; justify-content: flex-end; align-items: center; border-top: 1px solid #E6EAE3; padding-top: 7px; margin-top: 6px;">
+          <span style="font-size: 11px; color: #1E5E2A; font-weight: 700;">Voir la semaine →</span>
         </div>
       </div>
     `;
@@ -1469,16 +1513,13 @@ document.addEventListener('DOMContentLoaded', () => {
         mobileBodyHtml = getMobileNotificationsHtml();
       } else {
         mobileBodyHtml = `
-        <!-- Salutation -->
+        <!-- 1. En haut : Message de salutation avec date et commune -->
         <div>
           <h2 class="mobile-greeting">Bonjour, ${data.name.split(' ')[0]} ${isPro ? '<span class="user-badge-pro" style="font-size: 10px; vertical-align: middle;">⭐ PRO</span>' : '<span class="greeting-emoji">🌱</span>'}</h2>
           <p class="mobile-subdate">${(new Date()).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })} • ${data.location.split('(')[0]}</p>
         </div>
 
-        <!-- 1. MÉTÉO EN PREMIER (Connectée Open-Meteo) -->
-        ${getMobileDashboardWeatherCardHtml()}
-
-        <!-- 2. INDICATEURS EN GRILLE 2x2 (Pas de défilement horizontal) -->
+        <!-- 2. Juste en dessous : Les 4 cartes de chiffres en grille de 2 colonnes -->
         <div class="mobile-stat-grid">
           ${data.stats.map(s => `
             <div class="mobile-stat-card">
@@ -1491,7 +1532,10 @@ document.addEventListener('DOMContentLoaded', () => {
           `).join('')}
         </div>
 
-        <!-- 3. ÉCHÉANCES : CE QUI EST URGENT -->
+        <!-- 3. Ensuite : Carte météo simplifiée -->
+        ${getMobileDashboardWeatherCardHtml()}
+
+        <!-- 4. ÉCHÉANCES : CE QUI EST URGENT -->
         <div>
           <div class="mobile-section-header">
             <h4>Échéances urgentes</h4>
@@ -1513,7 +1557,7 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
         </div>
 
-        <!-- 4. LE TABLEAU DEVIENT UNE LISTE DE CARTES -->
+        <!-- 5. LE TABLEAU DEVIENT UNE LISTE DE CARTES -->
         <div>
           <div class="mobile-section-header">
             <h4>${data.tableTitle}</h4>
