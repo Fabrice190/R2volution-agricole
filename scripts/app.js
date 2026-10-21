@@ -1428,6 +1428,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = PROFILES_DATA[currentProfileKey];
       if (!data || !mobileAppMount) return;
 
+      const prevDrawer = document.getElementById('mobileDrawer');
+      const wasDrawerOpen = !!(prevDrawer && prevDrawer.classList.contains('open'));
+
       const isPro = userSubscriptionStatus[currentProfileKey] || false;
 
       let mobileBodyHtml = '';
@@ -1861,29 +1864,61 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnClose = document.getElementById('btnCloseMobileDrawer');
     const avatarOpen = document.getElementById('btnMobileAvatarOpenDrawer');
 
-    function openMobileDrawer() {
-      if (drawer && overlay) {
-        drawer.classList.add('open');
-        overlay.classList.add('open');
+    function openMobileDrawer(e) {
+      if (e) {
+        if (typeof e.stopPropagation === 'function') e.stopPropagation();
+        if (typeof e.preventDefault === 'function') e.preventDefault();
+      }
+      const d = document.getElementById('mobileDrawer');
+      const o = document.getElementById('mobileDrawerOverlay');
+      if (d && o) {
+        d.classList.add('open');
+        o.classList.add('open');
         document.body.classList.add('drawer-open');
         document.body.style.overflow = 'hidden';
       }
     }
 
-    function closeMobileDrawer() {
-      if (drawer && overlay) {
-        drawer.classList.remove('open');
-        overlay.classList.remove('open');
+    function closeMobileDrawer(e) {
+      if (e && typeof e.stopPropagation === 'function') {
+        e.stopPropagation();
+      }
+      const d = document.getElementById('mobileDrawer');
+      const o = document.getElementById('mobileDrawerOverlay');
+      if (d && o) {
+        d.classList.remove('open');
+        o.classList.remove('open');
         document.body.classList.remove('drawer-open');
         document.body.style.overflow = '';
       }
     }
 
-    if (btnOpen) btnOpen.addEventListener('click', openMobileDrawer);
-    if (avatarOpen) avatarOpen.addEventListener('click', openMobileDrawer);
-    if (btnClose) btnClose.addEventListener('click', closeMobileDrawer);
+    if (btnOpen) {
+      btnOpen.addEventListener('click', (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        openMobileDrawer(e);
+      });
+    }
+    if (avatarOpen) {
+      avatarOpen.addEventListener('click', (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        openMobileDrawer(e);
+      });
+    }
+    if (btnClose) {
+      btnClose.addEventListener('click', (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        closeMobileDrawer(e);
+      });
+    }
     if (overlay) {
-      overlay.addEventListener('click', closeMobileDrawer);
+      overlay.addEventListener('click', (e) => {
+        e.stopPropagation();
+        closeMobileDrawer(e);
+      });
       overlay.addEventListener('touchmove', (e) => {
         e.preventDefault();
       }, { passive: false });
@@ -1895,9 +1930,15 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
+    // Si le tiroir était ouvert avant la réécriture DOM (ex: fin de chargement météo/données en tâche de fond), le maintenir ouvert
+    if (wasDrawerOpen) {
+      openMobileDrawer();
+    }
+
     const btnMobileLogout = document.getElementById('btnMobileLogout');
     if (btnMobileLogout) {
-      btnMobileLogout.addEventListener('click', () => {
+      btnMobileLogout.addEventListener('click', (e) => {
+        e.stopPropagation();
         closeMobileDrawer();
         performLogout();
       });
@@ -1905,7 +1946,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const btnMobPrice = document.getElementById('btnMobileDrawerPricing');
     if (btnMobPrice) {
-      btnMobPrice.addEventListener('click', () => {
+      btnMobPrice.addEventListener('click', (e) => {
+        e.stopPropagation();
         closeMobileDrawer();
         openPricingModal();
       });
@@ -1913,7 +1955,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const btnMobGoPro = document.getElementById('btnMobileDrawerGoPro');
     if (btnMobGoPro) {
-      btnMobGoPro.addEventListener('click', () => {
+      btnMobGoPro.addEventListener('click', (e) => {
+        e.stopPropagation();
         closeMobileDrawer();
         openPricingModal();
       });
@@ -1922,7 +1965,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Cloche notifications mobile
     const btnMobNotif = document.getElementById('btnMobileNotif');
     if (btnMobNotif) {
-      btnMobNotif.addEventListener('click', () => {
+      btnMobNotif.addEventListener('click', (e) => {
+        e.stopPropagation();
         window.location.hash = 'notifications';
         navigateToPage('notifications');
       });
@@ -2306,7 +2350,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  btnHeaderAction.addEventListener('click', handlePrimaryAction);
+  if (btnHeaderAction) {
+    btnHeaderAction.addEventListener('click', (e) => {
+      e.stopPropagation();
+      handlePrimaryAction();
+    });
+  }
 
   // Suivi dynamique des finances de l'exploitant connecté à Supabase (zéro donnée démo)
   let currentExpenseTotal = 0;
@@ -2596,8 +2645,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  if (btnCloseModalExpense) btnCloseModalExpense.addEventListener('click', closeExpenseModal);
-  if (btnCancelExpense) btnCancelExpense.addEventListener('click', closeExpenseModal);
+  if (btnCloseModalExpense) {
+    btnCloseModalExpense.addEventListener('click', (e) => {
+      e.stopPropagation();
+      closeExpenseModal();
+    });
+  }
+  if (btnCancelExpense) {
+    btnCancelExpense.addEventListener('click', (e) => {
+      e.stopPropagation();
+      closeExpenseModal();
+    });
+  }
   if (modalExpense) {
     modalExpense.addEventListener('click', (e) => {
       if (e.target === modalExpense) closeExpenseModal();
@@ -2999,9 +3058,24 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  if (btnHeaderRevenue) btnHeaderRevenue.addEventListener('click', openRevenueModal);
-  if (btnCloseModalRevenue) btnCloseModalRevenue.addEventListener('click', closeRevenueModal);
-  if (btnCancelRevenue) btnCancelRevenue.addEventListener('click', closeRevenueModal);
+  if (btnHeaderRevenue) {
+    btnHeaderRevenue.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openRevenueModal();
+    });
+  }
+  if (btnCloseModalRevenue) {
+    btnCloseModalRevenue.addEventListener('click', (e) => {
+      e.stopPropagation();
+      closeRevenueModal();
+    });
+  }
+  if (btnCancelRevenue) {
+    btnCancelRevenue.addEventListener('click', (e) => {
+      e.stopPropagation();
+      closeRevenueModal();
+    });
+  }
   if (modalRevenue) {
     modalRevenue.addEventListener('click', (e) => {
       if (e.target === modalRevenue) closeRevenueModal();
@@ -8576,8 +8650,18 @@ document.addEventListener('DOMContentLoaded', () => {
     if (modalAuth) modalAuth.classList.add('hidden');
   }
 
-  if (btnOpenAuth) btnOpenAuth.addEventListener('click', openAuthModal);
-  if (btnCloseModalAuth) btnCloseModalAuth.addEventListener('click', closeAuthModal);
+  if (btnOpenAuth) {
+    btnOpenAuth.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openAuthModal();
+    });
+  }
+  if (btnCloseModalAuth) {
+    btnCloseModalAuth.addEventListener('click', (e) => {
+      e.stopPropagation();
+      closeAuthModal();
+    });
+  }
   if (modalAuth) {
     modalAuth.addEventListener('click', (e) => {
       if (e.target === modalAuth) closeAuthModal();
@@ -8726,9 +8810,16 @@ document.addEventListener('DOMContentLoaded', () => {
   // FONCTION : DÉCONNEXION RÉELLE
   // ==========================================
   async function performLogout() {
+    currentSessionInitializedUserId = null;
+    isSessionInitializing = false;
     currentProfileKey = 'guest';
     currentAuthUser = null;
     closeAuthModal();
+
+    const d = document.getElementById('mobileDrawer');
+    const o = document.getElementById('mobileDrawerOverlay');
+    if (d) d.classList.remove('open');
+    if (o) o.classList.remove('open');
     document.body.classList.remove('drawer-open');
     document.body.style.overflow = '';
 
@@ -9006,53 +9097,78 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   window.addEventListener('resize', autoDetectResponsiveMode);
 
+  // Verrou d'initialisation de session utilisateur pour prévenir les exécutions multiples concurrentes
+  let currentSessionInitializedUserId = null;
+  let isSessionInitializing = false;
+
   // Fonction centrale de vérification du profil utilisateur & redirection
-  async function checkUserProfileAndProceed(user) {
+  async function checkUserProfileAndProceed(user, force = false) {
+    if (!user || !user.id) return;
+
+    // Garde-fou 1 : Si une initialisation est déjà en cours pour cet utilisateur, on évite le doublon
+    if (isSessionInitializing && currentSessionInitializedUserId === user.id && !force) {
+      console.log('🌾 Initialisation déjà en cours pour cet utilisateur, saut du doublon.');
+      return;
+    }
+
+    // Garde-fou 2 : Si l'utilisateur est déjà complètement initialisé et actif
+    if (currentSessionInitializedUserId === user.id && currentProfileKey === user.id && !force) {
+      console.log('🌾 Utilisateur déjà actif et initialisé, mise à jour des métadonnées uniquement.');
+      currentAuthUser = user;
+      return;
+    }
+
+    isSessionInitializing = true;
+    currentSessionInitializedUserId = user.id;
     currentAuthUser = user;
     let profile = null;
 
-    if (supabaseClient) {
-      try {
-        const { data, error } = await supabaseClient
-          .from('profiles')
-          .select('*')
-          .eq('id', user.id)
-          .maybeSingle();
+    try {
+      if (supabaseClient) {
+        try {
+          const { data, error } = await supabaseClient
+            .from('profiles')
+            .select('*')
+            .eq('id', user.id)
+            .maybeSingle();
 
-        if (data) {
-          profile = data;
+          if (data) {
+            profile = data;
+          }
+        } catch (err) {
+          console.warn('⚠️ Erreur recherche profil Supabase :', err);
         }
-      } catch (err) {
-        console.warn('⚠️ Erreur recherche profil Supabase :', err);
       }
-    }
 
-    // Si le profil n'existe pas ou n'est pas encore complété (is_onboarded false ou sans téléphone)
-    if (!profile || !profile.is_onboarded || !profile.phone) {
-      if (authPortalScreen) authPortalScreen.classList.add('hidden');
-      const loadingScreen = document.getElementById('appLoadingScreen');
-      if (loadingScreen) loadingScreen.classList.add('hidden');
-      const googleName = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || '';
-      openOnboardingModal({
-        id: user.id,
-        name: profile?.full_name || googleName,
-        phone: profile?.phone || '',
-        location: profile?.location || 'Koudougou (Boulkiemdé)',
-        role: profile?.role || 'producer'
-      });
-    } else {
-      // Déjà complété -> Entrée directe dans le tableau de bord
-      await activateUserSession({
-        id: profile.id,
-        name: profile.full_name,
-        phone: profile.phone,
-        location: profile.location,
-        role: profile.role,
-        metaRole: profile.meta_role,
-        avatar: profile.avatar_url || user.user_metadata?.avatar_url || user.user_metadata?.picture,
-        isAdmin: !!profile.is_admin,
-        isPro: !!profile.is_pro
-      });
+      // Si le profil n'existe pas ou n'est pas encore complété (is_onboarded false ou sans téléphone)
+      if (!profile || !profile.is_onboarded || !profile.phone) {
+        if (authPortalScreen) authPortalScreen.classList.add('hidden');
+        const loadingScreen = document.getElementById('appLoadingScreen');
+        if (loadingScreen) loadingScreen.classList.add('hidden');
+        const googleName = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || '';
+        openOnboardingModal({
+          id: user.id,
+          name: profile?.full_name || googleName,
+          phone: profile?.phone || '',
+          location: profile?.location || 'Koudougou (Boulkiemdé)',
+          role: profile?.role || 'producer'
+        });
+      } else {
+        // Déjà complété -> Entrée directe dans le tableau de bord
+        await activateUserSession({
+          id: profile.id,
+          name: profile.full_name,
+          phone: profile.phone,
+          location: profile.location,
+          role: profile.role,
+          metaRole: profile.meta_role,
+          avatar: profile.avatar_url || user.user_metadata?.avatar_url || user.user_metadata?.picture,
+          isAdmin: !!profile.is_admin,
+          isPro: !!profile.is_pro
+        });
+      }
+    } finally {
+      isSessionInitializing = false;
     }
   }
   window.checkUserProfileAndProceed = checkUserProfileAndProceed;
@@ -9354,7 +9470,30 @@ document.addEventListener('DOMContentLoaded', () => {
   if (supabaseClient) {
     supabaseClient.auth.onAuthStateChange(async (event, session) => {
       console.log('🌾 [Supabase Auth Event]', event, session?.user?.email);
-      if ((event === 'SIGNED_IN' || event === 'USER_UPDATED') && session?.user) {
+      if (event === 'SIGNED_OUT') {
+        currentSessionInitializedUserId = null;
+        isSessionInitializing = false;
+        currentAuthUser = null;
+        return;
+      }
+      if (event === 'TOKEN_REFRESHED') {
+        // Ne relance pas toute l'initialisation pour TOKEN_REFRESHED : met seulement à jour les données de l'utilisateur
+        if (session?.user) {
+          currentAuthUser = session.user;
+        }
+        return;
+      }
+      if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
+        if (!session?.user) return;
+        // Si c'est un SIGNED_IN répété pour le même utilisateur déjà initialisé :
+        if (currentSessionInitializedUserId === session.user.id && currentProfileKey === session.user.id) {
+          currentAuthUser = session.user;
+          return;
+        }
+        if (isSessionInitializing && currentSessionInitializedUserId === session.user.id) {
+          currentAuthUser = session.user;
+          return;
+        }
         await checkUserProfileAndProceed(session.user);
       }
     });
@@ -9775,14 +9914,18 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   if (btnNotifications) {
-    btnNotifications.addEventListener('click', () => {
+    btnNotifications.addEventListener('click', (e) => {
+      e.stopPropagation();
       window.location.hash = 'notifications';
       navigateToPage('notifications');
     });
   }
 
   if (btnMarkAllNotifsRead) {
-    btnMarkAllNotifsRead.addEventListener('click', markAllNotificationsAsRead);
+    btnMarkAllNotifsRead.addEventListener('click', (e) => {
+      e.stopPropagation();
+      markAllNotificationsAsRead();
+    });
   }
 
   // ==========================================

@@ -600,9 +600,22 @@ Depuis la version 2.9, l'application est entièrement Full Stack connectée au p
   - Ajout de l'interrupteur *« 🌾 Rappels de mes cultures »* dans la modale Profil & Paramètres sous la section *« Mes notifications »*, activé par défaut (`checked`).
   - Filtrage dynamique synchronisé avec `localStorage` (`revolution_notif_prefs_[profileId]`) masquant ou affichant les rappels selon le choix de l'utilisateur.
 
+### X. Stabilisation du Menu Tiroir & Verrouillage Anti-Doublon d'Auth (v6.3)
+- **Origine du Phénomène Identifiée & Neutralisée** :
+  1. *Événements Auth Concurrents & Multiples Récritures DOM* : À la connexion, `portalLoginForm` et `onAuthStateChange('SIGNED_IN')` lançaient en parallèle plusieurs initialisations réseau (`checkUserProfileAndProceed`). Les multiples résolutions asynchrones réexécutaient `renderMobileView()`, écrasant le DOM de `mobileAppMount` et effaçant la classe `.open` du tiroir qui venait d'être touché par l'utilisateur.
+  2. *Rebond & Propagation d'Événements* : Le clic sur le bouton hamburger (☰) ne contenait pas `e.stopPropagation()`. L'overlay `.mobile-drawer-overlay` recevait l'événement dès son affichage sous le doigt et refermait aussitôt le menu.
+- **Correctifs Appliqués** :
+  1. *Verrous d'initialisation* : Mise en place de `currentSessionInitializedUserId` et `isSessionInitializing` dans `checkUserProfileAndProceed` interdisant les exécutions concurrentes et répétées pour un même utilisateur déjà actif.
+  2. *Événements Supabase ciblés dans onAuthStateChange* :
+     - `TOKEN_REFRESHED` : met uniquement à jour l'objet `currentAuthUser` sans réinitialiser l'application.
+     - `SIGNED_IN` / `USER_UPDATED` répété : met à jour l'utilisateur sans relancer le flux complet.
+     - `SIGNED_OUT` : réinitialise formellement les verrous de session pour garantir une reconnexion immédiate propre sans recharger la page.
+  3. *Préservation de l'état du drawer* : `renderMobileView()` mémorise `wasDrawerOpen` avant toute réécriture DOM et rétablit immédiatement l'ouverture si le tiroir était déployé.
+  4. *Protection stricte anti-propagation* : Ajout systématique de `e.stopPropagation()` et `e.preventDefault()` sur les boutons d'ouverture (☰ hamburger, avatar), les boutons de fermeture (✕ croix, clic overlay) et les boutons d'actions principales bureau et mobile (cloche notifications, + Dépense, + Vente, profil).
+
 ---
 
-*Fin du document de spécification système — Version 6.2 • Révolution Agricole Burkina Faso.*
+*Fin du document de spécification système — Version 6.3 • Révolution Agricole Burkina Faso.*
 
 
 
