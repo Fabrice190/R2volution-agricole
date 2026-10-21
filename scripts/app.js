@@ -37,6 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Navigation & État du module Financements (Connecté Supabase)
   let currentRoutePage = 'dashboard'; // 'dashboard' | 'opportunites' | 'admin-financements' | 'meteo'
+  let isNavigatingRoute = false; // Empêche la réouverture intempestive du tiroir mobile lors d'un clic de navigation
   let cachedFinancements = [];
   let userSelectedType = 'all';
   let userSelectedRegion = 'all';
@@ -1454,8 +1455,14 @@ document.addEventListener('DOMContentLoaded', () => {
         mobileBodyHtml = getMobileMesAnnoncesHtml();
       } else if (currentRoutePage === 'admin-queue' || currentRoutePage === 'admin-moderation') {
         mobileBodyHtml = getMobileAdminQueueHtml();
+      } else if (currentRoutePage === 'synthese') {
+        mobileBodyHtml = getMobileSyntheseHtml();
       } else if (currentRoutePage === 'parcelles') {
         mobileBodyHtml = getMobileParcellesHtml();
+      } else if (currentRoutePage === 'cycles') {
+        mobileBodyHtml = getMobileCyclesHtml();
+      } else if (currentRoutePage === 'finances') {
+        mobileBodyHtml = getMobileFinancesHtml();
       } else if (currentRoutePage === 'meteo') {
         mobileBodyHtml = getMobileMeteoHtml();
       } else if (currentRoutePage === 'notifications') {
@@ -1510,7 +1517,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <div>
           <div class="mobile-section-header">
             <h4>${data.tableTitle}</h4>
-            <a href="#">Voir</a>
+            <a href="#cycles" class="card-link-action" id="linkMobileAllCycles">Voir tout</a>
           </div>
           <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;">
             ${data.tableRows.slice(0, 2).map(r => `
@@ -1930,10 +1937,11 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    // Si le tiroir était ouvert avant la réécriture DOM (ex: fin de chargement météo/données en tâche de fond), le maintenir ouvert
-    if (wasDrawerOpen) {
+    // Si le tiroir était ouvert avant la réécriture DOM et qu'on n'est pas en train de naviguer, le maintenir ouvert
+    if (wasDrawerOpen && !isNavigatingRoute) {
       openMobileDrawer();
     }
+    isNavigatingRoute = false;
 
     const btnMobileLogout = document.getElementById('btnMobileLogout');
     if (btnMobileLogout) {
@@ -1968,7 +1976,7 @@ document.addEventListener('DOMContentLoaded', () => {
       btnMobNotif.addEventListener('click', (e) => {
         e.stopPropagation();
         window.location.hash = 'notifications';
-        navigateToPage('notifications');
+        handleRoute();
       });
     }
 
@@ -1987,7 +1995,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const targetRoute = lien.replace(/^#/, '');
         if (targetRoute) {
           window.location.hash = targetRoute;
-          navigateToPage(targetRoute);
+          handleRoute();
         }
       });
     });
@@ -2006,25 +2014,17 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    // Liens du tiroir mobile (Routing)
+    // Liens du tiroir mobile (Routing avec fermeture automatique)
     document.querySelectorAll('.mobile-drawer-link').forEach(link => {
       link.addEventListener('click', (e) => {
         const href = link.getAttribute('href');
         if (href && href.startsWith('#')) {
+          e.preventDefault();
           const target = href.replace(/^#/, '');
-          const allowedTargets = [
-            'synthese', 'parcelles', 'cycles', 'finances',
-            'opportunites', 'admin-financements', 'conseils', 'admin-conseils', 'admin-modeles',
-            'dashboard', 'meteo', 'notifications', 'materiel-services', 'admin-materiels',
-            'marche', 'mes-annonces', 'admin-queue', 'admin-moderation'
-          ];
-          if (allowedTargets.includes(target)) {
-            e.preventDefault();
-            closeMobileDrawer();
-            const routeTarget = (target === 'admin-moderation') ? 'admin-queue' : target;
-            window.location.hash = routeTarget;
-            navigateToPage(routeTarget);
-          }
+          isNavigatingRoute = true;
+          closeMobileDrawer();
+          window.location.hash = target;
+          handleRoute();
         }
       });
     });
@@ -2034,7 +2034,52 @@ document.addEventListener('DOMContentLoaded', () => {
       btn.addEventListener('click', (e) => {
         e.preventDefault();
         window.location.hash = 'dashboard';
-        navigateToPage('dashboard');
+        handleRoute();
+      });
+    });
+
+    // Raccourcis du tableau de bord mobile
+    // 1. Grille d'indicateurs 2x2
+    document.querySelectorAll('.mobile-stat-card').forEach((card, idx) => {
+      card.style.cursor = 'pointer';
+      card.addEventListener('click', () => {
+        if (idx === 0 || idx === 1) {
+          window.location.hash = 'finances';
+        } else if (idx === 2) {
+          window.location.hash = 'cycles';
+        } else if (idx === 3) {
+          window.location.hash = 'opportunites';
+        }
+        handleRoute();
+      });
+    });
+
+    // 2. Lien "Voir tout" des échéances urgentes
+    const linkMobAllDeadlines = document.getElementById('linkMobileAllDeadlines');
+    if (linkMobAllDeadlines) {
+      linkMobAllDeadlines.addEventListener('click', (e) => {
+        e.preventDefault();
+        window.location.hash = 'synthese';
+        handleRoute();
+      });
+    }
+
+    // 3. Lien "Voir tout" des cycles culturaux
+    const linkMobAllCycles = document.getElementById('linkMobileAllCycles');
+    if (linkMobAllCycles) {
+      linkMobAllCycles.addEventListener('click', (e) => {
+        e.preventDefault();
+        window.location.hash = 'cycles';
+        handleRoute();
+      });
+    }
+
+    // 4. Cartes des cycles culturaux
+    document.querySelectorAll('.mobile-cycle-card').forEach(card => {
+      card.style.cursor = 'pointer';
+      card.addEventListener('click', () => {
+        window.location.hash = 'cycles';
+        handleRoute();
       });
     });
 
@@ -4026,8 +4071,57 @@ document.addEventListener('DOMContentLoaded', () => {
   // MODULE FINANCEMENTS & ADMINISTRATION (SUPABASE CONNECTÉ)
   // ==========================================
 
-  // 1. Navigation & Routing
+  // 1. Navigation & Routing (Système Unifié Multi-Plateforme)
+  const ROUTE_ALIASES = {
+    '': 'dashboard',
+    'dashboard': 'dashboard',
+    'synthese': 'synthese',
+    'exploitation-synthese': 'synthese',
+    'toutes-echeances': 'synthese',
+    'parcelles': 'parcelles',
+    'exploitation-parcelles': 'parcelles',
+    'cycles': 'cycles',
+    'exploitation-cycles': 'cycles',
+    'finances': 'finances',
+    'exploitation-finances': 'finances',
+    'opportunites': 'opportunites',
+    'financements': 'opportunites',
+    'conseils': 'conseils',
+    'meteo': 'meteo',
+    'meteo-details': 'meteo',
+    'marche': 'marche',
+    'annonces': 'marche',
+    'materiel-services': 'materiel-services',
+    'materiel': 'materiel-services',
+    'mes-annonces': 'mes-annonces',
+    'notifications': 'notifications',
+    'admin-financements': 'admin-financements',
+    'admin-conseils': 'admin-conseils',
+    'admin-modeles': 'admin-modeles',
+    'admin-materiels': 'admin-materiels',
+    'admin-queue': 'admin-queue',
+    'admin-moderation': 'admin-queue',
+    'admin-verif': 'admin-verif',
+    'admin-audit': 'admin-audit',
+    'formations': 'formations',
+    'profil': 'profil',
+    'abonnements': 'abonnements',
+    'pricing': 'abonnements'
+  };
+
+  const VALID_PAGES = new Set([
+    'dashboard', 'synthese', 'parcelles', 'cycles', 'finances',
+    'opportunites', 'admin-financements', 'conseils', 'admin-conseils', 'admin-modeles',
+    'materiel-services', 'admin-materiels', 'marche', 'mes-annonces', 'admin-queue',
+    'meteo', 'notifications'
+  ]);
+
   function navigateToPage(page) {
+    if (!VALID_PAGES.has(page)) {
+      console.warn('⚠️ [Navigation] Page inconnue demandée dans navigateToPage :', page);
+      page = 'dashboard';
+    }
+
     currentRoutePage = page;
 
     if (pageSynthese) pageSynthese.classList.toggle('hidden', page !== 'synthese');
@@ -4050,7 +4144,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.querySelectorAll('.sidebar-nav .nav-item').forEach(item => {
       const itemPage = item.getAttribute('data-page');
-      if (itemPage === page || (page === 'dashboard' && itemPage === 'dashboard') || ((page === 'admin-queue' || page === 'admin-moderation') && itemPage === 'admin-queue')) {
+      const href = (item.getAttribute('href') || '').replace(/^#/, '');
+      if (itemPage === page || href === page || (page === 'dashboard' && itemPage === 'dashboard') || ((page === 'admin-queue' || page === 'admin-moderation') && itemPage === 'admin-queue')) {
         item.classList.add('active');
       } else {
         item.classList.remove('active');
@@ -4103,42 +4198,44 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function handleRoute() {
-    const hash = (window.location.hash || '').replace(/^#/, '');
-    if (hash === 'synthese') {
-      navigateToPage('synthese');
-    } else if (hash === 'parcelles') {
-      navigateToPage('parcelles');
-    } else if (hash === 'cycles') {
-      navigateToPage('cycles');
-    } else if (hash === 'finances') {
-      navigateToPage('finances');
-    } else if (hash === 'opportunites') {
-      navigateToPage('opportunites');
-    } else if (hash === 'admin-financements') {
-      navigateToPage('admin-financements');
-    } else if (hash === 'conseils') {
-      navigateToPage('conseils');
-    } else if (hash === 'admin-conseils') {
-      navigateToPage('admin-conseils');
-    } else if (hash === 'admin-modeles') {
-      navigateToPage('admin-modeles');
-    } else if (hash === 'materiel-services') {
-      navigateToPage('materiel-services');
-    } else if (hash === 'admin-materiels') {
-      navigateToPage('admin-materiels');
-    } else if (hash === 'marche') {
-      navigateToPage('marche');
-    } else if (hash === 'mes-annonces') {
-      navigateToPage('mes-annonces');
-    } else if (hash === 'admin-queue' || hash === 'admin-moderation') {
-      navigateToPage('admin-queue');
-    } else if (hash === 'meteo' || hash === 'meteo-details') {
-      navigateToPage('meteo');
-    } else if (hash === 'notifications') {
-      navigateToPage('notifications');
-    } else if (hash === 'dashboard' || hash === '') {
+    const rawHash = (window.location.hash || '').replace(/^#/, '');
+    const cleanHash = rawHash.split('?')[0];
+
+    const resolved = ROUTE_ALIASES[cleanHash];
+
+    if (!resolved) {
+      console.warn('⚠️ [Navigation] Adresse inconnue demandée :', '#' + rawHash);
+      window.location.hash = 'dashboard';
       navigateToPage('dashboard');
+      return;
     }
+
+    if (resolved === 'profil') {
+      openProfileModal();
+      return;
+    }
+
+    if (resolved === 'abonnements') {
+      openPricingModal();
+      return;
+    }
+
+    if (resolved === 'formations') {
+      showToast('Formations agricoles', 'Espace Formations bientôt disponible avec nos agronomes partenaires !');
+      return;
+    }
+
+    if (resolved === 'admin-verif') {
+      showToast('Vérification (+90j)', 'Module de vérification réservé aux agents de terrain assermentés.');
+      return;
+    }
+
+    if (resolved === 'admin-audit') {
+      showToast('Journal d\'audit', 'Toutes les actions d\'administration sont journalisées et sécurisées.');
+      return;
+    }
+
+    navigateToPage(resolved);
   }
 
   window.addEventListener('hashchange', handleRoute);
@@ -4148,19 +4245,10 @@ document.addEventListener('DOMContentLoaded', () => {
     link.addEventListener('click', (e) => {
       const href = link.getAttribute('href');
       if (href && href.startsWith('#')) {
-        const page = href.replace(/^#/, '');
-        const validPages = [
-          'synthese', 'parcelles', 'cycles', 'finances',
-          'opportunites', 'admin-financements', 'conseils', 'admin-conseils', 'admin-modeles',
-          'dashboard', 'meteo', 'notifications', 'materiel-services', 'admin-materiels',
-          'marche', 'mes-annonces', 'admin-queue', 'admin-moderation'
-        ];
-        if (validPages.includes(page)) {
-          e.preventDefault();
-          const routeTarget = (page === 'admin-moderation') ? 'admin-queue' : page;
-          window.location.hash = routeTarget;
-          navigateToPage(routeTarget);
-        }
+        e.preventDefault();
+        const target = href.replace(/^#/, '');
+        window.location.hash = target;
+        handleRoute();
       }
     });
   });
@@ -4170,25 +4258,87 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.addEventListener('click', (e) => {
       e.preventDefault();
       window.location.hash = 'dashboard';
-      navigateToPage('dashboard');
+      handleRoute();
     });
   });
 
-  // Raccourci opportunités & Clic sur Carte 4
-  const btnShortcutOpps = document.getElementById('btnShortcutOpps');
-  if (btnShortcutOpps) {
-    btnShortcutOpps.addEventListener('click', () => {
-      window.location.hash = 'opportunites';
-      navigateToPage('opportunites');
+  // Raccourcis du tableau de bord bureau
+  // 1. Les 4 Cartes Pastel de Statistiques
+  const statCard1 = document.getElementById('statCard1');
+  if (statCard1) {
+    statCard1.style.cursor = 'pointer';
+    statCard1.setAttribute('title', 'Voir les finances et marges');
+    statCard1.addEventListener('click', () => {
+      window.location.hash = 'finances';
+      handleRoute();
+    });
+  }
+
+  const statCard2 = document.getElementById('statCard2');
+  if (statCard2) {
+    statCard2.style.cursor = 'pointer';
+    statCard2.setAttribute('title', 'Voir les finances et marges');
+    statCard2.addEventListener('click', () => {
+      window.location.hash = 'finances';
+      handleRoute();
+    });
+  }
+
+  const statCard3 = document.getElementById('statCard3');
+  if (statCard3) {
+    statCard3.style.cursor = 'pointer';
+    statCard3.setAttribute('title', 'Voir les cycles culturaux');
+    statCard3.addEventListener('click', () => {
+      window.location.hash = 'cycles';
+      handleRoute();
     });
   }
 
   const statCard4 = document.getElementById('statCard4');
   if (statCard4) {
     statCard4.style.cursor = 'pointer';
+    statCard4.setAttribute('title', 'Voir les opportunités de financement');
     statCard4.addEventListener('click', () => {
       window.location.hash = 'opportunites';
-      navigateToPage('opportunites');
+      handleRoute();
+    });
+  }
+
+  const btnShortcutOpps = document.getElementById('btnShortcutOpps');
+  if (btnShortcutOpps) {
+    btnShortcutOpps.addEventListener('click', () => {
+      window.location.hash = 'opportunites';
+      handleRoute();
+    });
+  }
+
+  // 2. Lien "Voir tout" des échéances urgentes (Desktop)
+  const linkAllDeadlines = document.getElementById('linkAllDeadlines');
+  if (linkAllDeadlines) {
+    linkAllDeadlines.addEventListener('click', (e) => {
+      e.preventDefault();
+      window.location.hash = 'synthese';
+      handleRoute();
+    });
+  }
+
+  // 3. Lien "Voir toutes les parcelles →" (Desktop)
+  const linkToParcellesPage = document.getElementById('linkToParcellesPage');
+  if (linkToParcellesPage) {
+    linkToParcellesPage.addEventListener('click', (e) => {
+      e.preventDefault();
+      window.location.hash = 'parcelles';
+      handleRoute();
+    });
+  }
+
+  // 4. Lien "Prévisions 7j →" météo (Desktop)
+  const linkToMeteoPage = document.getElementById('linkToMeteoPage');
+  if (linkToMeteoPage) {
+    linkToMeteoPage.addEventListener('click', (e) => {
+      e.preventDefault();
+      window.location.hash = 'meteo';
+      handleRoute();
     });
   }
 
@@ -8404,6 +8554,324 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
   }
 
+  function getMobileSyntheseHtml() {
+    const parcels = cachedUserParcels || [];
+    const cycles = cachedCropCycles || [];
+    const tasks = cachedCycleTasks || [];
+
+    const totalHa = parcels.reduce((sum, p) => sum + (parseFloat(p.area_ha) || 0), 0);
+    const activeCycles = cycles.filter(c => c.status !== 'Terminé' && c.status !== 'Récolté');
+    const campaignMargin = (currentRevenueTotal || 0) - (currentExpenseTotal || 0);
+
+    let bestCrop = null;
+    let maxGain = 0;
+    cycles.forEach(c => {
+      const exp = (cachedExpenses || []).filter(e => e.crop_cycle_id === c.id).reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
+      const rev = (cachedRevenues || []).filter(r => r.crop_cycle_id === c.id).reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0);
+      const gain = rev - exp;
+      if (gain > maxGain) {
+        maxGain = gain;
+        bestCrop = c;
+      }
+    });
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const horizon = new Date();
+    horizon.setDate(horizon.getDate() + 30);
+
+    const deadlines = [];
+    tasks.filter(t => t.statut !== 'fait' && t.date_prevue).forEach(t => {
+      const d = new Date(t.date_prevue);
+      if (d >= today && d <= horizon) {
+        const cycleObj = cycles.find(c => String(c.id) === String(t.crop_cycle_id));
+        deadlines.push({
+          date: d,
+          icon: '📋',
+          title: t.titre,
+          sub: cycleObj ? `${cycleObj.crop_name} (${cycleObj.parcels?.name || 'Parcelle'})` : 'Travail agricole',
+          badge: 'Tâche'
+        });
+      }
+    });
+
+    activeCycles.filter(c => c.repiquage_date).forEach(c => {
+      const d = new Date(c.repiquage_date);
+      if (d >= today && d <= horizon) {
+        deadlines.push({
+          date: d,
+          icon: '🌱',
+          title: `Repiquage de ${c.crop_name}`,
+          sub: `Parcelle : ${c.parcels?.name || 'Parcelle'}`,
+          badge: 'Repiquage'
+        });
+      }
+    });
+
+    activeCycles.filter(c => c.harvest_date_min || c.estimated_harvest_date).forEach(c => {
+      const dateHarvestStr = c.harvest_date_min || c.estimated_harvest_date;
+      const d = new Date(dateHarvestStr);
+      if (d >= today && d <= horizon) {
+        deadlines.push({
+          date: d,
+          icon: '🌾',
+          title: `Récolte de ${c.crop_name}`,
+          sub: `Parcelle : ${c.parcels?.name || 'Parcelle'}`,
+          badge: 'Récolte'
+        });
+      }
+    });
+
+    deadlines.sort((a, b) => a.date - b.date);
+
+    return `
+      <div style="margin-bottom: 12px;">
+        <a href="#dashboard" class="breadcrumb-back-link mobile-back-to-dashboard" style="font-size: 12px; margin-bottom: 8px; display: inline-flex; align-items: center; gap: 4px; color: #1E5E2A; font-weight: 700; text-decoration: none;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+          <span>Tableau de bord</span>
+        </a>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <h2 style="font-size: 18px; font-weight: 800; color: #1E2822; margin: 0 0 2px;">📊 Synthèse de l'Exploitation</h2>
+            <p style="font-size: 11.5px; color: #5B6660; margin: 0;">Vue consolidée parcelles & rentabilité</p>
+          </div>
+          <a href="#finances" class="btn-secondary" style="font-size: 11px; padding: 6px 10px; font-weight: 700; text-decoration: none; border-radius: 8px;">💰 Finances →</a>
+        </div>
+      </div>
+
+      <!-- Grille 4 indicateurs mobile -->
+      <div class="mobile-stat-grid" style="margin-bottom: 16px;">
+        <div class="mobile-stat-card">
+          <span class="mobile-stat-title">SURFACE CULTIVÉE</span>
+          <div class="mobile-stat-val">${totalHa.toFixed(1)} <small style="font-size: 10px;">ha</small></div>
+          <span class="mobile-stat-trend text-green">${parcels.length} parcelle${parcels.length > 1 ? 's' : ''}</span>
+        </div>
+        <div class="mobile-stat-card">
+          <span class="mobile-stat-title">CYCLES ACTIFS</span>
+          <div class="mobile-stat-val">${activeCycles.length}</div>
+          <span class="mobile-stat-trend text-green">En production</span>
+        </div>
+        <div class="mobile-stat-card">
+          <span class="mobile-stat-title">MARGE CAMPAGNE</span>
+          <div class="mobile-stat-val" style="font-size: 15px; color: ${campaignMargin >= 0 ? '#1E5E2A' : '#C53030'};">${campaignMargin >= 0 ? '+' : ''}${formatFrancsCFA(campaignMargin)}</div>
+          <span class="mobile-stat-trend ${campaignMargin >= 0 ? 'text-green' : 'text-red'}">Recettes − Dépenses</span>
+        </div>
+        <div class="mobile-stat-card">
+          <span class="mobile-stat-title">TOP RENTABILITÉ</span>
+          <div class="mobile-stat-val" style="font-size: 13.5px;">${bestCrop ? escapeHtml(bestCrop.crop_name) : '--'}</div>
+          <span class="mobile-stat-trend text-green">${maxGain > 0 ? '+' + formatFrancsCFA(maxGain) : 'Aucun gain'}</span>
+        </div>
+      </div>
+
+      <!-- Prochaines Échéances (30j) -->
+      <div style="margin-bottom: 16px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <h3 style="font-size: 14px; font-weight: 800; color: #1E2822; margin: 0;">📅 Échéances sous 30 jours</h3>
+          <span class="nav-pill-count">${deadlines.length}</span>
+        </div>
+        ${deadlines.length === 0 ? `
+          <div style="text-align: center; padding: 20px 14px; background: #FFF; border-radius: 12px; border: 1px dashed #CBD5E1;">
+            <p style="font-size: 12px; color: #5D6C63; margin: 0;">Aucune échéance prévue dans les 30 prochains jours.</p>
+          </div>
+        ` : `
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            ${deadlines.map(d => {
+              const diffDays = Math.round((d.date - today) / (1000 * 60 * 60 * 24));
+              let countdownText = '';
+              if (diffDays === 0) countdownText = "Aujourd'hui";
+              else if (diffDays === 1) countdownText = "Demain";
+              else countdownText = `Dans ${diffDays} jours`;
+
+              return `
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: #FFF; border: 1px solid #E2E8F0; border-radius: 10px;">
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 18px;">${d.icon}</span>
+                    <div>
+                      <strong style="font-size: 12.5px; display: block; color: #1E2822;">${escapeHtml(d.title)}</strong>
+                      <span style="font-size: 11px; color: #5D6C63;">${escapeHtml(d.sub)}</span>
+                    </div>
+                  </div>
+                  <span style="font-size: 10.5px; font-weight: 700; color: #1E5E2A; background: #EAF4E6; padding: 3px 8px; border-radius: 99px; white-space: nowrap;">${countdownText}</span>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        `}
+      </div>
+    `;
+  }
+
+  function getMobileCyclesHtml() {
+    const cycles = cachedCropCycles || [];
+    const statusFilter = cyclesActiveStatusFilter || 'all';
+
+    const itemsWithStatus = cycles.map(c => ({
+      cycle: c,
+      statusInfo: calculateCycleStatus(c)
+    }));
+
+    const filtered = itemsWithStatus.filter(item => {
+      if (statusFilter === 'all') return true;
+      return item.statusInfo.key === statusFilter;
+    });
+
+    return `
+      <div style="margin-bottom: 12px;">
+        <a href="#dashboard" class="breadcrumb-back-link mobile-back-to-dashboard" style="font-size: 12px; margin-bottom: 8px; display: inline-flex; align-items: center; gap: 4px; color: #1E5E2A; font-weight: 700; text-decoration: none;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+          <span>Tableau de bord</span>
+        </a>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <h2 style="font-size: 18px; font-weight: 800; color: #1E2822; margin: 0 0 2px;">🌱 Cycles Culturaux</h2>
+            <p style="font-size: 11.5px; color: #5B6660; margin: 0;">${cycles.length} cycle${cycles.length > 1 ? 's' : ''} au total</p>
+          </div>
+          <button type="button" class="btn-primary" onclick="openAddCropCycleModal()" style="padding: 6px 10px; font-size: 11.5px; font-weight: 700; border-radius: 8px; cursor: pointer;">+ Démarrer</button>
+        </div>
+      </div>
+
+      <!-- Filtres horizontaux mobiles -->
+      <div class="filter-types-scroll" style="margin-bottom: 12px; overflow-x: auto; white-space: nowrap; padding-bottom: 4px;">
+        <button type="button" class="mobile-cycle-filter-chip ${statusFilter === 'all' ? 'active' : ''}" data-status="all" style="padding: 5px 10px; font-size: 11px; border-radius: 99px; margin-right: 6px; cursor: pointer;">Tous</button>
+        <button type="button" class="mobile-cycle-filter-chip ${statusFilter === 'pepiniere' ? 'active' : ''}" data-status="pepiniere" style="padding: 5px 10px; font-size: 11px; border-radius: 99px; margin-right: 6px; cursor: pointer;">🌱 Pépinière</button>
+        <button type="button" class="mobile-cycle-filter-chip ${statusFilter === 'croissance' ? 'active' : ''}" data-status="croissance" style="padding: 5px 10px; font-size: 11px; border-radius: 99px; margin-right: 6px; cursor: pointer;">🌿 Croissance</button>
+        <button type="button" class="mobile-cycle-filter-chip ${statusFilter === 'recolte_proche' ? 'active' : ''}" data-status="recolte_proche" style="padding: 5px 10px; font-size: 11px; border-radius: 99px; margin-right: 6px; cursor: pointer;">⏳ Récolte proche</button>
+        <button type="button" class="mobile-cycle-filter-chip ${statusFilter === 'recolte' ? 'active' : ''}" data-status="recolte" style="padding: 5px 10px; font-size: 11px; border-radius: 99px; margin-right: 6px; cursor: pointer;">🌾 À récolter</button>
+        <button type="button" class="mobile-cycle-filter-chip ${statusFilter === 'termine' ? 'active' : ''}" data-status="termine" style="padding: 5px 10px; font-size: 11px; border-radius: 99px; margin-right: 6px; cursor: pointer;">✅ Terminés</button>
+      </div>
+
+      <!-- Liste des cartes de cycles -->
+      <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px;">
+        ${filtered.length === 0 ? `
+          <div style="text-align: center; padding: 24px 16px; background: #fff; border-radius: 12px; border: 1px dashed #CBD5E1;">
+            <div style="font-size: 26px; margin-bottom: 4px;">🌱</div>
+            <strong style="font-size: 13.5px; color: #1E2822; display: block; margin-bottom: 4px;">Aucun cycle dans cette catégorie</strong>
+            <p style="font-size: 11.5px; color: #5D6C63; margin: 0 0 10px;">Lancez une nouvelle culture avec un modèle agronomique.</p>
+            <button type="button" class="btn-primary" onclick="openAddCropCycleModal()" style="margin: 0 auto; padding: 7px 14px; font-size: 12px;">+ Démarrer un cycle</button>
+          </div>
+        ` : filtered.map(item => {
+          const c = item.cycle;
+          const s = item.statusInfo;
+          const exp = (cachedExpenses || []).filter(e => e.crop_cycle_id === c.id).reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
+          const rev = (cachedRevenues || []).filter(r => r.crop_cycle_id === c.id).reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0);
+          const gain = rev - exp;
+
+          return `
+            <div style="background: #FFF; border: 1.5px solid #E2E8F0; border-radius: 12px; padding: 14px; border-left: 4px solid #1E5E2A;">
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
+                <div>
+                  <h4 style="font-size: 15px; font-weight: 800; color: #1E2822; margin: 0 0 2px;">🌱 ${escapeHtml(c.crop_name)}</h4>
+                  <span style="font-size: 11px; color: #5D6C63;">📍 ${escapeHtml(c.parcels?.name || 'Parcelle')} ${c.variete ? '• ' + escapeHtml(c.variete) : ''}</span>
+                </div>
+                <span class="badge-state ${s.badgeClass}" style="font-size: 10px;">${s.label}</span>
+              </div>
+
+              <!-- Dates clés -->
+              <div style="font-size: 11.5px; color: #4F6456; background: #F8FAF7; padding: 8px 10px; border-radius: 8px; margin: 8px 0;">
+                <div>Semis : <strong>${c.planting_date ? formatDateEnToutesLettres(new Date(c.planting_date)) : '-'}</strong></div>
+                ${c.repiquage_date ? `<div>Repiquage : <strong>${formatDateEnToutesLettres(new Date(c.repiquage_date))}</strong></div>` : ''}
+                <div>Récolte : <strong style="color: #1E5E2A;">${c.harvest_date_min ? formatDateEnToutesLettres(new Date(c.harvest_date_min)) : (c.estimated_harvest_date ? formatDateEnToutesLettres(new Date(c.estimated_harvest_date)) : 'Non définie')}</strong></div>
+              </div>
+
+              <!-- Marge du cycle -->
+              <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; border-top: 1px solid #EEE; padding-top: 8px;">
+                <span style="color: #5D6C63;">Marge nette :</span>
+                <strong style="font-family: 'JetBrains Mono', monospace; color: ${gain >= 0 ? '#1E5E2A' : '#C53030'};">${gain >= 0 ? '+' : ''}${formatFrancsCFA(gain)}</strong>
+              </div>
+
+              <!-- Actions du cycle -->
+              <div style="display: flex; justify-content: flex-end; gap: 6px; margin-top: 10px;">
+                <button type="button" onclick="openAddCycleTaskModal('${c.id}')" style="padding: 4px 8px; font-size: 11px; background: #EAF4E6; color: #1E5E2A; border: 1px solid #C4DFC0; border-radius: 6px; font-weight: 700; cursor: pointer;">📋 + Tâche</button>
+                <button type="button" onclick="deleteCropCycle('${c.id}')" style="padding: 4px 8px; font-size: 11px; color: #C62828; border: 1px solid #F8B4B0; background: #FFF; border-radius: 6px; cursor: pointer;">🗑️ Supprimer</button>
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+  }
+
+  function getMobileFinancesHtml() {
+    const curExp = currentMonthExpenseTotal || 0;
+    const curRev = currentMonthRevenueTotal || 0;
+    const totalExp = currentExpenseTotal || 0;
+    const totalRev = currentRevenueTotal || 0;
+    const campaignMargin = totalRev - totalExp;
+    const cycles = cachedCropCycles || [];
+
+    return `
+      <div style="margin-bottom: 12px;">
+        <a href="#dashboard" class="breadcrumb-back-link mobile-back-to-dashboard" style="font-size: 12px; margin-bottom: 8px; display: inline-flex; align-items: center; gap: 4px; color: #1E5E2A; font-weight: 700; text-decoration: none;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+          <span>Tableau de bord</span>
+        </a>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <h2 style="font-size: 18px; font-weight: 800; color: #1E2822; margin: 0 0 2px;">💰 Finances & Marges</h2>
+            <p style="font-size: 11.5px; color: #5B6660; margin: 0;">Trésorerie & Rentabilité réelle</p>
+          </div>
+          <button type="button" class="btn-secondary" onclick="openCompteExploitationModal()" style="font-size: 11px; padding: 6px 10px; font-weight: 800; border-color: #C8862A; color: #8A4F00; border-radius: 8px;">📄 Bilan PDF</button>
+        </div>
+      </div>
+
+      <!-- 3 cartes financières mobile -->
+      <div class="mobile-stat-grid" style="margin-bottom: 14px;">
+        <div class="mobile-stat-card">
+          <span class="mobile-stat-title">DÉPENSES DU MOIS</span>
+          <div class="mobile-stat-val" style="font-size: 15px; color: #C53030;">${formatFrancsCFA(curExp)}</div>
+          <span class="mobile-stat-trend text-red">Charges réelles</span>
+        </div>
+        <div class="mobile-stat-card">
+          <span class="mobile-stat-title">RECETTES DU MOIS</span>
+          <div class="mobile-stat-val" style="font-size: 15px; color: #1E5E2A;">${formatFrancsCFA(curRev)}</div>
+          <span class="mobile-stat-trend text-green">Ventes récoltes</span>
+        </div>
+        <div class="mobile-stat-card" style="grid-column: 1 / -1;">
+          <span class="mobile-stat-title">MARGE NETTE DE CAMPAGNE (RECETTES − DÉPENSES)</span>
+          <div class="mobile-stat-val" style="font-size: 18px; color: ${campaignMargin >= 0 ? '#1E5E2A' : '#C53030'};">${campaignMargin >= 0 ? '+' : ''}${formatFrancsCFA(campaignMargin)}</div>
+          <span class="mobile-stat-trend ${campaignMargin >= 0 ? 'text-green' : 'text-red'}">${campaignMargin >= 0 ? 'Bénéfice net consolidé' : 'Déficit d\'exploitation'}</span>
+        </div>
+      </div>
+
+      <!-- Actions rapides mobile -->
+      <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+        <button type="button" class="btn-primary" onclick="openExpenseModal()" style="flex: 1; padding: 9px; font-size: 12px; font-weight: 700;">💸 + Dépense</button>
+        <button type="button" class="btn-revenue-action" onclick="openRevenueModal()" style="flex: 1; padding: 9px; font-size: 12px; font-weight: 700;">🌾 + Vente récolte</button>
+      </div>
+
+      <!-- Détail de rentabilité par culture -->
+      <h3 style="font-size: 14px; font-weight: 800; color: #1E2822; margin: 0 0 8px;">🌾 Rentabilité par Culture</h3>
+      <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
+        ${cycles.length === 0 ? `
+          <div style="text-align: center; padding: 20px; background: #FFF; border-radius: 12px; border: 1px dashed #CBD5E1;">
+            <p style="font-size: 12px; color: #5D6C63; margin: 0;">Aucune culture enregistrée pour le calcul de rentabilité.</p>
+          </div>
+        ` : cycles.map(c => {
+          const exp = (cachedExpenses || []).filter(e => e.crop_cycle_id === c.id).reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
+          const rev = (cachedRevenues || []).filter(r => r.crop_cycle_id === c.id).reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0);
+          const gain = rev - exp;
+
+          return `
+            <div style="background: #FFF; border: 1px solid #E2E8F0; border-radius: 10px; padding: 12px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <strong style="font-size: 13.5px; color: #1E2822;">🌱 ${escapeHtml(c.crop_name)}</strong>
+                <span style="font-size: 11px; color: #5D6C63;">${escapeHtml(c.parcels?.name || 'Parcelle')}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; font-size: 11.5px; color: #5D6C63; margin-bottom: 4px;">
+                <span>Dépenses : <strong style="color: #C53030;">${formatFrancsCFA(exp)}</strong></span>
+                <span>Ventes : <strong style="color: #1E5E2A;">${formatFrancsCFA(rev)}</strong></span>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #EEE; padding-top: 6px; margin-top: 4px;">
+                <span style="font-size: 11px; font-weight: 700; color: #1E2822;">Gain net :</span>
+                <strong style="font-size: 12.5px; font-family: 'JetBrains Mono', monospace; color: ${gain >= 0 ? '#1E5E2A' : '#C53030'};">${gain >= 0 ? '+' : ''}${formatFrancsCFA(gain)}</strong>
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+  }
+
   // Écouteurs Gestion des Parcelles
   const btnOpenAddParcelPage = document.getElementById('btnOpenAddParcelPage');
   if (btnOpenAddParcelPage) {
@@ -9839,7 +10307,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const targetRoute = lien.replace(/^#/, '');
         if (targetRoute) {
           window.location.hash = targetRoute;
-          navigateToPage(targetRoute);
+          handleRoute();
         }
       });
     });
@@ -9852,7 +10320,9 @@ document.addEventListener('DOMContentLoaded', () => {
       date_limite: '⏳',
       conseil: '💡',
       meteo: '🌦️',
-      info: '📢'
+      info: '📢',
+      agronomique: '🌾',
+      tache: '📋'
     };
 
     const labelsByType = {
@@ -9860,7 +10330,9 @@ document.addEventListener('DOMContentLoaded', () => {
       date_limite: 'Échéance',
       conseil: 'Conseil',
       meteo: 'Météo',
-      info: 'Info'
+      info: 'Info',
+      agronomique: 'Rappel culture',
+      tache: 'Travail agricole'
     };
 
     return `

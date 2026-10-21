@@ -613,9 +613,44 @@ Depuis la version 2.9, l'application est entièrement Full Stack connectée au p
   3. *Préservation de l'état du drawer* : `renderMobileView()` mémorise `wasDrawerOpen` avant toute réécriture DOM et rétablit immédiatement l'ouverture si le tiroir était déployé.
   4. *Protection stricte anti-propagation* : Ajout systématique de `e.stopPropagation()` et `e.preventDefault()` sur les boutons d'ouverture (☰ hamburger, avatar), les boutons de fermeture (✕ croix, clic overlay) et les boutons d'actions principales bureau et mobile (cloche notifications, + Dépense, + Vente, profil).
 
+### Y. Correction Intégrale de la Navigation & Routage Unifié Multi-Plateforme (v6.4)
+- **Origine du dysfonctionnement identifiée** :
+  1. *Absence de branches mobiles pour l'Exploitation* : Dans `renderMobileView()`, `currentRoutePage` n'avait pas de branches pour `'synthese'`, `'cycles'` et `'finances'`. La navigation tombait systématiquement dans le bloc `else` par défaut qui réinjectait le HTML du tableau de bord.
+  2. *Réouverture parasite du tiroir mobile* : Lors du clic sur un lien du menu, `navigateToPage` réexécutait `renderMobileView` qui réactivait l'ouverture via `if (wasDrawerOpen) openMobileDrawer()`.
+  3. *Manque de table de correspondance (alias et liens notifications)* : Les ancres utilisées par les notifications (`#exploitation-cycles`, `#opportunites`, etc.) ou les raccourcis du dashboard (`#toutes-echeances`) n'étaient pas résolues dans `handleRoute()`.
+- **Correctifs Appliqués** :
+  1. *Routage mobile complet de « Mon exploitation »* : Ajout des 3 fonctions de rendu dédiées `getMobileSyntheseHtml()`, `getMobileCyclesHtml()` et `getMobileFinancesHtml()` dans `renderMobileView()`.
+  2. *Dictionnaire unifié de résolution (`ROUTE_ALIASES`)* : Mappage complet de toutes les ancres principales et de tous les alias :
+     - `#synthese`, `#exploitation-synthese`, `#toutes-echeances` → Synthèse de l'exploitation
+     - `#parcelles`, `#exploitation-parcelles` → Parcelles & cultures
+     - `#cycles`, `#exploitation-cycles` → Cycles culturaux (semis, repiquages, récoltes)
+     - `#finances`, `#exploitation-finances` → Finances & Marges réelles
+     - `#opportunites`, `#financements` → Opportunités & Subventions
+     - `#conseils` → Conseils agronomiques
+     - `#meteo`, `#meteo-details` → Météo agricole & Prévisions 7j
+     - `#marche`, `#annonces` → Marché agricole
+     - `#materiel-services`, `#materiel` → Matériel & Services
+     - `#mes-annonces` → Mes annonces
+     - `#admin-financements`, `#admin-conseils`, `#admin-modeles`, `#admin-materiels`, `#admin-queue` → Administration
+     - `#notifications` → Centre de notifications réelles
+     - `#abonnements`, `#pricing` → Modale Forfaits Pro
+     - `#profil` → Modale Profil & Paramètres
+  3. *Fermeture automatique du menu sur téléphone* :
+     - Tout clic sur `.mobile-drawer-link` déclenche `isNavigatingRoute = true; closeMobileDrawer();`.
+     - `renderMobileView()` vérifie `if (wasDrawerOpen && !isNavigatingRoute) openMobileDrawer(); isNavigatingRoute = false;`, garantissant la fermeture immédiate et durable du menu lors d'une navigation.
+  4. *Raccordement de tous les raccourcis du tableau de bord* :
+     - Cartes 1 et 2 (Dépenses / Recettes) → `#finances`
+     - Carte 3 (Cycles en cours) → `#cycles`
+     - Carte 4 (Opportunités ouvertes) → `#opportunites`
+     - « Voir tout » des échéances urgentes (bureau et mobile) → `#synthese`
+     - « Voir toutes les parcelles → » → `#parcelles`
+     - « Prévisions 7j → » et carte météo mobile → `#meteo`
+  5. *Gestion résiliente des adresses inconnues avec console.warn* :
+     - Toute ancre non répertoriée déclenche `console.warn('⚠️ [Navigation] Adresse inconnue demandée :', '#' + rawHash);`, redirige vers `#dashboard` et affiche le tableau de bord de secours.
+
 ---
 
-*Fin du document de spécification système — Version 6.3 • Révolution Agricole Burkina Faso.*
+*Fin du document de spécification système — Version 6.4 • Révolution Agricole Burkina Faso.*
 
 
 
