@@ -9591,7 +9591,7 @@ a.btn-fiche-call,
 /* Point 3 : Bouton rond vert (+) 16px au-dessus de la barre de navigation basse */
 .mobile-fab-btn {
   position: fixed !important;
-  bottom: calc(var(--mobile-bottom-nav-height, 68px) + env(safe-area-inset-bottom, 0px) + 16px) !important;
+  bottom: calc(var(--mobile-bottom-nav-height, 64px) + env(safe-area-inset-bottom, 0px) + 16px) !important;
   right: 20px !important;
   width: 52px !important;
   height: 52px !important;
