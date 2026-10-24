@@ -4726,7 +4726,9 @@ document.addEventListener('DOMContentLoaded', () => {
     'abonnements': 'abonnements',
     'pricing': 'abonnements',
     'installer': 'installer',
-    'install': 'installer'
+    'install': 'installer',
+    'reset-password': 'reset-password',
+    'nouveau-mot-de-passe': 'reset-password'
   };
 
   const VALID_PAGES = new Set([
@@ -4878,6 +4880,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (resolved === 'installer') {
       triggerPwaInstallFlow();
+      return;
+    }
+
+    if (resolved === 'reset-password') {
+      showResetPasswordScreen();
       return;
     }
 
@@ -10570,27 +10577,117 @@ document.addEventListener('DOMContentLoaded', () => {
   const linkToLogin = document.getElementById('linkToLogin');
   const btnGoogleAuth = document.getElementById('btnGoogleAuth');
 
-  // Bascule entre Se connecter et Créer un compte
+  // Formulaires et boutons de récupération de mot de passe
+  const portalForgotPasswordForm = document.getElementById('portalForgotPasswordForm');
+  const portalResetPasswordForm = document.getElementById('portalResetPasswordForm');
+  const linkForgotPassword = document.getElementById('linkForgotPassword');
+  const btnBannerForgotPassword = document.getElementById('btnBannerForgotPassword');
+  const btnBannerGoogleAuth = document.getElementById('btnBannerGoogleAuth');
+  const linkBackFromForgot = document.getElementById('linkBackFromForgot');
+  const linkBackToLoginFromReset = document.getElementById('linkBackToLoginFromReset');
+
+  // Bascule entre Se connecter, Créer un compte, Mot de passe oublié et Nouveau mot de passe
   function switchPortalTab(tab) {
+    const tabsContainer = document.querySelector('.portal-tabs');
+    const dividerContainer = document.querySelector('.portal-divider');
+    const googleBtn = document.getElementById('btnGoogleAuth');
+
+    // Cacher les alertes existantes
+    const loginErrorBanner = document.getElementById('portalLoginErrorBanner');
+    if (loginErrorBanner) loginErrorBanner.classList.add('hidden');
+    const forgotAlert = document.getElementById('forgotPasswordAlert');
+    if (forgotAlert) forgotAlert.classList.add('hidden');
+    const forgotSuccess = document.getElementById('forgotPasswordSuccess');
+    if (forgotSuccess) forgotSuccess.classList.add('hidden');
+    const resetAlert = document.getElementById('resetPasswordAlert');
+    if (resetAlert) resetAlert.classList.add('hidden');
+    const resetSuccess = document.getElementById('resetPasswordSuccess');
+    if (resetSuccess) resetSuccess.classList.add('hidden');
+
     if (tab === 'login') {
+      if (tabsContainer) tabsContainer.classList.remove('hidden');
+      if (dividerContainer) dividerContainer.classList.remove('hidden');
+      if (googleBtn) googleBtn.classList.remove('hidden');
       if (btnPortalTabLogin) btnPortalTabLogin.classList.add('active');
       if (btnPortalTabRegister) btnPortalTabRegister.classList.remove('active');
       if (portalLoginForm) portalLoginForm.classList.remove('hidden');
       if (portalRegisterForm) portalRegisterForm.classList.add('hidden');
+      if (portalForgotPasswordForm) portalForgotPasswordForm.classList.add('hidden');
+      if (portalResetPasswordForm) portalResetPasswordForm.classList.add('hidden');
       if (portalLoginEmail) portalLoginEmail.focus();
-    } else {
+    } else if (tab === 'register') {
+      if (tabsContainer) tabsContainer.classList.remove('hidden');
+      if (dividerContainer) dividerContainer.classList.remove('hidden');
+      if (googleBtn) googleBtn.classList.remove('hidden');
       if (btnPortalTabRegister) btnPortalTabRegister.classList.add('active');
       if (btnPortalTabLogin) btnPortalTabLogin.classList.remove('active');
       if (portalRegisterForm) portalRegisterForm.classList.remove('hidden');
       if (portalLoginForm) portalLoginForm.classList.add('hidden');
+      if (portalForgotPasswordForm) portalForgotPasswordForm.classList.add('hidden');
+      if (portalResetPasswordForm) portalResetPasswordForm.classList.add('hidden');
       if (portalRegEmail) portalRegEmail.focus();
+    } else if (tab === 'forgot') {
+      if (tabsContainer) tabsContainer.classList.add('hidden');
+      if (dividerContainer) dividerContainer.classList.add('hidden');
+      if (googleBtn) googleBtn.classList.add('hidden');
+      if (portalLoginForm) portalLoginForm.classList.add('hidden');
+      if (portalRegisterForm) portalRegisterForm.classList.add('hidden');
+      if (portalForgotPasswordForm) portalForgotPasswordForm.classList.remove('hidden');
+      if (portalResetPasswordForm) portalResetPasswordForm.classList.add('hidden');
+      const forgotEmail = document.getElementById('portalForgotEmail');
+      if (forgotEmail) {
+        if (portalLoginEmail && portalLoginEmail.value.includes('@')) {
+          forgotEmail.value = portalLoginEmail.value.trim();
+        }
+        forgotEmail.focus();
+      }
+    } else if (tab === 'reset') {
+      if (tabsContainer) tabsContainer.classList.add('hidden');
+      if (dividerContainer) dividerContainer.classList.add('hidden');
+      if (googleBtn) googleBtn.classList.add('hidden');
+      if (portalLoginForm) portalLoginForm.classList.add('hidden');
+      if (portalRegisterForm) portalRegisterForm.classList.add('hidden');
+      if (portalForgotPasswordForm) portalForgotPasswordForm.classList.add('hidden');
+      if (portalResetPasswordForm) portalResetPasswordForm.classList.remove('hidden');
+      const newPass = document.getElementById('portalNewPassword');
+      if (newPass) newPass.focus();
     }
+  }
+
+  function showResetPasswordScreen() {
+    const authPortalScreen = document.getElementById('authPortalScreen');
+    if (authPortalScreen) authPortalScreen.classList.remove('hidden');
+    if (viewportContainer) viewportContainer.classList.add('hidden');
+    switchPortalTab('reset');
   }
 
   if (btnPortalTabLogin) btnPortalTabLogin.addEventListener('click', () => switchPortalTab('login'));
   if (btnPortalTabRegister) btnPortalTabRegister.addEventListener('click', () => switchPortalTab('register'));
   if (linkToRegister) linkToRegister.addEventListener('click', () => switchPortalTab('register'));
   if (linkToLogin) linkToLogin.addEventListener('click', () => switchPortalTab('login'));
+  if (linkForgotPassword) linkForgotPassword.addEventListener('click', () => switchPortalTab('forgot'));
+  if (btnBannerForgotPassword) btnBannerForgotPassword.addEventListener('click', () => switchPortalTab('forgot'));
+  if (btnBannerGoogleAuth) {
+    btnBannerGoogleAuth.addEventListener('click', () => {
+      if (btnGoogleAuth) btnGoogleAuth.click();
+    });
+  }
+  if (linkBackFromForgot) linkBackFromForgot.addEventListener('click', () => switchPortalTab('login'));
+  if (linkBackToLoginFromReset) linkBackToLoginFromReset.addEventListener('click', () => switchPortalTab('login'));
+
+  // Disparition de la bannière d'erreur lors de la saisie
+  if (portalLoginEmail) {
+    portalLoginEmail.addEventListener('input', () => {
+      const banner = document.getElementById('portalLoginErrorBanner');
+      if (banner) banner.classList.add('hidden');
+    });
+  }
+  if (portalLoginPass) {
+    portalLoginPass.addEventListener('input', () => {
+      const banner = document.getElementById('portalLoginErrorBanner');
+      if (banner) banner.classList.add('hidden');
+    });
+  }
 
   // Détection automatique plein écran mobile vs bureau
   function autoDetectResponsiveMode() {
@@ -10948,7 +11045,29 @@ document.addEventListener('DOMContentLoaded', () => {
           }
 
           if (error) {
-            showToast('️ Erreur connexion', error.message || 'Identifiant ou mot de passe incorrect.');
+            const errMsg = error.message || '';
+            const isInvalidCreds = errMsg.toLowerCase().includes('invalid login credentials') ||
+                                   errMsg.toLowerCase().includes('invalid credentials') ||
+                                   errMsg.toLowerCase().includes('invalid_grant') ||
+                                   error.status === 400;
+
+            const errorBanner = document.getElementById('portalLoginErrorBanner');
+            const errorText = document.getElementById('portalLoginErrorMessage');
+            const frenchMessage = "Connexion impossible. Si vous vous êtes inscrit avec Google, cliquez sur « Continuer avec Google » ci-dessous. Sinon, utilisez « Mot de passe oublié » pour en créer un.";
+
+            if (isInvalidCreds) {
+              if (errorBanner && errorText) {
+                errorText.textContent = frenchMessage;
+                errorBanner.classList.remove('hidden');
+              }
+              showToast('Connexion impossible', frenchMessage);
+            } else {
+              if (errorBanner && errorText) {
+                errorText.textContent = errMsg || 'Identifiant ou mot de passe incorrect.';
+                errorBanner.classList.remove('hidden');
+              }
+              showToast('⚠️ Erreur connexion', errMsg || 'Identifiant ou mot de passe incorrect.');
+            }
             return;
           }
 
@@ -10967,12 +11086,154 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // 6b. Formulaire Mot de passe oublié (resetPasswordForEmail)
+  if (portalForgotPasswordForm) {
+    portalForgotPasswordForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const emailInput = document.getElementById('portalForgotEmail');
+      const rawEmail = emailInput ? emailInput.value.trim() : '';
+      const alertBox = document.getElementById('forgotPasswordAlert');
+      const successBox = document.getElementById('forgotPasswordSuccess');
+      const submitBtn = document.getElementById('btnSubmitForgotPassword');
 
+      if (alertBox) alertBox.classList.add('hidden');
+      if (successBox) successBox.classList.add('hidden');
+
+      if (!rawEmail || !rawEmail.includes('@')) {
+        if (alertBox) {
+          alertBox.textContent = 'Veuillez saisir une adresse email valide.';
+          alertBox.classList.remove('hidden');
+        }
+        return;
+      }
+
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span>Envoi en cours…</span>';
+      }
+
+      try {
+        if (supabaseClient) {
+          const redirectUrl = `${window.location.origin}${window.location.pathname}#reset-password`;
+          const { error } = await supabaseClient.auth.resetPasswordForEmail(rawEmail, {
+            redirectTo: redirectUrl
+          });
+
+          if (error) {
+            if (alertBox) {
+              alertBox.textContent = error.message || 'Impossible d\'envoyer l\'email de réinitialisation.';
+              alertBox.classList.remove('hidden');
+            }
+            showToast('⚠️ Erreur', error.message || 'Échec de l\'envoi de l\'email.');
+          } else {
+            if (successBox) {
+              successBox.innerHTML = `Un lien de réinitialisation a été envoyé à <strong>${rawEmail}</strong>. Veuillez vérifier votre boîte de réception (et vos spams). Cliquez sur le lien reçu pour choisir votre nouveau mot de passe.`;
+              successBox.classList.remove('hidden');
+            }
+            if (emailInput) emailInput.value = '';
+            showToast('Email envoyé', 'Consultez votre boîte mail pour réinitialiser votre mot de passe.');
+          }
+        }
+      } catch (err) {
+        if (alertBox) {
+          alertBox.textContent = err.message || 'Une erreur inattendue est survenue.';
+          alertBox.classList.remove('hidden');
+        }
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<span>Envoyer le lien de réinitialisation</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>';
+        }
+      }
+    });
+  }
+
+  // 6c. Formulaire Choix du Nouveau mot de passe (updateUser)
+  if (portalResetPasswordForm) {
+    portalResetPasswordForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const newPassInput = document.getElementById('portalNewPassword');
+      const confirmPassInput = document.getElementById('portalConfirmPassword');
+      const newPassword = newPassInput ? newPassInput.value : '';
+      const confirmPassword = confirmPassInput ? confirmPassInput.value : '';
+      const alertBox = document.getElementById('resetPasswordAlert');
+      const successBox = document.getElementById('resetPasswordSuccess');
+      const submitBtn = document.getElementById('btnSubmitResetPassword');
+
+      if (alertBox) alertBox.classList.add('hidden');
+      if (successBox) successBox.classList.add('hidden');
+
+      if (!newPassword || newPassword.length < 6) {
+        if (alertBox) {
+          alertBox.textContent = 'Le mot de passe doit comporter au moins 6 caractères.';
+          alertBox.classList.remove('hidden');
+        }
+        return;
+      }
+
+      if (newPassword !== confirmPassword) {
+        if (alertBox) {
+          alertBox.textContent = 'Les deux mots de passe ne correspondent pas.';
+          alertBox.classList.remove('hidden');
+        }
+        return;
+      }
+
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span>Enregistrement en cours…</span>';
+      }
+
+      try {
+        if (supabaseClient) {
+          const { data, error } = await supabaseClient.auth.updateUser({
+            password: newPassword
+          });
+
+          if (error) {
+            if (alertBox) {
+              alertBox.textContent = error.message || 'Impossible de mettre à jour le mot de passe.';
+              alertBox.classList.remove('hidden');
+            }
+            showToast('⚠️ Erreur', error.message || 'Mise à jour échouée.');
+          } else {
+            if (successBox) {
+              successBox.textContent = 'Votre mot de passe a été mis à jour avec succès ! Connexion en cours…';
+              successBox.classList.remove('hidden');
+            }
+            showToast('Mot de passe mis à jour', 'Votre nouveau mot de passe est enregistré.');
+
+            setTimeout(async () => {
+              if (data?.user) {
+                await checkUserProfileAndProceed(data.user);
+              } else {
+                switchPortalTab('login');
+              }
+            }, 1200);
+          }
+        }
+      } catch (err) {
+        if (alertBox) {
+          alertBox.textContent = err.message || 'Une erreur inattendue est survenue.';
+          alertBox.classList.remove('hidden');
+        }
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<span>Enregistrer le nouveau mot de passe</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>';
+        }
+      }
+    });
+  }
 
   // 7. Écouteur des changements d'état d'authentification Supabase (OAuth redirect etc.)
   if (supabaseClient) {
     supabaseClient.auth.onAuthStateChange(async (event, session) => {
       console.log(' [Supabase Auth Event]', event, session?.user?.email);
+      if (event === 'PASSWORD_RECOVERY') {
+        showResetPasswordScreen();
+        return;
+      }
       if (event === 'SIGNED_OUT') {
         currentSessionInitializedUserId = null;
         isSessionInitializing = false;
@@ -10988,6 +11249,11 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
         if (!session?.user) return;
+        // Si l'utilisateur est en cours de réinitialisation de mot de passe, ne pas forcer l'entrée sur le tableau de bord
+        if (window.location.hash.includes('reset-password') || window.location.hash.includes('type=recovery')) {
+          showResetPasswordScreen();
+          return;
+        }
         // Si c'est un SIGNED_IN répété pour le même utilisateur déjà initialisé :
         if (currentSessionInitializedUserId === session.user.id && currentProfileKey === session.user.id) {
           currentAuthUser = session.user;
@@ -14053,6 +14319,11 @@ document.addEventListener('DOMContentLoaded', () => {
       fetchNotifications().catch(() => {});
       fetchAnnonces().catch(() => {});
       fetchSignalements().catch(() => {});
+
+      if (window.location.hash.includes('reset-password') || window.location.hash.includes('type=recovery')) {
+        showResetPasswordScreen();
+        return;
+      }
 
       if (sessionUser) {
         await checkUserProfileAndProceed(sessionUser);

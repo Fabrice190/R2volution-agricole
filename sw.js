@@ -1,10 +1,10 @@
 /**
  * Service Worker — Révolution Agricole PWA
- * Version: 20261021.9
+ * Version: 20261024.1
  * Stratégie de mise en cache rapide, résiliente et sécurisée (Zéro mise en cache Supabase/Auth)
  */
 
-const CACHE_NAME = 'revolution-agricole-v20261021.9';
+const CACHE_NAME = 'revolution-agricole-v20261024.1';
 const OFFLINE_URL = 'offline.html';
 
 // Ressources applicatives critiques à pré-cacher pour un démarrage ultra-rapide
