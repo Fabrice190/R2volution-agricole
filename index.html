@@ -78,10 +78,10 @@
         var isAuthVisible = authPortal && !authPortal.classList.contains('hidden');
         var isViewportVisible = viewport && !viewport.classList.contains('hidden');
         if (loader && !loader.classList.contains('hidden') && loader.style.display !== 'none' && !isAuthVisible && !isViewportVisible) {
-          console.warn('[Révolution Agricole] Délai de démarrage dépassé (5s) -> Affichage écran de secours.');
+          console.warn('[Révolution Agricole] Délai de démarrage dépassé (9s) -> Affichage écran de secours.');
           showStartupErrorFallback('Timeout au démarrage');
         }
-      }, 5000);
+      }, 9000);
 
       window.showStartupErrorFallback = showStartupErrorFallback;
     })();
