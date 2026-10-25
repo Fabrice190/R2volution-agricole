@@ -116,6 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const pageAdminFinancements = document.getElementById('pageAdminFinancements');
   const pageConseils = document.getElementById('pageConseils');
   const pageAdminConseils = document.getElementById('pageAdminConseils');
+  const pageAdminUtilisateurs = document.getElementById('pageAdminUtilisateurs');
   const pageAdminModeles = document.getElementById('pageAdminModeles');
   const pageParcelles = document.getElementById('pageParcelles');
   const pageMeteo = document.getElementById('pageMeteo');
@@ -1619,6 +1620,8 @@ document.addEventListener('DOMContentLoaded', () => {
         mobileBodyHtml = getMobileConseilsHtml();
       } else if (currentRoutePage === 'admin-conseils') {
         mobileBodyHtml = getMobileAdminConseilsHtml();
+      } else if (currentRoutePage === 'admin-utilisateurs') {
+        mobileBodyHtml = getMobileAdminUtilisateursHtml();
       } else if (currentRoutePage === 'admin-modeles') {
         mobileBodyHtml = getMobileAdminModelesHtml();
       } else if (currentRoutePage === 'materiel-services') {
@@ -1978,6 +1981,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     return `<span class="nav-badge-amber" id="mobileDrawerConseilsPendingBadge">${count}</span>`;
                   } catch (e) {
                     return `<span class="nav-badge-amber" id="mobileDrawerConseilsPendingBadge" style="display:none;"></span>`;
+                  }
+                })()}
+              </a>
+              <a href="#admin-utilisateurs" class="nav-item mobile-drawer-link" data-page="admin-utilisateurs">
+                <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+                <span class="nav-label">Utilisateurs</span>
+                ${(() => {
+                  try {
+                    const count = (cachedAdminUsers || []).length;
+                    return `<span class="nav-badge-neutral" id="mobileDrawerUsersBadge">${count}</span>`;
+                  } catch (e) {
+                    return `<span class="nav-badge-neutral" id="mobileDrawerUsersBadge" style="display:none;"></span>`;
                   }
                 })()}
               </a>
@@ -4715,6 +4730,9 @@ document.addEventListener('DOMContentLoaded', () => {
     'notifications': 'notifications',
     'admin-financements': 'admin-financements',
     'admin-conseils': 'admin-conseils',
+    'admin-utilisateurs': 'admin-utilisateurs',
+    'admin-users': 'admin-utilisateurs',
+    'utilisateurs': 'admin-utilisateurs',
     'admin-modeles': 'admin-modeles',
     'admin-materiels': 'admin-materiels',
     'admin-queue': 'admin-queue',
@@ -4733,7 +4751,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const VALID_PAGES = new Set([
     'dashboard', 'synthese', 'parcelles', 'cycles', 'finances',
-    'opportunites', 'admin-financements', 'conseils', 'admin-conseils', 'admin-modeles',
+    'opportunites', 'admin-financements', 'conseils', 'admin-conseils', 'admin-utilisateurs', 'admin-modeles',
     'materiel-services', 'admin-materiels', 'marche', 'mes-annonces', 'admin-queue',
     'meteo', 'notifications'
   ]);
@@ -4754,6 +4772,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (pageAdminFinancements) pageAdminFinancements.classList.toggle('hidden', page !== 'admin-financements');
     if (pageConseils) pageConseils.classList.toggle('hidden', page !== 'conseils');
     if (pageAdminConseils) pageAdminConseils.classList.toggle('hidden', page !== 'admin-conseils');
+    if (pageAdminUtilisateurs) pageAdminUtilisateurs.classList.toggle('hidden', page !== 'admin-utilisateurs');
     if (pageAdminModeles) pageAdminModeles.classList.toggle('hidden', page !== 'admin-modeles');
     if (pageMaterielServices) pageMaterielServices.classList.toggle('hidden', page !== 'materiel-services');
     if (pageAdminMateriels) pageAdminMateriels.classList.toggle('hidden', page !== 'admin-materiels');
@@ -4794,6 +4813,12 @@ document.addEventListener('DOMContentLoaded', () => {
       renderUserConseils();
     } else if (page === 'admin-conseils') {
       renderAdminConseils();
+    } else if (page === 'admin-utilisateurs') {
+      if (cachedAdminUsers.length === 0) {
+        fetchAdminUtilisateurs();
+      } else {
+        renderAdminUtilisateurs();
+      }
     } else if (page === 'admin-modeles') {
       renderAdminModeles();
     } else if (page === 'materiel-services') {
@@ -4851,6 +4876,17 @@ document.addEventListener('DOMContentLoaded', () => {
       window.location.hash = 'dashboard';
       navigateToPage('dashboard');
       return;
+    }
+
+    // Contrôle d'accès strict : les pages d'administration sont réservées aux profils administrateurs
+    if (resolved.startsWith('admin-')) {
+      const isCurAdmin = Boolean(PROFILES_DATA[currentProfileKey]?.isAdmin);
+      if (!isCurAdmin) {
+        showToast('Accès restreint', 'Cette section est réservée aux administrateurs de la plateforme.');
+        window.location.hash = 'dashboard';
+        navigateToPage('dashboard');
+        return;
+      }
     }
 
     if (resolved === 'profil') {
@@ -14285,6 +14321,548 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  // ==========================================
+  // MODULE ADMINISTRATION : UTILISATEURS
+  // ==========================================
+  let cachedAdminUsers = [];
+  let adminUsersSearchQuery = '';
+  let adminUsersSelectedRegion = 'all';
+
+  function formatAdminDate(isoStr) {
+    if (!isoStr) return '—';
+    try {
+      const d = new Date(isoStr);
+      if (isNaN(d.getTime())) return '—';
+      return d.toLocaleDateString('fr-FR', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric'
+      });
+    } catch (e) {
+      return '—';
+    }
+  }
+
+  function formatAdminDateTime(isoStr) {
+    if (!isoStr) return 'Jamais connecté';
+    try {
+      const d = new Date(isoStr);
+      if (isNaN(d.getTime())) return 'Jamais connecté';
+      const datePart = d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
+      const timePart = d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+      return `${datePart} à ${timePart}`;
+    } catch (e) {
+      return '—';
+    }
+  }
+
+  function formatAdminRelativeTime(isoStr) {
+    if (!isoStr) return 'Jamais';
+    try {
+      const d = new Date(isoStr);
+      if (isNaN(d.getTime())) return 'Jamais';
+      const now = new Date();
+      const diffSec = Math.floor((now - d) / 1000);
+      if (diffSec < 60) return "À l'instant";
+      const diffMin = Math.floor(diffSec / 60);
+      if (diffMin < 60) return `Il y a ${diffMin} min`;
+      const diffHours = Math.floor(diffMin / 60);
+      if (diffHours < 24) return `Il y a ${diffHours} h`;
+      const diffDays = Math.floor(diffHours / 24);
+      if (diffDays < 30) return `Il y a ${diffDays} j`;
+      const diffMonths = Math.floor(diffDays / 30);
+      return `Il y a ${diffMonths} mois`;
+    } catch (e) {
+      return '—';
+    }
+  }
+
+  function getCleanBurkinaWhatsAppUrl(rawPhone, userName = '') {
+    if (!rawPhone) return null;
+    const digits = rawPhone.replace(/\D/g, '');
+    let fullNumber = digits;
+    if (digits.length === 8) {
+      fullNumber = '226' + digits;
+    } else if (digits.startsWith('00226')) {
+      fullNumber = digits.replace(/^00/, '');
+    } else if (!digits.startsWith('226') && digits.length > 8) {
+      fullNumber = '226' + digits.slice(-8);
+    }
+    const cleanFirst = userName ? userName.trim().split(' ')[0] : 'Exploitant';
+    const msg = encodeURIComponent(`Bonjour ${cleanFirst}, je vous contacte depuis la plateforme Révolution Agricole.`);
+    return `https://wa.me/${fullNumber}?text=${msg}`;
+  }
+
+  async function fetchAdminUtilisateurs() {
+    if (!supabaseClient) return [];
+    const isCurAdmin = Boolean(PROFILES_DATA[currentProfileKey]?.isAdmin);
+    if (!isCurAdmin) return [];
+
+    try {
+      const { data, error } = await supabaseClient.rpc('get_admin_utilisateurs');
+      if (error) {
+        console.warn('Erreur chargement utilisateurs admin :', error);
+        return [];
+      }
+
+      cachedAdminUsers = Array.isArray(data) ? data : [];
+      updateAdminUsersCounters();
+      populateAdminUsersRegions();
+      renderAdminUtilisateurs();
+      return cachedAdminUsers;
+    } catch (err) {
+      console.error('Erreur RPC get_admin_utilisateurs :', err);
+      return [];
+    }
+  }
+
+  function updateAdminUsersCounters() {
+    const all = cachedAdminUsers || [];
+    const now = new Date();
+
+    const is7d = (dStr) => {
+      if (!dStr) return false;
+      const d = new Date(dStr);
+      if (isNaN(d.getTime())) return false;
+      return (now - d) <= (7 * 24 * 60 * 60 * 1000) && (now - d) >= 0;
+    };
+
+    const total = all.length;
+    const new7d = all.filter(u => is7d(u.date_inscription)).length;
+    const active7d = all.filter(u => is7d(u.derniere_connexion)).length;
+    const paid = all.filter(u => u.is_pro || (u.abo_status === 'active' && u.abo_expires_at && new Date(u.abo_expires_at) > now)).length;
+
+    const elTotal = document.getElementById('adminStatTotalUsers');
+    if (elTotal) elTotal.innerHTML = `${total} <small>inscrits</small>`;
+
+    const elNew = document.getElementById('adminStatNewUsersWeek');
+    if (elNew) elNew.innerHTML = `${new7d} <small>cette semaine</small>`;
+
+    const elActive = document.getElementById('adminStatActiveUsers7d');
+    if (elActive) elActive.innerHTML = `${active7d} <small>actifs</small>`;
+
+    const elPaid = document.getElementById('adminStatPaidUsers');
+    if (elPaid) elPaid.innerHTML = `${paid} <small>abonnés Pro</small>`;
+
+    const navBadge = document.getElementById('navAdminUsersBadge');
+    if (navBadge) navBadge.textContent = String(total);
+
+    const mobBadge = document.getElementById('mobileDrawerUsersBadge');
+    if (mobBadge) mobBadge.textContent = String(total);
+  }
+
+  function populateAdminUsersRegions() {
+    const select = document.getElementById('adminUsersRegionSelect');
+    if (!select) return;
+
+    const currentVal = select.value || 'all';
+    const regionsSet = new Set();
+    (cachedAdminUsers || []).forEach(u => {
+      if (u.location) {
+        const match = u.location.match(/\(([^)]+)\)/);
+        if (match) regionsSet.add(match[1].trim());
+        else regionsSet.add(u.location.trim());
+      }
+    });
+
+    (cachedRegions || []).forEach(r => {
+      if (r.nom) regionsSet.add(r.nom.trim());
+    });
+
+    const sortedRegions = Array.from(regionsSet).sort((a, b) => a.localeCompare(b, 'fr'));
+
+    let html = '<option value="all">Toutes les régions</option>';
+    sortedRegions.forEach(reg => {
+      html += `<option value="${escapeHtml(reg)}" ${currentVal === reg ? 'selected' : ''}>${escapeHtml(reg)}</option>`;
+    });
+
+    select.innerHTML = html;
+  }
+
+  function renderAdminUtilisateurs() {
+    if (currentViewMode === 'mobile' || window.innerWidth < 1024) {
+      renderMobileView();
+      return;
+    }
+    renderAdminUtilisateursTable();
+  }
+
+  function renderAdminUtilisateursTable() {
+    const tbody = document.getElementById('adminUsersTableBody');
+    const emptyState = document.getElementById('adminUsersEmptyState');
+    const countEl = document.getElementById('adminUsersFilteredCount');
+    if (!tbody) return;
+
+    let list = cachedAdminUsers || [];
+    const query = (adminUsersSearchQuery || '').toLowerCase().trim();
+    const region = adminUsersSelectedRegion || 'all';
+
+    if (query) {
+      list = list.filter(u => {
+        const name = (u.full_name || '').toLowerCase();
+        const phone = (u.phone || '').replace(/\s+/g, '');
+        const cleanQ = query.replace(/\s+/g, '');
+        return name.includes(query) || phone.includes(cleanQ);
+      });
+    }
+
+    if (region !== 'all') {
+      const regLower = region.toLowerCase();
+      list = list.filter(u => {
+        const loc = (u.location || '').toLowerCase();
+        const vil = (u.villages || '').toLowerCase();
+        return loc.includes(regLower) || vil.includes(regLower);
+      });
+    }
+
+    if (countEl) countEl.textContent = String(list.length);
+
+    if (list.length === 0) {
+      tbody.innerHTML = '';
+      if (emptyState) emptyState.classList.remove('hidden');
+      return;
+    }
+
+    if (emptyState) emptyState.classList.add('hidden');
+
+    const now = new Date();
+
+    tbody.innerHTML = list.map(user => {
+      const isPaid = Boolean(user.is_pro || (user.abo_status === 'active' && user.abo_expires_at && new Date(user.abo_expires_at) > now));
+      const whatsappUrl = getCleanBurkinaWhatsAppUrl(user.phone, user.full_name);
+
+      const roleBadge = user.role === 'buyer' 
+        ? '<span style="font-size: 11px; font-weight: 700; background: #EBF8FF; color: #2B6CB0; padding: 2px 7px; border-radius: 999px;">Acheteur</span>'
+        : user.role === 'provider' 
+        ? '<span style="font-size: 11px; font-weight: 700; background: #FEFCBF; color: #975A16; padding: 2px 7px; border-radius: 999px;">Fournisseur</span>'
+        : user.is_admin 
+        ? '<span style="font-size: 11px; font-weight: 700; background: #FEEBC8; color: #C05621; padding: 2px 7px; border-radius: 999px;">Admin</span>'
+        : '<span style="font-size: 11px; font-weight: 700; background: #E6FFFA; color: #234E52; padding: 2px 7px; border-radius: 999px;">Producteur</span>';
+
+      const culturesHtml = user.cultures 
+        ? user.cultures.split(',').map(c => `<span style="display: inline-block; font-size: 11.5px; font-weight: 600; background: #E8F0EA; color: #1F5E3B; padding: 2px 8px; border-radius: 6px; margin: 2px;">${escapeHtml(c.trim())}</span>`).join(' ')
+        : '<span style="font-size: 12px; color: #A0AEC0; font-style: italic;">Aucune culture</span>';
+
+      const aboBadge = isPaid
+        ? `<div style="display: inline-flex; flex-direction: column; gap: 2px;">
+            <span style="display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 800; background: #FBF1D6; color: #8A6400; padding: 4px 8px; border-radius: 8px;">
+              ⭐ Pro (Saison)
+            </span>
+            ${user.abo_expires_at ? `<span style="font-size: 10.5px; color: #718096;">Fin : ${formatAdminDate(user.abo_expires_at)}</span>` : ''}
+          </div>`
+        : `<span style="font-size: 12px; font-weight: 700; background: #EDF2F7; color: #4A5568; padding: 4px 8px; border-radius: 8px;">
+            Découverte (Gratuit)
+          </span>`;
+
+      return `
+        <tr style="border-bottom: 1px solid #F0ECE1; transition: background-color 0.15s;">
+          <td style="padding: 14px 12px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <div style="width: 36px; height: 36px; border-radius: 50%; background: #E8F0EA; color: #1F5E3B; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; flex-shrink: 0;">
+                ${escapeHtml((user.full_name || 'U').trim().slice(0, 2).toUpperCase())}
+              </div>
+              <div>
+                <strong style="font-size: 14px; color: #1A1A1A; display: block;">${escapeHtml(user.full_name || 'Utilisateur')}</strong>
+                ${roleBadge}
+              </div>
+            </div>
+          </td>
+          <td style="padding: 14px 12px;">
+            <div style="font-size: 13.5px; font-weight: 700; color: #1A1A1A; margin-bottom: 4px;">
+              ${escapeHtml(user.phone || 'Non renseigné')}
+            </div>
+            ${whatsappUrl ? `
+              <a href="${whatsappUrl}" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; gap: 5px; background: #25D366; color: #FFFFFF; border-radius: 6px; padding: 4px 8px; font-size: 11.5px; font-weight: 700; text-decoration: none; box-shadow: 0 1px 2px rgba(0,0,0,0.08);">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.669-.699c.969.585 1.761.884 2.79.884 3.179 0 5.766-2.587 5.767-5.766.002-3.18-2.585-5.77-5.766-5.77zm0 10.455c-.947 0-1.748-.28-2.457-.751l-.176-.118-1.58.414.422-1.54-.12-.191c-.551-.876-.842-1.638-.842-2.503 0-2.584 2.102-4.686 4.687-4.686 2.584 0 4.686 2.102 4.686 4.686 0 2.585-2.102 4.689-4.62 4.689z"/></svg>
+                <span>WhatsApp</span>
+              </a>
+            ` : ''}
+          </td>
+          <td style="padding: 14px 12px;">
+            <div style="font-size: 13.5px; font-weight: 600; color: #1A1A1A;">
+              ${escapeHtml(user.location || 'Burkina Faso')}
+            </div>
+            ${user.villages ? `<div style="font-size: 12px; color: #718096; margin-top: 2px;">Village : ${escapeHtml(user.villages)}</div>` : ''}
+          </td>
+          <td style="padding: 14px 12px; max-width: 200px;">
+            ${culturesHtml}
+          </td>
+          <td style="padding: 14px 12px;">
+            <div style="font-size: 13px; font-weight: 600; color: #1A1A1A;">
+              ${formatAdminDate(user.date_inscription)}
+            </div>
+            <div style="font-size: 11px; color: #718096;">
+              ${formatAdminRelativeTime(user.date_inscription)}
+            </div>
+          </td>
+          <td style="padding: 14px 12px;">
+            <div style="font-size: 13px; font-weight: 600; color: #1A1A1A;">
+              ${user.derniere_connexion ? formatAdminRelativeTime(user.derniere_connexion) : '<span style="color: #A0AEC0;">Jamais</span>'}
+            </div>
+            ${user.derniere_connexion ? `<div style="font-size: 10.5px; color: #718096;">${formatAdminDateTime(user.derniere_connexion)}</div>` : ''}
+          </td>
+          <td style="padding: 14px 12px;">
+            ${aboBadge}
+          </td>
+          <td style="padding: 14px 12px; text-align: right;">
+            ${isPaid ? `
+              <button type="button" class="btn-activate-subscription" data-user-id="${user.id}" data-user-name="${escapeHtml(user.full_name || '')}" data-user-phone="${escapeHtml(user.phone || '')}" style="display: inline-flex; align-items: center; gap: 5px; background: #FAF7F0; color: #1F5E3B; border: 1.5px solid #1F5E3B; border-radius: 8px; padding: 6px 12px; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s;" title="Prolonger de 6 mois">
+                <span>+ Prolonger</span>
+              </button>
+            ` : `
+              <button type="button" class="btn-activate-subscription" data-user-id="${user.id}" data-user-name="${escapeHtml(user.full_name || '')}" data-user-phone="${escapeHtml(user.phone || '')}" style="display: inline-flex; align-items: center; gap: 5px; background: #1F5E3B; color: #FFFFFF; border: none; border-radius: 8px; padding: 7px 14px; font-size: 12px; font-weight: 700; cursor: pointer; box-shadow: 0 1px 3px rgba(31,94,59,0.2); transition: all 0.2s;" title="Activer pour 1 saison (6 mois)">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                <span>Activer saison</span>
+              </button>
+            `}
+          </td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  async function handleAdminActiverAbonnement(userId, userName, userPhone) {
+    if (!userId) return;
+    const isCurAdmin = Boolean(PROFILES_DATA[currentProfileKey]?.isAdmin);
+    if (!isCurAdmin) {
+      showToast('Accès refusé', 'Seul un administrateur peut activer un abonnement.');
+      return;
+    }
+
+    const confirmed = window.confirm(`Voulez-vous activer manuellement l'abonnement Pro d'une saison (6 mois) pour ${userName || 'cet exploitant'} (${userPhone || 'sans numéro'}) ?\n\nCette action activera immédiatement le statut Pro et notifiera l'utilisateur.`);
+    if (!confirmed) return;
+
+    try {
+      showToast('Traitement…', 'Activation de l\'abonnement en cours dans Supabase…');
+      const { data, error } = await supabaseClient.rpc('admin_activer_abonnement', {
+        p_user_id: userId,
+        p_duree_mois: 6
+      });
+
+      if (error) {
+        showToast('⚠️ Erreur', error.message || 'Impossible d\'activer l\'abonnement.');
+        return;
+      }
+
+      showToast('⭐ Abonnement Pro activé !', `L'abonnement d'une saison a été validé pour ${userName}.`);
+      await fetchAdminUtilisateurs();
+    } catch (err) {
+      console.error('Erreur activation abonnement admin :', err);
+      showToast('⚠️ Erreur', err.message || 'Une erreur inattendue est survenue.');
+    }
+  }
+
+  function getMobileAdminUtilisateursHtml() {
+    const all = cachedAdminUsers || [];
+    const now = new Date();
+
+    const is7d = (dStr) => {
+      if (!dStr) return false;
+      const d = new Date(dStr);
+      if (isNaN(d.getTime())) return false;
+      return (now - d) <= (7 * 24 * 60 * 60 * 1000) && (now - d) >= 0;
+    };
+
+    const total = all.length;
+    const new7d = all.filter(u => is7d(u.date_inscription)).length;
+    const active7d = all.filter(u => is7d(u.derniere_connexion)).length;
+    const paid = all.filter(u => u.is_pro || (u.abo_status === 'active' && u.abo_expires_at && new Date(u.abo_expires_at) > now)).length;
+
+    let list = all;
+    const query = (adminUsersSearchQuery || '').toLowerCase().trim();
+    const region = adminUsersSelectedRegion || 'all';
+
+    if (query) {
+      list = list.filter(u => {
+        const name = (u.full_name || '').toLowerCase();
+        const phone = (u.phone || '').replace(/\s+/g, '');
+        const cleanQ = query.replace(/\s+/g, '');
+        return name.includes(query) || phone.includes(cleanQ);
+      });
+    }
+
+    if (region !== 'all') {
+      const regLower = region.toLowerCase();
+      list = list.filter(u => {
+        const loc = (u.location || '').toLowerCase();
+        const vil = (u.villages || '').toLowerCase();
+        return loc.includes(regLower) || vil.includes(regLower);
+      });
+    }
+
+    const regionsSet = new Set();
+    all.forEach(u => {
+      if (u.location) {
+        const match = u.location.match(/\(([^)]+)\)/);
+        if (match) regionsSet.add(match[1].trim());
+        else regionsSet.add(u.location.trim());
+      }
+    });
+    (cachedRegions || []).forEach(r => { if (r.nom) regionsSet.add(r.nom.trim()); });
+    const sortedRegions = Array.from(regionsSet).sort((a, b) => a.localeCompare(b, 'fr'));
+
+    return `
+      <div style="margin-bottom: 14px;">
+        <a href="#dashboard" class="breadcrumb-back-link mobile-back-to-dashboard" style="font-size: 12px; margin-bottom: 8px; display: inline-flex; align-items: center; gap: 4px; color: #1E5E2A; font-weight: 700; text-decoration: none;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+          <span>Tableau de bord</span>
+        </a>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <h2 style="font-size: 19px; font-weight: 800; color: #1A1A1A; margin: 0 0 2px;">👥 Utilisateurs</h2>
+            <p style="font-size: 12px; color: #4A4A4A; margin: 0;">Gestion des comptes et abonnements</p>
+          </div>
+          <button type="button" class="btn-refresh-mobile-users" id="btnRefreshMobileUsers" style="background: #E8F0EA; color: #1F5E3B; border: none; border-radius: 8px; padding: 6px 10px; font-size: 11px; font-weight: 700; cursor: pointer;">
+            🔄 Actualiser
+          </button>
+        </div>
+      </div>
+
+      <!-- 4 Chiffres Mobile en Grille 2x2 -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px;">
+        <div style="background: #F1F8EE; border: 1px solid #E0EFE0; border-radius: 12px; padding: 12px;">
+          <span style="font-size: 11px; font-weight: 600; color: #4A4A4A; text-transform: uppercase;">Total inscrits</span>
+          <div style="font-size: 22px; font-weight: 800; color: #1F5E3B; margin-top: 2px;">${total}</div>
+        </div>
+        <div style="background: #F0F6FD; border: 1px solid #DEECFA; border-radius: 12px; padding: 12px;">
+          <span style="font-size: 11px; font-weight: 600; color: #4A4A4A; text-transform: uppercase;">Nouveaux 7j</span>
+          <div style="font-size: 22px; font-weight: 800; color: #2B6CB0; margin-top: 2px;">+${new7d}</div>
+        </div>
+        <div style="background: #FEF9EB; border: 1px solid #F8EECB; border-radius: 12px; padding: 12px;">
+          <span style="font-size: 11px; font-weight: 600; color: #4A4A4A; text-transform: uppercase;">Actifs 7j</span>
+          <div style="font-size: 22px; font-weight: 800; color: #B7791F; margin-top: 2px;">${active7d}</div>
+        </div>
+        <div style="background: #F6F3FD; border: 1px solid #ECE5FA; border-radius: 12px; padding: 12px;">
+          <span style="font-size: 11px; font-weight: 600; color: #4A4A4A; text-transform: uppercase;">Abonnés Pro</span>
+          <div style="font-size: 22px; font-weight: 800; color: #6B46C1; margin-top: 2px;">⭐ ${paid}</div>
+        </div>
+      </div>
+
+      <!-- Recherche & Filtre Mobile -->
+      <div style="background: #FFF; border: 1px solid #ECE6D9; border-radius: 14px; padding: 12px; margin-bottom: 14px;">
+        <input type="search" id="adminUsersMobileSearch" placeholder="Rechercher nom ou téléphone…" value="${escapeHtml(adminUsersSearchQuery)}" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1.5px solid #E2E8F0; font-size: 13px; font-family: inherit; margin-bottom: 8px; outline: none; box-sizing: border-box;">
+        <select id="adminUsersMobileRegion" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1.5px solid #E2E8F0; font-size: 13px; font-family: inherit; font-weight: 600; outline: none; background: #FFF; box-sizing: border-box;">
+          <option value="all">Toutes les régions</option>
+          ${sortedRegions.map(reg => `<option value="${escapeHtml(reg)}" ${region === reg ? 'selected' : ''}>${escapeHtml(reg)}</option>`).join('')}
+        </select>
+      </div>
+
+      <!-- Liste des cartes Utilisateurs Mobile -->
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        ${list.length === 0 ? `
+          <div style="text-align: center; padding: 30px 16px; background: #FFF; border-radius: 14px; border: 1px dashed #DDD;">
+            <p style="font-weight: 700; font-size: 13.5px; color: #1A1A1A; margin: 0 0 4px;">Aucun utilisateur trouvé</p>
+            <p style="font-size: 12px; color: #718096; margin: 0;">Modifiez votre recherche ou filtre régional.</p>
+          </div>
+        ` : list.map(user => {
+          const isPaid = Boolean(user.is_pro || (user.abo_status === 'active' && user.abo_expires_at && new Date(user.abo_expires_at) > now));
+          const whatsappUrl = getCleanBurkinaWhatsAppUrl(user.phone, user.full_name);
+          return `
+            <div style="background: #FFF; border: 1px solid #ECE6D9; border-radius: 14px; padding: 14px; box-shadow: 0 1px 2px rgba(0,0,0,0.03);">
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                <div>
+                  <strong style="font-size: 14px; color: #1A1A1A; display: block;">${escapeHtml(user.full_name || 'Exploitant')}</strong>
+                  <span style="font-size: 11.5px; color: #718096;">📍 ${escapeHtml(user.location || 'Burkina Faso')}${user.villages ? ` • ${escapeHtml(user.villages)}` : ''}</span>
+                </div>
+                ${isPaid ? `
+                  <span style="font-size: 11px; font-weight: 800; background: #FBF1D6; color: #8A6400; padding: 3px 8px; border-radius: 6px;">⭐ PRO</span>
+                ` : `
+                  <span style="font-size: 11px; font-weight: 600; background: #EDF2F7; color: #718096; padding: 3px 8px; border-radius: 6px;">Gratuit</span>
+                `}
+              </div>
+
+              <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 10px;">
+                ${user.cultures ? user.cultures.split(',').map(c => `<span style="font-size: 11px; background: #E8F0EA; color: #1F5E3B; font-weight: 600; padding: 2px 6px; border-radius: 4px;">🌱 ${escapeHtml(c.trim())}</span>`).join(' ') : '<span style="font-size: 11px; color: #A0AEC0;">Aucune culture déclarée</span>'}
+              </div>
+
+              <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #718096; border-top: 1px solid #F0ECE1; padding-top: 8px; margin-bottom: 10px;">
+                <span>Inscrit : ${formatAdminDate(user.date_inscription)}</span>
+                <span>Actif : ${user.derniere_connexion ? formatAdminRelativeTime(user.derniere_connexion) : 'Jamais'}</span>
+              </div>
+
+              <div style="display: flex; gap: 8px; align-items: center;">
+                ${whatsappUrl ? `
+                  <a href="${whatsappUrl}" target="_blank" rel="noopener noreferrer" style="flex: 1; display: inline-flex; justify-content: center; align-items: center; gap: 6px; background: #25D366; color: #FFF; font-weight: 700; font-size: 12px; padding: 8px; border-radius: 8px; text-decoration: none;">
+                    <span>WhatsApp</span>
+                  </a>
+                ` : ''}
+                ${isPaid ? `
+                  <button type="button" class="btn-activate-subscription" data-user-id="${user.id}" data-user-name="${escapeHtml(user.full_name || '')}" data-user-phone="${escapeHtml(user.phone || '')}" style="flex: 1; background: #FAF7F0; color: #1F5E3B; border: 1.5px solid #1F5E3B; font-weight: 700; font-size: 12px; padding: 8px; border-radius: 8px; cursor: pointer;">
+                    + Prolonger
+                  </button>
+                ` : `
+                  <button type="button" class="btn-activate-subscription" data-user-id="${user.id}" data-user-name="${escapeHtml(user.full_name || '')}" data-user-phone="${escapeHtml(user.phone || '')}" style="flex: 1; background: #1F5E3B; color: #FFF; border: none; font-weight: 700; font-size: 12px; padding: 8px; border-radius: 8px; cursor: pointer;">
+                    ⭐ Activer saison
+                  </button>
+                `}
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+  }
+
+  // Écouteurs de recherche et filtres admin utilisateurs (Desktop)
+  const adminUsersSearchInput = document.getElementById('adminUsersSearchInput');
+  if (adminUsersSearchInput) {
+    adminUsersSearchInput.addEventListener('input', (e) => {
+      adminUsersSearchQuery = e.target.value;
+      renderAdminUtilisateursTable();
+    });
+  }
+
+  const adminUsersRegionSelect = document.getElementById('adminUsersRegionSelect');
+  if (adminUsersRegionSelect) {
+    adminUsersRegionSelect.addEventListener('change', (e) => {
+      adminUsersSelectedRegion = e.target.value;
+      renderAdminUtilisateursTable();
+    });
+  }
+
+  const btnRefreshAdminUsers = document.getElementById('btnRefreshAdminUsers');
+  if (btnRefreshAdminUsers) {
+    btnRefreshAdminUsers.addEventListener('click', async () => {
+      showToast('Actualisation…', 'Chargement des utilisateurs…');
+      await fetchAdminUtilisateurs();
+      showToast('À jour', 'Liste des utilisateurs actualisée.');
+    });
+  }
+
+  // Écouteurs délégués au clic pour les boutons "Activer abonnement"
+  document.addEventListener('click', async (e) => {
+    const btnAct = e.target.closest('.btn-activate-subscription');
+    if (btnAct) {
+      const uId = btnAct.getAttribute('data-user-id');
+      const uName = btnAct.getAttribute('data-user-name');
+      const uPhone = btnAct.getAttribute('data-user-phone');
+      await handleAdminActiverAbonnement(uId, uName, uPhone);
+      return;
+    }
+
+    if (e.target.closest('#btnRefreshMobileUsers')) {
+      showToast('Actualisation…', 'Chargement des utilisateurs…');
+      await fetchAdminUtilisateurs();
+      showToast('À jour', 'Liste des utilisateurs actualisée.');
+      return;
+    }
+  });
+
+  // Écouteurs pour la recherche mobile
+  document.addEventListener('input', (e) => {
+    if (e.target.id === 'adminUsersMobileSearch') {
+      adminUsersSearchQuery = e.target.value;
+      renderMobileView();
+    }
+  });
+
+  document.addEventListener('change', (e) => {
+    if (e.target.id === 'adminUsersMobileRegion') {
+      adminUsersSelectedRegion = e.target.value;
+      renderMobileView();
+    }
+  });
+
   // 8. INITIALISATION AU CHARGEMENT DE LA PAGE
   async function initAppAuth() {
     const loadingScreen = document.getElementById('appLoadingScreen');
@@ -14335,6 +14913,9 @@ document.addEventListener('DOMContentLoaded', () => {
         await fetchNotifications();
         await fetchAnnonces();
         await fetchSignalements();
+        if (PROFILES_DATA[currentProfileKey]?.isAdmin) {
+          await fetchAdminUtilisateurs().catch(() => {});
+        }
         await fetchUserParcels(currentProfileKey);
         handleRoute();
       } else {
