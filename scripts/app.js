@@ -1653,6 +1653,10 @@ document.addEventListener('DOMContentLoaded', () => {
         mobileBodyHtml = getMobileMeteoHtml();
       } else if (currentRoutePage === 'notifications') {
         mobileBodyHtml = getMobileNotificationsHtml();
+      } else if (currentRoutePage === 'profil') {
+        mobileBodyHtml = getMobileProfilHtml();
+      } else if (currentRoutePage === 'parametres') {
+        mobileBodyHtml = getMobileParametresHtml();
       } else {
         const netMargin = (currentRevenueTotal || 0) - (currentExpenseTotal || 0);
         const isLoss = netMargin < 0;
@@ -2683,6 +2687,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // Mise à jour de la visibilité des boutons et cartes PWA
     if (typeof updatePwaVisibility === 'function') {
       updatePwaVisibility();
+    }
+
+    if (typeof bindProfilAndParametresEventListeners === 'function') {
+      bindProfilAndParametresEventListeners();
     }
 
     // Génération automatique des icônes Lucide au trait
@@ -4733,6 +4741,8 @@ document.addEventListener('DOMContentLoaded', () => {
     'admin-audit': 'admin-audit',
     'formations': 'formations',
     'profil': 'profil',
+    'parametres': 'parametres',
+    'settings': 'parametres',
     'abonnements': 'abonnements',
     'pricing': 'abonnements',
     'installer': 'installer',
@@ -4745,16 +4755,21 @@ document.addEventListener('DOMContentLoaded', () => {
     'dashboard', 'synthese', 'parcelles', 'cycles', 'finances',
     'opportunites', 'admin-financements', 'conseils', 'admin-conseils', 'admin-utilisateurs', 'admin-modeles',
     'materiel-services', 'admin-materiels', 'marche', 'mes-annonces', 'admin-queue',
-    'meteo', 'notifications'
+    'meteo', 'notifications', 'profil', 'parametres'
   ]);
 
   function navigateToPage(page) {
     if (!VALID_PAGES.has(page)) {
-      console.warn('️ [Navigation] Page inconnue demandée dans navigateToPage :', page);
+      console.warn('⚠️ [Navigation] Page inconnue demandée dans navigateToPage :', page);
       page = 'dashboard';
     }
 
     currentRoutePage = page;
+
+    const pageProfilEl = document.getElementById('pageProfil');
+    const pageParametresEl = document.getElementById('pageParametres');
+    if (pageProfilEl) pageProfilEl.classList.toggle('hidden', page !== 'profil');
+    if (pageParametresEl) pageParametresEl.classList.toggle('hidden', page !== 'parametres');
 
     if (pageSynthese) pageSynthese.classList.toggle('hidden', page !== 'synthese');
     if (pageParcelles) pageParcelles.classList.toggle('hidden', page !== 'parcelles');
@@ -4831,6 +4846,10 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     } else if (page === 'notifications') {
       renderNotificationsPage();
+    } else if (page === 'profil') {
+      renderProfilPage();
+    } else if (page === 'parametres') {
+      renderParametresPage();
     }
 
     // Mise à jour de l'onglet actif dans la barre fixe mobile du bas
@@ -4846,6 +4865,8 @@ document.addEventListener('DOMContentLoaded', () => {
         bExploit.classList.add('active');
       } else if (page === 'marche' || page === 'materiel-services' || page === 'mes-annonces') {
         bMarche.classList.add('active');
+      } else if (page === 'profil' || page === 'parametres') {
+        bProfil.classList.add('active');
       }
     }
 
@@ -4893,11 +4914,6 @@ document.addEventListener('DOMContentLoaded', () => {
         navigateToPage('dashboard');
         return;
       }
-    }
-
-    if (resolved === 'profil') {
-      openProfileModal();
-      return;
     }
 
     if (resolved === 'abonnements') {
@@ -5062,7 +5078,8 @@ document.addEventListener('DOMContentLoaded', () => {
   if (bNavProfil) {
     bNavProfil.addEventListener('click', (e) => {
       e.preventDefault();
-      openProfileModal();
+      window.location.hash = 'profil';
+      handleRoute();
     });
   }
 
@@ -15388,9 +15405,1262 @@ document.addEventListener('DOMContentLoaded', () => {
     updatePwaVisibility();
   }
 
+  // ==========================================
+  // MODULE PROFIL & PARAMÈTRES (REVAGRIK SAHELO-TECH V5)
+  // ==========================================
+
+  // 1. Fonctions de gestion de l'affichage (Taille du texte)
+  function applyTextSize(size) {
+    const root = document.documentElement;
+    root.classList.remove('text-size-large', 'text-size-xlarge');
+    if (size === 'large') {
+      root.classList.add('text-size-large');
+    } else if (size === 'xlarge') {
+      root.classList.add('text-size-xlarge');
+    }
+    try {
+      localStorage.setItem('revagrik_text_size', size);
+    } catch (e) {}
+
+    document.querySelectorAll('.btn-text-size-pill').forEach(btn => {
+      btn.classList.toggle('active', btn.getAttribute('data-size') === size);
+    });
+  }
+
+  // 2. Gestion des préférences de notifications (Supabase profiles.notif_prefs)
+  async function saveNotificationPref(prefKey, isChecked) {
+    const profile = PROFILES_DATA[currentProfileKey] || {};
+    if (!profile.notif_prefs || typeof profile.notif_prefs !== 'object') {
+      profile.notif_prefs = {
+        meteo_alertes: true,
+        conseil_du_jour: true,
+        nouveaux_financements: true,
+        rappels_exploitation: true,
+        marche: true
+      };
+    }
+    profile.notif_prefs[prefKey] = isChecked;
+
+    const userId = currentAuthUser?.id || currentProfileKey;
+    if (supabaseClient && userId && !userId.startsWith('user_')) {
+      try {
+        const { error } = await supabaseClient
+          .from('profiles')
+          .update({
+            notif_prefs: profile.notif_prefs,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', userId);
+
+        if (error) {
+          console.warn('⚠️ Erreur mise à jour notif_prefs dans Supabase :', error);
+        }
+      } catch (err) {
+        console.warn('⚠️ Exception saveNotificationPref :', err);
+      }
+    }
+
+    showToast('Préférence enregistrée', isChecked ? 'Notification activée.' : 'Notification désactivée.');
+  }
+
+  // 3. Changement de photo de profil (Canvas 400px + Supabase Storage avatars)
+  async function handleAvatarUpload(file) {
+    if (!file || !file.type.startsWith('image/')) {
+      showToast('Format non supporté', 'Veuillez sélectionner un fichier image valide (JPG, PNG ou WEBP).');
+      return;
+    }
+
+    const userId = currentAuthUser?.id || currentProfileKey;
+    if (!userId) {
+      showToast('Connexion requise', 'Veuillez vous connecter pour mettre à jour votre photo.');
+      return;
+    }
+
+    showToast('Traitement de l\'image', 'Optimisation et envoi de votre photo en cours…');
+
+    try {
+      // Redimensionnement côté client en Canvas max 400px
+      const resizedBlob = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            let width = img.width;
+            let height = img.height;
+            const maxDim = 400;
+            if (width > maxDim || height > maxDim) {
+              if (width > height) {
+                height = Math.round((height * maxDim) / width);
+                width = maxDim;
+              } else {
+                width = Math.round((width * maxDim) / height);
+                height = maxDim;
+              }
+            }
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+            canvas.toBlob((blob) => {
+              if (blob) resolve(blob);
+              else reject(new Error('Erreur de conversion de l\'image en canvas'));
+            }, 'image/jpeg', 0.85);
+          };
+          img.onerror = () => reject(new Error('Erreur de chargement de l\'image'));
+          img.src = e.target.result;
+        };
+        reader.onerror = () => reject(new Error('Erreur de lecture du fichier'));
+        reader.readAsDataURL(file);
+      });
+
+      const fileName = `${userId}/avatar_${Date.now()}.jpg`;
+
+      if (supabaseClient && !userId.startsWith('user_')) {
+        const { data: uploadData, error: uploadErr } = await supabaseClient
+          .storage
+          .from('avatars')
+          .upload(fileName, resizedBlob, {
+            contentType: 'image/jpeg',
+            upsert: true,
+            cacheControl: '3600'
+          });
+
+        if (uploadErr) {
+          console.error('Erreur upload avatar Supabase Storage:', uploadErr);
+          showToast('Erreur d\'envoi', 'Impossible d\'enregistrer l\'image sur le serveur.');
+          return;
+        }
+
+        const { data: publicUrlData } = supabaseClient
+          .storage
+          .from('avatars')
+          .getPublicUrl(fileName);
+
+        const publicUrl = publicUrlData?.publicUrl || '';
+
+        // Mise à jour de la table profiles
+        const { error: profileErr } = await supabaseClient
+          .from('profiles')
+          .update({
+            avatar_url: publicUrl,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', userId);
+
+        if (profileErr) {
+          console.warn('⚠️ Erreur mise à jour avatar_url dans profiles:', profileErr);
+        }
+
+        updateAvatarEverywhere(publicUrl);
+        showToast('Photo mise à jour', 'Votre nouvelle photo de profil est bien enregistrée !');
+      } else {
+        const localUrl = URL.createObjectURL(resizedBlob);
+        updateAvatarEverywhere(localUrl);
+        showToast('Photo mise à jour', 'Photo de profil modifiée localement.');
+      }
+    } catch (err) {
+      console.error('Erreur globale handleAvatarUpload:', err);
+      showToast('Erreur', 'Impossible de traiter cette image.');
+    }
+  }
+
+  function updateAvatarEverywhere(url) {
+    if (!url) return;
+    if (PROFILES_DATA[currentProfileKey]) {
+      PROFILES_DATA[currentProfileKey].avatar = url;
+    }
+    document.querySelectorAll('#profileHeroAvatarImg, .profile-avatar-img, #userHeaderAvatar, #sidebarAvatarImg, .mobile-drawer-avatar, #modalAccountAvatar').forEach(img => {
+      img.src = url;
+    });
+  }
+
+  // 4. Modale "Mes informations"
+  const modalEditProfile = document.getElementById('modalEditProfile');
+  const formEditProfileInfo = document.getElementById('formEditProfileInfo');
+
+  async function openEditProfileModal() {
+    if (!modalEditProfile) return;
+    const profile = PROFILES_DATA[currentProfileKey] || {};
+
+    if (cachedRegions.length === 0) {
+      await fetchRegions();
+    }
+
+    const selRegion = document.getElementById('selectEditRegion');
+    if (selRegion) {
+      const curVal = profile.region_id || '';
+      selRegion.innerHTML = '<option value="">Sélectionnez votre région…</option>' +
+        (cachedRegions || []).map(r => `<option value="${r.id}">${escapeHtml(r.nom)} (${escapeHtml(r.chef_lieu)})</option>`).join('');
+      if (curVal) selRegion.value = curVal;
+    }
+
+    const inpName = document.getElementById('inputEditFullName');
+    if (inpName) {
+      inpName.value = profile.name || (currentAuthUser?.user_metadata?.full_name || '');
+    }
+
+    const inpVillage = document.getElementById('inputEditVillage');
+    if (inpVillage) {
+      inpVillage.value = profile.village || '';
+    }
+
+    const selActivite = document.getElementById('selectEditActivite');
+    if (selActivite) {
+      selActivite.value = profile.activite_principale || 'Producteur';
+    }
+
+    const phoneText = document.getElementById('modalReadonlyPhoneText');
+    if (phoneText) {
+      phoneText.textContent = profile.phone || (currentAuthUser ? currentAuthUser.email : 'Non renseigné');
+    }
+
+    modalEditProfile.classList.remove('hidden');
+    syncBodyModalScrollLock();
+  }
+
+  function closeEditProfileModal() {
+    if (modalEditProfile) {
+      modalEditProfile.classList.add('hidden');
+      syncBodyModalScrollLock();
+    }
+  }
+
+  // 5. Modale Sécurité / Changement de mot de passe
+  const modalChangePassword = document.getElementById('modalChangePassword');
+  const formChangePasswordModal = document.getElementById('formChangePasswordModal');
+
+  function openChangePasswordModal() {
+    if (!modalChangePassword) return;
+    const isGoogle = currentAuthUser?.app_metadata?.provider === 'google';
+    const titleEl = document.getElementById('modalPasswordHeaderTitle');
+    const wrapOld = document.getElementById('wrapOldPasswordRow');
+    const inputOld = document.getElementById('inputOldPassword');
+
+    if (titleEl) {
+      titleEl.textContent = isGoogle ? 'Créer un mot de passe' : 'Changer mon mot de passe';
+    }
+    if (wrapOld) {
+      wrapOld.style.display = isGoogle ? 'none' : 'block';
+    }
+    if (inputOld) {
+      inputOld.required = !isGoogle;
+    }
+    if (formChangePasswordModal) {
+      formChangePasswordModal.reset();
+    }
+
+    modalChangePassword.classList.remove('hidden');
+    syncBodyModalScrollLock();
+  }
+
+  function closeChangePasswordModal() {
+    if (modalChangePassword) {
+      modalChangePassword.classList.add('hidden');
+      syncBodyModalScrollLock();
+    }
+  }
+
+  // 6. Modale Suppression de compte
+  const modalDeleteAccountConfirm = document.getElementById('modalDeleteAccountConfirm');
+
+  function openDeleteAccountModal() {
+    if (!modalDeleteAccountConfirm) return;
+    const profile = PROFILES_DATA[currentProfileKey] || {};
+    const accId = currentAuthUser?.id || currentProfileKey || 'compte';
+    const accName = profile.name || 'Exploitant';
+    const waMsg = `Bonjour, je souhaite demander la suppression définitive de mon compte REVAGRIK.\nIdentifiant : ${accId}\nNom : ${accName}`;
+    const btnWa = document.getElementById('btnSendDeleteRequestWhatsApp');
+    if (btnWa) {
+      btnWa.href = `https://wa.me/22678010529?text=${encodeURIComponent(waMsg)}`;
+    }
+
+    modalDeleteAccountConfirm.classList.remove('hidden');
+    syncBodyModalScrollLock();
+  }
+
+  function closeDeleteAccountModal() {
+    if (modalDeleteAccountConfirm) {
+      modalDeleteAccountConfirm.classList.add('hidden');
+      syncBodyModalScrollLock();
+    }
+  }
+
+  // 7. Modale Légale (Conditions / Confidentialité - Bientôt disponible)
+  const modalLegalNotice = document.getElementById('modalLegalNotice');
+
+  function openLegalNoticeModal(title = "Conditions d'utilisation") {
+    if (!modalLegalNotice) return;
+    const titleEl = document.getElementById('legalNoticeModalTitle');
+    if (titleEl) titleEl.textContent = title;
+    modalLegalNotice.classList.remove('hidden');
+    syncBodyModalScrollLock();
+  }
+
+  function closeLegalNoticeModal() {
+    if (modalLegalNotice) {
+      modalLegalNotice.classList.add('hidden');
+      syncBodyModalScrollLock();
+    }
+  }
+
+  // 8. Actions Application : Installation & Partage
+  function handleSettingsInstallPwa() {
+    if (typeof triggerPwaInstallFlow === 'function') {
+      triggerPwaInstallFlow();
+    } else if (deferredPwaPrompt) {
+      deferredPwaPrompt.prompt();
+    } else if (isIosDevice()) {
+      showToast('Installation iPhone', 'Appuyez sur le bouton Partager en bas (icône carré avec flèche), puis sur « Sur l\'écran d\'accueil ».');
+    } else {
+      showToast('Installation Android', 'Appuyez sur le menu (⋮) en haut à droite de votre navigateur, puis sur « Ajouter à l\'écran d\'accueil ».');
+    }
+  }
+
+  function handleSettingsShareApp() {
+    const shareData = {
+      title: 'REVAGRIK - Révolution Agricole',
+      text: 'Découvre REVAGRIK, l\'application pour les agriculteurs du Burkina Faso !',
+      url: 'https://r2volution-agricole.vercel.app'
+    };
+    if (navigator.share && typeof navigator.share === 'function') {
+      navigator.share(shareData).catch(() => {});
+    } else {
+      try {
+        navigator.clipboard.writeText(shareData.url);
+        showToast('Lien copié', 'Le lien de l\'application REVAGRIK a été copié dans votre presse-papiers.');
+      } catch (e) {
+        showToast('REVAGRIK', 'Partagez le lien : https://r2volution-agricole.vercel.app');
+      }
+    }
+  }
+
+  // 9. Recherche de l'abonnement actif dans public.subscriptions
+  async function getActiveSubscription(profileId) {
+    if (!supabaseClient || !profileId) return null;
+    try {
+      const { data, error } = await supabaseClient
+        .from('subscriptions')
+        .select('*')
+        .eq('profile_id', profileId)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (!error && data) return data;
+    } catch (e) {
+      console.warn('⚠️ Erreur recherche abonnement Supabase :', e);
+    }
+    return null;
+  }
+
+  function formatShortDateFr(dateStr) {
+    if (!dateStr) return '';
+    try {
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return String(dateStr);
+      const day = String(d.getDate()).padStart(2, '0');
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const year = d.getFullYear();
+      return `${day}/${month}/${year}`;
+    } catch (e) {
+      return String(dateStr);
+    }
+  }
+
+  // 10. Rendu complet de la page Profil (Bureau)
+  async function renderProfilPage() {
+    const profile = PROFILES_DATA[currentProfileKey] || {};
+    const fullName = profile.name || (currentAuthUser?.user_metadata?.full_name || 'Exploitant');
+    const avatar = profile.avatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=180&h=180&q=80';
+    const contact = profile.phone || (currentAuthUser ? currentAuthUser.email : '--');
+
+    // Statistiques parcelles & cycles
+    const parcelsCount = (cachedUserParcels || []).length;
+    const totalArea = (cachedUserParcels || []).reduce((acc, p) => acc + (parseFloat(p.area_ha) || 0), 0);
+    const totalAreaStr = totalArea > 0 ? (Number.isInteger(totalArea) ? totalArea.toFixed(0) : totalArea.toFixed(1)) + ' ha' : '0 ha';
+    const activeCyclesCount = (cachedCropCycles || []).filter(c => c.statut !== 'termine' && c.statut !== 'archive' && c.status !== 'Terminé' && c.status !== 'Récolté').length;
+
+    // Région, village, activité
+    if (cachedRegions.length === 0) {
+      await fetchRegions();
+    }
+    const regionObj = (cachedRegions || []).find(r => r.id === profile.region_id);
+    const regionName = regionObj ? `${regionObj.nom} (${regionObj.chef_lieu})` : (profile.location ? profile.location.replace(/^📍\s*/, '') : 'Non renseignée');
+    const villageName = profile.village || 'Non renseigné';
+    const activiteName = profile.activite_principale || 'Producteur';
+    const phoneVal = profile.phone || (currentAuthUser ? currentAuthUser.email : 'Non renseigné');
+
+    // Statut d'abonnement
+    let isSubscribed = userSubscriptionStatus[currentProfileKey] === true || profile.isPro === true || profile.is_pro === true;
+    let planName = 'Pro Producteur';
+    let startsAtStr = '';
+    let expiresAtStr = '';
+
+    const sub = await getActiveSubscription(currentProfileKey);
+    if (sub) {
+      if (sub.status === 'actif' || isSubscribed) {
+        isSubscribed = true;
+        planName = sub.plan_name || 'Pro Producteur';
+        if (sub.starts_at) startsAtStr = formatShortDateFr(sub.starts_at);
+        if (sub.expires_at) expiresAtStr = formatShortDateFr(sub.expires_at);
+      }
+    }
+
+    // Mise à jour des éléments DOM Bureau
+    const heroAvatar = document.getElementById('profileHeroAvatarImg');
+    if (heroAvatar) heroAvatar.src = avatar;
+
+    const heroName = document.getElementById('profileHeroFullName');
+    if (heroName) heroName.textContent = fullName;
+
+    const heroContact = document.getElementById('profileHeroContact');
+    if (heroContact) heroContact.textContent = contact;
+
+    const heroBadgeWrap = document.getElementById('profileHeroBadgeWrap');
+    if (heroBadgeWrap) {
+      if (isSubscribed) {
+        heroBadgeWrap.innerHTML = `
+          <span class="profile-badge-pill is-pro">
+            <i data-lucide="award" style="width: 14px; height: 14px;"></i>
+            <span>Abonné${expiresAtStr ? ' • Fin ' + expiresAtStr : ''}</span>
+          </span>
+        `;
+      } else {
+        heroBadgeWrap.innerHTML = `
+          <span class="profile-badge-pill is-free">
+            <i data-lucide="shield" style="width: 14px; height: 14px;"></i>
+            <span>Gratuit</span>
+          </span>
+        `;
+      }
+    }
+
+    const infoFullName = document.getElementById('profileInfoFullName');
+    if (infoFullName) infoFullName.textContent = fullName;
+
+    const infoRegion = document.getElementById('profileInfoRegion');
+    if (infoRegion) infoRegion.textContent = regionName;
+
+    const infoVillage = document.getElementById('profileInfoVillage');
+    if (infoVillage) infoVillage.textContent = villageName;
+
+    const infoActivite = document.getElementById('profileInfoActivite');
+    if (infoActivite) infoActivite.textContent = activiteName;
+
+    const infoPhone = document.getElementById('profileInfoPhone');
+    if (infoPhone) infoPhone.textContent = phoneVal;
+
+    const statParcels = document.getElementById('profileStatParcels');
+    if (statParcels) statParcels.textContent = parcelsCount;
+
+    const statArea = document.getElementById('profileStatArea');
+    if (statArea) statArea.textContent = totalAreaStr;
+
+    const statCycles = document.getElementById('profileStatCycles');
+    if (statCycles) statCycles.textContent = activeCyclesCount;
+
+    // Liens WhatsApp pré-remplis vers +226 78 01 05 29
+    const accId = currentAuthUser?.id || profile.phone || fullName;
+    const subMsg = `Bonjour, je veux m'abonner à REVAGRIK. Mon numéro de compte : ${accId}`;
+    const whatsappSubUrl = `https://wa.me/22678010529?text=${encodeURIComponent(subMsg)}`;
+    const renewMsg = `Bonjour, je veux renouveler mon abonnement REVAGRIK. Mon numéro de compte : ${accId}`;
+    const whatsappRenewUrl = `https://wa.me/22678010529?text=${encodeURIComponent(renewMsg)}`;
+
+    const aboContent = document.getElementById('profileAboContent');
+    if (aboContent) {
+      if (isSubscribed) {
+        aboContent.innerHTML = `
+          <div class="profile-card-top">
+            <h4 class="profile-card-title">
+              <i data-lucide="award" style="color: var(--vert-revagrik);"></i>
+              <span>Mon abonnement</span>
+            </h4>
+            <span class="profile-badge-pill is-pro" style="padding: 4px 10px; font-size: 12px;">Actif</span>
+          </div>
+          <div style="background: #E5F3E6; border: 1.5px solid #C4E3C6; border-radius: 14px; padding: 14px; margin-bottom: 14px;">
+            <strong style="font-size: 16px; color: #1E5E2A; display: block; margin-bottom: 4px;">Formule ${escapeHtml(planName)}</strong>
+            <p style="font-size: 13px; color: #2D4A32; margin: 0;">
+              ${startsAtStr ? 'Début : ' + startsAtStr + ' • ' : ''}Échéance : <strong>${expiresAtStr || 'En cours'}</strong>
+            </p>
+          </div>
+          <a href="${whatsappRenewUrl}" target="_blank" rel="noopener noreferrer" class="btn-primary" style="width: 100%; justify-content: center; min-height: 48px; border-radius: 12px; font-weight: 800; background: var(--vert-revagrik); color: #FFF; text-decoration: none;">
+            <i data-lucide="message-circle" style="width: 18px; height: 18px;"></i>
+            <span>Renouveler mon abonnement</span>
+          </a>
+        `;
+      } else {
+        aboContent.innerHTML = `
+          <div class="profile-card-top">
+            <h4 class="profile-card-title">
+              <i data-lucide="award"></i>
+              <span>Mon abonnement</span>
+            </h4>
+            <span class="profile-badge-pill is-free" style="padding: 4px 10px; font-size: 12px;">Formule Gratuite</span>
+          </div>
+          <p style="font-size: 13.5px; color: #4A4A4A; line-height: 1.5; margin: 0 0 12px;">
+            Passez au forfait <strong>Pro Producteur (5 000 F CFA/mois)</strong> pour bénéficier de tous les avantages :
+          </p>
+          <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px;">
+            <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #1A1A1A;">
+              <i data-lucide="check" style="width: 16px; height: 16px; color: var(--vert-revagrik); flex-shrink: 0;"></i>
+              <span>Alertes SMS météo & ravageurs en temps réel</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #1A1A1A;">
+              <i data-lucide="check" style="width: 16px; height: 16px; color: var(--vert-revagrik); flex-shrink: 0;"></i>
+              <span>Fiches techniques agronomiques 100% hors-ligne</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #1A1A1A;">
+              <i data-lucide="check" style="width: 16px; height: 16px; color: var(--vert-revagrik); flex-shrink: 0;"></i>
+              <span>Calculs illimités de marge nette et rentabilité</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #1A1A1A;">
+              <i data-lucide="check" style="width: 16px; height: 16px; color: var(--vert-revagrik); flex-shrink: 0;"></i>
+              <span>Visibilité prioritaire sur le marché agricole</span>
+            </div>
+          </div>
+          <a href="${whatsappSubUrl}" target="_blank" rel="noopener noreferrer" class="btn-primary" style="width: 100%; justify-content: center; min-height: 52px; border-radius: 14px; font-weight: 800; font-size: 15px; background: var(--ocre, #A85A1C); color: #FFF; text-decoration: none; box-shadow: 0 4px 14px rgba(168, 90, 28, 0.25);">
+            <i data-lucide="message-circle" style="width: 19px; height: 19px;"></i>
+            <span>S'abonner à REVAGRIK</span>
+          </a>
+        `;
+      }
+    }
+
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+      window.lucide.createIcons();
+    }
+  }
+
+  // 11. Rendu HTML de la page Profil pour mobile
+  function getMobileProfilHtml() {
+    const profile = PROFILES_DATA[currentProfileKey] || {};
+    const fullName = profile.name || (currentAuthUser?.user_metadata?.full_name || 'Exploitant');
+    const avatar = profile.avatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=180&h=180&q=80';
+    const contact = profile.phone || (currentAuthUser ? currentAuthUser.email : '--');
+
+    const parcelsCount = (cachedUserParcels || []).length;
+    const totalArea = (cachedUserParcels || []).reduce((acc, p) => acc + (parseFloat(p.area_ha) || 0), 0);
+    const totalAreaStr = totalArea > 0 ? (Number.isInteger(totalArea) ? totalArea.toFixed(0) : totalArea.toFixed(1)) + ' ha' : '0 ha';
+    const activeCyclesCount = (cachedCropCycles || []).filter(c => c.statut !== 'termine' && c.statut !== 'archive' && c.status !== 'Terminé' && c.status !== 'Récolté').length;
+
+    const regionObj = (cachedRegions || []).find(r => r.id === profile.region_id);
+    const regionName = regionObj ? `${regionObj.nom} (${regionObj.chef_lieu})` : (profile.location ? profile.location.replace(/^📍\s*/, '') : 'Non renseignée');
+    const villageName = profile.village || 'Non renseigné';
+    const activiteName = profile.activite_principale || 'Producteur';
+    const phoneVal = profile.phone || (currentAuthUser ? currentAuthUser.email : 'Non renseigné');
+
+    const isSubscribed = userSubscriptionStatus[currentProfileKey] === true || profile.isPro === true || profile.is_pro === true;
+
+    const accId = currentAuthUser?.id || profile.phone || fullName;
+    const subMsg = `Bonjour, je veux m'abonner à REVAGRIK. Mon numéro de compte : ${accId}`;
+    const whatsappSubUrl = `https://wa.me/22678010529?text=${encodeURIComponent(subMsg)}`;
+    const renewMsg = `Bonjour, je veux renouveler mon abonnement REVAGRIK. Mon numéro de compte : ${accId}`;
+    const whatsappRenewUrl = `https://wa.me/22678010529?text=${encodeURIComponent(renewMsg)}`;
+
+    return `
+      <div style="margin-bottom: 12px;">
+        <a href="#dashboard" class="breadcrumb-back-link mobile-back-to-dashboard" style="font-size: 12px; margin-bottom: 8px; display: inline-flex; align-items: center; gap: 4px; color: #05507E; font-weight: 700; text-decoration: none;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+          <span>Tableau de bord</span>
+        </a>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <h2 style="font-size: 20px; font-weight: 800; color: #1A1A1A; margin: 0;">Mon Profil</h2>
+          <span style="font-size: 12px; color: #7C8781;">REVAGRIK</span>
+        </div>
+      </div>
+
+      <div class="profile-page-wrapper">
+        <!-- 1. En-tête Hero du Profil -->
+        <section class="profile-hero-card">
+          <div class="profile-avatar-wrap">
+            <img src="${avatar}" alt="Photo de profil" class="profile-avatar-img">
+            <button type="button" class="profile-camera-btn btn-trigger-avatar-upload" title="Changer ma photo de profil" aria-label="Changer ma photo de profil">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
+            </button>
+          </div>
+          <h3 class="profile-hero-name">${escapeHtml(fullName)}</h3>
+          <p class="profile-hero-contact">${escapeHtml(contact)}</p>
+          <div>
+            ${isSubscribed ? `
+              <span class="profile-badge-pill is-pro">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>
+                <span>Abonné</span>
+              </span>
+            ` : `
+              <span class="profile-badge-pill is-free">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                <span>Gratuit</span>
+              </span>
+            `}
+          </div>
+        </section>
+
+        <!-- 2. Mes informations -->
+        <section class="profile-section-card">
+          <div class="profile-card-top">
+            <h4 class="profile-card-title">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><polyline points="16 11 18 13 22 9"/></svg>
+              <span>Mes informations</span>
+            </h4>
+            <button type="button" class="profile-btn-edit btn-trigger-edit-profile">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+              <span>Modifier</span>
+            </button>
+          </div>
+
+          <div class="profile-info-grid">
+            <div class="profile-info-row">
+              <span class="profile-info-label">Nom complet</span>
+              <span class="profile-info-val">${escapeHtml(fullName)}</span>
+            </div>
+            <div class="profile-info-row">
+              <span class="profile-info-label">Région</span>
+              <span class="profile-info-val">${escapeHtml(regionName)}</span>
+            </div>
+            <div class="profile-info-row">
+              <span class="profile-info-label">Village ou commune</span>
+              <span class="profile-info-val">${escapeHtml(villageName)}</span>
+            </div>
+            <div class="profile-info-row">
+              <span class="profile-info-label">Activité principale</span>
+              <span class="profile-info-val">${escapeHtml(activiteName)}</span>
+            </div>
+            <div class="profile-info-row" style="grid-column: 1 / -1;">
+              <span class="profile-info-label">Numéro de téléphone</span>
+              <span class="profile-info-val">${escapeHtml(phoneVal)}</span>
+            </div>
+          </div>
+
+          <div class="profile-readonly-notice">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--bleu-principal)" stroke-width="2" style="flex-shrink:0;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            <span>Pour changer de numéro, <a href="https://wa.me/22678010529?text=Bonjour,%20je%20souhaite%20changer%20mon%20num%C3%A9ro%20de%20t%C3%A9l%C3%A9phone%20sur%20REVAGRIK." target="_blank" rel="noopener noreferrer" style="color: var(--bleu-principal); font-weight: 700; text-decoration: underline;">contactez-nous sur WhatsApp</a>.</span>
+          </div>
+        </section>
+
+        <!-- 3. Mon exploitation en bref -->
+        <section class="profile-section-card">
+          <div class="profile-card-top">
+            <h4 class="profile-card-title">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 20h10"/><path d="M10 20c0-4 1.5-6.5 4-8"/><path d="M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8z"/><path d="M14.1 6a7 7 0 0 0-1.1 4c1.9-.1 3.3-.6 4.3-1.4 1-1 1.6-2.3 1.7-4.6-2.7.1-4 1-4.9 2z"/></svg>
+              <span>Mon exploitation en bref</span>
+            </h4>
+          </div>
+
+          <div class="profile-stats-grid">
+            <div class="profile-stat-box">
+              <span class="profile-stat-num">${parcelsCount}</span>
+              <span class="profile-stat-lbl">Parcelles</span>
+            </div>
+            <div class="profile-stat-box">
+              <span class="profile-stat-num">${totalAreaStr}</span>
+              <span class="profile-stat-lbl">Surface totale</span>
+            </div>
+            <div class="profile-stat-box">
+              <span class="profile-stat-num">${activeCyclesCount}</span>
+              <span class="profile-stat-lbl">Cycles en cours</span>
+            </div>
+          </div>
+
+          <a href="#synthese" class="btn-secondary" style="width: 100%; justify-content: center; min-height: 46px; font-weight: 700; border-radius: 12px; text-decoration: none;">
+            <span>Voir mon exploitation</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </a>
+        </section>
+
+        <!-- 4. Mon abonnement -->
+        <section class="profile-section-card">
+          ${isSubscribed ? `
+            <div class="profile-card-top">
+              <h4 class="profile-card-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--vert-revagrik)" stroke-width="2"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>
+                <span>Mon abonnement</span>
+              </h4>
+              <span class="profile-badge-pill is-pro" style="padding: 4px 10px; font-size: 12px;">Actif</span>
+            </div>
+            <div style="background: #E5F3E6; border: 1.5px solid #C4E3C6; border-radius: 14px; padding: 14px; margin-bottom: 14px;">
+              <strong style="font-size: 15px; color: #1E5E2A; display: block; margin-bottom: 4px;">Formule Pro Producteur</strong>
+              <p style="font-size: 12.5px; color: #2D4A32; margin: 0;">Abonnement actif sur votre compte REVAGRIK.</p>
+            </div>
+            <a href="${whatsappRenewUrl}" target="_blank" rel="noopener noreferrer" class="btn-primary" style="width: 100%; justify-content: center; min-height: 48px; border-radius: 12px; font-weight: 800; background: var(--vert-revagrik); color: #FFF; text-decoration: none;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              <span>Renouveler mon abonnement</span>
+            </a>
+          ` : `
+            <div class="profile-card-top">
+              <h4 class="profile-card-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>
+                <span>Mon abonnement</span>
+              </h4>
+              <span class="profile-badge-pill is-free" style="padding: 4px 10px; font-size: 12px;">Formule Gratuite</span>
+            </div>
+            <p style="font-size: 13px; color: #4A4A4A; line-height: 1.5; margin: 0 0 12px;">
+              Passez au forfait <strong>Pro Producteur (5 000 F CFA/mois)</strong> :
+            </p>
+            <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px;">
+              <div style="display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: #1A1A1A;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--vert-revagrik)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                <span>Alertes SMS météo & ravageurs en direct</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: #1A1A1A;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--vert-revagrik)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                <span>Fiches techniques 100% hors-ligne</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: #1A1A1A;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--vert-revagrik)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                <span>Calculs illimités de rentabilité & marge</span>
+              </div>
+            </div>
+            <a href="${whatsappSubUrl}" target="_blank" rel="noopener noreferrer" class="btn-primary" style="width: 100%; justify-content: center; min-height: 50px; border-radius: 14px; font-weight: 800; font-size: 14.5px; background: var(--ocre, #A85A1C); color: #FFF; text-decoration: none;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              <span>S'abonner à REVAGRIK</span>
+            </a>
+          `}
+        </section>
+
+        <!-- Lien vers Paramètres -->
+        <section class="profile-section-card card-go-to-settings" style="padding: 14px 18px; cursor: pointer;">
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div style="width: 38px; height: 38px; border-radius: 10px; background: var(--bleu-clair); color: var(--bleu-principal); display: flex; align-items: center; justify-content: center;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+              </div>
+              <div>
+                <strong style="font-size: 15px; color: #1A1A1A; display: block;">Paramètres de l'application</strong>
+                <span style="font-size: 12px; color: #7C8781;">Affichage, notifications et sécurité</span>
+              </div>
+            </div>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A0AEC0" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
+        </section>
+      </div>
+    `;
+  }
+
+  // 12. Rendu de la page Paramètres (Bureau)
+  function renderParametresPage() {
+    const profile = PROFILES_DATA[currentProfileKey] || {};
+    const prefs = profile.notif_prefs || {
+      meteo_alertes: true,
+      conseil_du_jour: true,
+      nouveaux_financements: true,
+      rappels_exploitation: true,
+      marche: true
+    };
+
+    const tMeteo = document.getElementById('toggleNotifMeteo');
+    if (tMeteo) tMeteo.checked = prefs.meteo_alertes !== false;
+
+    const tConseil = document.getElementById('toggleNotifConseil');
+    if (tConseil) tConseil.checked = prefs.conseil_du_jour !== false;
+
+    const tFin = document.getElementById('toggleNotifFinancements');
+    if (tFin) tFin.checked = prefs.nouveaux_financements !== false;
+
+    const tExploit = document.getElementById('toggleNotifExploitation');
+    if (tExploit) tExploit.checked = prefs.rappels_exploitation !== false;
+
+    const tMarche = document.getElementById('toggleNotifMarche');
+    if (tMarche) tMarche.checked = prefs.marche !== false;
+
+    const curSize = localStorage.getItem('revagrik_text_size') || 'normal';
+    document.querySelectorAll('.btn-text-size-pill').forEach(btn => {
+      btn.classList.toggle('active', btn.getAttribute('data-size') === curSize);
+    });
+
+    const labelSec = document.getElementById('labelSecurityPasswordAction');
+    if (labelSec) {
+      if (currentAuthUser?.app_metadata?.provider === 'google') {
+        labelSec.textContent = 'Créer un mot de passe';
+      } else {
+        labelSec.textContent = 'Changer mon mot de passe';
+      }
+    }
+
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+      window.lucide.createIcons();
+    }
+  }
+
+  // 13. Rendu HTML de la page Paramètres pour mobile
+  function getMobileParametresHtml() {
+    const profile = PROFILES_DATA[currentProfileKey] || {};
+    const prefs = profile.notif_prefs || {
+      meteo_alertes: true,
+      conseil_du_jour: true,
+      nouveaux_financements: true,
+      rappels_exploitation: true,
+      marche: true
+    };
+    const curSize = localStorage.getItem('revagrik_text_size') || 'normal';
+    const isGoogle = currentAuthUser?.app_metadata?.provider === 'google';
+
+    return `
+      <div style="margin-bottom: 12px;">
+        <a href="#dashboard" class="breadcrumb-back-link mobile-back-to-dashboard" style="font-size: 12px; margin-bottom: 8px; display: inline-flex; align-items: center; gap: 4px; color: #05507E; font-weight: 700; text-decoration: none;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+          <span>Tableau de bord</span>
+        </a>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <h2 style="font-size: 20px; font-weight: 800; color: #1A1A1A; margin: 0;">Paramètres</h2>
+          <span style="font-size: 12px; color: #7C8781;">Préférences</span>
+        </div>
+      </div>
+
+      <div class="settings-page-wrapper">
+        <!-- 1. Affichage -->
+        <section class="profile-section-card">
+          <h4 class="profile-card-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
+            <span>Affichage</span>
+          </h4>
+          <p style="font-size: 13px; color: #4A4A4A; margin: 4px 0 12px;">Taille du texte sur votre écran :</p>
+
+          <div class="text-size-pills-row">
+            <button type="button" class="btn-text-size-pill ${curSize === 'normal' ? 'active' : ''}" data-size="normal">
+              <span>Normal</span>
+            </button>
+            <button type="button" class="btn-text-size-pill ${curSize === 'large' ? 'active' : ''}" data-size="large">
+              <span style="font-size: 15px;">Grand</span>
+            </button>
+            <button type="button" class="btn-text-size-pill ${curSize === 'xlarge' ? 'active' : ''}" data-size="xlarge">
+              <span style="font-size: 17px; font-weight: 800;">Très grand</span>
+            </button>
+          </div>
+        </section>
+
+        <!-- 2. Notifications -->
+        <section class="profile-section-card">
+          <h4 class="profile-card-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <span>Notifications</span>
+          </h4>
+          <p style="font-size: 13px; color: #4A4A4A; margin: 4px 0 14px;">Activez ou coupez les alertes selon vos besoins :</p>
+
+          <div class="settings-switch-row">
+            <div class="settings-switch-info">
+              <p class="settings-switch-title">Météo et alertes</p>
+              <p class="settings-switch-desc">Pluie imminente, vents et alertes agronomiques</p>
+            </div>
+            <label class="toggle-switch-wrap">
+              <input type="checkbox" class="toggle-notif-switch" data-key="meteo_alertes" ${prefs.meteo_alertes !== false ? 'checked' : ''}>
+              <span class="toggle-slider-round"></span>
+            </label>
+          </div>
+
+          <div class="settings-switch-row">
+            <div class="settings-switch-info">
+              <p class="settings-switch-title">Conseil du jour</p>
+              <p class="settings-switch-desc">Le conseil technique matinal de nos agronomes</p>
+            </div>
+            <label class="toggle-switch-wrap">
+              <input type="checkbox" class="toggle-notif-switch" data-key="conseil_du_jour" ${prefs.conseil_du_jour !== false ? 'checked' : ''}>
+              <span class="toggle-slider-round"></span>
+            </label>
+          </div>
+
+          <div class="settings-switch-row">
+            <div class="settings-switch-info">
+              <p class="settings-switch-title">Nouveaux financements</p>
+              <p class="settings-switch-desc">Subventions PReCA, fonds d'appui et échéances</p>
+            </div>
+            <label class="toggle-switch-wrap">
+              <input type="checkbox" class="toggle-notif-switch" data-key="nouveaux_financements" ${prefs.nouveaux_financements !== false ? 'checked' : ''}>
+              <span class="toggle-slider-round"></span>
+            </label>
+          </div>
+
+          <div class="settings-switch-row">
+            <div class="settings-switch-info">
+              <p class="settings-switch-title">Rappels de mon exploitation</p>
+              <p class="settings-switch-desc">Dates de repiquage, début des récoltes et entretien</p>
+            </div>
+            <label class="toggle-switch-wrap">
+              <input type="checkbox" class="toggle-notif-switch" data-key="rappels_exploitation" ${prefs.rappels_exploitation !== false ? 'checked' : ''}>
+              <span class="toggle-slider-round"></span>
+            </label>
+          </div>
+
+          <div class="settings-switch-row">
+            <div class="settings-switch-info">
+              <p class="settings-switch-title">Marché</p>
+              <p class="settings-switch-desc">Alertes de mise en vente et opportunités bord-champ</p>
+            </div>
+            <label class="toggle-switch-wrap">
+              <input type="checkbox" class="toggle-notif-switch" data-key="marche" ${prefs.marche !== false ? 'checked' : ''}>
+              <span class="toggle-slider-round"></span>
+            </label>
+          </div>
+        </section>
+
+        <!-- 3. Sécurité -->
+        <section class="profile-section-card">
+          <h4 class="profile-card-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <span>Sécurité</span>
+          </h4>
+          <p style="font-size: 13px; color: #4A4A4A; margin: 4px 0 14px;">Gérez l'accès à votre compte :</p>
+
+          <button type="button" class="btn-secondary btn-open-change-password" style="width: 100%; justify-content: center; min-height: 48px; border-radius: 12px; font-weight: 700;">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/></svg>
+            <span>${isGoogle ? 'Créer un mot de passe' : 'Changer mon mot de passe'}</span>
+          </button>
+        </section>
+
+        <!-- 4. Application -->
+        <section class="profile-section-card">
+          <h4 class="profile-card-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+            <span>Application</span>
+          </h4>
+
+          <div class="settings-menu-item btn-settings-install-pwa" role="button" tabindex="0">
+            <div class="settings-menu-item-left">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              <span>Installer l'application</span>
+            </div>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#A0AEC0" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
+
+          <div class="settings-menu-item btn-settings-share-app" role="button" tabindex="0">
+            <div class="settings-menu-item-left">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+              <span>Partager REVAGRIK</span>
+            </div>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#A0AEC0" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
+
+          <div class="settings-menu-item" style="cursor: default;">
+            <div class="settings-menu-item-left">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+              <span>Version de l'application</span>
+            </div>
+            <span style="font-size: 13px; font-weight: 700; color: #7C8781;">v3.5 - Octobre 2026</span>
+          </div>
+        </section>
+
+        <!-- 5. Aide -->
+        <section class="profile-section-card">
+          <h4 class="profile-card-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <span>Aide</span>
+          </h4>
+
+          <a href="https://wa.me/22678010529?text=Bonjour,%20j'ai%20besoin%20d'aide%20sur%20REVAGRIK." target="_blank" rel="noopener noreferrer" class="settings-menu-item">
+            <div class="settings-menu-item-left">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#25D366" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              <span>Nous contacter sur WhatsApp</span>
+            </div>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#A0AEC0" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+          </a>
+
+          <div class="settings-menu-item btn-open-terms" role="button" tabindex="0">
+            <div class="settings-menu-item-left">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+              <span>Conditions d'utilisation</span>
+            </div>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#A0AEC0" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
+
+          <div class="settings-menu-item btn-open-privacy" role="button" tabindex="0">
+            <div class="settings-menu-item-left">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+              <span>Politique de confidentialité</span>
+            </div>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#A0AEC0" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
+        </section>
+
+        <!-- 6. Déconnexion & Suppression -->
+        <section style="display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 8px;">
+          <button type="button" class="btn-secondary btn-settings-logout" style="width: 100%; justify-content: center; min-height: 50px; font-weight: 700; border-radius: 14px; border: 1.5px solid var(--bleu-principal); color: var(--bleu-principal); background: #FFFFFF;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            <span>Se déconnecter</span>
+          </button>
+
+          <button type="button" class="btn-open-delete-account" style="background: none; border: none; color: #C0392B; font-size: 13px; font-weight: 600; text-decoration: underline; cursor: pointer; padding: 8px 12px;">
+            Supprimer mon compte
+          </button>
+        </section>
+      </div>
+    `;
+  }
+
+  // 14. Liaison des écouteurs d'événements pour Profil & Paramètres
+  function bindProfilAndParametresEventListeners() {
+    // A. Changement de photo (Desktop et Mobile)
+    const inpFile = document.getElementById('inputProfileAvatarFile');
+    document.querySelectorAll('#btnChangeProfileAvatar, .btn-trigger-avatar-upload').forEach(btn => {
+      btn.onclick = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (inpFile) inpFile.click();
+      };
+    });
+
+    if (inpFile && !inpFile._boundUpload) {
+      inpFile._boundUpload = true;
+      inpFile.addEventListener('change', () => {
+        if (inpFile.files && inpFile.files[0]) {
+          handleAvatarUpload(inpFile.files[0]);
+          inpFile.value = '';
+        }
+      });
+    }
+
+    // B. Modale "Mes informations"
+    document.querySelectorAll('#btnOpenEditProfileModal, .btn-trigger-edit-profile').forEach(btn => {
+      btn.onclick = (e) => {
+        e.preventDefault();
+        openEditProfileModal();
+      };
+    });
+
+    const btnCloseEditCross = document.getElementById('btnCloseEditProfileCross');
+    if (btnCloseEditCross) btnCloseEditCross.onclick = closeEditProfileModal;
+    const btnCancelEdit = document.getElementById('btnCancelEditProfile');
+    if (btnCancelEdit) btnCancelEdit.onclick = closeEditProfileModal;
+
+    if (modalEditProfile && !modalEditProfile._boundBackdrop) {
+      modalEditProfile._boundBackdrop = true;
+      modalEditProfile.addEventListener('click', (e) => {
+        if (e.target === modalEditProfile) closeEditProfileModal();
+      });
+    }
+
+    if (formEditProfileInfo && !formEditProfileInfo._boundSubmit) {
+      formEditProfileInfo._boundSubmit = true;
+      formEditProfileInfo.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const inpFullName = document.getElementById('inputEditFullName');
+        const selReg = document.getElementById('selectEditRegion');
+        const inpVill = document.getElementById('inputEditVillage');
+        const selAct = document.getElementById('selectEditActivite');
+
+        const newName = (inpFullName?.value || '').trim();
+        const newRegionId = selReg?.value || null;
+        const newVillage = (inpVill?.value || '').trim();
+        const newActivite = selAct?.value || 'Producteur';
+
+        if (!newName) {
+          showToast('Nom requis', 'Veuillez saisir votre nom complet.');
+          return;
+        }
+
+        const regObj = (cachedRegions || []).find(r => r.id === newRegionId);
+        const regName = regObj ? `${regObj.nom} (${regObj.chef_lieu})` : '';
+        const newLoc = newVillage ? `${newVillage}, ${regName}` : regName;
+
+        const userId = currentAuthUser?.id || currentProfileKey;
+        if (supabaseClient && userId && !userId.startsWith('user_')) {
+          try {
+            const { error } = await supabaseClient
+              .from('profiles')
+              .update({
+                full_name: newName,
+                region_id: newRegionId,
+                village: newVillage,
+                activite_principale: newActivite,
+                location: newLoc,
+                updated_at: new Date().toISOString()
+              })
+              .eq('id', userId);
+
+            if (error) {
+              console.error('Erreur mise à jour profil Supabase:', error);
+              showToast('Erreur', 'Impossible d\'enregistrer les modifications.');
+              return;
+            }
+          } catch (err) {
+            console.error('Exception update profile:', err);
+          }
+        }
+
+        // Mise à jour de l'état local
+        if (PROFILES_DATA[currentProfileKey]) {
+          PROFILES_DATA[currentProfileKey].name = newName;
+          PROFILES_DATA[currentProfileKey].region_id = newRegionId;
+          PROFILES_DATA[currentProfileKey].village = newVillage;
+          PROFILES_DATA[currentProfileKey].activite_principale = newActivite;
+          PROFILES_DATA[currentProfileKey].location = newLoc;
+        }
+
+        if (userHeaderName) userHeaderName.textContent = newName;
+        const cleanFirst = newName.trim().split(' ')[0] || newName;
+        if (greetingTitle) greetingTitle.innerHTML = `Bonjour, ${cleanFirst} <span class="greeting-emoji"></span>`;
+
+        closeEditProfileModal();
+        renderProfilPage();
+        if (currentViewMode === 'mobile' || window.innerWidth < 1024) {
+          renderMobileView();
+        }
+        showToast('Informations enregistrées', 'Vos informations personnelles ont été mises à jour.');
+      });
+    }
+
+    // C. Lien vers Paramètres depuis Profil
+    document.querySelectorAll('#cardGoToSettings, .card-go-to-settings').forEach(card => {
+      card.onclick = () => {
+        window.location.hash = 'parametres';
+        handleRoute();
+      };
+    });
+
+    // D. Sélecteur de taille de texte
+    document.querySelectorAll('.btn-text-size-pill').forEach(btn => {
+      btn.onclick = () => {
+        const sz = btn.getAttribute('data-size') || 'normal';
+        applyTextSize(sz);
+        showToast('Affichage mis à jour', `Taille de texte ajustée : ${sz}.`);
+      };
+    });
+
+    // E. Interrupteurs de notifications
+    document.querySelectorAll('.toggle-notif-switch, #toggleNotifMeteo, #toggleNotifConseil, #toggleNotifFinancements, #toggleNotifExploitation, #toggleNotifMarche').forEach(sw => {
+      sw.onchange = () => {
+        let key = sw.getAttribute('data-key');
+        if (!key) {
+          if (sw.id === 'toggleNotifMeteo') key = 'meteo_alertes';
+          else if (sw.id === 'toggleNotifConseil') key = 'conseil_du_jour';
+          else if (sw.id === 'toggleNotifFinancements') key = 'nouveaux_financements';
+          else if (sw.id === 'toggleNotifExploitation') key = 'rappels_exploitation';
+          else if (sw.id === 'toggleNotifMarche') key = 'marche';
+        }
+        if (key) {
+          saveNotificationPref(key, sw.checked);
+        }
+      };
+    });
+
+    // F. Sécurité / Mot de passe
+    document.querySelectorAll('#btnOpenChangePasswordModal, .btn-open-change-password').forEach(btn => {
+      btn.onclick = (e) => {
+        e.preventDefault();
+        openChangePasswordModal();
+      };
+    });
+
+    const btnClosePassCross = document.getElementById('btnCloseChangePasswordCross');
+    if (btnClosePassCross) btnClosePassCross.onclick = closeChangePasswordModal;
+    const btnCancelPass = document.getElementById('btnCancelChangePassword');
+    if (btnCancelPass) btnCancelPass.onclick = closeChangePasswordModal;
+
+    if (modalChangePassword && !modalChangePassword._boundBackdrop) {
+      modalChangePassword._boundBackdrop = true;
+      modalChangePassword.addEventListener('click', (e) => {
+        if (e.target === modalChangePassword) closeChangePasswordModal();
+      });
+    }
+
+    if (formChangePasswordModal && !formChangePasswordModal._boundSubmit) {
+      formChangePasswordModal._boundSubmit = true;
+      formChangePasswordModal.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const p1 = document.getElementById('inputNewPassword')?.value || '';
+        const p2 = document.getElementById('inputConfirmPassword')?.value || '';
+
+        if (p1.length < 6) {
+          showToast('Erreur', 'Le mot de passe doit comporter au moins 6 caractères.');
+          return;
+        }
+        if (p1 !== p2) {
+          showToast('Erreur', 'Les deux mots de passe ne correspondent pas.');
+          return;
+        }
+
+        const btnSub = document.getElementById('btnSubmitChangePassword');
+        if (btnSub) {
+          btnSub.disabled = true;
+          btnSub.textContent = 'Enregistrement…';
+        }
+
+        try {
+          if (supabaseClient) {
+            const { error } = await supabaseClient.auth.updateUser({ password: p1 });
+            if (error) {
+              showToast('Erreur', error.message || 'Impossible de modifier le mot de passe.');
+              return;
+            }
+          }
+          showToast('Mot de passe mis à jour', 'Votre nouveau mot de passe est désormais actif.');
+          closeChangePasswordModal();
+          formChangePasswordModal.reset();
+        } catch (err) {
+          showToast('Erreur', 'Une erreur est survenue lors de la mise à jour.');
+        } finally {
+          if (btnSub) {
+            btnSub.disabled = false;
+            btnSub.textContent = 'Enregistrer';
+          }
+        }
+      });
+    }
+
+    // G. Application : Installer & Partager
+    document.querySelectorAll('#btnSettingsInstallPwa, .btn-settings-install-pwa').forEach(btn => {
+      btn.onclick = handleSettingsInstallPwa;
+    });
+
+    document.querySelectorAll('#btnSettingsShareApp, .btn-settings-share-app').forEach(btn => {
+      btn.onclick = handleSettingsShareApp;
+    });
+
+    // H. Aide & Légal
+    document.querySelectorAll('#btnOpenTermsModal, .btn-open-terms').forEach(btn => {
+      btn.onclick = () => openLegalNoticeModal("Conditions d'utilisation");
+    });
+
+    document.querySelectorAll('#btnOpenPrivacyModal, .btn-open-privacy').forEach(btn => {
+      btn.onclick = () => openLegalNoticeModal("Politique de confidentialité");
+    });
+
+    const btnCloseLegal = document.getElementById('btnCloseLegalNoticeModal');
+    if (btnCloseLegal) btnCloseLegal.onclick = closeLegalNoticeModal;
+
+    if (modalLegalNotice && !modalLegalNotice._boundBackdrop) {
+      modalLegalNotice._boundBackdrop = true;
+      modalLegalNotice.addEventListener('click', (e) => {
+        if (e.target === modalLegalNotice) closeLegalNoticeModal();
+      });
+    }
+
+    // I. Déconnexion
+    document.querySelectorAll('#btnSettingsLogout, .btn-settings-logout').forEach(btn => {
+      btn.onclick = () => {
+        if (typeof performLogout === 'function') {
+          performLogout();
+        }
+      };
+    });
+
+    // J. Suppression de compte
+    document.querySelectorAll('#btnOpenDeleteAccountModal, .btn-open-delete-account').forEach(btn => {
+      btn.onclick = openDeleteAccountModal;
+    });
+
+    const btnCancelDel = document.getElementById('btnCancelDeleteAccountModal');
+    if (btnCancelDel) btnCancelDel.onclick = closeDeleteAccountModal;
+
+    if (modalDeleteAccountConfirm && !modalDeleteAccountConfirm._boundBackdrop) {
+      modalDeleteAccountConfirm._boundBackdrop = true;
+      modalDeleteAccountConfirm.addEventListener('click', (e) => {
+        if (e.target === modalDeleteAccountConfirm) closeDeleteAccountModal();
+      });
+    }
+  }
+
+  // 15. Initialisation automatique du module au démarrage
+  function initSettingsAndProfileModule() {
+    const savedSize = localStorage.getItem('revagrik_text_size') || 'normal';
+    applyTextSize(savedSize);
+    bindProfilAndParametresEventListeners();
+  }
+
   initPwaModule();
 
   initAppAuth();
+
+  initSettingsAndProfileModule();
 
   // 7. Test/Vérification tiroir ouvert si demandé via paramètre URL
   if (urlParams.get('open_drawer') === '1') {

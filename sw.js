@@ -1,10 +1,10 @@
 /**
  * Service Worker — REVAGRIK (Révolution Agricole) PWA
- * Version: 20261027.3
+ * Version: 20261027.4
  * Stratégie de mise en cache rapide, résiliente et sécurisée (Zéro mise en cache Supabase/Auth)
  */
 
-const CACHE_NAME = 'revagrik-v20261027.3';
+const CACHE_NAME = 'revagrik-v20261027.4';
 const OFFLINE_URL = 'offline.html';
 
 // Ressources applicatives critiques à pré-cacher pour un démarrage ultra-rapide

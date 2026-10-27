@@ -14,8 +14,8 @@
   <!-- Famille d'icônes au trait unique (Lucide CDN fixe) -->
   <script src="https://unpkg.com/lucide@0.453.0/dist/umd/lucide.min.js"></script>
 
-  <link rel="stylesheet" href="styles/theme.css?v=20261027.3">
-  <link rel="stylesheet" href="styles/main.css?v=20261027.3">
+  <link rel="stylesheet" href="styles/theme.css?v=20261027.4">
+  <link rel="stylesheet" href="styles/main.css?v=20261027.4">
 
   <!-- CONFIGURATION PWA (PROGRESSIVE WEB APP) -->
   <link rel="manifest" href="manifest.json">
@@ -587,9 +587,15 @@
             </a>
             <a href="#profil" class="nav-item" data-page="profil">
               <span class="nav-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              </span>
+              <span class="nav-label">Mon Profil</span>
+            </a>
+            <a href="#parametres" class="nav-item" data-page="parametres">
+              <span class="nav-icon">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
               </span>
-              <span class="nav-label">Profil & Paramètres</span>
+              <span class="nav-label">Paramètres</span>
             </a>
             <a href="#installer" class="nav-item" id="navItemInstallPwa" data-page="installer">
               <span class="nav-icon">
@@ -2377,6 +2383,320 @@
           <!-- Conteneur des notifications réelles -->
           <div class="notifications-list-wrapper" id="notificationsListContainer">
             <!-- Rendu dynamique par JavaScript -->
+          </div>
+        </div>
+
+        <!-- ==================== 15. PAGE PROFIL ==================== -->
+        <div class="dashboard-body hidden" id="pageProfil">
+          <div class="page-view-header">
+            <div class="page-view-title-group">
+              <h2 class="page-view-title">Mon Profil</h2>
+              <p class="page-view-subtitle">Informations personnelles et statut d'abonnement</p>
+            </div>
+          </div>
+
+          <div class="profile-page-wrapper">
+            <!-- 1. En-tête Hero du Profil (Photo ronde 88px, nom, contact, badge statut) -->
+            <section class="profile-hero-card">
+              <input type="file" id="inputProfileAvatarFile" accept="image/*" style="display: none;">
+              <div class="profile-avatar-wrap">
+                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=180&h=180&q=80" alt="Photo de profil" class="profile-avatar-img" id="profileHeroAvatarImg">
+                <button type="button" class="profile-camera-btn" id="btnChangeProfileAvatar" title="Changer ma photo de profil" aria-label="Changer ma photo de profil">
+                  <i data-lucide="camera" style="width: 17px; height: 17px;"></i>
+                </button>
+              </div>
+              <h3 class="profile-hero-name" id="profileHeroFullName">Chargement…</h3>
+              <p class="profile-hero-contact" id="profileHeroContact">--</p>
+              <div id="profileHeroBadgeWrap">
+                <span class="profile-badge-pill is-free" id="profileHeroBadgePill">
+                  <i data-lucide="shield" style="width: 14px; height: 14px;"></i>
+                  <span id="profileHeroBadgeText">Gratuit</span>
+                </span>
+              </div>
+            </section>
+
+            <!-- 2. Carte "Mes informations" avec bouton Modifier -->
+            <section class="profile-section-card">
+              <div class="profile-card-top">
+                <h4 class="profile-card-title">
+                  <i data-lucide="user-check"></i>
+                  <span>Mes informations</span>
+                </h4>
+                <button type="button" class="profile-btn-edit" id="btnOpenEditProfileModal">
+                  <i data-lucide="edit-3" style="width: 15px; height: 15px;"></i>
+                  <span>Modifier</span>
+                </button>
+              </div>
+
+              <div class="profile-info-grid">
+                <div class="profile-info-row">
+                  <span class="profile-info-label">Nom complet</span>
+                  <span class="profile-info-val" id="profileInfoFullName">--</span>
+                </div>
+                <div class="profile-info-row">
+                  <span class="profile-info-label">Région</span>
+                  <span class="profile-info-val" id="profileInfoRegion">--</span>
+                </div>
+                <div class="profile-info-row">
+                  <span class="profile-info-label">Village ou commune</span>
+                  <span class="profile-info-val" id="profileInfoVillage">--</span>
+                </div>
+                <div class="profile-info-row">
+                  <span class="profile-info-label">Activité principale</span>
+                  <span class="profile-info-val" id="profileInfoActivite">--</span>
+                </div>
+                <div class="profile-info-row" style="grid-column: 1 / -1;">
+                  <span class="profile-info-label">Numéro de téléphone</span>
+                  <span class="profile-info-val" id="profileInfoPhone">--</span>
+                </div>
+              </div>
+
+              <div class="profile-readonly-notice">
+                <i data-lucide="info" style="width: 16px; height: 16px; flex-shrink: 0; color: var(--bleu-principal);"></i>
+                <span>Pour changer de numéro, <a href="https://wa.me/22678010529?text=Bonjour,%20je%20souhaite%20changer%20mon%20num%C3%A9ro%20de%20t%C3%A9l%C3%A9phone%20sur%20REVAGRIK." target="_blank" rel="noopener noreferrer" style="color: var(--bleu-principal); font-weight: 700; text-decoration: underline;">contactez-nous sur WhatsApp</a>.</span>
+              </div>
+            </section>
+
+            <!-- 3. Carte "Mon exploitation en bref" -->
+            <section class="profile-section-card">
+              <div class="profile-card-top">
+                <h4 class="profile-card-title">
+                  <i data-lucide="sprout"></i>
+                  <span>Mon exploitation en bref</span>
+                </h4>
+              </div>
+
+              <div class="profile-stats-grid">
+                <div class="profile-stat-box">
+                  <span class="profile-stat-num" id="profileStatParcels">0</span>
+                  <span class="profile-stat-lbl">Parcelles</span>
+                </div>
+                <div class="profile-stat-box">
+                  <span class="profile-stat-num" id="profileStatArea">0 ha</span>
+                  <span class="profile-stat-lbl">Surface totale</span>
+                </div>
+                <div class="profile-stat-box">
+                  <span class="profile-stat-num" id="profileStatCycles">0</span>
+                  <span class="profile-stat-lbl">Cycles en cours</span>
+                </div>
+              </div>
+
+              <a href="#synthese" class="btn-secondary" style="width: 100%; justify-content: center; min-height: 46px; font-weight: 700; border-radius: 12px; text-decoration: none;">
+                <i data-lucide="arrow-right" style="width: 16px; height: 16px;"></i>
+                <span>Voir mon exploitation</span>
+              </a>
+            </section>
+
+            <!-- 4. Carte "Mon abonnement" -->
+            <section class="profile-section-card" id="profileAboSection">
+              <!-- Rempli dynamiquement (Gratuit vs Abonné) -->
+              <div id="profileAboContent">
+                <!-- Rendu JavaScript -->
+              </div>
+            </section>
+
+            <!-- Lien rapide vers la page Paramètres -->
+            <section class="profile-section-card" style="padding: 14px 18px; cursor: pointer;" id="cardGoToSettings">
+              <div style="display: flex; align-items: center; justify-content: space-between;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                  <div style="width: 38px; height: 38px; border-radius: 10px; background: var(--bleu-clair); color: var(--bleu-principal); display: flex; align-items: center; justify-content: center;">
+                    <i data-lucide="settings" style="width: 20px; height: 20px;"></i>
+                  </div>
+                  <div>
+                    <strong style="font-size: 15px; color: #1A1A1A; display: block;">Paramètres de l'application</strong>
+                    <span style="font-size: 12px; color: #7C8781;">Affichage, notifications et sécurité</span>
+                  </div>
+                </div>
+                <i data-lucide="chevron-right" style="color: #A0AEC0;"></i>
+              </div>
+            </section>
+          </div>
+        </div>
+
+        <!-- ==================== 16. PAGE PARAMÈTRES ==================== -->
+        <div class="dashboard-body hidden" id="pageParametres">
+          <div class="page-view-header">
+            <div class="page-view-title-group">
+              <h2 class="page-view-title">Paramètres</h2>
+              <p class="page-view-subtitle">Affichage, notifications et sécurité</p>
+            </div>
+          </div>
+
+          <div class="settings-page-wrapper">
+            <!-- 1. Affichage (Taille du texte) -->
+            <section class="profile-section-card">
+              <h4 class="profile-card-title">
+                <i data-lucide="type"></i>
+                <span>Affichage</span>
+              </h4>
+              <p style="font-size: 13px; color: #4A4A4A; margin: 4px 0 12px;">Choisissez la taille du texte qui vous convient le mieux sur votre écran :</p>
+
+              <div class="text-size-pills-row">
+                <button type="button" class="btn-text-size-pill active" id="btnTextSizeNormal" data-size="normal">
+                  <span>Normal</span>
+                </button>
+                <button type="button" class="btn-text-size-pill" id="btnTextSizeLarge" data-size="large">
+                  <span style="font-size: 15px;">Grand</span>
+                </button>
+                <button type="button" class="btn-text-size-pill" id="btnTextSizeXLarge" data-size="xlarge">
+                  <span style="font-size: 17px; font-weight: 800;">Très grand</span>
+                </button>
+              </div>
+            </section>
+
+            <!-- 2. Notifications (Interrupteurs) -->
+            <section class="profile-section-card">
+              <h4 class="profile-card-title">
+                <i data-lucide="bell"></i>
+                <span>Notifications</span>
+              </h4>
+              <p style="font-size: 13px; color: #4A4A4A; margin: 4px 0 14px;">Activez ou coupez les alertes selon vos besoins :</p>
+
+              <div class="settings-switch-row">
+                <div class="settings-switch-info">
+                  <p class="settings-switch-title">Météo et alertes</p>
+                  <p class="settings-switch-desc">Pluie imminente, vents violents et conseils agronomiques locaux</p>
+                </div>
+                <label class="toggle-switch-wrap" for="toggleNotifMeteo">
+                  <input type="checkbox" id="toggleNotifMeteo" checked>
+                  <span class="toggle-slider-round"></span>
+                </label>
+              </div>
+
+              <div class="settings-switch-row">
+                <div class="settings-switch-info">
+                  <p class="settings-switch-title">Conseil du jour</p>
+                  <p class="settings-switch-desc">Le conseil technique matinal de nos agronomes partenaires</p>
+                </div>
+                <label class="toggle-switch-wrap" for="toggleNotifConseil">
+                  <input type="checkbox" id="toggleNotifConseil" checked>
+                  <span class="toggle-slider-round"></span>
+                </label>
+              </div>
+
+              <div class="settings-switch-row">
+                <div class="settings-switch-info">
+                  <p class="settings-switch-title">Nouveaux financements</p>
+                  <p class="settings-switch-desc">Subventions PReCA, fonds d'appui et rappels d'échéances</p>
+                </div>
+                <label class="toggle-switch-wrap" for="toggleNotifFinancements">
+                  <input type="checkbox" id="toggleNotifFinancements" checked>
+                  <span class="toggle-slider-round"></span>
+                </label>
+              </div>
+
+              <div class="settings-switch-row">
+                <div class="settings-switch-info">
+                  <p class="settings-switch-title">Rappels de mon exploitation</p>
+                  <p class="settings-switch-desc">Dates de repiquage, début des récoltes et entretien des parcelles</p>
+                </div>
+                <label class="toggle-switch-wrap" for="toggleNotifExploitation">
+                  <input type="checkbox" id="toggleNotifExploitation" checked>
+                  <span class="toggle-slider-round"></span>
+                </label>
+              </div>
+
+              <div class="settings-switch-row">
+                <div class="settings-switch-info">
+                  <p class="settings-switch-title">Marché</p>
+                  <p class="settings-switch-desc">Alertes de mise en vente et rappels d'expiration d'annonces</p>
+                </div>
+                <label class="toggle-switch-wrap" for="toggleNotifMarche">
+                  <input type="checkbox" id="toggleNotifMarche" checked>
+                  <span class="toggle-slider-round"></span>
+                </label>
+              </div>
+            </section>
+
+            <!-- 3. Sécurité (Mot de passe) -->
+            <section class="profile-section-card">
+              <h4 class="profile-card-title">
+                <i data-lucide="lock"></i>
+                <span>Sécurité</span>
+              </h4>
+              <p style="font-size: 13px; color: #4A4A4A; margin: 4px 0 14px;">Gérez l'accès et le mot de passe de votre compte :</p>
+
+              <button type="button" class="btn-secondary" id="btnOpenChangePasswordModal" style="width: 100%; justify-content: center; min-height: 48px; border-radius: 12px; font-weight: 700;">
+                <i data-lucide="key" style="width: 17px; height: 17px;"></i>
+                <span id="labelSecurityPasswordAction">Changer mon mot de passe</span>
+              </button>
+            </section>
+
+            <!-- 4. Application -->
+            <section class="profile-section-card">
+              <h4 class="profile-card-title">
+                <i data-lucide="smartphone"></i>
+                <span>Application</span>
+              </h4>
+
+              <div class="settings-menu-item" id="btnSettingsInstallPwa" role="button" tabindex="0">
+                <div class="settings-menu-item-left">
+                  <i data-lucide="download"></i>
+                  <span>Installer l'application</span>
+                </div>
+                <i data-lucide="chevron-right" class="settings-menu-chevron"></i>
+              </div>
+
+              <div class="settings-menu-item" id="btnSettingsShareApp" role="button" tabindex="0">
+                <div class="settings-menu-item-left">
+                  <i data-lucide="share-2"></i>
+                  <span>Partager REVAGRIK</span>
+                </div>
+                <i data-lucide="chevron-right" class="settings-menu-chevron"></i>
+              </div>
+
+              <div class="settings-menu-item" style="cursor: default;">
+                <div class="settings-menu-item-left">
+                  <i data-lucide="tag"></i>
+                  <span>Version de l'application</span>
+                </div>
+                <span style="font-size: 13px; font-weight: 700; color: #7C8781;">v3.5 - Octobre 2026</span>
+              </div>
+            </section>
+
+            <!-- 5. Aide & Légal -->
+            <section class="profile-section-card">
+              <h4 class="profile-card-title">
+                <i data-lucide="help-circle"></i>
+                <span>Aide</span>
+              </h4>
+
+              <a href="https://wa.me/22678010529?text=Bonjour,%20j'ai%20besoin%20d'aide%20sur%20REVAGRIK." target="_blank" rel="noopener noreferrer" class="settings-menu-item">
+                <div class="settings-menu-item-left">
+                  <i data-lucide="message-circle" style="color: #25D366;"></i>
+                  <span>Nous contacter sur WhatsApp</span>
+                </div>
+                <i data-lucide="external-link" class="settings-menu-chevron"></i>
+              </a>
+
+              <div class="settings-menu-item" id="btnOpenTermsModal" role="button" tabindex="0">
+                <div class="settings-menu-item-left">
+                  <i data-lucide="file-text"></i>
+                  <span>Conditions d'utilisation</span>
+                </div>
+                <i data-lucide="chevron-right" class="settings-menu-chevron"></i>
+              </div>
+
+              <div class="settings-menu-item" id="btnOpenPrivacyModal" role="button" tabindex="0">
+                <div class="settings-menu-item-left">
+                  <i data-lucide="shield-check"></i>
+                  <span>Politique de confidentialité</span>
+                </div>
+                <i data-lucide="chevron-right" class="settings-menu-chevron"></i>
+              </div>
+            </section>
+
+            <!-- 6. Sortie & Suppression -->
+            <section style="display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 8px;">
+              <button type="button" class="btn-secondary" id="btnSettingsLogout" style="width: 100%; justify-content: center; min-height: 50px; font-weight: 700; border-radius: 14px; border: 1.5px solid var(--bleu-principal); color: var(--bleu-principal); background: #FFFFFF;">
+                <i data-lucide="log-out" style="width: 18px; height: 18px;"></i>
+                <span>Se déconnecter</span>
+              </button>
+
+              <button type="button" id="btnOpenDeleteAccountModal" style="background: none; border: none; color: #C0392B; font-size: 13px; font-weight: 600; text-decoration: underline; cursor: pointer; padding: 8px 12px;">
+                Supprimer mon compte
+              </button>
+            </section>
           </div>
         </div>
       </main>
@@ -4571,6 +4891,143 @@
     </a>
   </nav>
 
+  <!-- MODALE MODIFIER MES INFORMATIONS (PROFIL) -->
+  <div class="modal-backdrop hidden" id="modalEditProfile" role="dialog" aria-modal="true">
+    <div class="modal-dialog" style="max-width: 480px; padding: 22px 20px; border-radius: 20px; background: #FFFFFF;">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; border-bottom: 1px solid #ECE6D9; padding-bottom: 12px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div style="width: 36px; height: 36px; border-radius: 10px; background: var(--bleu-clair); color: var(--bleu-principal); display: flex; align-items: center; justify-content: center;">
+            <i data-lucide="user-check" style="width: 20px; height: 20px;"></i>
+          </div>
+          <h3 style="font-size: 17px; font-weight: 800; color: #1A1A1A; margin: 0;">Modifier mes informations</h3>
+        </div>
+        <button type="button" class="modal-close-btn" id="btnCloseEditProfileCross" aria-label="Fermer" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #7C8781;">&times;</button>
+      </div>
+
+      <form id="formEditProfileInfo" style="display: flex; flex-direction: column; gap: 14px;">
+        <div>
+          <label for="inputEditFullName" style="font-size: 12px; font-weight: 700; color: #4A4A4A; text-transform: uppercase; display: block; margin-bottom: 6px;">Nom complet *</label>
+          <input type="text" id="inputEditFullName" required style="width: 100%; min-height: 48px; border-radius: 12px; border: 1.5px solid #ECE6D9; padding: 10px 14px; font-size: 15px; font-family: inherit;">
+        </div>
+
+        <div>
+          <label for="selectEditRegion" style="font-size: 12px; font-weight: 700; color: #4A4A4A; text-transform: uppercase; display: block; margin-bottom: 6px;">Région *</label>
+          <select id="selectEditRegion" required style="width: 100%; min-height: 48px; border-radius: 12px; border: 1.5px solid #ECE6D9; padding: 10px 14px; font-size: 15px; font-family: inherit; background: #FFFFFF;">
+            <option value="">Sélectionnez votre région…</option>
+            <!-- Rempli dynamiquement avec les 17 régions -->
+          </select>
+        </div>
+
+        <div>
+          <label for="inputEditVillage" style="font-size: 12px; font-weight: 700; color: #4A4A4A; text-transform: uppercase; display: block; margin-bottom: 6px;">Village ou commune</label>
+          <input type="text" id="inputEditVillage" placeholder="Ex: Koudougou, Saria, Poa…" style="width: 100%; min-height: 48px; border-radius: 12px; border: 1.5px solid #ECE6D9; padding: 10px 14px; font-size: 15px; font-family: inherit;">
+        </div>
+
+        <div>
+          <label for="selectEditActivite" style="font-size: 12px; font-weight: 700; color: #4A4A4A; text-transform: uppercase; display: block; margin-bottom: 6px;">Activité principale *</label>
+          <select id="selectEditActivite" required style="width: 100%; min-height: 48px; border-radius: 12px; border: 1.5px solid #ECE6D9; padding: 10px 14px; font-size: 15px; font-family: inherit; background: #FFFFFF;">
+            <option value="Producteur">Producteur</option>
+            <option value="Maraîcher">Maraîcher</option>
+            <option value="Éleveur">Éleveur</option>
+            <option value="Transformateur">Transformateur</option>
+            <option value="Commerçant">Commerçant</option>
+          </select>
+        </div>
+
+        <div style="background: #FAF7F0; border-radius: 10px; padding: 10px 12px; font-size: 12px; color: #7C8781;">
+          <strong>Numéro de téléphone :</strong> <span id="modalReadonlyPhoneText">--</span><br>
+          <span style="font-size: 11.5px;">Pour changer de numéro, contactez l'assistance sur WhatsApp.</span>
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-top: 6px;">
+          <button type="button" class="btn-secondary" id="btnCancelEditProfile" style="flex: 1; justify-content: center; min-height: 48px; border-radius: 12px; font-weight: 700;">Annuler</button>
+          <button type="submit" class="btn-primary" id="btnSaveProfileInfo" style="flex: 1.5; justify-content: center; min-height: 48px; border-radius: 12px; font-weight: 800; background: var(--ocre, #A85A1C); color: #FFF; border: none;">Enregistrer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODALE SÉCURITÉ / CHANGEMENT DE MOT DE PASSE -->
+  <div class="modal-backdrop hidden" id="modalChangePassword" role="dialog" aria-modal="true">
+    <div class="modal-dialog" style="max-width: 440px; padding: 22px 20px; border-radius: 20px; background: #FFFFFF;">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; border-bottom: 1px solid #ECE6D9; padding-bottom: 12px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div style="width: 36px; height: 36px; border-radius: 10px; background: var(--bleu-clair); color: var(--bleu-principal); display: flex; align-items: center; justify-content: center;">
+            <i data-lucide="lock" style="width: 20px; height: 20px;"></i>
+          </div>
+          <h3 style="font-size: 17px; font-weight: 800; color: #1A1A1A; margin: 0;" id="modalPasswordHeaderTitle">Changer mon mot de passe</h3>
+        </div>
+        <button type="button" class="modal-close-btn" id="btnCloseChangePasswordCross" aria-label="Fermer" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #7C8781;">&times;</button>
+      </div>
+
+      <form id="formChangePasswordModal" style="display: flex; flex-direction: column; gap: 14px;">
+        <div id="wrapOldPasswordRow">
+          <label for="inputOldPassword" style="font-size: 12px; font-weight: 700; color: #4A4A4A; text-transform: uppercase; display: block; margin-bottom: 6px;">Ancien mot de passe</label>
+          <input type="password" id="inputOldPassword" autocomplete="current-password" style="width: 100%; min-height: 48px; border-radius: 12px; border: 1.5px solid #ECE6D9; padding: 10px 14px; font-size: 15px; font-family: inherit;">
+        </div>
+
+        <div>
+          <label for="inputNewPassword" style="font-size: 12px; font-weight: 700; color: #4A4A4A; text-transform: uppercase; display: block; margin-bottom: 6px;">Nouveau mot de passe (6 car. min) *</label>
+          <input type="password" id="inputNewPassword" required minlength="6" autocomplete="new-password" style="width: 100%; min-height: 48px; border-radius: 12px; border: 1.5px solid #ECE6D9; padding: 10px 14px; font-size: 15px; font-family: inherit;">
+        </div>
+
+        <div>
+          <label for="inputConfirmPassword" style="font-size: 12px; font-weight: 700; color: #4A4A4A; text-transform: uppercase; display: block; margin-bottom: 6px;">Confirmer le nouveau mot de passe *</label>
+          <input type="password" id="inputConfirmPassword" required minlength="6" autocomplete="new-password" style="width: 100%; min-height: 48px; border-radius: 12px; border: 1.5px solid #ECE6D9; padding: 10px 14px; font-size: 15px; font-family: inherit;">
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-top: 6px;">
+          <button type="button" class="btn-secondary" id="btnCancelChangePassword" style="flex: 1; justify-content: center; min-height: 48px; border-radius: 12px; font-weight: 700;">Annuler</button>
+          <button type="submit" class="btn-primary" id="btnSubmitChangePassword" style="flex: 1.5; justify-content: center; min-height: 48px; border-radius: 12px; font-weight: 800; background: var(--bleu-principal, #05507E); color: #FFF; border: none;">Enregistrer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODALE CONFIRMATION SUPPRESSION DE COMPTE -->
+  <div class="modal-backdrop hidden" id="modalDeleteAccountConfirm" role="dialog" aria-modal="true">
+    <div class="modal-dialog" style="max-width: 440px; padding: 24px 20px; border-radius: 20px; background: #FFFFFF; text-align: center;">
+      <div style="width: 52px; height: 52px; border-radius: 50%; background: #FDE8E8; color: #C0392B; display: flex; align-items: center; justify-content: center; margin: 0 auto 14px;">
+        <i data-lucide="alert-triangle" style="width: 28px; height: 28px;"></i>
+      </div>
+      <h3 style="font-size: 18px; font-weight: 800; color: #1A1A1A; margin: 0 0 8px;">Supprimer mon compte ?</h3>
+      <p style="font-size: 13.5px; color: #4A4A4A; line-height: 1.5; margin: 0 0 16px;">
+        Attention : la suppression de votre compte effacera l'ensemble de vos parcelles, récoltes enregistrées, écritures financières et historiques. <strong>Cette action est définitive et irréversible.</strong>
+      </p>
+      <p style="font-size: 12.5px; color: #7C8781; margin: 0 0 20px;">
+        Pour garantir la sécurité de vos données, la demande est transmise à l'administrateur de la plateforme via WhatsApp pour confirmation.
+      </p>
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <a href="#" id="btnSendDeleteRequestWhatsApp" target="_blank" rel="noopener noreferrer" style="display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 50px; background: #C0392B; color: #FFFFFF; border-radius: 12px; font-size: 14.5px; font-weight: 800; text-decoration: none;">
+          <i data-lucide="message-circle" style="width: 18px; height: 18px;"></i>
+          <span>Confirmer la suppression sur WhatsApp</span>
+        </a>
+        <button type="button" class="btn-secondary" id="btnCancelDeleteAccountModal" style="width: 100%; justify-content: center; min-height: 46px; border-radius: 12px; font-weight: 700;">
+          Annuler et conserver mon compte
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODALE LÉGAL : CONDITIONS & CONFIDENTIALITÉ (BIENTÔT DISPONIBLE) -->
+  <div class="modal-backdrop hidden" id="modalLegalNotice" role="dialog" aria-modal="true">
+    <div class="modal-dialog" style="max-width: 440px; padding: 24px 20px; border-radius: 20px; background: #FFFFFF; text-align: center;">
+      <div style="width: 52px; height: 52px; border-radius: 50%; background: var(--bleu-clair); color: var(--bleu-principal); display: flex; align-items: center; justify-content: center; margin: 0 auto 14px;">
+        <i data-lucide="file-text" style="width: 26px; height: 26px;"></i>
+      </div>
+      <h3 style="font-size: 18px; font-weight: 800; color: #1A1A1A; margin: 0 0 8px;" id="legalNoticeModalTitle">Conditions d'utilisation</h3>
+      <p style="font-size: 14px; color: #4A4A4A; line-height: 1.5; margin: 0 0 16px;">
+        Bientôt disponible — La rédaction officielle est en cours de finalisation avec notre conseiller juridique.
+      </p>
+      <p style="font-size: 12px; color: #7C8781; margin: 0 0 20px;">
+        Vos données agricoles restent strictement confidentielles et protégées sur les serveurs sécurisés de REVAGRIK.
+      </p>
+      <button type="button" class="btn-primary" id="btnCloseLegalNoticeModal" style="width: 100%; justify-content: center; min-height: 48px; border-radius: 12px; font-weight: 700; background: var(--bleu-principal); color: #FFF; border: none;">
+        J'ai compris
+      </button>
+    </div>
+  </div>
+
   <!-- TOAST DE NOTIFICATION FLOTTANT SANS EMOJI -->
   <div class="toast-notification hidden" id="toastNotification">
     <div class="toast-icon" id="toastIcon">
@@ -4587,6 +5044,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <!-- SCRIPT APPLICATION -->
-  <script src="scripts/app.js?v=20261027.3"></script>
+  <script src="scripts/app.js?v=20261027.4"></script>
 </body>
 </html>
