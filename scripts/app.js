@@ -12,7 +12,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let supabaseClient = null;
   if (window.supabase && typeof window.supabase.createClient === 'function') {
-    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: {
+        detectSessionInUrl: true,
+        persistSession: true,
+        autoRefreshToken: true
+      }
+    });
     window.supabaseClient = supabaseClient;
     console.log(' [Révolution Agricole] Connecté avec succès à Supabase !');
   } else {
@@ -28,6 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentProfileKey = null;
   let currentUIState = 'normal';
   let currentViewMode = 'desktop';
+  let isRecoveryMode = false; // Flag actif lors du flux de réinitialisation de mot de passe
 
   // État des abonnements par profil (5 000 F / 10 000 F CFA)
   const userSubscriptionStatus = {};
@@ -4866,13 +4873,27 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function handleRoute() {
+    // Si nous sommes dans un flux de récupération de mot de passe, ne jamais écraser l'adresse ni forcer dashboard
+    if (isRecoveryMode || 
+        window.location.search.includes('reset=1') || 
+        window.location.search.includes('type=recovery') || 
+        window.location.hash.includes('type=recovery') ||
+        window.location.hash.includes('access_token=') ||
+        window.location.hash.includes('error=')) {
+      return;
+    }
+
     const rawHash = (window.location.hash || '').replace(/^#/, '');
     const cleanHash = rawHash.split('?')[0];
 
     const resolved = ROUTE_ALIASES[cleanHash];
 
     if (!resolved) {
-      console.warn('️ [Navigation] Adresse inconnue demandée :', '#' + rawHash);
+      // Si le hash contient des jetons d'auth ou des paramètres Supabase, ne pas forcer dashboard
+      if (rawHash.includes('access_token=') || rawHash.includes('error=') || rawHash.includes('type=recovery')) {
+        return;
+      }
+      console.warn('⚠️ [Navigation] Adresse inconnue demandée :', '#' + rawHash);
       window.location.hash = 'dashboard';
       navigateToPage('dashboard');
       return;
@@ -10691,10 +10712,24 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function showResetPasswordScreen() {
+    isRecoveryMode = true;
+    const loadingScreen = document.getElementById('appLoadingScreen');
+    if (loadingScreen) loadingScreen.classList.add('hidden');
     const authPortalScreen = document.getElementById('authPortalScreen');
     if (authPortalScreen) authPortalScreen.classList.remove('hidden');
     if (viewportContainer) viewportContainer.classList.add('hidden');
     switchPortalTab('reset');
+    const newPassInput = document.getElementById('portalNewPassword');
+    if (newPassInput) {
+      newPassInput.value = '';
+      setTimeout(() => newPassInput.focus(), 150);
+    }
+    const confirmPassInput = document.getElementById('portalConfirmPassword');
+    if (confirmPassInput) confirmPassInput.value = '';
+    const resetAlert = document.getElementById('resetPasswordAlert');
+    if (resetAlert) resetAlert.classList.add('hidden');
+    const resetSuccess = document.getElementById('resetPasswordSuccess');
+    if (resetSuccess) resetSuccess.classList.add('hidden');
   }
 
   if (btnPortalTabLogin) btnPortalTabLogin.addEventListener('click', () => switchPortalTab('login'));
@@ -10709,7 +10744,15 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
   if (linkBackFromForgot) linkBackFromForgot.addEventListener('click', () => switchPortalTab('login'));
-  if (linkBackToLoginFromReset) linkBackToLoginFromReset.addEventListener('click', () => switchPortalTab('login'));
+  if (linkBackToLoginFromReset) {
+    linkBackToLoginFromReset.addEventListener('click', () => {
+      isRecoveryMode = false;
+      try {
+        window.history.replaceState(null, '', window.location.pathname);
+      } catch (e) {}
+      switchPortalTab('login');
+    });
+  }
 
   // Disparition de la bannière d'erreur lors de la saisie
   if (portalLoginEmail) {
@@ -11150,17 +11193,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
       try {
         if (supabaseClient) {
-          const redirectUrl = `${window.location.origin}${window.location.pathname}#reset-password`;
+          // Utilisation d'une URL de redirection propre SANS dièse (#) : https://r2volution-agricole.vercel.app/?reset=1
+          const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+          const baseUrl = isLocal 
+            ? `${window.location.origin}/` 
+            : 'https://r2volution-agricole.vercel.app/';
+          const redirectUrl = `${baseUrl}?reset=1`;
+
+          console.log('[Auth] resetPasswordForEmail avec redirectTo :', redirectUrl);
+
           const { error } = await supabaseClient.auth.resetPasswordForEmail(rawEmail, {
             redirectTo: redirectUrl
           });
 
           if (error) {
+            let errorMsg = error.message || 'Impossible d\'envoyer l\'email de réinitialisation.';
+            if (errorMsg.includes('rate limit') || errorMsg.includes('over_email_send_rate_limit')) {
+              errorMsg = 'Trop de tentatives rapprochées. Veuillez patienter un instant avant de redemander un lien.';
+            }
             if (alertBox) {
-              alertBox.textContent = error.message || 'Impossible d\'envoyer l\'email de réinitialisation.';
+              alertBox.textContent = errorMsg;
               alertBox.classList.remove('hidden');
             }
-            showToast('⚠️ Erreur', error.message || 'Échec de l\'envoi de l\'email.');
+            showToast('⚠️ Erreur', errorMsg);
           } else {
             if (successBox) {
               successBox.innerHTML = `Un lien de réinitialisation a été envoyé à <strong>${rawEmail}</strong>. Veuillez vérifier votre boîte de réception (et vos spams). Cliquez sur le lien reçu pour choisir votre nouveau mot de passe.`;
@@ -11227,12 +11282,32 @@ document.addEventListener('DOMContentLoaded', () => {
           });
 
           if (error) {
+            console.warn('[Auth Reset] Erreur updateUser :', error);
+            let userFriendlyMsg = error.message || '';
+            if (!userFriendlyMsg || 
+                userFriendlyMsg.includes('Auth session missing') || 
+                userFriendlyMsg.includes('session missing') ||
+                userFriendlyMsg.includes('User not found') ||
+                userFriendlyMsg.includes('recovery')) {
+              userFriendlyMsg = "Ce lien a expiré ou a déjà été utilisé. Demandez un nouveau lien.";
+            } else if (userFriendlyMsg.includes('Password should be at least')) {
+              userFriendlyMsg = "Le mot de passe doit comporter au moins 6 caractères.";
+            } else if (userFriendlyMsg.includes('different from the old')) {
+              userFriendlyMsg = "Le nouveau mot de passe doit être différent de l'ancien.";
+            }
+
             if (alertBox) {
-              alertBox.textContent = error.message || 'Impossible de mettre à jour le mot de passe.';
+              alertBox.textContent = userFriendlyMsg;
               alertBox.classList.remove('hidden');
             }
-            showToast('⚠️ Erreur', error.message || 'Mise à jour échouée.');
+            showToast('⚠️ Réinitialisation', userFriendlyMsg);
           } else {
+            // Nettoyage de l'URL pour ne plus rejouer les paramètres de récupération
+            isRecoveryMode = false;
+            try {
+              window.history.replaceState(null, '', window.location.pathname);
+            } catch (e) {}
+
             if (successBox) {
               successBox.textContent = 'Votre mot de passe a été mis à jour avec succès ! Connexion en cours…';
               successBox.classList.remove('hidden');
@@ -11247,10 +11322,16 @@ document.addEventListener('DOMContentLoaded', () => {
               }
             }, 1200);
           }
+        } else {
+          throw new Error('Client Supabase non initialisé.');
         }
       } catch (err) {
+        let userFriendlyMsg = err.message || '';
+        if (userFriendlyMsg.includes('Auth session missing') || userFriendlyMsg.includes('session missing')) {
+          userFriendlyMsg = "Ce lien a expiré ou a déjà été utilisé. Demandez un nouveau lien.";
+        }
         if (alertBox) {
-          alertBox.textContent = err.message || 'Une erreur inattendue est survenue.';
+          alertBox.textContent = userFriendlyMsg || 'Une erreur inattendue est survenue.';
           alertBox.classList.remove('hidden');
         }
       } finally {
@@ -11267,8 +11348,16 @@ document.addEventListener('DOMContentLoaded', () => {
     supabaseClient.auth.onAuthStateChange(async (event, session) => {
       console.log(' [Supabase Auth Event]', event, session?.user?.email);
       if (event === 'PASSWORD_RECOVERY') {
+        isRecoveryMode = true;
         showResetPasswordScreen();
         return;
+      }
+      if (isRecoveryMode) {
+        // En mode réinitialisation de mot de passe, rester sur le formulaire de nouveau mot de passe
+        if (event === 'SIGNED_IN') {
+          showResetPasswordScreen();
+          return;
+        }
       }
       if (event === 'SIGNED_OUT') {
         currentSessionInitializedUserId = null;
@@ -11286,7 +11375,12 @@ document.addEventListener('DOMContentLoaded', () => {
       if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
         if (!session?.user) return;
         // Si l'utilisateur est en cours de réinitialisation de mot de passe, ne pas forcer l'entrée sur le tableau de bord
-        if (window.location.hash.includes('reset-password') || window.location.hash.includes('type=recovery')) {
+        if (isRecoveryMode || 
+            window.location.search.includes('reset=1') || 
+            window.location.search.includes('type=recovery') || 
+            window.location.hash.includes('reset-password') || 
+            window.location.hash.includes('type=recovery')) {
+          isRecoveryMode = true;
           showResetPasswordScreen();
           return;
         }
@@ -14875,6 +14969,66 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(hideLoadingScreen, 2500);
 
     try {
+      const searchParams = new URLSearchParams(window.location.search);
+      const urlHash = window.location.hash || '';
+
+      // 1. Détection des erreurs retournées par Supabase dans l'URL (ex: lien expiré ou déjà utilisé)
+      const hasUrlError = searchParams.has('error') || searchParams.has('error_description') || 
+                          urlHash.includes('error=') || urlHash.includes('error_code=') || urlHash.includes('error_description=');
+
+      if (hasUrlError) {
+        hideLoadingScreen();
+        if (viewportContainer) viewportContainer.classList.add('hidden');
+        if (authPortalScreen) authPortalScreen.classList.remove('hidden');
+        switchPortalTab('forgot');
+        const alertBox = document.getElementById('forgotPasswordAlert');
+        if (alertBox) {
+          alertBox.textContent = "Ce lien a expiré ou a déjà été utilisé. Demandez un nouveau lien.";
+          alertBox.classList.remove('hidden');
+        }
+        try {
+          window.history.replaceState(null, '', window.location.pathname);
+        } catch (e) {}
+        return;
+      }
+
+      // 2. Traitement du flux PKCE (?code=...) si présent
+      const codeParam = searchParams.get('code');
+      if (codeParam && supabaseClient) {
+        try {
+          console.log('[Auth PKCE] Code détecté dans l\'URL, échange en cours...');
+          const { data: pkceData, error: pkceErr } = await supabaseClient.auth.exchangeCodeForSession(codeParam);
+          if (pkceErr) {
+            console.warn('[Auth PKCE] Erreur échange de code :', pkceErr);
+            hideLoadingScreen();
+            if (viewportContainer) viewportContainer.classList.add('hidden');
+            if (authPortalScreen) authPortalScreen.classList.remove('hidden');
+            switchPortalTab('forgot');
+            const alertBox = document.getElementById('forgotPasswordAlert');
+            if (alertBox) {
+              alertBox.textContent = "Ce lien a expiré ou a déjà été utilisé. Demandez un nouveau lien.";
+              alertBox.classList.remove('hidden');
+            }
+            return;
+          } else if (pkceData?.session) {
+            console.log('[Auth PKCE] Échange réussi pour :', pkceData.session.user?.email);
+          }
+        } catch (pkceEx) {
+          console.error('[Auth PKCE] Exception échange code :', pkceEx);
+        }
+      }
+
+      // 3. Détection de récupération de mot de passe (reset=1 ou hash type=recovery)
+      const isResetParam = searchParams.get('reset') === '1' || searchParams.get('type') === 'recovery';
+      const hasHashRecovery = urlHash.includes('type=recovery') || urlHash.includes('reset-password');
+
+      if (isResetParam || hasHashRecovery || isRecoveryMode) {
+        console.log('[Auth] Mode récupération de mot de passe actif.');
+        hideLoadingScreen();
+        showResetPasswordScreen();
+        return;
+      }
+
       let sessionUser = null;
       if (supabaseClient) {
         try {
@@ -14897,11 +15051,6 @@ document.addEventListener('DOMContentLoaded', () => {
       fetchNotifications().catch(() => {});
       fetchAnnonces().catch(() => {});
       fetchSignalements().catch(() => {});
-
-      if (window.location.hash.includes('reset-password') || window.location.hash.includes('type=recovery')) {
-        showResetPasswordScreen();
-        return;
-      }
 
       if (sessionUser) {
         await checkUserProfileAndProceed(sessionUser);
