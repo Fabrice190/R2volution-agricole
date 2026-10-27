@@ -10732,6 +10732,17 @@ document.addEventListener('DOMContentLoaded', () => {
     if (resetSuccess) resetSuccess.classList.add('hidden');
   }
 
+  // Exposition pour accès direct
+  window.showResetPasswordScreen = showResetPasswordScreen;
+  window.switchPortalTab = switchPortalTab;
+
+  // Détection immédiate du mode récupération dès l'évaluation du portail
+  if (urlParams.get('reset') === '1' || urlParams.get('type') === 'recovery' || 
+      window.location.hash.includes('reset-password') || window.location.hash.includes('type=recovery')) {
+    isRecoveryMode = true;
+    showResetPasswordScreen();
+  }
+
   if (btnPortalTabLogin) btnPortalTabLogin.addEventListener('click', () => switchPortalTab('login'));
   if (btnPortalTabRegister) btnPortalTabRegister.addEventListener('click', () => switchPortalTab('register'));
   if (linkToRegister) linkToRegister.addEventListener('click', () => switchPortalTab('register'));
