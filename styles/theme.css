@@ -1,8 +1,7 @@
 /* ==========================================================================
-   RÉVOLUTION AGRICOLE — FICHIER DE THÈME CENTRALISÉ (theme.css)
+   REVAGRIK — FICHIER DE THÈME CENTRALISÉ (theme.css)
+   Nouvelle identité visuelle REVAGRIK (sous-titre "Révolution Agricole")
    Toutes les couleurs de l'application sont déclarées ici.
-   Pour changer le thème ou l'identité visuelle de l'application,
-   modifiez uniquement les variables de ce fichier.
    ========================================================================== */
 
 :root {
@@ -12,14 +11,20 @@
   --font-sans:                         'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
   /* ==========================================================================
-     2. COULEURS OFFICIELLES (DESIGN SYSTEM SAHÉLO-TECH V4)
+     2. COULEURS OFFICIELLES REVAGRIK (DESIGN SYSTEM SAHÉLO-TECH V5)
      ========================================================================== */
-  --vert-principal:                    #1F5E3B; /* Vert principal */
-  --vert-clair:                        #E8F0EA; /* Vert clair (fonds d'icônes, bouton léger, pastille nav) */
+  --bleu-principal:                    #05507E; /* Bleu REVAGRIK principal (carte du bénéfice, titres importants, onglet actif, liens, icônes) */
+  --bleu-fonce:                        #043E62; /* Bleu foncé pour le survol */
+  --bleu-clair:                        #E6EFF6; /* Bleu clair (fonds d'icônes, pastille de l'onglet actif et petits boutons) */
+  
+  --vert-revagrik:                     #237A2B; /* Vert REVAGRIK (textes et chiffres positifs : bénéfice, ventes, disponible) */
+  --vert-vif:                          #3FAE49; /* Vert vif (seulement en décoration ou fond de badge avec texte #1A1A1A) */
+  --vert-clair:                        #E5F3E6; /* Vert clair pour fonds de badges */
+
   --ocre:                              #A85A1C; /* Ocre (texte blanc : SEULEMENT bouton le plus important) */
   --ocre-clair:                        #F6EADF; /* Ocre clair */
-  --jaune-soleil:                      #E0A526; /* Jaune soleil (badges, perte saison) */
-  --jaune-clair:                       #FBF1D6; /* Jaune clair */
+  --jaune-clair:                       #FBF1D6; /* Jaune clair (seulement icône soleil météo et badge Conseil du jour) */
+
   --fond-creme:                        #FAF7F0; /* Fond de page crème */
   --carte-blanche:                     #FFFFFF; /* Cartes blanches */
   --bordure-carte:                     #ECE6D9; /* Bordure 1px des cartes */
@@ -29,18 +34,23 @@
   --rouge-fond:                        #FBE9E7; /* Fond alerte rouge */
 
   /* ==========================================================================
-     3. ALIAS & RÉTROCOMPATIBILITÉ THÈME
+     3. ALIAS REVAGRIK & RÉTROCOMPATIBILITÉ
      ========================================================================== */
-  --couleur-principale:                var(--vert-principal);
-  --couleur-principale-foncee:         #154329;
-  --couleur-principale-intermediaire:  #1F5E3B;
-  --couleur-principale-claire:         #277449;
-  --couleur-principale-accent:         #2E8B57;
-  --couleur-principale-doux:           #68A37E;
-  --couleur-principale-pale:           #C5DEC9;
-  --couleur-principale-fond:           var(--vert-clair);
-  --couleur-principale-fond-leger:     #F2F7F3;
-  --couleur-principale-bordure:        #C5DEC9;
+  /* Couleurs principales basées sur le Bleu REVAGRIK #05507E */
+  --vert-principal:                    var(--bleu-principal);
+  --couleur-principale:                var(--bleu-principal);
+  --couleur-principale-foncee:         var(--bleu-fonce);
+  --couleur-principale-intermediaire:  var(--bleu-principal);
+  --couleur-principale-claire:         #0A6299;
+  --couleur-principale-accent:         #0E72B0;
+  --couleur-principale-doux:           #5C93B8;
+  --couleur-principale-pale:           #C3D9E9;
+  --couleur-principale-fond:           var(--bleu-clair);
+  --couleur-principale-fond-leger:     #F0F6FA;
+  --couleur-principale-bordure:        #C3D9E9;
+
+  /* Remplacement de l'ancien jaune soleil par Vert REVAGRIK */
+  --jaune-soleil:                      var(--vert-revagrik);
 
   --couleur-secondaire:                var(--ocre);
   --couleur-secondaire-foncee:         #874614;
@@ -53,7 +63,7 @@
   --surface:                           var(--carte-blanche);
   --surface-alt:                       #FCFBF7;
   --surface-douce:                     #F5F0E6;
-  --surface-neutre:                    var(--vert-clair);
+  --surface-neutre:                    var(--bleu-clair);
   --surface-hover:                     #F2EDE4;
 
   --texte:                             var(--texte-principal);
@@ -69,15 +79,15 @@
   --bordure-forte:                     #D8CEBE;
   --bordure-sombre:                    rgba(255, 255, 255, 0.15);
 
-  --succes:                            var(--vert-principal);
-  --succes-vif:                        var(--vert-principal);
+  --succes:                            var(--vert-revagrik);
+  --succes-vif:                        var(--vert-vif);
   --succes-fond:                       var(--vert-clair);
-  --succes-bordure:                    #C5DEC9;
-  --succes-texte:                      var(--vert-principal);
+  --succes-bordure:                    #B9DFBC;
+  --succes-texte:                      var(--vert-revagrik);
 
-  --alerte:                            var(--jaune-soleil);
-  --alerte-vif:                        var(--jaune-soleil);
-  --alerte-fonce:                      #9C6F12;
+  --alerte:                            var(--ocre);
+  --alerte-vif:                        #D97706;
+  --alerte-fonce:                      #874614;
   --alerte-fond:                       var(--jaune-clair);
   --alerte-fond-pale:                  var(--jaune-clair);
   --alerte-bordure:                    #E8D4A2;
@@ -91,60 +101,18 @@
   --erreur-bordure:                    #F5B7B1;
   --erreur-texte:                      var(--rouge-alerte);
 
-  --info:                              var(--vert-principal);
-  --info-fonce:                        #154329;
-  --info-fond:                         var(--vert-clair);
-  --info-bordure:                      #C5DEC9;
-  --info-texte:                        var(--vert-principal);
+  --info:                              var(--bleu-principal);
+  --info-fonce:                        var(--bleu-fonce);
+  --info-fond:                         var(--bleu-clair);
+  --info-bordure:                      #C3D9E9;
+  --info-texte:                        var(--bleu-principal);
 
   --accent:                            var(--ocre);
   --accent-fonce:                      #874614;
   --accent-fond:                       var(--ocre-clair);
 
   /* ==========================================================================
-     6. ALERTES & STATUTS MÉTIER
-     ========================================================================== */
-  /* Succès / Favorable / Récolte / Encaissé */
-  --succes:                            #1E5E2A; /* Vert de validation */
-  --succes-vif:                        #16A34A; /* Vert vif de succès */
-  --succes-fond:                       #EAF4E6; /* Fond vert doux d'alerte succès */
-  --succes-bordure:                    #D2E7CB; /* Bordure d'alerte succès */
-  --succes-texte:                      #0E3615; /* Texte foncé d'alerte succès */
-
-  /* Alerte / Attention / Échéance proche / En attente */
-  --alerte:                            #C8862A; /* Orange ocre d'alerte */
-  --alerte-vif:                        #D97706; /* Ambre vif */
-  --alerte-fonce:                      #8A4F00; /* Ambre foncé */
-  --alerte-fond:                       #FFF7E0; /* Fond jaune pastel d'alerte */
-  --alerte-fond-pale:                  #FFF9E6; /* Fond jaune ultra-doux */
-  --alerte-bordure:                    #F5D380; /* Bordure d'alerte */
-  --alerte-texte:                      #784F11; /* Texte foncé sur fond d'alerte */
-
-  /* Erreur / Dépense / Danger / Clôturé */
-  --erreur:                            #C62828; /* Rouge terre d'erreur / charges */
-  --erreur-vif:                        #CF1322; /* Rouge vif pour alertes critiques */
-  --erreur-fonce:                      #8E1C1C; /* Rouge bordeaux pour texte d'erreur */
-  --erreur-fond:                       #FDEDED; /* Fond rose/rouge pastel d'erreur */
-  --erreur-fond-alt:                   #FFF1F0; /* Fond rouge très doux */
-  --erreur-bordure:                    #FFA39E; /* Bordure rose d'erreur */
-  --erreur-texte:                      #8E1C1C; /* Texte d'erreur lisible */
-
-  /* Information / Météo / Guides */
-  --info:                              #1E6FD9; /* Bleu d'information météo */
-  --info-fonce:                        #0F4894; /* Bleu foncé */
-  --info-fond:                         #EEF5FD; /* Fond bleu ciel pastel */
-  --info-bordure:                      #BEE3F8; /* Bordure d'information */
-  --info-texte:                        #0F4894; /* Texte d'information */
-
-  /* Accentuation / Formations / Partenaires */
-  --accent:                            #6D4BD8; /* Violet pour formations et innovation */
-  --accent-fonce:                      #452B9C; /* Violet foncé */
-  --accent-fond:                       #F2EFFD; /* Fond violet pastel */
-  --accent-bordure:                    #D6BCFA; /* Bordure violette */
-  --accent-texte:                      #452B9C; /* Texte violet */
-
-  /* ==========================================================================
-     7. BOUTONS, FORMES & INTERACTIONS
+     4. BOUTONS, FORMES & INTERACTIONS
      ========================================================================== */
   --radius-carte:                      20px;
   --radius-bouton:                     14px;
@@ -156,16 +124,16 @@
   --bouton-primaire-texte:             #FFFFFF;
   --bouton-primaire-hauteur:           52px;
 
-  /* Bouton Secondaire : Blanc avec bordure verte 1.5px */
+  /* Bouton Secondaire : Blanc avec bordure bleu REVAGRIK 1.5px */
   --bouton-secondaire-fond:            var(--carte-blanche);
-  --bouton-secondaire-survol:          var(--vert-clair);
-  --bouton-secondaire-bordure:         1.5px solid var(--vert-principal);
-  --bouton-secondaire-texte:           var(--vert-principal);
+  --bouton-secondaire-survol:          var(--bleu-clair);
+  --bouton-secondaire-bordure:         1.5px solid var(--bleu-principal);
+  --bouton-secondaire-texte:           var(--bleu-principal);
 
-  /* Bouton Petit / Léger : Fond vert clair, texte vert */
-  --bouton-leger-fond:                 var(--vert-clair);
-  --bouton-leger-survol:               #D8E8DB;
-  --bouton-leger-texte:                var(--vert-principal);
+  /* Bouton Petit / Léger : Fond bleu clair, texte bleu REVAGRIK */
+  --bouton-leger-fond:                 var(--bleu-clair);
+  --bouton-leger-survol:               #D4E4F1;
+  --bouton-leger-texte:                var(--bleu-principal);
 
   /* Bouton Danger / Suppression */
   --bouton-danger-fond:                var(--rouge-alerte);
@@ -178,16 +146,16 @@
   --bouton-or-texte:                   #FFFFFF;
 
   /* ==========================================================================
-     8. BADGES THÉMATIQUES & SURFACES PASTELS (Conseils, Financements, Catégories)
+     5. BADGES THÉMATIQUES & SURFACES PASTELS
      ========================================================================== */
-  --badge-vert-fond:                   #E8F5E9;
-  --badge-vert-texte:                  #1B5E20;
-  --badge-bleu-fond:                   #E1F5FE;
-  --badge-bleu-texte:                  #0277BD;
+  --badge-vert-fond:                   var(--vert-clair);
+  --badge-vert-texte:                  var(--vert-revagrik);
+  --badge-bleu-fond:                   var(--bleu-clair);
+  --badge-bleu-texte:                  var(--bleu-principal);
   --badge-violet-fond:                 #EDE7F6;
   --badge-violet-texte:                #512DA8;
-  --badge-orange-fond:                 #FFF3E0;
-  --badge-orange-texte:                #E65100;
+  --badge-orange-fond:                 var(--ocre-clair);
+  --badge-orange-texte:                var(--ocre);
   --badge-rose-fond:                   #F3E5F5;
   --badge-rose-texte:                  #7B1FA2;
   --badge-turquoise-fond:              #E0F2F1;
@@ -197,23 +165,23 @@
   --badge-gris-fond:                   #EEEEEE;
   --badge-gris-texte:                  #616161;
 
-  --surface-pastel-vert:               #F4FAF2;
+  --surface-pastel-vert:               #F2F8F3;
   --surface-pastel-ambre:              #FFF9EB;
   --surface-pastel-rouge:              #FEECEB;
-  --surface-pastel-bleu:               #F0F6FD;
+  --surface-pastel-bleu:               var(--bleu-clair);
 
   /* ==========================================================================
-     9. OPÉRATEURS & MODES DE PAIEMENT LOCAUX
+     6. OPÉRATEURS LOCAUX
      ========================================================================== */
-  --operateur-orange:                  #FF6600; /* Orange Money Burkina */
+  --operateur-orange:                  #FF6600;
   --operateur-orange-fond:             #FFF4E5;
   --operateur-orange-bordure:          #FFE0B2;
-  --operateur-moov:                    #0A66C2; /* Moov Money Flooz */
+  --operateur-moov:                    #0A66C2;
   --operateur-moov-fond:               #EEF5FD;
   --operateur-moov-bordure:            #BEE3F8;
 
   /* ==========================================================================
-     9. ALIAS DE RÉTROCOMPATIBILITÉ (Garantit le zéro régression)
+     7. ALIAS DE RÉTROCOMPATIBILITÉ
      ========================================================================== */
   --primary-900:                       var(--couleur-principale-foncee);
   --primary-700:                       var(--couleur-principale);

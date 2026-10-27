@@ -1,10 +1,10 @@
 /**
- * Service Worker — Révolution Agricole PWA
- * Version: 20261027.2
+ * Service Worker — REVAGRIK (Révolution Agricole) PWA
+ * Version: 20261027.3
  * Stratégie de mise en cache rapide, résiliente et sécurisée (Zéro mise en cache Supabase/Auth)
  */
 
-const CACHE_NAME = 'revolution-agricole-v20261027.2';
+const CACHE_NAME = 'revagrik-v20261027.3';
 const OFFLINE_URL = 'offline.html';
 
 // Ressources applicatives critiques à pré-cacher pour un démarrage ultra-rapide
@@ -16,10 +16,13 @@ const PRECACHE_ASSETS = [
   'styles/theme.css',
   'styles/main.css',
   'scripts/app.js',
+  'assets/logo/logo-revagrik.png',
+  'assets/logo/icon-192.png',
+  'assets/logo/icon-512.png',
+  'assets/logo/icon-maskable-512.png',
+  'assets/logo/apple-touch-icon.png',
   'images/icons/icon-192x192.png',
   'images/icons/icon-512x512.png',
-  'images/icons/icon-maskable-192x192.png',
-  'images/icons/icon-maskable-512x512.png',
   'images/icons/apple-touch-icon.png',
   'images/icons/ios-step1-share.png',
   'images/icons/ios-step2-home.png'
@@ -45,7 +48,7 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((name) => {
-          if (name !== CACHE_NAME && name.startsWith('revolution-agricole-')) {
+          if (name !== CACHE_NAME && (name.startsWith('revolution-agricole-') || name.startsWith('revagrik-'))) {
             console.log('🧹 [SW] Suppression de l\'ancien cache obsolète :', name);
             return caches.delete(name);
           }

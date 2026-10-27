@@ -1,4 +1,4 @@
-# 🌾 RÉVOLUTION AGRICOLE — GUIDE TECHNIQUE & DOCUMENTATION SYSTÈME (GEMINI.md)
+# 🌾 REVAGRIK (RÉVOLUTION AGRICOLE) — GUIDE TECHNIQUE & DOCUMENTATION SYSTÈME (GEMINI.md)
 
 > **Document de référence pour les développeurs et agents d'intelligence artificielle.**  
 > Ce fichier résume l'architecture complète, les fonctionnalités livrées, les choix technologiques et stylistiques, ainsi que les directives strictes pour toute extension future du projet.
@@ -7,7 +7,7 @@
 
 ## 📌 1. Ce que fait l'application
 
-**Révolution Agricole** est une plateforme SaaS *mobile-first* conçue spécifiquement pour les acteurs du secteur agropastoral au **Burkina Faso** et en Afrique de l'Ouest sahélienne. 
+**REVAGRIK** (sous-titre *Révolution Agricole*) est une plateforme SaaS *mobile-first* conçue spécifiquement pour les acteurs du secteur agropastoral au **Burkina Faso** et en Afrique de l'Ouest sahélienne. 
 
 Elle réunit au sein d'une interface unifiée, résiliente et haute performance :
 1. **L'information vérifiée et la météo agronomique locale** (alertes pluie, vent, hygrométrie pour planifier semis et traitements).
@@ -79,15 +79,27 @@ Elle réunit au sein d'une interface unifiée, résiliente et haute performance 
 REVOLUTION AGRICOLE/
 │
 ├── index.html              # Document HTML5 unique, structure sémantique, modales et SEO
+├── manifest.json           # Manifest PWA (REVAGRIK, icônes 192/512/maskable, theme #05507E)
+├── sw.js                   # Service Worker PWA (cache résilient, precache assets/logo)
+├── offline.html            # Écran hors-connexion stylisé REVAGRIK
 ├── README.md               # Présentation du projet et instructions de lancement
 ├── GEMINI.md               # Le présent fichier de référence technique et de directives IA
 ├── server.ps1              # Serveur HTTP local natif en PowerShell (Port 3000, No-Cache)
 │
+├── assets/
+│   └── logo/               # 5 fichiers du nouveau logo officiel REVAGRIK
+│       ├── logo-revagrik.png      # Logo complet officiel (220px auth, 36px en-tête)
+│       ├── icon-512.png           # Icône haute résolution 512x512
+│       ├── icon-192.png           # Icône PWA 192x192 & Favicon
+│       ├── icon-maskable-512.png  # Icône maskable adaptative Android
+│       └── apple-touch-icon.png   # Icône tactile pour appareils Apple/iOS
+│
 ├── styles/
-│   └── main.css            # Feuille de style unique (~3 500 lignes), Design System complet
+│   ├── theme.css           # Thème centralisé Sahelo-Tech V5 (Bleu REVAGRIK, Vert, Ocre...)
+│   └── main.css            # Feuille de style unique (~9 700 lignes), Design System complet
 │
 └── scripts/
-    └── app.js              # Moteur applicatif (~1 850 lignes) : état, réactivité, modales, calculs
+    └── app.js              # Moteur applicatif complet : état, réactivité, modales, calculs
 ```
 
 ### Rôle détaillé des fichiers clés :
@@ -123,20 +135,23 @@ REVOLUTION AGRICOLE/
 
 ---
 
-## 🎨 5. Décisions de Design & Identité Sahélo-Tech
+## 🎨 5. Décisions de Design & Identité Sahélo-Tech V5 (REVAGRIK)
 
 Le design a été conçu pour allier l'élégance des plateformes SaaS internationales et les impératifs du terrain agricole sahélien :
 
 1. **Typographie Exclusive** :
    - Police unique `Plus Jakarta Sans` partout, y compris pour les montants financiers.
    - Hiérarchie stricte : Titres d'écran `26px` gras 800, sous-titres `18px` 700, texte courant `16px` minimum, petites informations `13px`.
-2. **Palette Officielle Sahélo-Tech (`styles/theme.css`)** :
-   - **Vert principal** (`#1F5E3B`) : Couleur d'accentuation dominante, boutons secondaires, barres et navigation.
-   - **Vert clair** (`#E8F0EA`) : Fonds d'icônes, pastilles et boutons légers.
+2. **Palette Officielle REVAGRIK (`styles/theme.css`)** :
+   - **Bleu REVAGRIK** (`#05507E`) : Couleur principale (carte du bénéfice, titres importants, onglet actif, liens, icônes).
+   - **Bleu foncé** (`#043E62`) : Survol.
+   - **Bleu clair** (`#E6EFF6`) : Fonds d'icônes, pastille de l'onglet actif et petits boutons.
+   - **Vert REVAGRIK** (`#237A2B`) : Textes et chiffres positifs (bénéfice, ventes, "disponible").
+   - **Vert vif** (`#3FAE49`) : Seulement en décoration ou en fond de badge avec texte `#1A1A1A`.
+   - **Vert clair** (`#E5F3E6`) : Fonds de badges.
    - **Ocre** (`#A85A1C` avec texte blanc) : Réservé **STRICTEMENT ET EXCLUSIVEMENT au bouton le plus important de chaque écran** (Call To Action principal).
    - **Ocre clair** (`#F6EADF`) : Fonds d'alerte douce et puces d'échéance.
-   - **Jaune soleil** (`#E0A526`, texte `#1A1A1A`) : Badges de mise en avant et montants de résultat négatif (perte de saison).
-   - **Jaune clair** (`#FBF1D6`) : Fonds de badges et conseils agronomiques.
+   - **Jaune clair** (`#FBF1D6`) : Seulement pour l'icône soleil de la météo et le badge "Conseil du jour".
    - **Fond de page crème** (`#FAF7F0`) : Réduit drastiquement la fatigue oculaire lors des consultations en plein soleil.
    - **Cartes blanches** (`#FFFFFF`) avec bordure discrète 1px (`#ECE6D9`) et coins arrondis à `20px`.
    - **Texte principal** (`#1A1A1A`), **texte secondaire** (`#4A4A4A`, jamais plus clair pour préserver le contraste en extérieur).
@@ -159,7 +174,7 @@ Le design a été conçu pour allier l'élégance des plateformes SaaS internati
 Ces directives constituent le socle inaltérable du projet. Tout modèle IA ou développeur intervenant sur la plateforme **DOIT LES RESPECTER STRICTEMENT ET SANS AUCUNE EXCEPTION** :
 
 ### Règle 1 : Identité du Projet, Production & Base de Données
-- **Projet** : *Révolution Agricole*, application web et mobile SaaS pour les producteurs et acteurs agropastoraux du **Burkina Faso**.
+- **Projet** : **REVAGRIK** (sous-titre *Révolution Agricole*), application web et mobile SaaS pour les producteurs et acteurs agropastoraux du **Burkina Faso**.
 - **Site en production** : **`https://r2volution-agricole.vercel.app`**.
 - **Base de données** : **Supabase** (tables réelles : `profiles`, `parcels`, `crop_cycles`, `expenses`, `revenues`, `financements`, `conseils`, `materiels`, `annonces`, `subscriptions`).
 - **Météo** : API réelle Open-Meteo temps réel pour les communes burkinabè.
@@ -188,9 +203,9 @@ Ces directives constituent le socle inaltérable du projet. Tout modèle IA ou d
   3. **Installation de l'application (PWA)** : Web App Manifest (`manifest.json`) + Service Worker (`sw.js`) pour le support hors-ligne et l'installation mobile/bureau.
   4. **Conseil du jour** : affichage dynamique du dernier conseil publié de la table `conseils` (avec bouton d'écoute audio par synthèse vocale).
 
-### Règle 8 : Respect Intégral de la Charte Graphique & Design Sahélo-Tech
+### Règle 8 : Respect Intégral de la Charte Graphique & Design Sahélo-Tech V5
 - **Typographie** : `Plus Jakarta Sans` partout, y compris pour tous les montants.
-- **Palette** : vert `#1F5E3B`, vert clair `#E8F0EA`, ocre `#A85A1C` (SEULEMENT bouton principal), ocre clair `#F6EADF`, jaune soleil `#E0A526`, jaune clair `#FBF1D6`, fond crème `#FAF7F0`, cartes blanches bordure `#ECE6D9`, texte `#1A1A1A` et `#4A4A4A`, rouge `#C0392B` (alertes/suppressions).
+- **Palette** : Bleu REVAGRIK `#05507E`, bleu foncé `#043E62`, bleu clair `#E6EFF6`, vert REVAGRIK `#237A2B`, vert vif `#3FAE49`, vert clair `#E5F3E6`, ocre `#A85A1C` (SEULEMENT bouton principal), ocre clair `#F6EADF`, jaune clair `#FBF1D6`, fond crème `#FAF7F0`, cartes blanches bordure `#ECE6D9`, texte `#1A1A1A` et `#4A4A4A`, rouge `#C0392B` (alertes/suppressions).
 - **Icônes** : Lucide au trait, **aucun emoji**.
 - **Dimensions & Clic** : zones tactiles 44px minimum, montants complets avec espaces et zéro débordement sur 360px.
 

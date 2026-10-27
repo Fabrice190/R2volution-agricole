@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Révolution Agricole</title>
-  <meta name="description" content="Plateforme tout-en-un pour les acteurs agricoles burkinabè : information vérifiée, météo locale, financements, marché et gestion d'exploitation.">
+  <title>REVAGRIK - Révolution Agricole</title>
+  <meta name="description" content="REVAGRIK - Révolution Agricole : Plateforme tout-en-un pour les acteurs agricoles burkinabè : information vérifiée, météo locale, financements, marché et gestion d'exploitation.">
   
   <!-- Polices Google : Plus Jakarta Sans (géométrique, ultra-lisible, premium) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -14,18 +14,18 @@
   <!-- Famille d'icônes au trait unique (Lucide CDN fixe) -->
   <script src="https://unpkg.com/lucide@0.453.0/dist/umd/lucide.min.js"></script>
 
-  <link rel="stylesheet" href="styles/theme.css?v=20261021.2">
-  <link rel="stylesheet" href="styles/main.css?v=20261027.2">
+  <link rel="stylesheet" href="styles/theme.css?v=20261027.3">
+  <link rel="stylesheet" href="styles/main.css?v=20261027.3">
 
   <!-- CONFIGURATION PWA (PROGRESSIVE WEB APP) -->
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#1F5E3B">
+  <meta name="theme-color" content="#05507E">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="Révolution Agricole">
-  <link rel="apple-touch-icon" href="images/icons/apple-touch-icon.png">
-  <link rel="icon" type="image/png" sizes="192x192" href="images/icons/icon-192x192.png">
+  <meta name="apple-mobile-web-app-title" content="REVAGRIK">
+  <link rel="apple-touch-icon" href="assets/logo/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="assets/logo/icon-192.png">
 
   <!-- PROTECTION DÉMARRAGE RÉSILIENTE SAFARI / IPHONE / WEBKIT -->
   <script>
@@ -100,17 +100,8 @@
   <!-- ==================== ÉCRAN DE CHARGEMENT INITIAL (SPLASH SCREEN AVEC LOGO) ==================== -->
   <div id="appLoadingScreen" class="app-loading-screen">
     <div class="loading-logo-box">
-      <div class="brand-logo" style="justify-content: center; margin-bottom: 12px;">
-        <div class="brand-icon-wrapper" style="width: 52px; height: 52px;">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-            <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.7 10-10 10Z"/>
-            <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>
-          </svg>
-        </div>
-        <div class="brand-text" style="text-align: left;">
-          <span class="brand-title" style="font-size: 24px;">Révolution</span>
-          <span class="brand-sub" style="font-size: 14px;">Agricole</span>
-        </div>
+      <div class="brand-logo" style="justify-content: center; margin-bottom: 16px;">
+        <img src="assets/logo/logo-revagrik.png" alt="REVAGRIK - Révolution Agricole" style="height: 48px; width: auto; max-width: 240px; object-fit: contain; display: block;">
       </div>
       <div class="loading-spinner-bar">
         <div class="loading-spinner-fill"></div>
@@ -140,19 +131,10 @@
     <div class="auth-portal-card">
       <!-- En-tête de la page d'authentification -->
       <div class="portal-brand-header">
-        <div class="brand-logo" style="justify-content: center; margin-bottom: 8px;">
-          <div class="brand-icon-wrapper" style="width: 44px; height: 44px;">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-              <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.7 10-10 10Z"/>
-              <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>
-            </svg>
-          </div>
-          <div class="brand-text" style="text-align: left;">
-            <span class="brand-title" style="font-size: 20px;">Révolution</span>
-            <span class="brand-sub" style="font-size: 13px;">Agricole</span>
-          </div>
+        <div class="brand-logo" style="justify-content: center; margin-bottom: 12px;">
+          <img src="assets/logo/logo-revagrik.png" alt="REVAGRIK - Révolution Agricole" style="width: 220px; max-width: 100%; height: auto; object-fit: contain; display: block; margin: 0 auto;">
         </div>
-        <p class="portal-tagline">Plateforme Agropastorale du Burkina Faso</p>
+        <p class="portal-tagline">Révolution Agricole • Burkina Faso</p>
       </div>
 
       <!-- BOUTON AUTH GOOGLE (Supabase Auth) -->
@@ -416,17 +398,8 @@
       <aside class="sidebar" id="mainSidebar">
         <!-- Logo & Identité -->
         <div class="sidebar-header">
-          <div class="brand-logo">
-            <div class="brand-icon-wrapper">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.7 10-10 10Z"/>
-                <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>
-              </svg>
-            </div>
-            <div class="brand-text">
-              <span class="brand-title">Révolution</span>
-              <span class="brand-sub">Agricole</span>
-            </div>
+          <div class="brand-logo" style="display: flex; align-items: center;">
+            <img src="assets/logo/logo-revagrik.png" alt="REVAGRIK - Révolution Agricole" style="height: 36px; width: auto; max-width: 185px; object-fit: contain; display: block;">
           </div>
         </div>
 
@@ -714,13 +687,13 @@
             <button type="button" class="pwa-home-close-btn" id="btnClosePwaHomeCard" title="Fermer" aria-label="Fermer">&times;</button>
             <div class="pwa-home-card-content">
               <div class="pwa-home-card-icon">
-                <img src="images/icons/icon-192x192.png" alt="Logo Révolution Agricole">
+                <img src="assets/logo/icon-192.png" alt="REVAGRIK - Révolution Agricole">
               </div>
               <div class="pwa-home-card-text">
                 <div class="pwa-home-card-header">
                   <span class="pwa-home-badge">Disponible hors-ligne</span>
                 </div>
-                <strong class="pwa-home-card-title">Installer l'application Révolution Agricole</strong>
+                <strong class="pwa-home-card-title">Installer l'application REVAGRIK</strong>
                 <p class="pwa-home-card-desc">Ajoutez l'application sur votre écran d'accueil pour un accès direct à vos parcelles, récoltes et finances en un clic, même sans connexion Internet.</p>
               </div>
             </div>
@@ -4543,9 +4516,9 @@
     <div class="modal-dialog ios-pwa-dialog" style="max-width: 440px; text-align: center; padding: 22px 20px; border-radius: 20px;">
       <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; text-align: left;">
         <div style="display: flex; align-items: center; gap: 10px;">
-          <img src="images/icons/icon-192x192.png" alt="Logo Révolution Agricole" style="width: 42px; height: 42px; border-radius: 12px; box-shadow: 0 2px 8px rgba(31,94,59,0.2);">
+          <img src="assets/logo/icon-192.png" alt="REVAGRIK - Révolution Agricole" style="width: 42px; height: 42px; border-radius: 12px; box-shadow: 0 2px 8px rgba(5,80,126,0.25);">
           <div>
-            <h3 style="font-size: 16px; font-weight: 800; color: #0E3615; margin: 0;">Installer sur votre iPhone</h3>
+            <h3 style="font-size: 16px; font-weight: 800; color: var(--bleu-principal, #05507E); margin: 0;">Installer REVAGRIK sur iPhone</h3>
             <p style="font-size: 11.5px; color: #5B6660; margin: 2px 0 0;">En 2 étapes simples dans Safari :</p>
           </div>
         </div>
@@ -4557,7 +4530,7 @@
         <div class="ios-step-card">
           <img src="images/icons/ios-step1-share.png" alt="Étape 1 : Toucher le bouton Partager de Safari">
           <div style="padding: 9px 12px; font-size: 12.5px; color: #1E2822; display: flex; align-items: center; gap: 8px;">
-            <span style="background: #EAF4E6; color: #1F5E3B; font-weight: 800; font-size: 11px; padding: 2px 7px; border-radius: 6px;">1</span>
+            <span style="background: #E6EFF6; color: #05507E; font-weight: 800; font-size: 11px; padding: 2px 7px; border-radius: 6px;">1</span>
             <span>Touchez le bouton <strong>Partager</strong> en bas de Safari</span>
           </div>
         </div>
@@ -4566,7 +4539,7 @@
         <div class="ios-step-card">
           <img src="images/icons/ios-step2-home.png" alt="Étape 2 : Toucher Sur l'écran d'accueil">
           <div style="padding: 9px 12px; font-size: 12.5px; color: #1E2822; display: flex; align-items: center; gap: 8px;">
-            <span style="background: #EAF4E6; color: #1F5E3B; font-weight: 800; font-size: 11px; padding: 2px 7px; border-radius: 6px;">2</span>
+            <span style="background: #E6EFF6; color: #05507E; font-weight: 800; font-size: 11px; padding: 2px 7px; border-radius: 6px;">2</span>
             <span>Défilez puis touchez <strong>« Sur l'écran d'accueil »</strong></span>
           </div>
         </div>
@@ -4614,6 +4587,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <!-- SCRIPT APPLICATION -->
-  <script src="scripts/app.js?v=20261027.2"></script>
+  <script src="scripts/app.js?v=20261027.3"></script>
 </body>
 </html>

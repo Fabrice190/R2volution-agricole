@@ -1,36 +1,30 @@
 {
-  "name": "Révolution Agricole",
-  "short_name": "Rév. Agricole",
+  "name": "REVAGRIK - Révolution Agricole",
+  "short_name": "REVAGRIK",
   "description": "Plateforme tout-en-un pour les producteurs et exploitants agropastoraux au Burkina Faso.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "theme_color": "#1F5E3B",
+  "theme_color": "#05507E",
   "background_color": "#FAF7F0",
   "lang": "fr-FR",
   "categories": ["business", "productivity", "utilities"],
   "icons": [
     {
-      "src": "images/icons/icon-192x192.png",
+      "src": "assets/logo/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "images/icons/icon-maskable-192x192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "maskable"
-    },
-    {
-      "src": "images/icons/icon-512x512.png",
+      "src": "assets/logo/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "images/icons/icon-maskable-512x512.png",
+      "src": "assets/logo/icon-maskable-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"

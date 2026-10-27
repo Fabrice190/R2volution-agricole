@@ -8521,14 +8521,14 @@ body.drawer-open {
 .pwa-banner-icon {
   width: 42px;
   height: 42px;
-  background: #1F5E3B;
+  background: var(--bleu-principal, #05507E);
   color: #FFFFFF;
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  box-shadow: 0 4px 10px rgba(31, 94, 59, 0.25);
+  box-shadow: 0 4px 10px rgba(5, 80, 126, 0.25);
 }
 
 .pwa-banner-text {
@@ -8572,11 +8572,11 @@ body.drawer-open {
 
 .btn-pwa-dismiss:hover {
   background: #EAF4E6;
-  color: #1F5E3B;
+  color: var(--bleu-principal, #05507E);
 }
 
 .btn-pwa-install {
-  background: #1F5E3B;
+  background: var(--bleu-principal, #05507E);
   color: #FFFFFF;
   border: none;
   padding: 7px 16px;
@@ -8584,12 +8584,12 @@ body.drawer-open {
   font-size: 12.5px;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(31, 94, 59, 0.25);
+  box-shadow: 0 2px 8px rgba(5, 80, 126, 0.25);
   transition: all 0.2s ease;
 }
 
 .btn-pwa-install:hover {
-  background: #15452A;
+  background: #043E62;
   transform: translateY(-1px);
 }
 
@@ -8601,22 +8601,22 @@ body.drawer-open {
   border-radius: 10px !important;
   margin: 6px 10px !important;
   padding: 9px 12px !important;
-  color: #1F5E3B !important;
+  color: var(--bleu-principal, #05507E) !important;
   font-weight: 700 !important;
-  box-shadow: 0 2px 6px rgba(31, 94, 59, 0.08) !important;
+  box-shadow: 0 2px 6px rgba(5, 80, 126, 0.08) !important;
   transition: all 0.2s ease !important;
 }
 
 #navItemInstallPwa:hover,
 #btnMobileDrawerInstallPwa:hover {
   background: #DCEDD6 !important;
-  border-color: #1F5E3B !important;
+  border-color: var(--bleu-principal, #05507E) !important;
   transform: translateY(-1px);
 }
 
 #navItemInstallPwa .nav-icon svg,
 #btnMobileDrawerInstallPwa .nav-icon svg {
-  stroke: #1F5E3B !important;
+  stroke: var(--bleu-principal, #05507E) !important;
 }
 
 /* CARTE PWA SUR L'ACCUEIL (REFERMABLE) */
@@ -8630,7 +8630,7 @@ body.drawer-open {
   align-items: center;
   justify-content: space-between;
   gap: 18px;
-  box-shadow: 0 4px 16px rgba(31, 94, 59, 0.08);
+  box-shadow: 0 4px 16px rgba(5, 80, 126, 0.08);
   position: relative;
   transition: all 0.3s ease;
 }
@@ -8646,7 +8646,7 @@ body.drawer-open {
   width: 52px;
   height: 52px;
   border-radius: 14px;
-  box-shadow: 0 3px 10px rgba(31, 94, 59, 0.2);
+  box-shadow: 0 3px 10px rgba(5, 80, 126, 0.2);
   display: block;
 }
 
@@ -8666,7 +8666,7 @@ body.drawer-open {
   align-items: center;
   font-size: 11px;
   font-weight: 800;
-  color: #1F5E3B;
+  color: var(--bleu-principal, #05507E);
   background: #EAF4E6;
   padding: 2px 8px;
   border-radius: 20px;
@@ -8710,11 +8710,11 @@ body.drawer-open {
 
 .btn-pwa-home-dismiss:hover {
   background: #EAF4E6;
-  color: #1F5E3B;
+  color: var(--bleu-principal, #05507E);
 }
 
 .btn-pwa-home-install {
-  background: #1F5E3B;
+  background: var(--bleu-principal, #05507E);
   color: #FFFFFF;
   border: none;
   padding: 9px 18px;
@@ -8725,14 +8725,14 @@ body.drawer-open {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  box-shadow: 0 4px 12px rgba(31, 94, 59, 0.25);
+  box-shadow: 0 4px 12px rgba(5, 80, 126, 0.25);
   transition: all 0.2s ease;
 }
 
 .btn-pwa-home-install:hover {
-  background: #15452A;
+  background: #043E62;
   transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(31, 94, 59, 0.35);
+  box-shadow: 0 6px 16px rgba(5, 80, 126, 0.35);
 }
 
 .pwa-home-close-btn {
@@ -8763,7 +8763,7 @@ body.drawer-open {
   padding: 14px 16px;
   margin: 12px 0 16px;
   position: relative;
-  box-shadow: 0 3px 12px rgba(31, 94, 59, 0.08);
+  box-shadow: 0 3px 12px rgba(5, 80, 126, 0.08);
 }
 
 .pwa-mobile-home-card .pwa-home-card-content {
@@ -9120,7 +9120,7 @@ a.btn-fiche-call,
   background-color: #874614 !important;
 }
 
-/* Bouton secondaire : BLANC avec bordure verte 1.5px (#1F5E3B) */
+/* Bouton secondaire : BLANC avec bordure verte 1.5px (var(--bleu-principal, #05507E)) */
 .btn-secondary,
 .btn-fiche-call,
 .btn-primary-action,
@@ -9130,8 +9130,8 @@ a.btn-fiche-call,
 #btnCancelAddExpense,
 #btnCancelAddRevenue {
   background-color: #FFFFFF !important;
-  border: 1.5px solid #1F5E3B !important;
-  color: #1F5E3B !important;
+  border: 1.5px solid var(--bleu-principal, #05507E) !important;
+  color: var(--bleu-principal, #05507E) !important;
   height: 48px;
   border-radius: 14px !important;
   font-weight: 700 !important;
@@ -9146,18 +9146,18 @@ a.btn-fiche-call,
 .btn-secondary:hover,
 .btn-fiche-call:hover,
 .btn-primary-action:hover {
-  background-color: #E8F0EA !important;
+  background-color: var(--bleu-clair, #E6EFF6) !important;
 }
 
-/* Bouton petit / léger : fond vert clair #E8F0EA, texte vert #1F5E3B */
+/* Bouton petit / léger : fond bleu clair #E6EFF6, texte bleu REVAGRIK var(--bleu-principal, #05507E) */
 .btn-listen-advice,
 .btn-table-action,
 .btn-filter-pill,
 .wi-listen-btn,
 .btn-pwa-dismiss,
 .btn-pwa-home-dismiss {
-  background-color: #E8F0EA !important;
-  color: #1F5E3B !important;
+  background-color: var(--bleu-clair, #E6EFF6) !important;
+  color: var(--bleu-principal, #05507E) !important;
   border: none !important;
   border-radius: 14px !important;
   font-weight: 700 !important;
@@ -9210,18 +9210,18 @@ a.btn-fiche-call,
 }
 
 .badge-primary-light {
-  background-color: #E8F0EA !important;
-  color: #1F5E3B !important;
+  background-color: var(--bleu-clair, #E6EFF6) !important;
+  color: var(--bleu-principal, #05507E) !important;
 }
 
 /* 5. GRANDE CARTE VERTE SAISON 2026 */
 .home-season-card {
-  background: #1F5E3B !important;
+  background: var(--bleu-principal, #05507E) !important;
   color: #FFFFFF !important;
   border-radius: 20px !important;
   padding: 22px 20px !important;
   margin-bottom: 16px !important;
-  box-shadow: 0 6px 18px rgba(31, 94, 59, 0.18) !important;
+  box-shadow: 0 6px 18px rgba(5, 80, 126, 0.18) !important;
   border: none !important;
 }
 
@@ -9235,7 +9235,7 @@ a.btn-fiche-call,
 .season-tag {
   font-size: 13px !important;
   font-weight: 700 !important;
-  color: #E8F0EA !important;
+  color: var(--bleu-clair, #E6EFF6) !important;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -9256,7 +9256,7 @@ a.btn-fiche-call,
 .season-margin-label {
   font-size: 14px !important;
   font-weight: 600 !important;
-  color: #E8F0EA !important;
+  color: var(--bleu-clair, #E6EFF6) !important;
   display: block;
 }
 
@@ -9287,13 +9287,13 @@ a.btn-fiche-call,
 }
 
 .season-amount.is-loss {
-  color: #E0A526 !important; /* Jaune soleil en cas de perte */
+  color: #FBF1D6 !important; /* Jaune clair en cas de perte */
 }
 
 .season-currency {
   font-size: 16px !important;
   font-weight: 700 !important;
-  color: #E8F0EA !important;
+  color: var(--bleu-clair, #E6EFF6) !important;
   white-space: nowrap;
 }
 
@@ -9312,7 +9312,7 @@ a.btn-fiche-call,
 
 .season-subcard-label {
   font-size: 12px !important;
-  color: #E8F0EA !important;
+  color: var(--bleu-clair, #E6EFF6) !important;
   display: block;
   margin-bottom: 2px;
 }
@@ -9326,7 +9326,7 @@ a.btn-fiche-call,
 
 .season-subcard-val small {
   font-size: 11px !important;
-  color: #E8F0EA !important;
+  color: var(--bleu-clair, #E6EFF6) !important;
   font-weight: 600 !important;
 }
 
@@ -9352,8 +9352,8 @@ a.btn-fiche-call,
   width: 44px;
   height: 44px;
   border-radius: 14px;
-  background-color: #E8F0EA;
-  color: #1F5E3B;
+  background-color: var(--bleu-clair, #E6EFF6);
+  color: var(--bleu-principal, #05507E);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -9408,7 +9408,7 @@ a.btn-fiche-call,
 .weather-short-icon {
   width: 32px;
   height: 32px;
-  color: #1F5E3B;
+  color: var(--bleu-principal, #05507E);
 }
 
 .weather-short-temp {
@@ -9436,7 +9436,7 @@ a.btn-fiche-call,
 .tomorrow-val {
   font-size: 13px !important;
   font-weight: 700 !important;
-  color: #1F5E3B !important;
+  color: var(--bleu-principal, #05507E) !important;
 }
 
 .weather-short-advice {
@@ -9502,8 +9502,8 @@ a.btn-fiche-call,
   width: 44px;
   height: 44px;
   border-radius: 14px;
-  background-color: #E8F0EA;
-  color: #1F5E3B;
+  background-color: var(--bleu-clair, #E6EFF6);
+  color: var(--bleu-principal, #05507E);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -9550,8 +9550,8 @@ a.btn-fiche-call,
 }
 
 .mobile-nav-item.active {
-  background-color: #E8F0EA !important;
-  color: #1F5E3B !important;
+  background-color: var(--bleu-clair, #E6EFF6) !important;
+  color: var(--bleu-principal, #05507E) !important;
   font-weight: 800 !important;
 }
 
@@ -9596,7 +9596,7 @@ a.btn-fiche-call,
   width: 52px !important;
   height: 52px !important;
   border-radius: 50% !important;
-  background-color: var(--vert-principal, #1F5E3B) !important;
+  background-color: var(--vert-principal, var(--bleu-principal, #05507E)) !important;
   color: #FFFFFF !important;
   border: none !important;
   font-size: 28px !important;
@@ -9604,7 +9604,7 @@ a.btn-fiche-call,
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  box-shadow: 0 8px 20px rgba(31, 94, 59, 0.45) !important;
+  box-shadow: 0 8px 20px rgba(5, 80, 126, 0.45) !important;
   cursor: pointer !important;
   z-index: 120 !important;
   transition: transform var(--transition-fast) !important;
@@ -9637,7 +9637,7 @@ a.btn-fiche-call,
 .header-logo-box {
   width: 38px !important;
   height: 38px !important;
-  background-color: var(--vert-principal, #1F5E3B) !important;
+  background-color: var(--vert-principal, var(--bleu-principal, #05507E)) !important;
   border-radius: 12px !important;
   display: flex !important;
   align-items: center !important;
@@ -9662,7 +9662,7 @@ a.btn-fiche-call,
 .header-brand-sub {
   font-size: 15px !important;
   font-weight: 800 !important;
-  color: var(--vert-principal, #1F5E3B) !important;
+  color: var(--vert-principal, var(--bleu-principal, #05507E)) !important;
   letter-spacing: -0.2px;
 }
 
@@ -9738,8 +9738,8 @@ a.btn-fiche-call,
 .btn-listen-advice-small {
   height: 40px !important;
   min-height: 40px !important;
-  background-color: var(--vert-clair, #E8F0EA) !important;
-  color: var(--vert-principal, #1F5E3B) !important;
+  background-color: var(--bleu-clair, #E6EFF6) !important;
+  color: var(--bleu-principal, #05507E) !important;
   font-size: 14px !important;
   font-weight: 700 !important;
   border-radius: 999px !important;

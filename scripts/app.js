@@ -1824,17 +1824,8 @@ document.addEventListener('DOMContentLoaded', () => {
       <div class="mobile-drawer-overlay" id="mobileDrawerOverlay"></div>
       <aside class="mobile-drawer" id="mobileDrawer">
         <div class="mobile-drawer-header">
-          <div class="brand-logo" style="gap: 8px;">
-            <div class="brand-icon-wrapper" style="width: 32px; height: 32px;">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-                <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.7 10-10 10Z"/>
-                <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>
-              </svg>
-            </div>
-            <div class="brand-text">
-              <span class="brand-title" style="font-size: 14px;">Révolution</span>
-              <span class="brand-sub" style="font-size: 11px;">Agricole</span>
-            </div>
+          <div class="brand-logo" style="display: flex; align-items: center;">
+            <img src="assets/logo/logo-revagrik.png" alt="REVAGRIK - Révolution Agricole" style="height: 32px; width: auto; max-width: 170px; object-fit: contain; display: block;">
           </div>
           <button class="mobile-drawer-close-btn" id="btnCloseMobileDrawer">&times;</button>
         </div>
@@ -2066,7 +2057,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <a href="#installer" class="nav-item mobile-drawer-link" id="btnMobileDrawerInstallPwa">
               <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></span>
               <span class="nav-label">Installer l'application</span>
-              <span class="nav-badge-amber" id="mobileDrawerBadgeInstallPwa" style="background:#EAF4E6;color:#1F5E3B;font-weight:700;">App</span>
+              <span class="nav-badge-amber" id="mobileDrawerBadgeInstallPwa" style="background:#EAF4E6;color:var(--bleu-principal, #05507E);font-weight:700;">App</span>
             </a>
           </div>
 
@@ -2089,20 +2080,14 @@ document.addEventListener('DOMContentLoaded', () => {
         </nav>
       </aside>
 
-      <!-- En-tête mobile compact (Point 4 : menu ☰, logo 38px #1F5E3B feuille #E0A526, Révolution Agricole 15px 800, cloche et profil) -->
+      <!-- En-tête mobile compact (Point 4 : menu ☰, logo 38px var(--bleu-principal, #05507E) feuille #E0A526, Révolution Agricole 15px 800, cloche et profil) -->
       <header class="mobile-header-bar">
         <div class="mobile-header-left" style="display: flex; align-items: center; gap: 10px;">
           <button class="mobile-menu-hamburger-btn" id="btnOpenMobileDrawer" aria-label="Ouvrir le menu">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
           </button>
           <div class="mobile-brand" style="display: flex; align-items: center; gap: 8px;">
-            <div class="header-logo-box" style="width: 38px; height: 38px; border-radius: 12px; background: #1F5E3B; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-              <i data-lucide="leaf" style="width: 20px; height: 20px; color: #E0A526;"></i>
-            </div>
-            <div class="header-brand-text" style="display: flex; flex-direction: column; line-height: 1.15; justify-content: center;">
-              <span class="header-brand-title" style="font-size: 15px; font-weight: 800; color: #1A1A1A; margin: 0; padding: 0;">Révolution</span>
-              <span class="header-brand-sub" style="font-size: 15px; font-weight: 800; color: #1F5E3B; margin: 0; padding: 0;">Agricole</span>
-            </div>
+            <img src="assets/logo/logo-revagrik.png" alt="REVAGRIK - Révolution Agricole" style="height: 36px; width: auto; max-width: 165px; object-fit: contain; display: block;">
           </div>
         </div>
         <div class="mobile-header-actions" style="display: flex; align-items: center; gap: 10px;">
@@ -2129,8 +2114,8 @@ document.addEventListener('DOMContentLoaded', () => {
             <button class="action-sheet-close" id="btnCloseActionSheet">&times;</button>
           </div>
           <div class="action-sheet-buttons" style="display: flex; flex-direction: column; gap: 10px;">
-            <button type="button" class="sheet-action-btn sheet-expense-btn" id="btnSheetAddExpense" style="border-radius: 14px; border: 1.5px solid #1F5E3B; background: #FFFFFF; min-height: 52px; padding: 12px 16px; display: flex; align-items: center; gap: 12px; cursor: pointer;">
-              <div style="width: 36px; height: 36px; border-radius: 10px; background: #E8F0EA; color: #1F5E3B; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+            <button type="button" class="sheet-action-btn sheet-expense-btn" id="btnSheetAddExpense" style="border-radius: 14px; border: 1.5px solid var(--bleu-principal, #05507E); background: #FFFFFF; min-height: 52px; padding: 12px 16px; display: flex; align-items: center; gap: 12px; cursor: pointer;">
+              <div style="width: 36px; height: 36px; border-radius: 10px; background: var(--bleu-clair, #E6EFF6); color: var(--bleu-principal, #05507E); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                 <i data-lucide="wallet"></i>
               </div>
               <div class="sheet-text" style="text-align: left;">
@@ -14645,7 +14630,7 @@ document.addEventListener('DOMContentLoaded', () => {
         : '<span style="font-size: 11px; font-weight: 700; background: #E6FFFA; color: #234E52; padding: 2px 7px; border-radius: 999px;">Producteur</span>';
 
       const culturesHtml = user.cultures 
-        ? user.cultures.split(',').map(c => `<span style="display: inline-block; font-size: 11.5px; font-weight: 600; background: #E8F0EA; color: #1F5E3B; padding: 2px 8px; border-radius: 6px; margin: 2px;">${escapeHtml(c.trim())}</span>`).join(' ')
+        ? user.cultures.split(',').map(c => `<span style="display: inline-block; font-size: 11.5px; font-weight: 600; background: var(--bleu-clair, #E6EFF6); color: var(--bleu-principal, #05507E); padding: 2px 8px; border-radius: 6px; margin: 2px;">${escapeHtml(c.trim())}</span>`).join(' ')
         : '<span style="font-size: 12px; color: #A0AEC0; font-style: italic;">Aucune culture</span>';
 
       const aboBadge = isPaid
@@ -14663,7 +14648,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <tr style="border-bottom: 1px solid #F0ECE1; transition: background-color 0.15s;">
           <td style="padding: 14px 12px;">
             <div style="display: flex; align-items: center; gap: 10px;">
-              <div style="width: 36px; height: 36px; border-radius: 50%; background: #E8F0EA; color: #1F5E3B; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; flex-shrink: 0;">
+              <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--bleu-clair, #E6EFF6); color: var(--bleu-principal, #05507E); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; flex-shrink: 0;">
                 ${escapeHtml((user.full_name || 'U').trim().slice(0, 2).toUpperCase())}
               </div>
               <div>
@@ -14711,11 +14696,11 @@ document.addEventListener('DOMContentLoaded', () => {
           </td>
           <td style="padding: 14px 12px; text-align: right;">
             ${isPaid ? `
-              <button type="button" class="btn-activate-subscription" data-user-id="${user.id}" data-user-name="${escapeHtml(user.full_name || '')}" data-user-phone="${escapeHtml(user.phone || '')}" style="display: inline-flex; align-items: center; gap: 5px; background: #FAF7F0; color: #1F5E3B; border: 1.5px solid #1F5E3B; border-radius: 8px; padding: 6px 12px; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s;" title="Prolonger de 6 mois">
+              <button type="button" class="btn-activate-subscription" data-user-id="${user.id}" data-user-name="${escapeHtml(user.full_name || '')}" data-user-phone="${escapeHtml(user.phone || '')}" style="display: inline-flex; align-items: center; gap: 5px; background: #FAF7F0; color: var(--bleu-principal, #05507E); border: 1.5px solid var(--bleu-principal, #05507E); border-radius: 8px; padding: 6px 12px; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s;" title="Prolonger de 6 mois">
                 <span>+ Prolonger</span>
               </button>
             ` : `
-              <button type="button" class="btn-activate-subscription" data-user-id="${user.id}" data-user-name="${escapeHtml(user.full_name || '')}" data-user-phone="${escapeHtml(user.phone || '')}" style="display: inline-flex; align-items: center; gap: 5px; background: #1F5E3B; color: #FFFFFF; border: none; border-radius: 8px; padding: 7px 14px; font-size: 12px; font-weight: 700; cursor: pointer; box-shadow: 0 1px 3px rgba(31,94,59,0.2); transition: all 0.2s;" title="Activer pour 1 saison (6 mois)">
+              <button type="button" class="btn-activate-subscription" data-user-id="${user.id}" data-user-name="${escapeHtml(user.full_name || '')}" data-user-phone="${escapeHtml(user.phone || '')}" style="display: inline-flex; align-items: center; gap: 5px; background: var(--bleu-principal, #05507E); color: #FFFFFF; border: none; border-radius: 8px; padding: 7px 14px; font-size: 12px; font-weight: 700; cursor: pointer; box-shadow: 0 1px 3px rgba(5,80,126,0.2); transition: all 0.2s;" title="Activer pour 1 saison (6 mois)">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
                 <span>Activer saison</span>
               </button>
@@ -14817,7 +14802,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <h2 style="font-size: 19px; font-weight: 800; color: #1A1A1A; margin: 0 0 2px;">👥 Utilisateurs</h2>
             <p style="font-size: 12px; color: #4A4A4A; margin: 0;">Gestion des comptes et abonnements</p>
           </div>
-          <button type="button" class="btn-refresh-mobile-users" id="btnRefreshMobileUsers" style="background: #E8F0EA; color: #1F5E3B; border: none; border-radius: 8px; padding: 6px 10px; font-size: 11px; font-weight: 700; cursor: pointer;">
+          <button type="button" class="btn-refresh-mobile-users" id="btnRefreshMobileUsers" style="background: var(--bleu-clair, #E6EFF6); color: var(--bleu-principal, #05507E); border: none; border-radius: 8px; padding: 6px 10px; font-size: 11px; font-weight: 700; cursor: pointer;">
             🔄 Actualiser
           </button>
         </div>
@@ -14827,7 +14812,7 @@ document.addEventListener('DOMContentLoaded', () => {
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px;">
         <div style="background: #F1F8EE; border: 1px solid #E0EFE0; border-radius: 12px; padding: 12px;">
           <span style="font-size: 11px; font-weight: 600; color: #4A4A4A; text-transform: uppercase;">Total inscrits</span>
-          <div style="font-size: 22px; font-weight: 800; color: #1F5E3B; margin-top: 2px;">${total}</div>
+          <div style="font-size: 22px; font-weight: 800; color: var(--bleu-principal, #05507E); margin-top: 2px;">${total}</div>
         </div>
         <div style="background: #F0F6FD; border: 1px solid #DEECFA; border-radius: 12px; padding: 12px;">
           <span style="font-size: 11px; font-weight: 600; color: #4A4A4A; text-transform: uppercase;">Nouveaux 7j</span>
@@ -14877,7 +14862,7 @@ document.addEventListener('DOMContentLoaded', () => {
               </div>
 
               <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 10px;">
-                ${user.cultures ? user.cultures.split(',').map(c => `<span style="font-size: 11px; background: #E8F0EA; color: #1F5E3B; font-weight: 600; padding: 2px 6px; border-radius: 4px;">🌱 ${escapeHtml(c.trim())}</span>`).join(' ') : '<span style="font-size: 11px; color: #A0AEC0;">Aucune culture déclarée</span>'}
+                ${user.cultures ? user.cultures.split(',').map(c => `<span style="font-size: 11px; background: var(--bleu-clair, #E6EFF6); color: var(--bleu-principal, #05507E); font-weight: 600; padding: 2px 6px; border-radius: 4px;">🌱 ${escapeHtml(c.trim())}</span>`).join(' ') : '<span style="font-size: 11px; color: #A0AEC0;">Aucune culture déclarée</span>'}
               </div>
 
               <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #718096; border-top: 1px solid #F0ECE1; padding-top: 8px; margin-bottom: 10px;">
@@ -14892,11 +14877,11 @@ document.addEventListener('DOMContentLoaded', () => {
                   </a>
                 ` : ''}
                 ${isPaid ? `
-                  <button type="button" class="btn-activate-subscription" data-user-id="${user.id}" data-user-name="${escapeHtml(user.full_name || '')}" data-user-phone="${escapeHtml(user.phone || '')}" style="flex: 1; background: #FAF7F0; color: #1F5E3B; border: 1.5px solid #1F5E3B; font-weight: 700; font-size: 12px; padding: 8px; border-radius: 8px; cursor: pointer;">
+                  <button type="button" class="btn-activate-subscription" data-user-id="${user.id}" data-user-name="${escapeHtml(user.full_name || '')}" data-user-phone="${escapeHtml(user.phone || '')}" style="flex: 1; background: #FAF7F0; color: var(--bleu-principal, #05507E); border: 1.5px solid var(--bleu-principal, #05507E); font-weight: 700; font-size: 12px; padding: 8px; border-radius: 8px; cursor: pointer;">
                     + Prolonger
                   </button>
                 ` : `
-                  <button type="button" class="btn-activate-subscription" data-user-id="${user.id}" data-user-name="${escapeHtml(user.full_name || '')}" data-user-phone="${escapeHtml(user.phone || '')}" style="flex: 1; background: #1F5E3B; color: #FFF; border: none; font-weight: 700; font-size: 12px; padding: 8px; border-radius: 8px; cursor: pointer;">
+                  <button type="button" class="btn-activate-subscription" data-user-id="${user.id}" data-user-name="${escapeHtml(user.full_name || '')}" data-user-phone="${escapeHtml(user.phone || '')}" style="flex: 1; background: var(--bleu-principal, #05507E); color: #FFF; border: none; font-weight: 700; font-size: 12px; padding: 8px; border-radius: 8px; cursor: pointer;">
                     ⭐ Activer saison
                   </button>
                 `}
