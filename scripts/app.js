@@ -2918,18 +2918,16 @@ document.addEventListener('DOMContentLoaded', () => {
         PROFILES_DATA[profileId].realCycles = data || [];
         if (data && data.length > 0) {
           PROFILES_DATA[profileId].tableRows = data.map(item => {
-            let dotClass = 'dot-green';
+            const stInfo = calculateCycleStatus(item);
             let statusClass = 'state-growing';
-            if (item.status && item.status.includes('Récolte')) {
-              dotClass = 'dot-orange';
+            if (stInfo.key === 'recolte' || stInfo.key === 'recolte_proche') {
               statusClass = 'state-harvest';
-            } else if (item.status && (item.status.includes('Repiquage') || item.status.includes('nouveau') || item.status.includes('pépinière'))) {
-              dotClass = 'dot-blue';
+            } else if (stInfo.key === 'pepiniere') {
               statusClass = 'state-new';
             }
 
             const initials = (item.crop_name.substring(0, 2)).toUpperCase();
-            const pName = item.parcels ? `${item.parcels.name} (${item.parcels.area_ha} ha) • ${item.parcels.irrigation_type}` : 'Parcelle';
+            const pName = item.parcels ? `Parcelle : ${item.parcels.name} (${item.parcels.area_ha} ha) • ${item.parcels.irrigation_type}` : 'Parcelle non définie';
 
             return {
               avatarText: initials,
@@ -2939,9 +2937,9 @@ document.addEventListener('DOMContentLoaded', () => {
               col2: pName,
               col3: item.planting_date ? new Date(item.planting_date).toLocaleDateString('fr-FR') : '-',
               col4: item.estimated_harvest_date ? new Date(item.estimated_harvest_date).toLocaleDateString('fr-FR') : '-',
-              statusText: item.status,
+              statusText: stInfo.label,
               statusClass: statusClass,
-              dotClass: dotClass
+              dotClass: stInfo.dotClass
             };
           });
 
@@ -8149,33 +8147,77 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function calculateCycleStatus(cycle) {
-    if (cycle.status === 'Terminé' || cycle.status === 'Récolté') {
+    if (!cycle) return { key: 'croissance', label: 'Croissance', badgeClass: 'badge-status-croissance', dotClass: 'dot-green' };
+
+    // 1. "Terminé" : cycle marqué terminé ou récolté
+    const isTermine = cycle.status === 'Terminé' || cycle.status === 'Récolté' ||
+                      cycle.status === 'termine' || cycle.status === 'recolte' ||
+                      cycle.statut === 'termine' || cycle.statut === 'archive';
+    if (isTermine) {
       return { key: 'termine', label: 'Terminé', badgeClass: 'badge-status-termine', dotClass: 'dot-gray' };
     }
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
     const planting = cycle.planting_date ? new Date(cycle.planting_date) : null;
-    const repiquage = cycle.repiquage_date ? new Date(cycle.repiquage_date) : null;
-    const harvestMin = cycle.harvest_date_min ? new Date(cycle.harvest_date_min) : (cycle.estimated_harvest_date ? new Date(cycle.estimated_harvest_date) : null);
-    const harvestMax = cycle.harvest_date_max ? new Date(cycle.harvest_date_max) : harvestMin;
+    if (planting) planting.setHours(0, 0, 0, 0);
 
-    if (repiquage && today < repiquage) {
-      return { key: 'pepiniere', label: 'En pépinière', badgeClass: 'badge-status-pepiniere', dotClass: 'dot-blue' };
+    const repiquage = cycle.repiquage_date ? new Date(cycle.repiquage_date) : null;
+    if (repiquage) repiquage.setHours(0, 0, 0, 0);
+
+    const harvestMin = cycle.harvest_date_min ? new Date(cycle.harvest_date_min) : (cycle.estimated_harvest_date ? new Date(cycle.estimated_harvest_date) : null);
+    if (harvestMin) harvestMin.setHours(0, 0, 0, 0);
+
+    const harvestMax = cycle.harvest_date_max ? new Date(cycle.harvest_date_max) : null;
+    if (harvestMax) harvestMax.setHours(0, 0, 0, 0);
+
+    // Recherche du modèle agronomique associé
+    let model = null;
+    if (cycle.modele_id && Array.isArray(cachedModelesCultures)) {
+      model = cachedModelesCultures.find(m => String(m.id) === String(cycle.modele_id));
     }
-    if (harvestMin && harvestMax && today >= harvestMin && today <= harvestMax) {
+    if (!model && cycle.crop_name && Array.isArray(cachedModelesCultures)) {
+      const cLower = cycle.crop_name.toLowerCase().trim();
+      model = cachedModelesCultures.find(m => m.nom_culture && cLower.startsWith(m.nom_culture.toLowerCase().trim()));
+    }
+
+    // 2. "Pépinière" : culture en pépinière (modèle mode_depart = 'pepiniere') et pas encore repiquée
+    // (aujourd'hui avant repiquage_date, ou avant planting_date + pepiniere_jours_min du modèle si repiquage_date est vide)
+    let isPepiniere = false;
+    if (model && model.mode_depart === 'pepiniere') {
+      if (repiquage) {
+        isPepiniere = today < repiquage;
+      } else if (planting && model.pepiniere_jours_min) {
+        const endPepiniere = new Date(planting.getTime() + model.pepiniere_jours_min * 86400000);
+        endPepiniere.setHours(0, 0, 0, 0);
+        isPepiniere = today < endPepiniere;
+      } else {
+        isPepiniere = true;
+      }
+    } else if (!model && repiquage) {
+      isPepiniere = today < repiquage;
+    }
+
+    if (isPepiniere) {
+      return { key: 'pepiniere', label: 'Pépinière', badgeClass: 'badge-status-pepiniere', dotClass: 'dot-blue' };
+    }
+
+    // 3. "À récolter" : aujourd'hui entre harvest_date_min et harvest_date_max (ou après harvest_date_min si harvest_date_max est vide)
+    if (harvestMin && today >= harvestMin) {
       return { key: 'recolte', label: 'À récolter', badgeClass: 'badge-status-recolte', dotClass: 'dot-orange' };
     }
-    if (harvestMax && today > harvestMax) {
-      return { key: 'recolte', label: 'À récolter (Récolte en cours)', badgeClass: 'badge-status-recolte', dotClass: 'dot-red' };
-    }
+
+    // 4. "Récolte proche" : harvest_date_min dans les 21 prochains jours
     if (harvestMin) {
       const diffDays = Math.ceil((harvestMin.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-      if (diffDays > 0 && diffDays <= 15) {
-        return { key: 'recolte_proche', label: `Récolte proche (${diffDays}j)`, badgeClass: 'badge-status-proche', dotClass: 'dot-amber' };
+      if (diffDays > 0 && diffDays <= 21) {
+        return { key: 'recolte_proche', label: 'Récolte proche', badgeClass: 'badge-status-proche', dotClass: 'dot-amber' };
       }
     }
-    return { key: 'croissance', label: 'En croissance', badgeClass: 'badge-status-croissance', dotClass: 'dot-green' };
+
+    // 5. "Croissance" : semée ou repiquée, et récolte prévue dans plus de 21 jours
+    return { key: 'croissance', label: 'Croissance', badgeClass: 'badge-status-croissance', dotClass: 'dot-green' };
   }
 
   function renderCycleTimelineHtml(cycle) {
@@ -9032,9 +9074,49 @@ document.addEventListener('DOMContentLoaded', () => {
     const emptyState = document.getElementById('cyclesEmptyState');
     if (!container) return;
 
-    // Mise à jour de l'apparence des puces de filtre
+    const cycles = cachedCropCycles || [];
+
+    // Mettre à jour le badge du total des cycles connectés
+    const totalBadge = document.getElementById('cyclesTotalBadge');
+    if (totalBadge) {
+      totalBadge.textContent = `${cycles.length} cycle${cycles.length > 1 ? 's' : ''} au total`;
+    }
+
+    // Calculer les statuts pour chaque cycle
+    const itemsWithStatus = cycles.map(c => ({
+      cycle: c,
+      statusInfo: calculateCycleStatus(c)
+    }));
+
+    // Compter les cycles par phase
+    const counts = {
+      all: cycles.length,
+      pepiniere: 0,
+      croissance: 0,
+      recolte_proche: 0,
+      recolte: 0,
+      termine: 0
+    };
+    itemsWithStatus.forEach(item => {
+      const k = item.statusInfo.key;
+      if (counts[k] !== undefined) counts[k]++;
+    });
+
+    // Mettre à jour le libellé et le compteur de chaque filtre desktop
+    const filterLabels = {
+      all: `Tous (${counts.all})`,
+      pepiniere: `Pépinière (${counts.pepiniere})`,
+      croissance: `Croissance (${counts.croissance})`,
+      recolte_proche: `Récolte proche (${counts.recolte_proche})`,
+      recolte: `À récolter (${counts.recolte})`,
+      termine: `Terminé (${counts.termine})`
+    };
+
     document.querySelectorAll('#filterCyclesStatusContainer .type-filter-chip').forEach(chip => {
       const f = chip.getAttribute('data-status');
+      if (filterLabels[f]) {
+        chip.textContent = filterLabels[f];
+      }
       if (f === statusFilter) {
         chip.classList.add('active');
       } else {
@@ -9042,18 +9124,11 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-    const cycles = cachedCropCycles || [];
     if (cycles.length === 0) {
       container.innerHTML = '';
       if (emptyState) emptyState.classList.remove('hidden');
       return;
     }
-
-    // Filtrer par statut calculé
-    const itemsWithStatus = cycles.map(c => ({
-      cycle: c,
-      statusInfo: calculateCycleStatus(c)
-    }));
 
     const filtered = itemsWithStatus.filter(item => {
       if (statusFilter === 'all') return true;
@@ -9062,9 +9137,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (filtered.length === 0) {
       container.innerHTML = `
-        <div style="text-align: center; padding: 36px 20px; background: #FFFFFF; border-radius: 12px; border: 1.5px dashed #D5E0D5;">
-          <p style="font-size: 14px; font-weight: 700; color: #1E2922; margin: 0 0 4px;">Aucun cycle dans cette catégorie</p>
-          <p style="font-size: 12px; color: #7C8781; margin: 0;">Changez le filtre ci-dessus ou démarrez un nouveau cycle.</p>
+        <div style="text-align: center; padding: 48px 20px; background: #FFFFFF; border-radius: 14px; border: 1.5px dashed #CBD5E1; margin: 16px 0;">
+          <p style="font-size: 15px; font-weight: 700; color: #1E2922; margin: 0 0 6px;">Aucune culture à cette étape</p>
+          <p style="font-size: 13px; color: #5D6C63; margin: 0;">Sélectionnez un autre filtre ci-dessus ou démarrez un nouveau cycle cultural.</p>
         </div>
       `;
       if (emptyState) emptyState.classList.add('hidden');
@@ -9077,7 +9152,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const c = item.cycle;
       const s = item.statusInfo;
       const p = c.parcels;
-      const parcelDesc = p ? `${escapeHtml(p.name)} (${p.area_ha || 1} ha)` : 'Parcelle';
       const varieteHtml = c.variete ? `<span class="cycle-variete-badge">Variété : ${escapeHtml(c.variete)}</span>` : '';
 
       // Calcul des finances de ce cycle
@@ -9100,10 +9174,13 @@ document.addEventListener('DOMContentLoaded', () => {
             <div>
               <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 6px;">
                 <span class="cycle-badge-status ${s.badgeClass}">${s.label}</span>
-                <span class="fin-badge-region"> ${parcelDesc}</span>
                 ${varieteHtml}
               </div>
-              <h3 class="cycle-card-title"> ${escapeHtml(c.crop_name)}</h3>
+              <h3 class="cycle-card-title">${escapeHtml(c.crop_name)}</h3>
+              <div style="display: flex; align-items: center; gap: 5px; font-size: 13px; color: #5D6C63; margin-top: 4px;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color: #05507E; flex-shrink: 0;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                <span><strong>Parcelle :</strong> ${escapeHtml(p ? p.name : 'Non définie')}${p?.area_ha ? ` (${p.area_ha} ha)` : ''}</span>
+              </div>
             </div>
             <div class="cycle-card-margin-chip">
               <span style="font-size: 11px; color: #5D6C63; text-transform: uppercase;">Marge dégagée</span>
@@ -9278,8 +9355,12 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="finance-cycle-card">
             <div class="finance-cycle-info">
               <div>
-                ${secondaryInfo ? `<span class="fin-badge-region"> ${escapeHtml(secondaryInfo)}</span>` : '<span class="fin-badge-region"> Cycle cultural</span>'}
-                <h4 style="font-size: 16px; font-weight: 800; color: #1E2922; margin: 4px 0 2px;"> ${escapeHtml(c.crop_name)}</h4>
+                <h4 style="font-size: 16px; font-weight: 800; color: #1E2922; margin: 0 0 3px;">${escapeHtml(c.crop_name)}</h4>
+                <div style="display: flex; align-items: center; gap: 5px; font-size: 12.5px; color: #5D6C63; margin-bottom: 4px;">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color: #05507E; flex-shrink: 0;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                  <span><strong>Parcelle :</strong> ${escapeHtml(c.parcels?.name || 'Non définie')}</span>
+                  ${c.variete ? `<span style="color: #7C8781;"> • Variété : ${escapeHtml(c.variete)}</span>` : ''}
+                </div>
                 <span style="font-size: 12px; color: #7C8781;">Semé le ${c.planting_date ? formatDateEnToutesLettres(new Date(c.planting_date)) : '-'}</span>
               </div>
               <div style="text-align: right;">
@@ -9349,20 +9430,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function getCycleSecondaryInfo(c) {
     if (!c) return '';
-    if (c.variete && c.variete.trim()) return c.variete.trim();
-    if (c.variety && c.variety.trim()) return c.variety.trim();
+    if (c.parcels && c.parcels.name && c.parcels.name.trim()) {
+      return `Parcelle : ${c.parcels.name.trim()}`;
+    }
+    if (c.variete && c.variete.trim()) return `Variété : ${c.variete.trim()}`;
+    if (c.variety && c.variety.trim()) return `Variété : ${c.variety.trim()}`;
     if (c.crop_name && c.crop_name.includes('(')) {
       const match = c.crop_name.match(/\((.*?)\)/);
       if (match && match[1] && match[1].trim()) return match[1].trim();
-    }
-    if (c.parcels && c.parcels.name && c.parcels.name.trim()) {
-      const pName = c.parcels.name.trim();
-      const pLower = pName.toLowerCase();
-      const cropLower = (c.crop_name || '').toLowerCase();
-      if (pLower.includes('maïs') && !cropLower.includes('maïs')) {
-        return '';
-      }
-      return pName;
     }
     return '';
   }
@@ -9827,7 +9902,7 @@ document.addEventListener('DOMContentLoaded', () => {
           const exp = (cachedExpenses || []).filter(e => e.crop_cycle_id === c.id).reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
           const rev = (cachedRevenues || []).filter(r => r.crop_cycle_id === c.id).reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0);
           const marge = rev - exp;
-          const status = c.status || 'En production';
+          const stInfo = calculateCycleStatus(c);
 
           const secInfo = getCycleSecondaryInfo(c);
           return `
@@ -9839,7 +9914,7 @@ document.addEventListener('DOMContentLoaded', () => {
               <td style="padding: 8px 10px; text-align: right; font-family: inherit; font-weight: 700; color: ${marge >= 0 ? '#1E5E2A' : '#C53030'};">
                 ${marge >= 0 ? '+' : ''}${formatFrancsCFA(marge)}
               </td>
-              <td style="padding: 8px 10px; text-align: center;"><span style="font-size: 11px; padding: 2px 6px; border-radius: 4px; background: #EAF4E6; color: #1E5E2A;">${escapeHtml(status)}</span></td>
+              <td style="padding: 8px 10px; text-align: center;"><span class="cycle-badge-status ${stInfo.badgeClass}" style="font-size: 11px;">${escapeHtml(stInfo.label)}</span></td>
             </tr>
           `;
         }).join('');
@@ -9895,10 +9970,20 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Filtres de statut de cycles
+  function setCyclesStatusFilter(status) {
+    cyclesActiveStatusFilter = status;
+    renderCyclesPage(status);
+    if (currentRoutePage === 'cycles' && currentViewMode === 'mobile') {
+      renderMobileView();
+    }
+  }
+  window.setCyclesStatusFilter = setCyclesStatusFilter;
+  window.renderCyclesPage = renderCyclesPage;
+
   document.querySelectorAll('#filterCyclesStatusContainer .type-filter-chip').forEach(chip => {
     chip.addEventListener('click', () => {
       const status = chip.getAttribute('data-status');
-      renderCyclesPage(status);
+      setCyclesStatusFilter(status);
     });
   });
 
@@ -10611,6 +10696,20 @@ document.addEventListener('DOMContentLoaded', () => {
       statusInfo: calculateCycleStatus(c)
     }));
 
+    // Compter les cycles par phase
+    const counts = {
+      all: cycles.length,
+      pepiniere: 0,
+      croissance: 0,
+      recolte_proche: 0,
+      recolte: 0,
+      termine: 0
+    };
+    itemsWithStatus.forEach(item => {
+      const k = item.statusInfo.key;
+      if (counts[k] !== undefined) counts[k]++;
+    });
+
     const filtered = itemsWithStatus.filter(item => {
       if (statusFilter === 'all') return true;
       return item.statusInfo.key === statusFilter;
@@ -10624,7 +10723,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </a>
         <div style="display: flex; justify-content: space-between; align-items: center;">
           <div>
-            <h2 style="font-size: 18px; font-weight: 800; color: #1E2822; margin: 0 0 2px;"> Cycles Culturaux</h2>
+            <h2 style="font-size: 18px; font-weight: 800; color: #1E2822; margin: 0 0 2px;">Cycles Culturaux</h2>
             <p style="font-size: 11.5px; color: #5B6660; margin: 0;">${cycles.length} cycle${cycles.length > 1 ? 's' : ''} au total</p>
           </div>
           <button type="button" class="btn-primary" onclick="openAddCropCycleModal()" style="padding: 6px 10px; font-size: 11.5px; font-weight: 700; border-radius: 8px; cursor: pointer;">+ Démarrer</button>
@@ -10632,22 +10731,21 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
 
       <!-- Filtres horizontaux mobiles -->
-      <div class="filter-types-scroll" style="margin-bottom: 12px; overflow-x: auto; white-space: nowrap; padding-bottom: 4px;">
-        <button type="button" class="mobile-cycle-filter-chip ${statusFilter === 'all' ? 'active' : ''}" data-status="all" style="padding: 5px 10px; font-size: 11px; border-radius: 99px; margin-right: 6px; cursor: pointer;">Tous</button>
-        <button type="button" class="mobile-cycle-filter-chip ${statusFilter === 'pepiniere' ? 'active' : ''}" data-status="pepiniere" style="padding: 5px 10px; font-size: 11px; border-radius: 99px; margin-right: 6px; cursor: pointer;"> Pépinière</button>
-        <button type="button" class="mobile-cycle-filter-chip ${statusFilter === 'croissance' ? 'active' : ''}" data-status="croissance" style="padding: 5px 10px; font-size: 11px; border-radius: 99px; margin-right: 6px; cursor: pointer;"> Croissance</button>
-        <button type="button" class="mobile-cycle-filter-chip ${statusFilter === 'recolte_proche' ? 'active' : ''}" data-status="recolte_proche" style="padding: 5px 10px; font-size: 11px; border-radius: 99px; margin-right: 6px; cursor: pointer;">⏳ Récolte proche</button>
-        <button type="button" class="mobile-cycle-filter-chip ${statusFilter === 'recolte' ? 'active' : ''}" data-status="recolte" style="padding: 5px 10px; font-size: 11px; border-radius: 99px; margin-right: 6px; cursor: pointer;"> À récolter</button>
-        <button type="button" class="mobile-cycle-filter-chip ${statusFilter === 'termine' ? 'active' : ''}" data-status="termine" style="padding: 5px 10px; font-size: 11px; border-radius: 99px; margin-right: 6px; cursor: pointer;"> Terminés</button>
+      <div class="filter-types-scroll" style="margin-bottom: 12px; overflow-x: auto; white-space: nowrap; padding-bottom: 4px; display: flex; gap: 6px;">
+        <button type="button" class="mobile-cycle-filter-chip ${statusFilter === 'all' ? 'active' : ''}" data-status="all" onclick="setCyclesStatusFilter('all')">Tous (${counts.all})</button>
+        <button type="button" class="mobile-cycle-filter-chip ${statusFilter === 'pepiniere' ? 'active' : ''}" data-status="pepiniere" onclick="setCyclesStatusFilter('pepiniere')">Pépinière (${counts.pepiniere})</button>
+        <button type="button" class="mobile-cycle-filter-chip ${statusFilter === 'croissance' ? 'active' : ''}" data-status="croissance" onclick="setCyclesStatusFilter('croissance')">Croissance (${counts.croissance})</button>
+        <button type="button" class="mobile-cycle-filter-chip ${statusFilter === 'recolte_proche' ? 'active' : ''}" data-status="recolte_proche" onclick="setCyclesStatusFilter('recolte_proche')">Récolte proche (${counts.recolte_proche})</button>
+        <button type="button" class="mobile-cycle-filter-chip ${statusFilter === 'recolte' ? 'active' : ''}" data-status="recolte" onclick="setCyclesStatusFilter('recolte')">À récolter (${counts.recolte})</button>
+        <button type="button" class="mobile-cycle-filter-chip ${statusFilter === 'termine' ? 'active' : ''}" data-status="termine" onclick="setCyclesStatusFilter('termine')">Terminé (${counts.termine})</button>
       </div>
 
       <!-- Liste des cartes de cycles -->
       <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px;">
         ${filtered.length === 0 ? `
-          <div style="text-align: center; padding: 24px 16px; background: #fff; border-radius: 12px; border: 1px dashed #CBD5E1;">
-            <div style="font-size: 26px; margin-bottom: 4px;"></div>
-            <strong style="font-size: 13.5px; color: #1E2822; display: block; margin-bottom: 4px;">Aucun cycle dans cette catégorie</strong>
-            <p style="font-size: 11.5px; color: #5D6C63; margin: 0 0 10px;">Lancez une nouvelle culture avec un modèle agronomique.</p>
+          <div style="text-align: center; padding: 28px 16px; background: #fff; border-radius: 12px; border: 1.5px dashed #CBD5E1; margin: 8px 0;">
+            <strong style="font-size: 14px; color: #1E2822; display: block; margin-bottom: 4px;">Aucune culture à cette étape</strong>
+            <p style="font-size: 12px; color: #5D6C63; margin: 0 0 10px;">Sélectionnez un autre filtre ou démarrez une culture.</p>
             <button type="button" class="btn-primary" onclick="openAddCropCycleModal()" style="margin: 0 auto; padding: 7px 14px; font-size: 12px;">+ Démarrer un cycle</button>
           </div>
         ` : filtered.map(item => {
@@ -10658,13 +10756,17 @@ document.addEventListener('DOMContentLoaded', () => {
           const gain = rev - exp;
 
           return `
-            <div style="background: #FFF; border: 1.5px solid #E2E8F0; border-radius: 12px; padding: 14px; border-left: 4px solid #1E5E2A;">
+            <div style="background: #FFF; border: 1.5px solid #E2E8F0; border-radius: 12px; padding: 14px; border-left: 4px solid #05507E;">
               <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
                 <div>
-                  <h4 style="font-size: 15px; font-weight: 800; color: #1E2822; margin: 0 0 2px;"> ${escapeHtml(c.crop_name)}</h4>
-                  <span style="font-size: 11px; color: #5D6C63;"> ${escapeHtml(c.parcels?.name || 'Parcelle')} ${c.variete ? '• ' + escapeHtml(c.variete) : ''}</span>
+                  <h4 style="font-size: 15px; font-weight: 800; color: #1E2822; margin: 0 0 2px;">${escapeHtml(c.crop_name)}</h4>
+                  <div style="font-size: 11.5px; color: #5D6C63; display: flex; align-items: center; gap: 4px; margin-top: 2px;">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color: #05507E; flex-shrink: 0;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    <span><strong>Parcelle :</strong> ${escapeHtml(c.parcels?.name || 'Non définie')}</span>
+                    ${c.variete ? `<span style="color: #7C8781;"> • ${escapeHtml(c.variete)}</span>` : ''}
+                  </div>
                 </div>
-                <span class="badge-state ${s.badgeClass}" style="font-size: 10px;">${s.label}</span>
+                <span class="cycle-badge-status ${s.badgeClass}" style="font-size: 10.5px;">${s.label}</span>
               </div>
 
               <!-- Dates clés -->
@@ -10685,8 +10787,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
               <!-- Actions du cycle -->
               <div style="display: flex; justify-content: flex-end; gap: 6px; margin-top: 10px;">
-                <button type="button" onclick="openAddCycleTaskModal('${c.id}')" style="padding: 4px 8px; font-size: 11px; background: #EAF4E6; color: #1E5E2A; border: 1px solid #C4DFC0; border-radius: 6px; font-weight: 700; cursor: pointer;"> + Tâche</button>
-                <button type="button" onclick="deleteCropCycle('${c.id}')" style="padding: 4px 8px; font-size: 11px; color: #C62828; border: 1px solid #F8B4B0; background: #FFF; border-radius: 6px; cursor: pointer;">️ Supprimer</button>
+                <button type="button" onclick="openAddCycleTaskModal('${c.id}')" style="padding: 4px 8px; font-size: 11px; background: #EAF4E6; color: #1E5E2A; border: 1px solid #C4DFC0; border-radius: 6px; font-weight: 700; cursor: pointer;">+ Tâche</button>
+                <button type="button" onclick="deleteCropCycle('${c.id}')" style="padding: 4px 8px; font-size: 11px; color: #C62828; border: 1px solid #F8B4B0; background: #FFF; border-radius: 6px; cursor: pointer;">Supprimer</button>
               </div>
             </div>
           `;
@@ -10758,9 +10860,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
           return `
             <div style="background: #FFF; border: 1px solid #E2E8F0; border-radius: 10px; padding: 12px;">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                <strong style="font-size: 13.5px; color: #1E2822;"> ${escapeHtml(c.crop_name)}</strong>
-                ${secondaryInfo ? `<span style="font-size: 11px; color: #5D6C63;">${escapeHtml(secondaryInfo)}</span>` : ''}
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
+                <div>
+                  <strong style="font-size: 13.5px; color: #1E2822; display: block; margin-bottom: 2px;">${escapeHtml(c.crop_name)}</strong>
+                  <div style="font-size: 11px; color: #5D6C63; display: flex; align-items: center; gap: 4px;">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color: #05507E; flex-shrink: 0;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    <span><strong>Parcelle :</strong> ${escapeHtml(c.parcels?.name || 'Non définie')}</span>
+                  </div>
+                </div>
               </div>
               <div style="display: flex; justify-content: space-between; font-size: 11.5px; color: #5D6C63; margin-bottom: 4px;">
                 <span>Dépenses : <strong style="color: #C53030;">${formatFrancsCFA(exp)}</strong></span>

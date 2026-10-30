@@ -10819,6 +10819,144 @@ a.btn-fiche-call,
   gap: 8px;
 }
 
+/* ==========================================
+   CYCLES CULTURAUX - PHASES & FILTRES
+   ========================================== */
+#filterCyclesStatusContainer .type-filter-chip,
+.mobile-cycle-filter-chip {
+  background: #F0F4F8;
+  color: #4A5568;
+  border: 1px solid #D6E0EA;
+  padding: 6px 14px;
+  border-radius: 99px;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+#filterCyclesStatusContainer .type-filter-chip:hover,
+.mobile-cycle-filter-chip:hover {
+  background: #E2ECF5;
+  color: #05507E;
+}
+
+#filterCyclesStatusContainer .type-filter-chip.active,
+.mobile-cycle-filter-chip.active {
+  background: #05507E !important;
+  color: #FFFFFF !important;
+  border-color: #05507E !important;
+  font-weight: 700 !important;
+  box-shadow: 0 2px 8px rgba(5, 80, 126, 0.28) !important;
+}
+
+.cycle-card-pro {
+  background: #FFFFFF;
+  border: 1px solid #ECE6D9;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.cycle-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.cycle-card-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: #1A1A1A;
+  margin: 0;
+}
+
+.cycle-badge-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 999px;
+  text-transform: none;
+  letter-spacing: 0.2px;
+}
+
+.badge-status-pepiniere {
+  background: #E6EFF6 !important;
+  color: #05507E !important;
+  border: 1px solid #B8D5E5 !important;
+}
+
+.badge-status-croissance {
+  background: #E5F3E6 !important;
+  color: #237A2B !important;
+  border: 1px solid #BFE3C3 !important;
+}
+
+.badge-status-proche {
+  background: #F6EADF !important;
+  color: #A85A1C !important;
+  border: 1px solid #E6C9B0 !important;
+}
+
+.badge-status-recolte {
+  background: #FEF3C7 !important;
+  color: #B45309 !important;
+  border: 1px solid #FDE68A !important;
+}
+
+.badge-status-termine {
+  background: #F1F5F9 !important;
+  color: #64748B !important;
+  border: 1px solid #CBD5E1 !important;
+}
+
+.btn-cycle-harvest-done {
+  background: #E5F3E6;
+  color: #237A2B;
+  border: 1px solid #BFE3C3;
+  padding: 7px 14px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+.btn-cycle-harvest-done:hover {
+  background: #237A2B;
+  color: #FFFFFF;
+}
+
+.btn-cycle-action {
+  background: #FFFFFF;
+  color: #4A5568;
+  border: 1px solid #D6E0EA;
+  padding: 7px 14px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+.btn-cycle-action:hover {
+  background: #F8FAF7;
+  color: #05507E;
+  border-color: #05507E;
+}
+
+
 
 
 

@@ -15,7 +15,7 @@
   <script src="https://unpkg.com/lucide@0.453.0/dist/umd/lucide.min.js"></script>
 
   <link rel="stylesheet" href="styles/theme.css?v=20261027.4">
-  <link rel="stylesheet" href="styles/main.css?v=20261030.4">
+  <link rel="stylesheet" href="styles/main.css?v=20261030.5">
 
   <!-- CONFIGURATION PWA (PROGRESSIVE WEB APP) -->
   <link rel="manifest" href="manifest.json">
@@ -2150,7 +2150,10 @@
                 <span class="bullet-sep">•</span>
                 <span>Mon exploitation</span>
               </div>
-              <h1 class="page-main-title"> Cycles Culturaux</h1>
+              <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                <h1 class="page-main-title" style="margin: 0;">Cycles Culturaux</h1>
+                <span class="badge-neutral" id="cyclesTotalBadge" style="font-size: 12.5px; font-weight: 700; background: #E6EFF6; color: #05507E; padding: 4px 12px; border-radius: 99px;">3 cycles au total</span>
+              </div>
               <p class="page-subtitle">Suivez vos cultures du semis à la récolte avec frise chronologique, prévisions agronomiques et rappels de tâches.</p>
             </div>
             <div class="page-header-actions-group">
@@ -2164,12 +2167,12 @@
           <!-- Onglets de filtre de statut pour les cycles -->
           <div class="admin-materiels-filters-bar" style="margin-bottom: 16px;">
             <div class="filter-types-scroll" id="filterCyclesStatusContainer">
-              <button type="button" class="type-filter-chip active" data-status="all">Tous les cycles</button>
-              <button type="button" class="type-filter-chip" data-status="pepiniere"> En pépinière</button>
-              <button type="button" class="type-filter-chip" data-status="croissance"> En croissance</button>
-              <button type="button" class="type-filter-chip" data-status="recolte_proche">⏳ Récolte proche (&lt;15j)</button>
-              <button type="button" class="type-filter-chip" data-status="recolte"> À récolter</button>
-              <button type="button" class="type-filter-chip" data-status="termine"> Terminés</button>
+              <button type="button" class="type-filter-chip active" data-status="all">Tous (0)</button>
+              <button type="button" class="type-filter-chip" data-status="pepiniere">Pépinière (0)</button>
+              <button type="button" class="type-filter-chip" data-status="croissance">Croissance (0)</button>
+              <button type="button" class="type-filter-chip" data-status="recolte_proche">Récolte proche (0)</button>
+              <button type="button" class="type-filter-chip" data-status="recolte">À récolter (0)</button>
+              <button type="button" class="type-filter-chip" data-status="termine">Terminé (0)</button>
             </div>
           </div>
 
@@ -5205,6 +5208,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <!-- SCRIPT APPLICATION -->
-  <script src="scripts/app.js?v=20261030.4"></script>
+  <script src="scripts/app.js?v=20261030.5"></script>
 </body>
 </html>
