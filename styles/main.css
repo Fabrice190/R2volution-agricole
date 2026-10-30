@@ -10182,18 +10182,643 @@ a.btn-fiche-call,
   height: 20px;
 }
 
-.settings-menu-chevron {
-  color: #A0AEC0;
+/* ====================================================================
+   SECTION 15: PLAN DE SUIVI DES CULTURES & TÂCHES DE LA SEMAINE
+   ==================================================================== */
+
+/* Carte d'accueil : À faire cette semaine */
+.home-tasks-week-card {
+  background: #FFFFFF;
+  border: 1px solid #ECE6D9;
+  border-radius: 20px;
+  padding: 20px 22px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+  margin-bottom: 24px;
 }
 
-/* Tailles globales d'accessibilité */
-html.text-size-large {
-  font-size: 115% !important;
+.home-tasks-week-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
-html.text-size-xlarge {
-  font-size: 130% !important;
+.home-tasks-week-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
+
+.home-tasks-week-icon-box {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #E6EFF6;
+  color: #05507E;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.home-tasks-week-title {
+  font-size: 17px;
+  font-weight: 800;
+  color: #1A1A1A;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.home-tasks-week-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #E5F3E6;
+  color: #237A2B;
+}
+
+.home-tasks-week-badge.is-urgent {
+  background: #F6EADF;
+  color: #A85A1C;
+}
+
+.home-tasks-see-all {
+  font-size: 13px;
+  font-weight: 700;
+  color: #05507E;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: #E6EFF6;
+  transition: all 0.2s ease;
+}
+
+.home-tasks-see-all:hover {
+  background: #D9E8F4;
+}
+
+.home-tasks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.home-task-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: #FAF7F0;
+  border: 1px solid #ECE6D9;
+  gap: 12px;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.home-task-item:hover {
+  border-color: #D5CCB8;
+  transform: translateY(-1px);
+}
+
+.home-task-item.is-overdue {
+  border: 1.5px solid #A85A1C;
+  background: #FFF9F5;
+}
+
+.home-task-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+.home-task-cat-icon {
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+  border-radius: 10px;
+  background: #FFFFFF;
+  border: 1px solid #ECE6D9;
+  color: #05507E;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.home-task-cat-icon.is-overdue {
+  color: #A85A1C;
+  border-color: #F6EADF;
+  background: #FDF4EB;
+}
+
+.home-task-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.home-task-sub {
+  font-size: 12px;
+  font-weight: 600;
+  color: #4A4A4A;
+  margin: 0 0 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.home-task-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: #1A1A1A;
+  margin: 0 0 4px;
+  line-height: 1.3;
+}
+
+.home-task-date-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+}
+
+.task-due-badge {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 11px;
+  background: #ECE6D9;
+  color: #4A4A4A;
+}
+
+.task-due-badge.badge-overdue {
+  background: #F6EADF;
+  color: #A85A1C;
+  font-weight: 800;
+}
+
+.task-due-badge.badge-today {
+  background: #E5F3E6;
+  color: #237A2B;
+}
+
+.task-due-badge.badge-soon {
+  background: #E6EFF6;
+  color: #05507E;
+}
+
+.btn-task-quick-done {
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-size: 12.5px;
+  font-weight: 800;
+  background: #237A2B;
+  color: #FFFFFF;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.btn-task-quick-done:hover {
+  background: #1C6323;
+  transform: scale(1.02);
+}
+
+.home-tasks-empty {
+  text-align: center;
+  padding: 20px 14px;
+  color: #4A4A4A;
+  font-size: 13.5px;
+  font-weight: 600;
+  background: #FAF7F0;
+  border-radius: 12px;
+}
+
+/* ====================================================================
+   FRISE VERTICALE : PLAN DE SUIVI DU CYCLE
+   ==================================================================== */
+.plan-suivi-wrapper {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid #ECE6D9;
+}
+
+.plan-suivi-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.plan-suivi-title-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.plan-suivi-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: #1A1A1A;
+  margin: 0;
+}
+
+.plan-suivi-subtitle {
+  font-size: 12px;
+  color: #4A4A4A;
+  margin: 2px 0 0;
+}
+
+.plan-timeline-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.plan-timeline-group-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding-bottom: 6px;
+  border-bottom: 1.5px solid #ECE6D9;
+}
+
+.plan-group-title {
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0;
+}
+
+.plan-group-title.week {
+  color: #A85A1C;
+}
+
+.plan-group-title.upcoming {
+  color: #05507E;
+}
+
+.plan-group-title.done {
+  color: #237A2B;
+}
+
+.plan-group-count {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: #FAF7F0;
+  color: #4A4A4A;
+  border: 1px solid #ECE6D9;
+}
+
+/* Frise verticale */
+.plan-vertical-track {
+  position: relative;
+  padding-left: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.plan-vertical-track::before {
+  content: '';
+  position: absolute;
+  top: 14px;
+  bottom: 14px;
+  left: 11px;
+  width: 2px;
+  background: #ECE6D9;
+  z-index: 1;
+}
+
+.plan-step-node {
+  position: relative;
+}
+
+.plan-step-dot {
+  position: absolute;
+  left: -28px;
+  top: 16px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #FFFFFF;
+  border: 2px solid #05507E;
+  color: #05507E;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  box-shadow: 0 0 0 3px #FFFFFF;
+}
+
+.plan-step-dot.is-overdue {
+  border-color: #A85A1C;
+  color: #A85A1C;
+  background: #FDF9F5;
+}
+
+.plan-step-dot.is-done {
+  border-color: #237A2B;
+  background: #237A2B;
+  color: #FFFFFF;
+}
+
+.plan-step-card {
+  background: #FFFFFF;
+  border: 1px solid #ECE6D9;
+  border-radius: 16px;
+  padding: 14px 16px;
+  transition: all 0.2s ease;
+}
+
+.plan-step-card.is-overdue {
+  border: 2px solid #A85A1C;
+  background: #FFFDF9;
+}
+
+.plan-step-card.is-done {
+  background: #FAF7F0;
+  opacity: 0.88;
+}
+
+.plan-step-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.plan-step-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.plan-category-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: #E6EFF6;
+  color: #05507E;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.plan-period-text {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #4A4A4A;
+}
+
+.badge-overdue-tag {
+  background: #F6EADF;
+  color: #A85A1C;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.plan-step-title {
+  font-size: 15px;
+  font-weight: 800;
+  color: #1A1A1A;
+  margin: 0 0 6px;
+  line-height: 1.3;
+}
+
+.plan-step-actions-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.plan-left-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-plan-toggle {
+  background: #FAF7F0;
+  border: 1px solid #ECE6D9;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #1A1A1A;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.15s ease;
+}
+
+.btn-plan-toggle:hover {
+  background: #ECE6D9;
+}
+
+.btn-plan-listen {
+  background: #E6EFF6;
+  border: 1px solid #D5E4F0;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #05507E;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.15s ease;
+}
+
+.btn-plan-listen:hover {
+  background: #D9E8F4;
+}
+
+.btn-plan-listen.is-playing {
+  background: #05507E;
+  color: #FFFFFF;
+}
+
+.btn-plan-done {
+  padding: 8px 18px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 800;
+  background: #237A2B;
+  color: #FFFFFF;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s ease;
+}
+
+.btn-plan-done:hover {
+  background: #1C6323;
+  transform: translateY(-1px);
+}
+
+.plan-step-done-badge {
+  font-size: 12px;
+  font-weight: 700;
+  color: #237A2B;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #E5F3E6;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+.plan-step-description-box {
+  margin-top: 10px;
+  padding: 12px 14px;
+  background: #FAF7F0;
+  border-radius: 12px;
+  border: 1px dashed #ECE6D9;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #1A1A1A;
+}
+
+.plan-step-source {
+  margin-top: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #4A4A4A;
+  font-style: italic;
+}
+
+/* ====================================================================
+   ADMINISTRATION : GÉRER LES PLANS DE SUIVI
+   ==================================================================== */
+.admin-etapes-header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  background: #FFFFFF;
+  border: 1px solid #ECE6D9;
+  border-radius: 16px;
+  padding: 16px 20px;
+}
+
+.admin-etapes-crop-select {
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1.5px solid #ECE6D9;
+  font-size: 14px;
+  font-weight: 700;
+  color: #1A1A1A;
+  background: #FAF7F0;
+  cursor: pointer;
+  min-width: 220px;
+}
+
+.admin-etapes-crop-select:focus {
+  border-color: #05507E;
+  outline: none;
+}
+
+.admin-etape-item-card {
+  background: #FFFFFF;
+  border: 1px solid #ECE6D9;
+  border-radius: 16px;
+  padding: 18px 20px;
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.admin-etape-item-card.is-inactive {
+  opacity: 0.6;
+  background: #F8F8F8;
+}
+
+.admin-etape-item-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.admin-etape-item-badges {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.admin-etape-order-badge {
+  font-size: 11.5px;
+  font-weight: 800;
+  background: #05507E;
+  color: #FFFFFF;
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+.admin-etape-phase-badge {
+  font-size: 11px;
+  font-weight: 700;
+  background: #E6EFF6;
+  color: #05507E;
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+.admin-etape-days-badge {
+  font-size: 11px;
+  font-weight: 700;
+  background: #F6EADF;
+  color: #A85A1C;
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+.admin-etape-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 
 
 

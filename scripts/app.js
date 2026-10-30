@@ -66,6 +66,14 @@ document.addEventListener('DOMContentLoaded', () => {
   let cachedRevenues = [];
   let cachedCropCycles = [];
   let cachedCycleTasks = [];
+  let cachedEtapesCulture = [];
+  let adminSelectedCropPlan = '';
+  let adminSelectedPhasePlan = 'all';
+  let currentEditingEtapeId = null;
+  const pageAdminEtapes = document.getElementById('pageAdminEtapes');
+  const modalAdminEtape = document.getElementById('modalAdminEtape');
+  const formAdminEtape = document.getElementById('formAdminEtape');
+  const homeTasksWeekCard = document.getElementById('homeTasksWeekCard');
   let activeAdminModelesTab = 'all';
   let activeCropSpeechBtn = null;
   let activeParcelSpeechBtn = null;
@@ -1631,6 +1639,8 @@ document.addEventListener('DOMContentLoaded', () => {
         mobileBodyHtml = getMobileAdminUtilisateursHtml();
       } else if (currentRoutePage === 'admin-modeles') {
         mobileBodyHtml = getMobileAdminModelesHtml();
+      } else if (currentRoutePage === 'admin-etapes') {
+        mobileBodyHtml = getMobileAdminEtapesHtml();
       } else if (currentRoutePage === 'materiel-services') {
         mobileBodyHtml = getMobileMaterielsHtml();
       } else if (currentRoutePage === 'admin-materiels') {
@@ -1732,6 +1742,9 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
           </div>
         </section>
+
+        <!-- CARTE "À FAIRE CETTE SEMAINE" (Plan de suivi inter-parcelles) -->
+        ${getHomeTasksWeekHtml()}
 
         <!-- 2. DEUX CARTES BLANCHES CÔTE À CÔTE -->
         <section class="home-two-cards-grid">
@@ -2009,6 +2022,19 @@ document.addEventListener('DOMContentLoaded', () => {
                     return `<span class="nav-badge-neutral" id="mobileDrawerModelesBadge" style="display:none;"></span>`;
                   }
                 })()}
+              </a>
+              <a href="#admin-etapes" class="nav-item mobile-drawer-link" data-page="admin-etapes">
+                <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>
+                <span class="nav-label">Plans de suivi</span>
+                ${(() => {
+                  try {
+                    const count = (cachedEtapesCulture || []).length;
+                    return `<span class="nav-badge-neutral" id="mobileDrawerEtapesBadge">${count}</span>`;
+                  } catch (e) {
+                    return `<span class="nav-badge-neutral" id="mobileDrawerEtapesBadge" style="display:none;"></span>`;
+                  }
+                })()}
+              </a>
               <a href="#admin-materiels" class="nav-item mobile-drawer-link" data-page="admin-materiels">
                 <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></span>
                 <span class="nav-label">Gérer le matériel</span>
@@ -3120,7 +3146,10 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    // 5. Synchroniser immédiatement la vue mobile si active ou sur écran mobile
+    // 5. Mettre à jour la carte des tâches de la semaine sur l'accueil
+    renderHomeTasksWeekCard();
+
+    // 6. Synchroniser immédiatement la vue mobile si active ou sur écran mobile
     if (currentViewMode === 'mobile' || window.innerWidth < 1024) {
       renderMobileView();
     }
@@ -4734,6 +4763,8 @@ document.addEventListener('DOMContentLoaded', () => {
     'admin-users': 'admin-utilisateurs',
     'utilisateurs': 'admin-utilisateurs',
     'admin-modeles': 'admin-modeles',
+    'admin-etapes': 'admin-etapes',
+    'plans-suivi': 'admin-etapes',
     'admin-materiels': 'admin-materiels',
     'admin-queue': 'admin-queue',
     'admin-moderation': 'admin-queue',
@@ -4754,7 +4785,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const VALID_PAGES = new Set([
     'dashboard', 'synthese', 'parcelles', 'cycles', 'finances',
     'opportunites', 'admin-financements', 'conseils', 'admin-conseils', 'admin-utilisateurs', 'admin-modeles',
-    'materiel-services', 'admin-materiels', 'marche', 'mes-annonces', 'admin-queue',
+    'admin-etapes', 'materiel-services', 'admin-materiels', 'marche', 'mes-annonces', 'admin-queue',
     'meteo', 'notifications', 'profil', 'parametres'
   ]);
 
@@ -4781,6 +4812,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (pageAdminConseils) pageAdminConseils.classList.toggle('hidden', page !== 'admin-conseils');
     if (pageAdminUtilisateurs) pageAdminUtilisateurs.classList.toggle('hidden', page !== 'admin-utilisateurs');
     if (pageAdminModeles) pageAdminModeles.classList.toggle('hidden', page !== 'admin-modeles');
+    if (pageAdminEtapes) pageAdminEtapes.classList.toggle('hidden', page !== 'admin-etapes');
     if (pageMaterielServices) pageMaterielServices.classList.toggle('hidden', page !== 'materiel-services');
     if (pageAdminMateriels) pageAdminMateriels.classList.toggle('hidden', page !== 'admin-materiels');
     if (pageMeteo) pageMeteo.classList.toggle('hidden', page !== 'meteo');
@@ -4828,6 +4860,8 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     } else if (page === 'admin-modeles') {
       renderAdminModeles();
+    } else if (page === 'admin-etapes') {
+      renderAdminEtapes();
     } else if (page === 'materiel-services') {
       renderUserMateriels();
     } else if (page === 'admin-materiels') {
@@ -7584,11 +7618,22 @@ document.addEventListener('DOMContentLoaded', () => {
         status: initialStatus
       };
 
-      const { error: cycleErr } = await supabaseClient
+      const { data: newCycleData, error: cycleErr } = await supabaseClient
         .from('crop_cycles')
-        .insert(payload);
+        .insert(payload)
+        .select('id')
+        .single();
 
       if (cycleErr) throw cycleErr;
+
+      if (newCycleData && newCycleData.id) {
+        try {
+          await supabaseClient.rpc('generer_taches_cycle', { p_cycle_id: newCycleData.id });
+          await fetchCycleTasks(profileId);
+        } catch (rpcErr) {
+          console.warn('Erreur generer_taches_cycle :', rpcErr);
+        }
+      }
 
       showToast('Culture enregistrée', `${cropName} a été ajouté avec succès à vos parcelles.`);
       modalAddCropCycle.classList.add('hidden');
@@ -7862,17 +7907,40 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const { data, error } = await supabaseClient
         .from('cycle_tasks')
-        .select('*')
+        .select('*, etapes_culture(*)')
         .eq('profile_id', profileId)
         .order('date_prevue', { ascending: true });
       if (!error && data) {
         cachedCycleTasks = data;
+        renderHomeTasksWeekCard();
         return data;
       }
     } catch (err) {
-      console.warn('️ Erreur fetchCycleTasks :', err);
+      console.warn('⚠️ Erreur fetchCycleTasks :', err);
     }
     return [];
+  }
+
+  async function fetchEtapesCulture() {
+    if (!supabaseClient) return cachedEtapesCulture || [];
+    try {
+      const { data, error } = await supabaseClient
+        .from('etapes_culture')
+        .select('*')
+        .order('ordre', { ascending: true })
+        .order('jour_debut', { ascending: true });
+      if (!error && data) {
+        cachedEtapesCulture = data;
+        const badge = document.getElementById('navAdminEtapesBadge');
+        if (badge) badge.textContent = data.length;
+        const mobileBadge = document.getElementById('mobileDrawerEtapesBadge');
+        if (mobileBadge) mobileBadge.textContent = data.length;
+        return data;
+      }
+    } catch (err) {
+      console.warn('⚠️ Erreur fetchEtapesCulture :', err);
+    }
+    return cachedEtapesCulture || [];
   }
 
   function openAddCycleTaskModal(cycleId) {
@@ -8056,6 +8124,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (!error) {
         showToast('Date ajustée', `La date de récolte a été mise à jour au ${newDate}.`);
+        try {
+          await supabaseClient.rpc('generer_taches_cycle', { p_cycle_id: cycleId });
+          await fetchCycleTasks(currentProfileKey);
+        } catch (rpcErr) {
+          console.warn('Erreur generer_taches_cycle :', rpcErr);
+        }
         await syncCropCyclesFromSupabase(currentProfileKey);
         if (currentRoutePage === 'cycles') {
           renderCyclesPage(cyclesActiveStatusFilter || 'all');
@@ -8161,46 +8235,787 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
   }
 
-  function renderCycleTasksHtml(cycleId) {
-    const tasks = (cachedCycleTasks || []).filter(t => String(t.crop_cycle_id) === String(cycleId));
-    let tasksListHtml = '';
-    if (tasks.length === 0) {
-      tasksListHtml = `<p class="cycle-tasks-empty">Aucun rappel ou travail programmé pour ce cycle.</p>`;
-    } else {
-      tasksListHtml = tasks.map(t => {
-        const isDone = t.statut === 'fait';
-        const d = t.date_prevue ? new Date(t.date_prevue) : null;
-        const dateStr = d ? formatDateEnToutesLettres(d) : 'Date libre';
-        return `
-          <div class="cycle-task-item ${isDone ? 'is-done' : ''}">
-            <label class="cycle-task-label">
-              <input type="checkbox" ${isDone ? 'checked' : ''} onchange="toggleCycleTaskStatus('${t.id}', '${t.statut}')">
-              <span class="task-title-text">${escapeHtml(t.titre)}</span>
-            </label>
-            <div class="cycle-task-meta">
-              <span class="task-date-badge"> ${dateStr}</span>
-              <button type="button" class="btn-del-task" onclick="deleteCycleTask('${t.id}')" title="Supprimer ce rappel">&times;</button>
+  function getCategoryIconName(cat) {
+    switch ((cat || '').toLowerCase()) {
+      case 'préparation': return 'layers';
+      case 'semis': return 'sprout';
+      case 'arrosage': return 'droplets';
+      case 'désherbage': return 'scissors';
+      case 'fumure': return 'leaf';
+      case 'protection': return 'shield-check';
+      case 'récolte': return 'wheat';
+      case 'conservation': return 'archive';
+      default: return 'calendar';
+    }
+  }
+
+  function formatPeriodeEtape(d1Str, d2Str) {
+    if (!d1Str) return 'Date libre';
+    const d1 = new Date(d1Str);
+    const months = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+    if (!d2Str || d1Str === d2Str) {
+      return `le ${d1.getDate()} ${months[d1.getMonth()]}`;
+    }
+    const d2 = new Date(d2Str);
+    if (d1.getMonth() === d2.getMonth()) {
+      return `du ${d1.getDate()} au ${d2.getDate()} ${months[d1.getMonth()]}`;
+    }
+    return `du ${d1.getDate()} ${months[d1.getMonth()]} au ${d2.getDate()} ${months[d2.getMonth()]}`;
+  }
+
+  function togglePlanStepDesc(taskId) {
+    const box = document.getElementById(`descBox_${taskId}`);
+    const chev = document.getElementById(`chevronDesc_${taskId}`);
+    if (!box) return;
+    const isHidden = box.classList.contains('hidden');
+    box.classList.toggle('hidden', !isHidden);
+    if (chev) {
+      chev.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
+      chev.style.transition = 'transform 0.2s ease';
+    }
+  }
+
+  function listenPlanStep(taskId) {
+    const t = (cachedCycleTasks || []).find(item => String(item.id) === String(taskId));
+    if (!t) return;
+    if (window.speechSynthesis) {
+      if (window.speechSynthesis.speaking) {
+        window.speechSynthesis.cancel();
+        return;
+      }
+      const desc = t.etapes_culture?.description || '';
+      const period = formatPeriodeEtape(t.date_prevue, t.date_fin_prevue);
+      const text = `Étape : ${t.titre}. Période prévue : ${period}. ${desc ? 'Conseils : ' + desc : ''}`;
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'fr-FR';
+      utterance.rate = 0.95;
+      window.speechSynthesis.speak(utterance);
+    }
+  }
+
+  async function markCycleTaskDone(taskId) {
+    if (!supabaseClient) return;
+    try {
+      const nowIso = new Date().toISOString();
+      const { error } = await supabaseClient
+        .from('cycle_tasks')
+        .update({ statut: 'fait', fait_le: nowIso })
+        .eq('id', taskId);
+
+      if (!error) {
+        const t = (cachedCycleTasks || []).find(item => String(item.id) === String(taskId));
+        if (t) {
+          t.statut = 'fait';
+          t.fait_le = nowIso;
+        }
+        showToast('Étape validée', 'L\'étape a été marquée comme faite avec succès.');
+        if (currentRoutePage === 'cycles') {
+          renderCyclesPage(cyclesActiveStatusFilter || 'all');
+        } else if (currentRoutePage === 'dashboard') {
+          updateFinancialMetrics();
+        }
+        if (currentViewMode === 'mobile' || window.innerWidth < 1024) {
+          renderMobileView();
+        }
+        if (window.lucide && typeof lucide.createIcons === 'function') {
+          lucide.createIcons();
+        }
+      } else {
+        showToast('Erreur', error.message || 'Impossible de valider l\'étape.');
+      }
+    } catch (err) {
+      console.error('Erreur markCycleTaskDone :', err);
+      showToast('Erreur', 'Erreur lors de la validation.');
+    }
+  }
+
+  function getCanonicalCropName(cycle) {
+    if (!cycle) return '';
+    if (cycle.modele_id && cachedModelesCultures && cachedModelesCultures.length > 0) {
+      const m = cachedModelesCultures.find(item => String(item.id) === String(cycle.modele_id));
+      if (m && m.nom_culture) return m.nom_culture.trim();
+    }
+    let name = (cycle.crop_name || '').trim();
+    if (name.includes('(')) {
+      name = name.split('(')[0].trim();
+    }
+    return name;
+  }
+
+  function renderCyclePlanDeSuiviHtml(cycle) {
+    const cycleId = typeof cycle === 'object' && cycle ? cycle.id : cycle;
+    const c = typeof cycle === 'object' && cycle ? cycle : (cachedCropCycles || []).find(item => String(item.id) === String(cycleId));
+    if (!c) return '';
+
+    const canonicalName = getCanonicalCropName(c);
+    const stepsInCatalog = (cachedEtapesCulture || []).filter(e => e.actif && (e.nom_culture || '').toLowerCase() === canonicalName.toLowerCase());
+    const tasks = (cachedCycleTasks || []).filter(t => String(t.crop_cycle_id) === String(c.id));
+
+    // Si aucune étape n'existe dans le catalogue pour cette culture ET aucune tâche
+    if (stepsInCatalog.length === 0 && tasks.length === 0) {
+      return `
+        <div class="plan-suivi-wrapper">
+          <div class="plan-suivi-header">
+            <div class="plan-suivi-title-group">
+              <div class="home-tasks-week-icon-box" style="width: 32px; height: 32px;">
+                <i data-lucide="clipboard-list" style="width: 17px; height: 17px;"></i>
+              </div>
+              <div>
+                <h4 class="plan-suivi-title">Plan de suivi agronomique</h4>
+                <p class="plan-suivi-subtitle">Calendrier du semis à la récolte</p>
+              </div>
             </div>
+            <button type="button" class="btn-plan-toggle" onclick="openAddCycleTaskModal('${c.id}')">
+              + Ajouter un rappel
+            </button>
           </div>
-        `;
-      }).join('');
+          <div style="text-align: center; padding: 22px 18px; background: #FAF7F0; border: 1.5px dashed #ECE6D9; border-radius: 16px;">
+            <p style="font-size: 14.5px; font-weight: 800; color: #1A1A1A; margin: 0 0 4px;">Le plan de suivi de cette culture arrive bientôt</p>
+            <p style="font-size: 12.5px; color: #4A4A4A; margin: 0;">L'équipe agronomique prépare les étapes de référence pour cette culture.</p>
+          </div>
+        </div>
+      `;
     }
 
-    return `
-      <div class="cycle-tasks-box">
-        <div class="cycle-tasks-header">
-          <div style="display: flex; align-items: center; gap: 6px;">
-            <span style="font-size: 14px;"></span>
-            <strong style="font-size: 13px; color: #1E2922;">Rappels & Travaux agronomiques</strong>
-            <span class="nav-pill-count">${tasks.filter(t => t.statut !== 'fait').length}</span>
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const endOfWeek = new Date(today);
+    endOfWeek.setDate(endOfWeek.getDate() + 7);
+    endOfWeek.setHours(23, 59, 59, 999);
+
+    // 3 groupes : "À faire cette semaine", "À venir", "Déjà fait"
+    const weekTasks = tasks.filter(t => t.statut !== 'fait' && (!t.date_prevue || new Date(t.date_prevue) <= endOfWeek))
+      .sort((a, b) => new Date(a.date_prevue || 0) - new Date(b.date_prevue || 0));
+
+    const upcomingTasks = tasks.filter(t => t.statut !== 'fait' && t.date_prevue && new Date(t.date_prevue) > endOfWeek)
+      .sort((a, b) => new Date(a.date_prevue) - new Date(b.date_prevue));
+
+    const doneTasks = tasks.filter(t => t.statut === 'fait')
+      .sort((a, b) => new Date(b.fait_le || b.created_at || 0) - new Date(a.fait_le || a.created_at || 0));
+
+    const renderTaskCard = (t) => {
+      const isDone = t.statut === 'fait';
+      const dPrevue = t.date_prevue ? new Date(t.date_prevue) : null;
+      const isOverdue = !isDone && dPrevue && dPrevue < today;
+      const etape = t.etapes_culture || {};
+      const cat = etape.categorie || 'semis';
+      const iconName = getCategoryIconName(cat);
+      const desc = etape.description || '';
+      const source = etape.source || '';
+      const periodStr = formatPeriodeEtape(t.date_prevue, t.date_fin_prevue);
+
+      return `
+        <div class="plan-step-node">
+          <div class="plan-step-dot ${isOverdue ? 'is-overdue' : (isDone ? 'is-done' : '')}">
+            <i data-lucide="${isDone ? 'check' : iconName}" style="width: 13px; height: 13px;"></i>
           </div>
-          <button type="button" class="btn-add-task-quick" onclick="openAddCycleTaskModal('${cycleId}')">
+          <div class="plan-step-card ${isOverdue ? 'is-overdue' : (isDone ? 'is-done' : '')}">
+            <div class="plan-step-header">
+              <div class="plan-step-meta-row">
+                <span class="plan-category-badge">
+                  <i data-lucide="${iconName}" style="width: 12px; height: 12px;"></i>
+                  <span>${escapeHtml(cat)}</span>
+                </span>
+                <span class="plan-period-text">${periodStr}</span>
+                ${isOverdue ? `<span class="badge-overdue-tag">En retard</span>` : ''}
+              </div>
+            </div>
+
+            <h4 class="plan-step-title">${escapeHtml(t.titre)}</h4>
+
+            <div class="plan-step-actions-bar">
+              <div class="plan-left-actions">
+                ${desc ? `
+                  <button type="button" class="btn-plan-toggle" onclick="togglePlanStepDesc('${t.id}')">
+                    <i data-lucide="chevron-down" id="chevronDesc_${t.id}" style="width: 14px; height: 14px;"></i>
+                    <span>Voir comment faire</span>
+                  </button>
+                ` : ''}
+                <button type="button" class="btn-plan-listen" onclick="listenPlanStep('${t.id}')" title="Écouter l'étape">
+                  <i data-lucide="volume-2" style="width: 14px; height: 14px;"></i>
+                  <span>Écouter</span>
+                </button>
+              </div>
+
+              ${!isDone ? `
+                <button type="button" class="btn-plan-done" onclick="markCycleTaskDone('${t.id}')">
+                  <i data-lucide="check" style="width: 15px; height: 15px;"></i>
+                  <span>C'est fait</span>
+                </button>
+              ` : `
+                <span class="plan-step-done-badge">
+                  <i data-lucide="check-circle" style="width: 14px; height: 14px;"></i>
+                  <span>Validé</span>
+                </span>
+              `}
+            </div>
+
+            ${desc ? `
+              <div class="plan-step-description-box hidden" id="descBox_${t.id}">
+                ${escapeHtml(desc)}
+                ${source ? `<div class="plan-step-source">Source : ${escapeHtml(source)}</div>` : ''}
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      `;
+    };
+
+    return `
+      <div class="plan-suivi-wrapper">
+        <div class="plan-suivi-header">
+          <div class="plan-suivi-title-group">
+            <div class="home-tasks-week-icon-box" style="width: 34px; height: 34px;">
+              <i data-lucide="clipboard-list" style="width: 18px; height: 18px;"></i>
+            </div>
+            <div>
+              <h4 class="plan-suivi-title">Plan de suivi agronomique</h4>
+              <p class="plan-suivi-subtitle">Calendrier chronologique du semis à la récolte</p>
+            </div>
+          </div>
+          <button type="button" class="btn-plan-toggle" onclick="openAddCycleTaskModal('${c.id}')">
             + Ajouter un rappel
           </button>
         </div>
-        <div class="cycle-tasks-list">
-          ${tasksListHtml}
+
+        <div class="plan-timeline-container">
+          <!-- 1. Groupe À faire cette semaine -->
+          <div class="plan-timeline-group">
+            <div class="plan-timeline-group-header">
+              <span class="plan-group-title week">À faire cette semaine</span>
+              <span class="plan-group-count">${weekTasks.length}</span>
+            </div>
+            ${weekTasks.length === 0 ? `
+              <p style="font-size: 12.5px; color: #4A4A4A; margin: 0 0 12px 14px; font-style: italic;">Aucune tâche urgente cette semaine.</p>
+            ` : `
+              <div class="plan-vertical-track">
+                ${weekTasks.map(renderTaskCard).join('')}
+              </div>
+            `}
+          </div>
+
+          <!-- 2. Groupe À venir -->
+          <div class="plan-timeline-group">
+            <div class="plan-timeline-group-header">
+              <span class="plan-group-title upcoming">À venir</span>
+              <span class="plan-group-count">${upcomingTasks.length}</span>
+            </div>
+            ${upcomingTasks.length === 0 ? `
+              <p style="font-size: 12.5px; color: #4A4A4A; margin: 0 0 12px 14px; font-style: italic;">Aucune tâche ultérieure programmée.</p>
+            ` : `
+              <div class="plan-vertical-track">
+                ${upcomingTasks.map(renderTaskCard).join('')}
+              </div>
+            `}
+          </div>
+
+          <!-- 3. Groupe Déjà fait -->
+          ${doneTasks.length > 0 ? `
+            <div class="plan-timeline-group">
+              <div class="plan-timeline-group-header">
+                <span class="plan-group-title done">Déjà fait</span>
+                <span class="plan-group-count">${doneTasks.length}</span>
+              </div>
+              <div class="plan-vertical-track">
+                ${doneTasks.map(renderTaskCard).join('')}
+              </div>
+            </div>
+          ` : ''}
         </div>
+      </div>
+    `;
+  }
+
+  function renderCycleTasksHtml(cycleId) {
+    return renderCyclePlanDeSuiviHtml(cycleId);
+  }
+
+  function getHomeTasksWeekHtml() {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const endOfWeek = new Date(today);
+    endOfWeek.setDate(endOfWeek.getDate() + 7);
+    endOfWeek.setHours(23, 59, 59, 999);
+
+    const weekTasks = (cachedCycleTasks || [])
+      .filter(t => t.statut !== 'fait' && (!t.date_prevue || new Date(t.date_prevue) <= endOfWeek))
+      .sort((a, b) => new Date(a.date_prevue || 0) - new Date(b.date_prevue || 0));
+
+    const next3 = weekTasks.slice(0, 3);
+    const hasUrgent = weekTasks.some(t => t.date_prevue && new Date(t.date_prevue) < today);
+
+    let contentHtml = '';
+    if (next3.length === 0) {
+      contentHtml = `
+        <div class="home-tasks-empty">
+          Toutes vos tâches sont à jour cette semaine ! Aucune intervention urgente requise.
+        </div>
+      `;
+    } else {
+      contentHtml = `
+        <div class="home-tasks-list">
+          ${next3.map(t => {
+            const d = t.date_prevue ? new Date(t.date_prevue) : null;
+            const isOverdue = d && d < today;
+            const c = (cachedCropCycles || []).find(item => String(item.id) === String(t.crop_cycle_id));
+            const cropName = c ? c.crop_name : 'Culture';
+            const parcelName = c?.parcels?.name || 'Parcelle';
+            const cat = t.etapes_culture?.categorie || 'semis';
+            const catIcon = getCategoryIconName(cat);
+            const periodStr = formatPeriodeEtape(t.date_prevue, t.date_fin_prevue);
+
+            let badgeHtml = '';
+            if (isOverdue) {
+              badgeHtml = `<span class="task-due-badge badge-overdue">En retard (${periodStr})</span>`;
+            } else if (d) {
+              const diffTime = d.getTime() - today.getTime();
+              const diffDays = Math.round(diffTime / (1000 * 3600 * 24));
+              if (diffDays === 0) {
+                badgeHtml = `<span class="task-due-badge badge-today">Aujourd'hui</span>`;
+              } else if (diffDays === 1) {
+                badgeHtml = `<span class="task-due-badge badge-soon">Demain</span>`;
+              } else {
+                badgeHtml = `<span class="task-due-badge">Dans ${diffDays}j (${periodStr})</span>`;
+              }
+            } else {
+              badgeHtml = `<span class="task-due-badge">Cette semaine</span>`;
+            }
+
+            return `
+              <div class="home-task-item ${isOverdue ? 'is-overdue' : ''}">
+                <div class="home-task-main">
+                  <div class="home-task-cat-icon ${isOverdue ? 'is-overdue' : ''}">
+                    <i data-lucide="${catIcon}" style="width: 18px; height: 18px;"></i>
+                  </div>
+                  <div class="home-task-info">
+                    <div class="home-task-sub">${escapeHtml(cropName)} • ${escapeHtml(parcelName)}</div>
+                    <div class="home-task-title">${escapeHtml(t.titre)}</div>
+                    <div class="home-task-date-row">${badgeHtml}</div>
+                  </div>
+                </div>
+                <button type="button" class="btn-task-quick-done" onclick="markCycleTaskDone('${t.id}')">
+                  <i data-lucide="check" style="width: 14px; height: 14px;"></i>
+                  <span>C'est fait</span>
+                </button>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+    }
+
+    return `
+      <section class="home-tasks-week-card">
+        <div class="home-tasks-week-header">
+          <div class="home-tasks-week-title-row">
+            <div class="home-tasks-week-icon-box">
+              <i data-lucide="check-square" style="width: 18px; height: 18px;"></i>
+            </div>
+            <h3 class="home-tasks-week-title">
+              <span>À faire cette semaine</span>
+              <span class="home-tasks-week-badge ${hasUrgent ? 'is-urgent' : ''}">${weekTasks.length}</span>
+            </h3>
+          </div>
+          <a href="#cycles" class="home-tasks-see-all" onclick="navigateToPage('cycles'); return false;">
+            <span>Voir tout</span>
+            <i data-lucide="arrow-right" style="width: 14px; height: 14px;"></i>
+          </a>
+        </div>
+        ${contentHtml}
+      </section>
+    `;
+  }
+
+  function renderHomeTasksWeekCard() {
+    if (!homeTasksWeekCard) return;
+    homeTasksWeekCard.innerHTML = getHomeTasksWeekHtml();
+    if (window.lucide && typeof lucide.createIcons === 'function') {
+      lucide.createIcons();
+    }
+  }
+
+  async function renderAdminEtapes() {
+    const listContainer = document.getElementById('adminEtapesList');
+    const emptyEl = document.getElementById('adminEtapesEmpty');
+    const cropSelect = document.getElementById('adminEtapesCropSelect');
+    if (!listContainer) return;
+
+    await fetchEtapesCulture();
+    await fetchModelesCultures();
+
+    const cropsMap = new Map();
+    (cachedModelesCultures || []).forEach(m => {
+      if (m.nom_culture) cropsMap.set(m.nom_culture.trim(), m.nom_culture.trim());
+    });
+    (cachedEtapesCulture || []).forEach(e => {
+      if (e.nom_culture) cropsMap.set(e.nom_culture.trim(), e.nom_culture.trim());
+    });
+
+    const allCrops = Array.from(cropsMap.keys()).sort();
+
+    if (!adminSelectedCropPlan && allCrops.length > 0) {
+      adminSelectedCropPlan = allCrops.includes('Oignon') ? 'Oignon' : allCrops[0];
+    }
+
+    if (cropSelect) {
+      cropSelect.innerHTML = allCrops.map(name => `
+        <option value="${escapeHtml(name)}" ${name === adminSelectedCropPlan ? 'selected' : ''}>
+          ${escapeHtml(name)}
+        </option>
+      `).join('');
+    }
+
+    const steps = (cachedEtapesCulture || []).filter(e => {
+      const matchCrop = (e.nom_culture || '').toLowerCase() === (adminSelectedCropPlan || '').toLowerCase();
+      if (!matchCrop) return false;
+      if (adminSelectedPhasePlan === 'pepiniere') return e.phase === 'pepiniere';
+      if (adminSelectedPhasePlan === 'champ') return e.phase === 'champ';
+      return true;
+    }).sort((a, b) => (a.ordre || 0) - (b.ordre || 0) || (a.jour_debut || 0) - (b.jour_debut || 0));
+
+    if (steps.length === 0) {
+      listContainer.innerHTML = '';
+      if (emptyEl) {
+        emptyEl.classList.remove('hidden');
+        const titleEl = document.getElementById('adminEtapesEmptyTitle');
+        if (titleEl) titleEl.textContent = `Aucune étape pour "${adminSelectedCropPlan || 'cette culture'}"`;
+      }
+      return;
+    }
+
+    if (emptyEl) emptyEl.classList.add('hidden');
+
+    listContainer.innerHTML = steps.map(s => {
+      const isInactive = !s.actif;
+      const catIcon = getCategoryIconName(s.categorie);
+      const daysText = s.jour_fin && s.jour_fin !== s.jour_debut 
+        ? `J+${s.jour_debut} à J+${s.jour_fin}` 
+        : `J+${s.jour_debut}`;
+
+      return `
+        <div class="admin-etape-item-card ${isInactive ? 'is-inactive' : ''}">
+          <div class="admin-etape-item-top">
+            <div class="admin-etape-item-badges">
+              <span class="admin-etape-order-badge">Étape ${s.ordre || 1}</span>
+              <span class="admin-etape-phase-badge">${s.phase === 'pepiniere' ? 'Pépinière' : 'Champ'}</span>
+              <span class="admin-etape-days-badge">${daysText}</span>
+              <span class="plan-category-badge">
+                <i data-lucide="${catIcon}" style="width: 12px; height: 12px;"></i>
+                <span>${escapeHtml(s.categorie)}</span>
+              </span>
+              ${s.mode_depart ? `<span style="font-size: 11px; color: #4A4A4A; background: #FAF7F0; padding: 2px 7px; border-radius: 6px; border: 1px solid #ECE6D9;">${s.mode_depart}</span>` : ''}
+              ${isInactive ? `<span style="font-size: 11px; background: #EEEEEE; color: #777; padding: 2px 8px; border-radius: 999px; font-weight: 700;">Désactivée</span>` : ''}
+            </div>
+
+            <div class="admin-etape-actions">
+              <button type="button" class="btn-secondary" onclick="openEditEtapeModal('${s.id}')" style="padding: 6px 12px; font-size: 12px; font-weight: 700; border-radius: 8px;">
+                Modifier
+              </button>
+              <button type="button" class="btn-secondary" onclick="toggleEtapeActive('${s.id}', ${s.actif})" style="padding: 6px 12px; font-size: 12px; font-weight: 700; border-radius: 8px;">
+                ${s.actif ? 'Désactiver' : 'Activer'}
+              </button>
+              <button type="button" class="btn-secondary" onclick="deleteEtapeAdmin('${s.id}')" style="padding: 6px 12px; font-size: 12px; font-weight: 700; color: #C0392B; border-color: #F8B4B0; border-radius: 8px;">
+                Supprimer
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <h4 style="font-size: 15.5px; font-weight: 800; color: #1A1A1A; margin: 0 0 6px;">${escapeHtml(s.titre)}</h4>
+            ${s.description ? `<p style="font-size: 13px; color: #4A4A4A; line-height: 1.5; margin: 0 0 6px;">${escapeHtml(s.description)}</p>` : ''}
+            ${s.source ? `<div style="font-size: 11.5px; font-weight: 600; color: #05507E; font-style: italic;">Source : ${escapeHtml(s.source)}</div>` : ''}
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    if (window.lucide && typeof lucide.createIcons === 'function') {
+      lucide.createIcons();
+    }
+  }
+
+  function openAddEtapeModal() {
+    currentEditingEtapeId = null;
+    const title = document.getElementById('modalAdminEtapeTitle');
+    const inputId = document.getElementById('adminEtapeId');
+    const inputCulture = document.getElementById('adminEtapeNomCulture');
+    const inputCat = document.getElementById('adminEtapeCategorie');
+    const inputPhase = document.getElementById('adminEtapePhase');
+    const inputMode = document.getElementById('adminEtapeModeDepart');
+    const inputDebut = document.getElementById('adminEtapeJourDebut');
+    const inputFin = document.getElementById('adminEtapeJourFin');
+    const inputOrdre = document.getElementById('adminEtapeOrdre');
+    const inputTitre = document.getElementById('adminEtapeTitre');
+    const inputDesc = document.getElementById('adminEtapeDescription');
+    const inputSource = document.getElementById('adminEtapeSource');
+    const inputActif = document.getElementById('adminEtapeActif');
+
+    if (title) title.textContent = `Ajouter une étape au plan (${adminSelectedCropPlan || 'Culture'})`;
+    if (inputId) inputId.value = '';
+    if (inputCulture) inputCulture.value = adminSelectedCropPlan || 'Oignon';
+    if (inputCat) inputCat.value = 'semis';
+    if (inputPhase) inputPhase.value = 'champ';
+    if (inputMode) inputMode.value = '';
+    if (inputDebut) inputDebut.value = 0;
+    if (inputFin) inputFin.value = '';
+    if (inputOrdre) {
+      const existing = (cachedEtapesCulture || []).filter(e => e.nom_culture.toLowerCase() === (adminSelectedCropPlan || '').toLowerCase());
+      inputOrdre.value = existing.length + 1;
+    }
+    if (inputTitre) inputTitre.value = '';
+    if (inputDesc) inputDesc.value = '';
+    if (inputSource) inputSource.value = 'Guide technique INERA';
+    if (inputActif) inputActif.checked = true;
+
+    if (modalAdminEtape) modalAdminEtape.classList.remove('hidden');
+  }
+
+  function openEditEtapeModal(etapeId) {
+    const s = (cachedEtapesCulture || []).find(e => String(e.id) === String(etapeId));
+    if (!s) return;
+    currentEditingEtapeId = s.id;
+
+    const title = document.getElementById('modalAdminEtapeTitle');
+    const inputId = document.getElementById('adminEtapeId');
+    const inputCulture = document.getElementById('adminEtapeNomCulture');
+    const inputCat = document.getElementById('adminEtapeCategorie');
+    const inputPhase = document.getElementById('adminEtapePhase');
+    const inputMode = document.getElementById('adminEtapeModeDepart');
+    const inputDebut = document.getElementById('adminEtapeJourDebut');
+    const inputFin = document.getElementById('adminEtapeJourFin');
+    const inputOrdre = document.getElementById('adminEtapeOrdre');
+    const inputTitre = document.getElementById('adminEtapeTitre');
+    const inputDesc = document.getElementById('adminEtapeDescription');
+    const inputSource = document.getElementById('adminEtapeSource');
+    const inputActif = document.getElementById('adminEtapeActif');
+
+    if (title) title.textContent = `Modifier l'étape : ${s.titre}`;
+    if (inputId) inputId.value = s.id;
+    if (inputCulture) inputCulture.value = s.nom_culture;
+    if (inputCat) inputCat.value = s.categorie;
+    if (inputPhase) inputPhase.value = s.phase;
+    if (inputMode) inputMode.value = s.mode_depart || '';
+    if (inputDebut) inputDebut.value = s.jour_debut ?? 0;
+    if (inputFin) inputFin.value = s.jour_fin ?? '';
+    if (inputOrdre) inputOrdre.value = s.ordre ?? 1;
+    if (inputTitre) inputTitre.value = s.titre || '';
+    if (inputDesc) inputDesc.value = s.description || '';
+    if (inputSource) inputSource.value = s.source || '';
+    if (inputActif) inputActif.checked = s.actif !== false;
+
+    if (modalAdminEtape) modalAdminEtape.classList.remove('hidden');
+  }
+
+  async function handleSaveAdminEtape(e) {
+    e.preventDefault();
+    if (!supabaseClient) return;
+
+    const btnSubmit = document.getElementById('btnSaveAdminEtape');
+    const btnText = document.getElementById('btnSaveAdminEtapeText');
+    const id = document.getElementById('adminEtapeId')?.value;
+    const nomCulture = document.getElementById('adminEtapeNomCulture')?.value?.trim();
+    const categorie = document.getElementById('adminEtapeCategorie')?.value;
+    const phase = document.getElementById('adminEtapePhase')?.value;
+    const modeDepart = document.getElementById('adminEtapeModeDepart')?.value || null;
+    const jourDebut = parseInt(document.getElementById('adminEtapeJourDebut')?.value || '0', 10);
+    const rawFin = document.getElementById('adminEtapeJourFin')?.value;
+    const jourFin = rawFin !== '' ? parseInt(rawFin, 10) : null;
+    const ordre = parseInt(document.getElementById('adminEtapeOrdre')?.value || '1', 10);
+    const titre = document.getElementById('adminEtapeTitre')?.value?.trim();
+    const description = document.getElementById('adminEtapeDescription')?.value?.trim() || null;
+    const source = document.getElementById('adminEtapeSource')?.value?.trim() || null;
+    const actif = document.getElementById('adminEtapeActif')?.checked ?? true;
+
+    if (!nomCulture || !titre) {
+      alert('Veuillez renseigner le nom de la culture et le titre de l\'étape.');
+      return;
+    }
+
+    const payload = {
+      nom_culture: nomCulture,
+      categorie: categorie,
+      phase: phase,
+      mode_depart: modeDepart,
+      jour_debut: jourDebut,
+      jour_fin: jourFin,
+      ordre: ordre,
+      titre: titre,
+      description: description,
+      source: source,
+      actif: actif
+    };
+
+    try {
+      if (btnSubmit) btnSubmit.disabled = true;
+      if (btnText) btnText.textContent = 'Enregistrement...';
+
+      let err = null;
+      if (id) {
+        const { error } = await supabaseClient.from('etapes_culture').update(payload).eq('id', id);
+        err = error;
+      } else {
+        const { error } = await supabaseClient.from('etapes_culture').insert(payload);
+        err = error;
+      }
+
+      if (err) throw err;
+
+      showToast('Étape enregistrée', `${titre} a été enregistré dans le plan de suivi.`);
+      if (modalAdminEtape) modalAdminEtape.classList.add('hidden');
+      adminSelectedCropPlan = nomCulture;
+      await fetchEtapesCulture();
+      renderAdminEtapes();
+    } catch (err) {
+      console.error('Erreur handleSaveAdminEtape :', err);
+      showToast('Erreur', err.message || 'Impossible d\'enregistrer l\'étape.');
+    } finally {
+      if (btnSubmit) btnSubmit.disabled = false;
+      if (btnText) btnText.textContent = 'Enregistrer l\'étape';
+    }
+  }
+
+  async function toggleEtapeActive(etapeId, currentActif) {
+    if (!supabaseClient) return;
+    try {
+      const { error } = await supabaseClient
+        .from('etapes_culture').update({ actif: !currentActif }).eq('id', etapeId);
+      if (!error) {
+        showToast('Statut mis à jour', `L'étape est maintenant ${!currentActif ? 'active' : 'désactivée'}.`);
+        await fetchEtapesCulture();
+        renderAdminEtapes();
+      }
+    } catch (err) {
+      console.error('Erreur toggleEtapeActive :', err);
+    }
+  }
+
+  async function deleteEtapeAdmin(etapeId) {
+    if (!confirm('Voulez-vous vraiment supprimer cette étape du plan de suivi ?')) return;
+    if (!supabaseClient) return;
+    try {
+      const { error } = await supabaseClient
+        .from('etapes_culture')
+        .delete()
+        .eq('id', etapeId);
+      if (!error) {
+        showToast('Étape supprimée', 'L\'étape a été retirée du plan de suivi.');
+        await fetchEtapesCulture();
+        renderAdminEtapes();
+      }
+    } catch (err) {
+      console.error('Erreur deleteEtapeAdmin :', err);
+    }
+  }
+
+  function closeModalAdminEtape() {
+    if (modalAdminEtape) modalAdminEtape.classList.add('hidden');
+  }
+
+  // Écouteurs de la page d'administration des étapes de suivi
+  const btnOpenAddEtapeModal = document.getElementById('btnOpenAddEtapeModal');
+  if (btnOpenAddEtapeModal) {
+    btnOpenAddEtapeModal.addEventListener('click', openAddEtapeModal);
+  }
+  const btnCloseModalAdminEtape = document.getElementById('btnCloseModalAdminEtape');
+  if (btnCloseModalAdminEtape) {
+    btnCloseModalAdminEtape.addEventListener('click', closeModalAdminEtape);
+  }
+  const btnCancelAdminEtape = document.getElementById('btnCancelAdminEtape');
+  if (btnCancelAdminEtape) {
+    btnCancelAdminEtape.addEventListener('click', closeModalAdminEtape);
+  }
+  if (modalAdminEtape) {
+    modalAdminEtape.addEventListener('click', (e) => {
+      if (e.target === modalAdminEtape) closeModalAdminEtape();
+    });
+  }
+  if (formAdminEtape) {
+    formAdminEtape.addEventListener('submit', handleSaveAdminEtape);
+  }
+  const adminEtapesCropSelect = document.getElementById('adminEtapesCropSelect');
+  if (adminEtapesCropSelect) {
+    adminEtapesCropSelect.addEventListener('change', (e) => {
+      adminSelectedCropPlan = e.target.value;
+      renderAdminEtapes();
+    });
+  }
+  document.querySelectorAll('#adminEtapesPhaseFilterGroup .type-filter-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('#adminEtapesPhaseFilterGroup .type-filter-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      adminSelectedPhasePlan = chip.getAttribute('data-phase') || 'all';
+      renderAdminEtapes();
+    });
+  });
+
+  function getMobileAdminEtapesHtml() {
+    const cropsMap = new Map();
+    (cachedModelesCultures || []).forEach(m => {
+      if (m.nom_culture) cropsMap.set(m.nom_culture.trim(), m.nom_culture.trim());
+    });
+    (cachedEtapesCulture || []).forEach(e => {
+      if (e.nom_culture) cropsMap.set(e.nom_culture.trim(), e.nom_culture.trim());
+    });
+    const allCrops = Array.from(cropsMap.keys()).sort();
+    if (!adminSelectedCropPlan && allCrops.length > 0) {
+      adminSelectedCropPlan = allCrops.includes('Oignon') ? 'Oignon' : allCrops[0];
+    }
+
+    const steps = (cachedEtapesCulture || []).filter(e => {
+      const matchCrop = (e.nom_culture || '').toLowerCase() === (adminSelectedCropPlan || '').toLowerCase();
+      if (!matchCrop) return false;
+      if (adminSelectedPhasePlan === 'pepiniere') return e.phase === 'pepiniere';
+      if (adminSelectedPhasePlan === 'champ') return e.phase === 'champ';
+      return true;
+    }).sort((a, b) => (a.ordre || 0) - (b.ordre || 0) || (a.jour_debut || 0) - (b.jour_debut || 0));
+
+    return `
+      <div style="margin-bottom: 14px;">
+        <a href="#dashboard" class="breadcrumb-back-link mobile-back-to-dashboard" style="font-size: 12px; margin-bottom: 8px; display: inline-flex; align-items: center; gap: 4px; color: #05507E; font-weight: 700; text-decoration: none;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+          <span>Tableau de bord</span>
+        </a>
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+          <div>
+            <h2 style="font-size: 18px; font-weight: 800; color: #1A1A1A; margin: 0;">Plans de suivi</h2>
+            <p style="font-size: 11.5px; color: #4A4A4A; margin: 2px 0 0;">Administration des étapes</p>
+          </div>
+          <button type="button" class="btn-primary" onclick="openAddEtapeModal()" style="padding: 7px 12px; font-size: 12px; border-radius: 8px; font-weight: 700;">
+            + Ajouter
+          </button>
+        </div>
+      </div>
+
+      <!-- Sélecteur de culture mobile -->
+      <div style="background: #FFFFFF; border: 1px solid #ECE6D9; border-radius: 12px; padding: 10px 12px; margin-bottom: 12px;">
+        <label style="font-size: 11.5px; font-weight: 700; color: #4A4A4A; display: block; margin-bottom: 4px;">Choisir la culture :</label>
+        <select onchange="adminSelectedCropPlan = this.value; renderMobileView();" style="width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid #ECE6D9; font-size: 13px; font-weight: 700;">
+          ${allCrops.map(name => `<option value="${escapeHtml(name)}" ${name === adminSelectedCropPlan ? 'selected' : ''}>${escapeHtml(name)}</option>`).join('')}
+        </select>
+      </div>
+
+      <!-- Liste des étapes mobile -->
+      <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px;">
+        ${steps.length === 0 ? `
+          <div style="text-align: center; padding: 24px; background: #FFF; border-radius: 12px; border: 1px dashed #ECE6D9;">
+            <p style="font-size: 13px; font-weight: 700; color: #1A1A1A; margin: 0 0 4px;">Aucune étape pour ${escapeHtml(adminSelectedCropPlan)}</p>
+            <p style="font-size: 11.5px; color: #4A4A4A; margin: 0;">Appuyez sur « + Ajouter » pour créer la première étape.</p>
+          </div>
+        ` : steps.map(s => `
+          <div style="background: #FFF; border: 1px solid #ECE6D9; border-radius: 12px; padding: 12px 14px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <span style="font-size: 11px; font-weight: 800; background: #05507E; color: #FFF; padding: 2px 7px; border-radius: 6px;">Étape ${s.ordre || 1}</span>
+              <span style="font-size: 11px; font-weight: 700; color: #A85A1C; background: #F6EADF; padding: 2px 7px; border-radius: 6px;">J+${s.jour_debut}${s.jour_fin ? ' à J+' + s.jour_fin : ''}</span>
+            </div>
+            <h4 style="font-size: 14px; font-weight: 800; color: #1A1A1A; margin: 0 0 4px;">${escapeHtml(s.titre)}</h4>
+            ${s.description ? `<p style="font-size: 12px; color: #4A4A4A; margin: 0 0 8px; line-height: 1.4;">${escapeHtml(s.description)}</p>` : ''}
+            <div style="display: flex; gap: 6px; border-top: 1px solid #ECE6D9; padding-top: 8px;">
+              <button type="button" class="btn-secondary" onclick="openEditEtapeModal('${s.id}')" style="flex: 1; justify-content: center; font-size: 11.5px; padding: 6px;">Modifier</button>
+              <button type="button" class="btn-secondary" onclick="toggleEtapeActive('${s.id}', ${s.actif})" style="flex: 1; justify-content: center; font-size: 11.5px; padding: 6px;">${s.actif ? 'Désactiver' : 'Activer'}</button>
+              <button type="button" class="btn-secondary" onclick="deleteEtapeAdmin('${s.id}')" style="color: #C0392B; border-color: #F8B4B0; font-size: 11.5px; padding: 6px;">Suppr.</button>
+            </div>
+          </div>
+        `).join('')}
       </div>
     `;
   }
@@ -9859,6 +10674,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 <strong style="font-family: inherit; font-weight: 800; color: ${gain >= 0 ? '#1E5E2A' : '#C53030'};">${gain >= 0 ? '+' : ''}${formatFrancsCFA(gain)}</strong>
               </div>
 
+              <!-- Plan de suivi agronomique du cycle -->
+              ${renderCycleTasksHtml(c.id)}
+
               <!-- Actions du cycle -->
               <div style="display: flex; justify-content: flex-end; gap: 6px; margin-top: 10px;">
                 <button type="button" onclick="openAddCycleTaskModal('${c.id}')" style="padding: 4px 8px; font-size: 11px; background: #EAF4E6; color: #1E5E2A; border: 1px solid #C4DFC0; border-radius: 6px; font-weight: 700; cursor: pointer;"> + Tâche</button>
@@ -10946,6 +11764,8 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchModelesCultures().catch(() => {});
     fetchRegions().catch(() => {});
     fetchUserParcels(pKey).catch(() => {});
+    fetchEtapesCulture().catch(() => {});
+    fetchCycleTasks(pKey).then(() => renderHomeTasksWeekCard()).catch(() => {});
     autoDetectResponsiveMode();
   }
   window.PROFILES_DATA = PROFILES_DATA;
@@ -10976,6 +11796,18 @@ document.addEventListener('DOMContentLoaded', () => {
   window.renderParcellesPage = renderParcellesPage;
   window.renderUserConseils = renderUserConseils;
   window.getUserActiveCropTerms = getUserActiveCropTerms;
+  window.togglePlanStepDesc = togglePlanStepDesc;
+  window.listenPlanStep = listenPlanStep;
+  window.markCycleTaskDone = markCycleTaskDone;
+  window.renderHomeTasksWeekCard = renderHomeTasksWeekCard;
+  window.renderAdminEtapes = renderAdminEtapes;
+  window.openAddEtapeModal = openAddEtapeModal;
+  window.openEditEtapeModal = openEditEtapeModal;
+  window.toggleEtapeActive = toggleEtapeActive;
+  window.deleteEtapeAdmin = deleteEtapeAdmin;
+  window.closeModalAdminEtape = closeModalAdminEtape;
+  window.fetchEtapesCulture = fetchEtapesCulture;
+  window.fetchCycleTasks = fetchCycleTasks;
   window.setTestCaches = function(p, c, e, r, reg, mod) {
     if (p) cachedUserParcels = p;
     if (c) {

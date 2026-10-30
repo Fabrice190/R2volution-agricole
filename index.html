@@ -15,7 +15,7 @@
   <script src="https://unpkg.com/lucide@0.453.0/dist/umd/lucide.min.js"></script>
 
   <link rel="stylesheet" href="styles/theme.css?v=20261027.4">
-  <link rel="stylesheet" href="styles/main.css?v=20261027.4">
+  <link rel="stylesheet" href="styles/main.css?v=20261030.1">
 
   <!-- CONFIGURATION PWA (PROGRESSIVE WEB APP) -->
   <link rel="manifest" href="manifest.json">
@@ -538,6 +538,13 @@
               <span class="nav-label">Gérer les modèles</span>
               <span class="nav-badge-neutral" id="navAdminModelesBadge">3</span>
             </a>
+            <a href="#admin-etapes" class="nav-item" data-page="admin-etapes" id="navLinkAdminEtapes">
+              <span class="nav-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+              </span>
+              <span class="nav-label">Plans de suivi</span>
+              <span class="nav-badge-neutral" id="navAdminEtapesBadge">0</span>
+            </a>
             <a href="#admin-materiels" class="nav-item" data-page="admin-materiels" id="navLinkAdminMateriels">
               <span class="nav-icon">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
@@ -739,6 +746,11 @@
                 </div>
               </div>
             </div>
+          </section>
+ 
+          <!-- CARTE "À FAIRE CETTE SEMAINE" (Plan de suivi inter-parcelles) -->
+          <section class="home-tasks-week-card" id="homeTasksWeekCard">
+            <!-- Injecté dynamiquement par JavaScript -->
           </section>
 
           <!-- 2. DEUX PETITES CARTES BLANCHES CÔTE À CÔTE -->
@@ -1470,6 +1482,59 @@
             <div id="declaredCropsList">
               <!-- Injecté dynamiquement par JavaScript -->
             </div>
+          </div>
+        </div>
+
+        <!-- ==========================================
+             PAGE GÉRER LES PLANS DE SUIVI (ADMIN)
+             ========================================== -->
+        <div class="dashboard-body hidden" id="pageAdminEtapes">
+          <div class="page-header-admin-fin">
+            <div>
+              <div class="admin-breadcrumbs">
+                <a href="#dashboard" class="breadcrumb-back-link" style="display:inline-flex;margin-bottom:0;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+                  <span>Tableau de bord</span>
+                </a>
+                <span class="bullet-sep">•</span>
+                <span>Administration</span>
+              </div>
+              <h1 class="page-main-title">Gérer les plans de suivi</h1>
+              <p class="page-subtitle">Configurez le calendrier agronomique des étapes, du semis à la récolte, pour chaque culture.</p>
+            </div>
+            <div class="page-header-actions-group">
+              <button type="button" class="btn-primary" id="btnOpenAddEtapeModal">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                <span>+ Ajouter une étape</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Barre de sélection de culture et filtres -->
+          <div class="admin-etapes-header-bar">
+            <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+              <label for="adminEtapesCropSelect" style="font-size: 13.5px; font-weight: 700; color: #1A1A1A;">Culture :</label>
+              <select id="adminEtapesCropSelect" class="admin-etapes-crop-select">
+                <!-- Rempli dynamiquement -->
+              </select>
+            </div>
+            <div class="filter-types-scroll" id="adminEtapesPhaseFilterGroup">
+              <button type="button" class="type-filter-chip active" data-phase="all">Toutes les phases</button>
+              <button type="button" class="type-filter-chip" data-phase="pepiniere">Pépinière</button>
+              <button type="button" class="type-filter-chip" data-phase="champ">Champ</button>
+            </div>
+          </div>
+
+          <!-- Liste des étapes pour la culture sélectionnée -->
+          <div id="adminEtapesList" style="display: flex; flex-direction: column; gap: 12px;">
+            <!-- Injecté dynamiquement par JavaScript -->
+          </div>
+
+          <!-- État vide si aucune étape -->
+          <div class="financements-empty-state hidden" id="adminEtapesEmpty">
+            <div class="empty-state-icon"></div>
+            <h3 id="adminEtapesEmptyTitle">Aucune étape pour cette culture</h3>
+            <p id="adminEtapesEmptySub">Cliquez sur « + Ajouter une étape » pour créer le plan de suivi agronomique.</p>
           </div>
         </div>
 
@@ -5009,6 +5074,102 @@
     </div>
   </div>
 
+  <!-- MODALE AJOUT / MODIFICATION D'ÉTAPE DE SUIVI (ADMIN) -->
+  <div class="modal-backdrop hidden" id="modalAdminEtape" role="dialog" aria-modal="true">
+    <div class="modal-dialog" style="max-width: 600px; padding: 24px; border-radius: 20px; background: #FFFFFF;">
+      <div class="modal-header" style="margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center;">
+        <h3 class="modal-title" id="modalAdminEtapeTitle" style="font-size: 18px; font-weight: 800; color: #1A1A1A; margin: 0;">Ajouter une étape au plan</h3>
+        <button type="button" class="modal-close" id="btnCloseModalAdminEtape" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #4A4A4A;">&times;</button>
+      </div>
+      <form id="formAdminEtape">
+        <input type="hidden" id="adminEtapeId">
+        
+        <div class="form-row" style="display: flex; gap: 12px; margin-bottom: 12px;">
+          <div class="form-group" style="flex: 1;">
+            <label for="adminEtapeNomCulture" style="font-size: 13px; font-weight: 700; color: #1A1A1A; display: block; margin-bottom: 4px;">Nom de la culture <span class="required" style="color: #C0392B;">*</span></label>
+            <input type="text" id="adminEtapeNomCulture" class="form-input" placeholder="Ex: Oignon, Tomate, Maïs..." required style="width: 100%; padding: 10px 12px; border: 1.5px solid #ECE6D9; border-radius: 10px;">
+          </div>
+          <div class="form-group" style="flex: 1;">
+            <label for="adminEtapeCategorie" style="font-size: 13px; font-weight: 700; color: #1A1A1A; display: block; margin-bottom: 4px;">Catégorie <span class="required" style="color: #C0392B;">*</span></label>
+            <select id="adminEtapeCategorie" class="form-select" required style="width: 100%; padding: 10px 12px; border: 1.5px solid #ECE6D9; border-radius: 10px;">
+              <option value="préparation">Préparation du sol</option>
+              <option value="semis" selected>Semis / Repiquage</option>
+              <option value="arrosage">Arrosage</option>
+              <option value="désherbage">Désherbage / Sarclage</option>
+              <option value="fumure">Fumure / Fertilisation</option>
+              <option value="protection">Protection phytosanitaire</option>
+              <option value="récolte">Récolte</option>
+              <option value="conservation">Conservation / Séchage</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row" style="display: flex; gap: 12px; margin-bottom: 12px;">
+          <div class="form-group" style="flex: 1;">
+            <label for="adminEtapePhase" style="font-size: 13px; font-weight: 700; color: #1A1A1A; display: block; margin-bottom: 4px;">Phase <span class="required" style="color: #C0392B;">*</span></label>
+            <select id="adminEtapePhase" class="form-select" required style="width: 100%; padding: 10px 12px; border: 1.5px solid #ECE6D9; border-radius: 10px;">
+              <option value="pepiniere">Pépinière</option>
+              <option value="champ" selected>Champ (pleine terre)</option>
+            </select>
+          </div>
+          <div class="form-group" style="flex: 1;">
+            <label for="adminEtapeModeDepart" style="font-size: 13px; font-weight: 700; color: #1A1A1A; display: block; margin-bottom: 4px;">Mode de départ applicable</label>
+            <select id="adminEtapeModeDepart" class="form-select" style="width: 100%; padding: 10px 12px; border: 1.5px solid #ECE6D9; border-radius: 10px;">
+              <option value="">Tous les modes (pépinière & semis direct)</option>
+              <option value="pepiniere">Pépinière uniquement</option>
+              <option value="semis_direct">Semis direct uniquement</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row" style="display: flex; gap: 12px; margin-bottom: 12px;">
+          <div class="form-group" style="flex: 1;">
+            <label for="adminEtapeJourDebut" style="font-size: 13px; font-weight: 700; color: #1A1A1A; display: block; margin-bottom: 4px;">Jour début (J+) <span class="required" style="color: #C0392B;">*</span></label>
+            <input type="number" id="adminEtapeJourDebut" class="form-input" min="0" placeholder="Ex: 0" required style="width: 100%; padding: 10px 12px; border: 1.5px solid #ECE6D9; border-radius: 10px;">
+            <small style="color: #7C8781; font-size: 11px;">Semis en pépinière ou repiquage en champ</small>
+          </div>
+          <div class="form-group" style="flex: 1;">
+            <label for="adminEtapeJourFin" style="font-size: 13px; font-weight: 700; color: #1A1A1A; display: block; margin-bottom: 4px;">Jour fin (J+ facultatif)</label>
+            <input type="number" id="adminEtapeJourFin" class="form-input" min="0" placeholder="Ex: 3" style="width: 100%; padding: 10px 12px; border: 1.5px solid #ECE6D9; border-radius: 10px;">
+            <small style="color: #7C8781; font-size: 11px;">Si période étalée (ex: J+0 à J+3)</small>
+          </div>
+          <div class="form-group" style="width: 110px;">
+            <label for="adminEtapeOrdre" style="font-size: 13px; font-weight: 700; color: #1A1A1A; display: block; margin-bottom: 4px;">Ordre</label>
+            <input type="number" id="adminEtapeOrdre" class="form-input" min="1" value="1" style="width: 100%; padding: 10px 12px; border: 1.5px solid #ECE6D9; border-radius: 10px;">
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 12px;">
+          <label for="adminEtapeTitre" style="font-size: 13px; font-weight: 700; color: #1A1A1A; display: block; margin-bottom: 4px;">Titre de l'étape <span class="required" style="color: #C0392B;">*</span></label>
+          <input type="text" id="adminEtapeTitre" class="form-input" placeholder="Ex: Premier sarclobinage et buttage" required style="width: 100%; padding: 10px 12px; border: 1.5px solid #ECE6D9; border-radius: 10px;">
+        </div>
+
+        <div class="form-group" style="margin-bottom: 12px;">
+          <label for="adminEtapeDescription" style="font-size: 13px; font-weight: 700; color: #1A1A1A; display: block; margin-bottom: 4px;">Description détaillée & conseils pratiques</label>
+          <textarea id="adminEtapeDescription" class="form-textarea" rows="3" placeholder="Explications claires, dosage conseillé, précautions agronomiques..." style="width: 100%; padding: 10px 12px; border: 1.5px solid #ECE6D9; border-radius: 10px;"></textarea>
+        </div>
+
+        <div class="form-row" style="display: flex; gap: 12px; align-items: center; margin-bottom: 16px;">
+          <div class="form-group" style="flex: 1;">
+            <label for="adminEtapeSource" style="font-size: 13px; font-weight: 700; color: #1A1A1A; display: block; margin-bottom: 4px;">Source agronomique</label>
+            <input type="text" id="adminEtapeSource" class="form-input" placeholder="Ex: Guide INERA, DGPV" style="width: 100%; padding: 10px 12px; border: 1.5px solid #ECE6D9; border-radius: 10px;">
+          </div>
+          <div class="form-group" style="display: flex; align-items: center; gap: 8px; margin-top: 18px;">
+            <input type="checkbox" id="adminEtapeActif" checked style="width: 18px; height: 18px; accent-color: #237A2B;">
+            <label for="adminEtapeActif" style="margin: 0; font-size: 13px; font-weight: 700; cursor: pointer;">Étape active</label>
+          </div>
+        </div>
+
+        <div class="modal-footer" style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px; padding-top: 14px; border-top: 1px solid #ECE6D9;">
+          <button type="button" class="btn-secondary" id="btnCancelAdminEtape" style="padding: 10px 16px; border-radius: 10px;">Annuler</button>
+          <button type="submit" class="btn-primary" id="btnSaveAdminEtape" style="padding: 10px 20px; border-radius: 10px; background: #05507E; color: #FFF; border: none; font-weight: 700;">
+            <span id="btnSaveAdminEtapeText">Enregistrer l'étape</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- MODALE LÉGAL : CONDITIONS & CONFIDENTIALITÉ (BIENTÔT DISPONIBLE) -->
   <div class="modal-backdrop hidden" id="modalLegalNotice" role="dialog" aria-modal="true">
     <div class="modal-dialog" style="max-width: 440px; padding: 24px 20px; border-radius: 20px; background: #FFFFFF; text-align: center;">
@@ -5044,6 +5205,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <!-- SCRIPT APPLICATION -->
-  <script src="scripts/app.js?v=20261027.4"></script>
+  <script src="scripts/app.js?v=20261030.1"></script>
 </body>
 </html>
