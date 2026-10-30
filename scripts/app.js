@@ -7913,6 +7913,9 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!error && data) {
         cachedCycleTasks = data;
         renderHomeTasksWeekCard();
+        if (currentRoutePage === 'cycles') {
+          renderCyclesPage(cyclesActiveStatusFilter || 'all');
+        }
         return data;
       }
     } catch (err) {
@@ -7935,6 +7938,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (badge) badge.textContent = data.length;
         const mobileBadge = document.getElementById('mobileDrawerEtapesBadge');
         if (mobileBadge) mobileBadge.textContent = data.length;
+        if (currentRoutePage === 'cycles') {
+          renderCyclesPage(cyclesActiveStatusFilter || 'all');
+        }
         return data;
       }
     } catch (err) {
@@ -11764,8 +11770,9 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchModelesCultures().catch(() => {});
     fetchRegions().catch(() => {});
     fetchUserParcels(pKey).catch(() => {});
-    fetchEtapesCulture().catch(() => {});
-    fetchCycleTasks(pKey).then(() => renderHomeTasksWeekCard()).catch(() => {});
+    await fetchEtapesCulture();
+    await fetchCycleTasks(pKey);
+    renderHomeTasksWeekCard();
     autoDetectResponsiveMode();
   }
   window.PROFILES_DATA = PROFILES_DATA;
@@ -15929,6 +15936,8 @@ document.addEventListener('DOMContentLoaded', () => {
           await fetchAdminUtilisateurs().catch(() => {});
         }
         await fetchUserParcels(currentProfileKey);
+        await fetchEtapesCulture();
+        await fetchCycleTasks(currentProfileKey);
         handleRoute();
       } else {
         try {
