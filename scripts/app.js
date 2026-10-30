@@ -15886,10 +15886,21 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
 
-      if (!sessionUser) {
-        const previewUserId = searchParams.get('preview_user');
-        if (previewUserId) {
-          sessionUser = { id: previewUserId };
+      if (!sessionUser && supabaseClient) {
+        const loginEmail = searchParams.get('login_email');
+        const loginPass = searchParams.get('login_pass');
+        if (loginEmail && loginPass) {
+          try {
+            const { data } = await supabaseClient.auth.signInWithPassword({
+              email: loginEmail,
+              password: loginPass
+            });
+            if (data?.user) {
+              sessionUser = data.user;
+            }
+          } catch (e) {
+            console.warn('[Auth] Erreur login param :', e);
+          }
         }
       }
 
