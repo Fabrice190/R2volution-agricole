@@ -15886,6 +15886,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
 
+      if (!sessionUser) {
+        const previewUserId = searchParams.get('preview_user');
+        if (previewUserId) {
+          sessionUser = { id: previewUserId };
+        }
+      }
+
       // Charger les financements, conseils, modèles, matériels, régions, météo, notifications, annonces et signalements dès le démarrage
       fetchFinancements().catch(() => {});
       fetchConseils().catch(() => {});
